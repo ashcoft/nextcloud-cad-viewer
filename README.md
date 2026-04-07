@@ -10,12 +10,12 @@ A native Nextcloud app providing DWG and DXF file viewing capabilities integrate
 - 🖥️ Fullscreen mode support
 - 📱 Responsive design
 - 🔄 Easy updates from upstream cad-viewer
-- 🧪 Fully tested and compatible with Nextcloud 32 & 33
+- 🧪 Fully tested and compatible with Nextcloud 33
 
 ## Requirements
 
-- Nextcloud 32 or 33
-- PHP 7.4 or higher
+- Nextcloud 33
+- PHP 8.5 or higher
 - Node.js 14+ (for development)
 
 ## Installation
