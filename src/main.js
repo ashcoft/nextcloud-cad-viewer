@@ -1,1 +1,9 @@
-import { createApp } from 'vue';import CadViewerApp from './App.vue';import router from './router';const app = createApp(CadViewerApp);app.use(router);app.mount('#cad-viewer-app');export default app;
+import { createApp } from 'vue'
+import CadViewerApp from './App.vue'
+import router from './router'
+
+const app = createApp(CadViewerApp)
+app.use(router)
+app.mount('#cad-viewer-app')
+
+export default app

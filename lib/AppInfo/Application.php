@@ -1,4 +1,5 @@
 <?php
+
 namespace OCA\CadViewer\AppInfo;
 
 use OCP\AppFramework\App;
@@ -6,7 +7,7 @@ use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCA\CadViewer\Listener\LoadViewer;
-use OCP\Files\IMimeTypeDetector;
+use OCP\Files\Events\BeforeTemplateRenderedEvent;
 
 class Application extends App implements IBootstrap {
     const APP_ID = 'cad_viewer';
@@ -16,7 +17,7 @@ class Application extends App implements IBootstrap {
     }
 
     public function register(IRegistrationContext $context): void {
-        $context->registerEventListener(\OCP\Files\Events\BeforeDirectoryRendered::class, LoadViewer::class);
+        $context->registerEventListener(BeforeTemplateRenderedEvent::class, LoadViewer::class);
     }
 
     public function boot(IBootContext $context): void {
