@@ -1,6 +1,6 @@
 {
   "require": {
-    "php": "^8.1",
+    "php": "^8.5",
     "nextcloud/server": "^32.0|^33.0"
   }
 }

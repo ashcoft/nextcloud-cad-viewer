@@ -1,0 +1,139 @@
+name: PHPUnit Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  phpunit-mariadb:
+    runs-on: ubuntu-latest
+    
+    services:
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testdb
+          
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.5'
+        extensions: pdo, pdo_mysql
+        
+    - name: Install dependencies
+      run: composer install --no-interaction
+      
+    - name: Run PHPUnit (MariaDB)
+      run: vendor/bin/phpunit --configuration tests/phpunit.xml
+      env:
+        DB_TYPE: mariadb
+        DB_NAME: testdb
+        DB_USER: root
+        DB_PASS: root
+
+  phpunit-mysql:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testdb
+          
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.5'
+        extensions: pdo, pdo_mysql
+        
+    - name: Install dependencies
+      run: composer install --no-interaction
+      
+    - name: Run PHPUnit (MySQL)
+      run: vendor/bin/phpunit --configuration tests/phpunit.xml
+      env:
+        DB_TYPE: mysql
+        DB_NAME: testdb
+        DB_USER: root
+        DB_PASS: root
+
+  phpunit-pgsql:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
+          
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.5'
+        extensions: pdo, pdo_pgsql
+        
+    - name: Install dependencies
+      run: composer install --no-interaction
+      
+    - name: Run PHPUnit (PostgreSQL)
+      run: vendor/bin/phpunit --configuration tests/phpunit.xml
+      env:
+        DB_TYPE: pgsql
+        DB_NAME: testdb
+        DB_USER: postgres
+        DB_PASS: postgres
+
+  phpunit-sqlite:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.5'
+        extensions: pdo, pdo_sqlite
+        
+    - name: Install dependencies
+      run: composer install --no-interaction
+      
+    - name: Run PHPUnit (SQLite)
+      run: vendor/bin/phpunit --configuration tests/phpunit.xml
+      env:
+        DB_TYPE: sqlite
+
+  phpunit-oci:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.5'
+        extensions: pdo, oci8
+        
+    - name: Install dependencies
+      run: composer install --no-interaction
+      
+    - name: Run PHPUnit (OCI)
+      run: vendor/bin/phpunit --configuration tests/phpunit.xml
+      env:
+        DB_TYPE: oci
+      continue-on-error: true

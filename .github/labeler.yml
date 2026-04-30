@@ -1,0 +1,29 @@
+# Add 'documentation' label to any changes in docs folder or markdown files
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: ['docs/**', '**/*.md']
+
+# Add 'frontend' label to any changes in frontend code
+frontend:
+  - changed-files:
+      - any-glob-to-any-file: ['src/**', 'js/**', 'css/**']
+
+# Add 'backend' label to any changes in PHP code
+backend:
+  - changed-files:
+      - any-glob-to-any-file: ['lib/**', 'appinfo/**']
+
+# Add 'tests' label to any changes in test files
+tests:
+  - changed-files:
+      - any-glob-to-any-file: ['tests/**', '**/*.test.js', '**/*.spec.js']
+
+# Add 'dependencies' label to dependency file changes
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file: ['package.json', 'package-lock.json', 'composer.json', 'composer.lock']
+
+# Add 'ci' label to workflow changes
+ci:
+  - changed-files:
+      - any-glob-to-any-file: ['.github/workflows/**']

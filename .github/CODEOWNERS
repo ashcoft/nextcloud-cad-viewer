@@ -1,0 +1,24 @@
+# Code owners for CAD Viewer
+# https://help.github.com/articles/about-codeowners/
+
+# Default owners
+* @ashcoft
+
+# PHP backend
+lib/ @ashcoft
+appinfo/ @ashcoft
+
+# Frontend
+src/ @ashcoft
+js/ @ashcoft
+css/ @ashcoft
+
+# Tests
+tests/ @ashcoft
+
+# Documentation
+docs/ @ashcoft
+*.md @ashcoft
+
+# Workflows
+.github/workflows/ @ashcoft
