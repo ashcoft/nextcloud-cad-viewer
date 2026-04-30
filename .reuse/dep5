@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: nextcloud-cad-viewer
+Upstream-Contact: CAD Viewer Contributors
+Source: https://github.com/ashcoft/nextcloud-cad-viewer
+
+Files: *
+Copyright: 2026 CAD Viewer Contributors
+License: MIT
