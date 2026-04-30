@@ -1,0 +1,7 @@
+# Auto-approve Dependabot PRs
+- pull_request:
+    author: dependabot[bot]
+    
+# Auto-approve nextcloud/ocp updates
+- pull_request:
+    title: "chore(deps): update nextcloud/ocp"

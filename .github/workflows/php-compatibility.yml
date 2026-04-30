@@ -1,0 +1,49 @@
+name: PHP Compatibility Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  php-matrix:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        php-version: ['8.5']
+        nextcloud-version: ['stable29', 'stable30', 'stable31']
+        database: ['sqlite', 'mysql', 'pgsql']
+        
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up PHP ${{ matrix.php-version }}
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: pdo, pdo_sqlite, pdo_mysql, pdo_pgsql
+        tools: composer:v2
+        coverage: none
+        
+    - name: Install dependencies
+      run: composer install --no-interaction
+      
+    - name: Setup Nextcloud ${{ matrix.nextcloud-version }}
+      run: |
+        wget https://download.nextcloud.com/server/releases/latest-${{ matrix.nextcloud-version }}.zip
+        unzip -q latest-${{ matrix.nextcloud-version }}.zip -d /tmp/
+        cp -r . /tmp/nextcloud/apps/cad_viewer/
+        
+    - name: Run PHPUnit tests (${{ matrix.database }})
+      run: |
+        cd /tmp/nextcloud
+        ./occ db:convert-type --all-apps sqlite
+        ./occ app:enable cad_viewer
+        php -d memory_limit=4G vendor/phpunit/phpunit/phpunit --configuration apps/cad_viewer/tests/phpunit.xml
+      env:
+        DB_TYPE: ${{ matrix.database }}
+        DB_NAME: testdb
+        DB_USER: root
+        DB_PASS: root
