@@ -1,0 +1,1 @@
+{\n  "require": {\n    "php": "^8.5",\n    "nextcloud/server": "^33.0"\n  }\n}
