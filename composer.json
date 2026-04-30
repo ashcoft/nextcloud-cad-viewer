@@ -1,1 +1,6 @@
-{\n  "require": {\n    "php": "^8.5",\n    "nextcloud/server": "^33.0"\n  }\n}
+{
+  "require": {
+    "php": "^8.1",
+    "nextcloud/server": "^32.0|^33.0"
+  }
+}
