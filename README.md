@@ -1,6 +1,6 @@
 # Nextcloud CAD Viewer
 
-A native Nextcloud app providing DWG and DXF file viewing capabilities integrated with [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer).
+A native Nextcloud app providing DWG and DXF file viewing capabilities based on [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer).
 
 ## Features
 
