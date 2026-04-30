@@ -1,17 +1,50 @@
+```
+# Dependencies
 node_modules/
+
+# Build artifacts
 dist/
 build/
-.DS_Store
-*.swp
-*.swo
-*~
-.vscode/
-.idea/
+target/
+
+# Logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-coverage/
+
+# Environment
 .env
 .env.local
-.env.*.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+.jest/
+
+# Webpack
+webpack-stats.json
+
+# ESLint
+.eslintcache
+
+# Babel
+.babel_cache/
+```

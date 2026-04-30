@@ -1,4 +1,8 @@
-<?php namespace OCA\CadViewer\Listener;
+<?php
+
+declare(strict_types=1);
+
+namespace OCA\CadViewer\Listener;
 
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
