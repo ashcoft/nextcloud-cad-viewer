@@ -1,126 +1,17 @@
 ```
 # Dependencies
-node_modules/
-
-# Environment
-.env
-.env.local
-.env.*
+vendor/
 
 # Logs and temp files
 *.log
 *.tmp
 
-# Editors
-.vscode/
-.idea/
+# Environment
+.env
+.env.local
+*.env.*
 
-# Build artifacts
-dist/
-build/
-target/
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Java
-*.class
-*.jar
-*.war
-*.ear
-*.nar
-*.so
-*.dll
-*.dylib
-
-# C/C++
-*.o
-*.obj
-*.a
-*.lib
-*.so
-*.dll
-*.exe
-
-# Ruby
-*.gem
-*.rbc
-coverage/
-*.sqlite3
-
-# Go
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-
-# Node.js
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# PHP
-*.phar
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# IDE
-*.swp
-*.swo
-*.tmp
-
-# Testing
-coverage/
-htmlcov/
-.coverage
-*.gcov
-*.lcov
-
-# Distribution / packaging
-.Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-
-# Translations
-*.mo
-*.pot
-
-# Documentation
-docs/_build/
-
-# CI
-.github/
-
-# Compiled and build artifacts
-*.pyc
-__pycache__/
-*.o
-*.obj
-dist/
-build/
-target/
-.mypy_cache/
-.pytest_cache/
-.gradle/
+# Cache and build artifacts
+composer.lock
+vendor/composer/
 ```
