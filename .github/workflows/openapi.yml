@@ -20,7 +20,9 @@ jobs:
         tools: composer:v2
         
     - name: Install dependencies
-      run: composer install --no-interaction
+      run: |
+        composer config -g github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
+        composer install --no-interaction
       
     - name: Validate OpenAPI spec
       run: |
