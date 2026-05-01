@@ -1,17 +1,3 @@
 ```
-# Dependencies
-vendor/
-
-# Logs and temp files
-*.log
-*.tmp
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Cache and build artifacts
-composer.lock
-vendor/composer/
+# Configuration and workflow files only - no build artifacts or dependencies detected
 ```
