@@ -7,7 +7,7 @@
 # Environment
 .env
 .env.local
-*.env.*
+.env.*
 
 # Editors
 .vscode/
@@ -26,6 +26,8 @@ target/
 # Build artifacts
 dist/
 build/
+coverage/
+htmlcov/
 *.pyc
 *.o
 *.obj
@@ -34,12 +36,6 @@ build/
 *.so
 *.a
 *.out
-*.class
-
-# Coverage
-coverage/
-htmlcov/
-.coverage
 
 # System files
 .DS_Store
