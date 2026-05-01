@@ -3,7 +3,7 @@
 ## Local Setup
 
 ### Prerequisites
-- Node.js 14+
+- Node.js 20+
 - npm or yarn
 - Nextcloud 32/33 installation
 - PHP 7.4+
