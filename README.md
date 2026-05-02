@@ -16,7 +16,7 @@ A native Nextcloud app providing DWG and DXF file viewing capabilities based on 
 
 - Nextcloud 32 or 33
 - PHP 8.4 - 8.5
-- Node.js 22+ (for development)
+- Node.js 24+ (for development)
 
 ## Installation
 
