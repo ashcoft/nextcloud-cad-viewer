@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
@@ -20,7 +20,9 @@ jobs:
         tools: composer:v2
         
     - name: Install dependencies
-      run: composer install --no-interaction
+      run: |
+        composer config -g github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
+        composer install --no-interaction
       
     - name: Validate OpenAPI spec
       run: |
@@ -32,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Set up PHP
       uses: shivammathur/setup-php@v2

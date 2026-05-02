@@ -56,7 +56,8 @@ refactor: improve Vue component structure
 - All new features must include tests
 - Bug fixes should include regression tests
 - Ensure all existing tests pass
-- Test on multiple PHP versions (8.2, 8.3)
+- Test on PHP 8.4 and 8.5
+- Test on Nextcloud 32 and 33
 - Test on multiple databases (SQLite, MySQL, PostgreSQL)
 
 ## Pull Request Process
