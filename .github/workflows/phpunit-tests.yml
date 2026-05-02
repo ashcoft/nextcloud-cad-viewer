@@ -3,7 +3,8 @@ name: PHPUnit Tests
 on:
   workflow_dispatch:
   push:
-    branches: [master, develop]
+    branches: [main]
+
     paths:
       - 'lib/**'
       - 'tests/**'
