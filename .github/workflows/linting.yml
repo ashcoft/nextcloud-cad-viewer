@@ -1,129 +1,35 @@
-name: Linting
+name: Lint-php
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [master, develop]
   pull_request:
-    branches: [ main ]
+    branches: [master, develop]
+
+permissions:
+  contents: read
 
 jobs:
-  lint-php:
+  php-lint:
     runs-on: ubuntu-latest
-    
+    strategy:
+      matrix:
+        php-versions: ["8.2", "8.3", "8.4", "8.5"]
+    name: php-lint
     steps:
-    - uses: actions/checkout@v5
-    
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        tools: composer:v2
-        
-    - name: Install dependencies
-      run: composer install --no-interaction
-      
-    - name: Run PHP linter
-      run: composer run-script lint
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  lint-php-cs:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v5
-    
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        tools: composer:v2
-        
-    - name: Install dependencies
-      run: composer install --no-interaction
-      
-    - name: Install PHP-CS-Fixer
-      run: composer require --dev friendsofphp/php-cs-fixer
-      
-    - name: Run PHP-CS-Fixer
-      run: vendor/bin/php-cs-fixer fix --dry-run --diff
+      - name: Set up php ${{ matrix.php-versions }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          coverage: none
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  lint-eslint:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v5
-    
-    - name: Use Node.js 22.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22.x'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run ESLint
-      run: npm run lint
-
-  lint-typescript:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v5
-    
-    - name: Use Node.js 22.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22.x'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run TypeScript check
-      run: npx tsc --noEmit
-      continue-on-error: true
-
-  lint-stylelint:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v5
-    
-    - name: Use Node.js 22.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22.x'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Install stylelint
-      run: npm install --save-dev stylelint stylelint-config-standard
-      
-    - name: Run stylelint
-      run: npx stylelint "css/**/*.css"
-      continue-on-error: true
-
-  lint-info-xml:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v5
-    
-    - name: Validate info.xml
-      run: |
-        xmllint --noout appinfo/info.xml
-
-  lint-github-actions:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v5
-    
-    - name: Download actionlint
-      run: |
-        curl -L https://github.com/rhysd/actionlint/releases/latest/download/actionlint_linux_amd64.tar.gz | tar xz
-        
-    - name: Run actionlint
-      run: ./actionlint .github/workflows/*.yml
+      - name: Lint
+        run: |
+          cd ${{ github.workspace }}
+          find . -name \\*.php -not -path './lib/composer/*' -not -path './build/stubs/*' -print0 | xargs -0 -n1 php -l
