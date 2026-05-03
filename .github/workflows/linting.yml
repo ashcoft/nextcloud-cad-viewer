@@ -32,4 +32,4 @@ jobs:
       - name: Lint
         run: |
           cd ${{ github.workspace }}
-          find . -name \\*.php -not -path './lib/composer/*' -not -path './build/stubs/*' -print0 | xargs -0 -n1 php -l
+          find . -name '*.php' -not -path './lib/composer/*' -not -path './build/stubs/*' -print0 | xargs -0 -n1 php -l
