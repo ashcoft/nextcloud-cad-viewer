@@ -28,9 +28,9 @@ jobs:
           npm install
           npm run build
           composer install --no-dev --optimize-autoloader
-          mkdir -p onlyoffice
-          rsync -av --exclude='onlyoffice' . onlyoffice
-          cd onlyoffice
+          mkdir -p cad_viewer
+          rsync -av --exclude='cad_viewer' . cad_viewer
+          cd cad_viewer
           rm -rf ./.github/
           rm -rf ./.git/
           rm -rf ./assets/document-templates/.git
@@ -49,9 +49,9 @@ jobs:
           rm ./stylelint.config.js
           rm ./webpack.js
           cd $cwd
-          tar -czvf onlyoffice.tar.gz onlyoffice
+          tar -czvf cad_viewer.tar.gz cad_viewer
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: onlyoffice
-          path: onlyoffice.tar.gz
+          name: cad_viewer
+          path: cad_viewer.tar.gz
