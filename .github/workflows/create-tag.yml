@@ -26,5 +26,8 @@ jobs:
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          if git rev-parse "v${{ steps.info.outputs.version }}" >/dev/null 2>&1; then
+            exit 0
+          fi
           git tag -a 'v${{ steps.info.outputs.version }}' -m 'Release/v${{ steps.info.outputs.version }}'
           git push origin 'v${{ steps.info.outputs.version }}'
