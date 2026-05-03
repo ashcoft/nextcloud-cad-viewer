@@ -2,29 +2,29 @@ name: Dependency Management
 
 on:
   schedule:
-    - cron: '0 4 * * *'  # Daily at 4 AM UTC
+    - cron: '0 4 * * *'
   workflow_dispatch:
 
 jobs:
   composer-outdated:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v5
-    
+    - uses: actions/checkout@v4
+
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.5'
         tools: composer:v2
-        
+
     - name: Install dependencies
       run: composer install --no-interaction
-      
+
     - name: Check for outdated packages
       run: composer outdated --direct
       continue-on-error: true
-      
+
     - name: Create issue if outdated packages found
       run: |
         OUTDATED=$(composer outdated --direct --format=json)
@@ -39,10 +39,10 @@ jobs:
 
   renovate:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v5
-    
+    - uses: actions/checkout@v4
+
     - name: Run Renovate
       uses: renovatebot/github-action@v40
       with:

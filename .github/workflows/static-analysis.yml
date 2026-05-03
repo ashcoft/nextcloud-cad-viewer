@@ -2,45 +2,43 @@ name: Static Analysis
 
 on:
   push:
-    branches: [ main ]
+    branches: [master, develop]
   pull_request:
-    branches: [ main ]
+    branches: [master, develop]
 
 jobs:
   static-analysis:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v5
-    
+    - uses: actions/checkout@v4
+
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.5'
         tools: composer:v2
-        
+
     - name: Install dependencies
       run: composer install --no-interaction
-      
+
     - name: Run static analysis
       run: composer run-script analyze
-      continue-on-error: true
 
   type-checking:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v5
-    
+    - uses: actions/checkout@v4
+
     - name: Use Node.js 22.x
       uses: actions/setup-node@v4
       with:
         node-version: '22.x'
         cache: 'npm'
-        
+
     - name: Install dependencies
       run: npm ci
-      
+
     - name: Run type checking
       run: npx tsc --noEmit
-      continue-on-error: true

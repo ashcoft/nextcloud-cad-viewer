@@ -1,0 +1,188 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type (release or prerelease)'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - prerelease
+      version_override:
+        description: 'Version override (optional, leave empty to use tag)'
+        required: false
+        type: string
+      publish_to_app_store:
+        description: 'Publish to Nextcloud App Store'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-files
+          path: |
+            js/
+            css/
+
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-files
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+
+      - name: Install composer dependencies (no-dev)
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Create app directory
+        run: |
+          mkdir -p onlyoffice
+          rsync -av --exclude='onlyoffice' --exclude='.git' --exclude='tests' --exclude='node_modules' --exclude='.github' . onlyoffice/
+
+      - name: Cleanup unnecessary files
+        working-directory: onlyoffice
+        run: |
+          rm -rf ./.github/
+          rm -rf ./.git/
+          rm -rf ./assets/document-templates/.git
+          rm -rf ./assets/document-formats/.git
+          rm -rf ./node_modules/
+          rm -rf ./src/
+          rm -f ./.eslintrc.js
+          rm -f ./.gitignore
+          rm -f ./.gitmodules
+          rm -f ./.stylelintrc.json
+          rm -f ./composer.json
+          rm -f ./composer.lock
+          rm -f ./npm-shrinkwrap.json
+          rm -f ./package.json
+          rm -f ./ruleset.xml
+          rm -f ./stylelint.config.js
+          rm -f ./webpack.js
+
+      - name: Create app archive
+        run: tar -czvf onlyoffice.tar.gz onlyoffice
+
+      - name: Upload app archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: onlyoffice-app
+          path: onlyoffice.tar.gz
+
+  release:
+    needs: package
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version from tag or input
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.version_override }}" ]; then
+            echo "version=${{ inputs.version_override }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download app archive
+        uses: actions/download-artifact@v4
+        with:
+          name: onlyoffice-app
+
+      - name: Generate changelog
+        run: |
+          if [ -f CHANGELOG.md ]; then
+            awk '/## [0-9]/{p++} p; /## [0-9]/{if (p > 1) exit}' CHANGELOG.md | awk 'NR>2 {print last} {last=$0}' > RELEASE.md
+          else
+            echo "# Release ${{ steps.get_version.outputs.version }}" > RELEASE.md
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_file: RELEASE.md
+          files: onlyoffice.tar.gz
+          prerelease: ${{ inputs.release_type == 'prerelease' || contains(steps.get_version.outputs.version, 'beta') || contains(steps.get_version.outputs.version, 'rc') }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  app-store-publish:
+    needs: release
+    runs-on: ubuntu-latest
+    if: (startsWith(github.ref, 'refs/tags/v') && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && inputs.publish_to_app_store == 'true')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download app archive
+        uses: actions/download-artifact@v4
+        with:
+          name: onlyoffice-app
+
+      - name: Extract archive
+        run: tar -xzf onlyoffice.tar.gz
+
+      - name: Publish to Nextcloud App Store
+        run: |
+          echo "Publishing to Nextcloud App Store..."
+          # Add actual app store publishing logic here using NEXTCLOUD_APP_STORE_TOKEN
+          # Example: curl -X POST -H "Authorization: Bearer $NEXTCLOUD_APP_STORE_TOKEN" ...
+        env:
+          NEXTCLOUD_APP_STORE_TOKEN: ${{ secrets.NEXTCLOUD_APP_STORE_TOKEN }}
+        if: env.NEXTCLOUD_APP_STORE_TOKEN != ''

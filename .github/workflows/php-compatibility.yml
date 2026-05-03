@@ -1,49 +1,127 @@
 name: PHP Compatibility Tests
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [master, develop]
+    paths:
+      - 'lib/**'
+      - 'tests/**'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'phpunit.xml'
+      - '.github/workflows/php-compatibility.yml'
   pull_request:
-    branches: [ main ]
+    branches: [master, develop]
+    paths:
+      - 'lib/**'
+      - 'tests/**'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'phpunit.xml'
+      - '.github/workflows/php-compatibility.yml'
+
+permissions:
+  contents: read
 
 jobs:
-  php-matrix:
+  matrix:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        php-version: ['8.5']
-        nextcloud-version: ['stable29', 'stable30', 'stable31']
-        database: ['sqlite', 'mysql', 'pgsql']
-        
+    outputs:
+      php-max: ${{ steps.versions.outputs.php-max }}
+      branches-min: ${{ steps.versions.outputs.branches-min }}
     steps:
-    - uses: actions/checkout@v5
-    
-    - name: Set up PHP ${{ matrix.php-version }}
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: ${{ matrix.php-version }}
-        extensions: pdo, pdo_sqlite, pdo_mysql, pdo_pgsql
-        tools: composer:v2
-        coverage: none
-        
-    - name: Install dependencies
-      run: composer install --no-interaction
-      
-    - name: Setup Nextcloud ${{ matrix.nextcloud-version }}
-      run: |
-        wget https://download.nextcloud.com/server/releases/latest-${{ matrix.nextcloud-version }}.zip
-        unzip -q latest-${{ matrix.nextcloud-version }}.zip -d /tmp/
-        cp -r . /tmp/nextcloud/apps/cad_viewer/
-        
-    - name: Run PHPUnit tests (${{ matrix.database }})
-      run: |
-        cd /tmp/nextcloud
-        ./occ db:convert-type --all-apps sqlite
-        ./occ app:enable cad_viewer
-        php -d memory_limit=4G vendor/phpunit/phpunit/phpunit --configuration apps/cad_viewer/tests/phpunit.xml
-      env:
-        DB_TYPE: ${{ matrix.database }}
-        DB_NAME: testdb
-        DB_USER: root
-        DB_PASS: root
+      - name: Checkout app
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Get version matrix
+        id: versions
+        uses: icewind1991/nextcloud-version-matrix@v1.3.2
+
+  php-compatibility:
+    runs-on: ubuntu-latest
+    needs: matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        database: ['sqlite', 'mysql', 'pgsql']
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: testdb
+        options: --health-cmd="mysqladmin ping" --health-interval 5s --health-timeout 2s --health-retries 10
+
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
+        options: --health-cmd="pg_isready" --health-interval 5s --health-timeout 2s --health-retries 10
+
+    steps:
+      - name: Detect database host
+        id: db
+        run: |
+          if [ "$GITEA_ACTIONS" = "true" ]; then
+            echo "mysql_host=mysql" >> $GITHUB_OUTPUT
+            echo "pgsql_host=postgres" >> $GITHUB_OUTPUT
+          else
+            echo "mysql_host=127.0.0.1" >> $GITHUB_OUTPUT
+            echo "pgsql_host=127.0.0.1" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Nextcloud env
+        uses: ChristophWurst/setup-nextcloud@v0.4.2
+        with:
+          nextcloud-version: ${{ needs.matrix.outputs.branches-min }}
+          php-version: ${{ needs.matrix.outputs.php-max }}
+          node-version: false
+
+      - name: Checkout onlyoffice
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          submodules: true
+          path: nextcloud/apps/onlyoffice
+
+      - name: Install composer dependencies
+        working-directory: nextcloud/apps/onlyoffice
+        run: |
+          composer install
+          composer bin phpunit install
+
+      - name: Start server and configure Nextcloud
+        working-directory: nextcloud
+        run: |
+          mkdir data
+          if [ "${{ matrix.database }}" = "mysql" ]; then
+            DB_HOST="${{ steps.db.outputs.mysql_host }}"
+            DB_TYPE="mysql"
+            DB_PASS="rootpassword"
+          elif [ "${{ matrix.database }}" = "pgsql" ]; then
+            DB_HOST="${{ steps.db.outputs.pgsql_host }}"
+            DB_TYPE="pgsql"
+            DB_PASS="postgres"
+          else
+            DB_HOST=""
+            DB_TYPE="sqlite"
+            DB_PASS=""
+          fi
+
+          if [ -z "$DB_HOST" ]; then
+            php occ maintenance:install --verbose --database=sqlite --database-name=nextcloud --admin-user admin --admin-pass admin
+          else
+            php occ maintenance:install --verbose --database=$DB_TYPE --database-name=nextcloud --database-host=$DB_HOST --database-port=3306 --database-user=root --database-pass=$DB_PASS --admin-user admin --admin-pass admin
+          fi
+
+          php occ app:enable --force files_external
+          php occ app:enable --force onlyoffice
+
+      - name: Run tests
+        working-directory: nextcloud/apps/onlyoffice
+        run: composer run test:unit

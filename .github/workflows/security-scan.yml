@@ -2,48 +2,48 @@ name: Security Scanning
 
 on:
   push:
-    branches: [ main ]
+    branches: [master, develop]
   pull_request:
-    branches: [ main ]
+    branches: [master, develop]
   schedule:
-    - cron: '0 3 * * *'  # Daily at 3 AM UTC
+    - cron: '0 3 * * *'
 
 jobs:
   psalm-security:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v5
-    
+    - uses: actions/checkout@v4
+
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.5'
         tools: composer:v2
-        
+
     - name: Install dependencies
       run: composer install --no-interaction
-      
+
     - name: Install Psalm
       run: composer require --dev vimeo/psalm
-      
+
     - name: Run Psalm with taint analysis
       run: vendor/bin/psalm --taint-analysis --output-format=github
 
   trivy-scan:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v5
-    
+    - uses: actions/checkout@v4
+
     - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
+      uses: aquasecurity/trivy-action@0.29.0
       with:
         scan-type: 'fs'
         scan-ref: '.'
         format: 'sarif'
         output: 'trivy-results.sarif'
-        
+
     - name: Upload Trivy results to GitHub Security tab
       uses: github/codeql-action/upload-sarif@v3
       with:
@@ -51,17 +51,13 @@ jobs:
 
   osv-scanner:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v5
-    
+    - uses: actions/checkout@v4
+
     - name: Run OSV-Scanner
       uses: google/osv-scanner-action@v1
-      with:
-        scan-recursive: true
-        format: 'sarif'
-        output: 'osv-results.sarif'
-        
+
     - name: Upload OSV results to GitHub Security tab
       uses: github/codeql-action/upload-sarif@v3
       with:

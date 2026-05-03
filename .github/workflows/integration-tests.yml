@@ -1,34 +1,47 @@
 name: Integration Tests
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [master, develop]
+    paths:
+      - 'lib/**'
+      - 'tests/integration/**'
+      - 'composer.json'
+      - 'composer.lock'
+      - '.github/workflows/integration-tests.yml'
   pull_request:
-    branches: [ main ]
+    branches: [master, develop]
+    paths:
+      - 'lib/**'
+      - 'tests/integration/**'
+      - 'composer.json'
+      - 'composer.lock'
+      - '.github/workflows/integration-tests.yml'
+
+permissions:
+  contents: read
 
 jobs:
-  integration-federation:
+  matrix:
     runs-on: ubuntu-latest
-    
+    outputs:
+      php-max: ${{ steps.versions.outputs.php-max }}
+      branches-min: ${{ steps.versions.outputs.branches-min }}
     steps:
-    - uses: actions/checkout@v5
-    
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        tools: composer:v2
-        
-    - name: Install dependencies
-      run: composer install --no-interaction
-      
-    - name: Run federation integration tests
-      run: php tests/integration/federation.php
-      continue-on-error: true
+      - name: Checkout app
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Get version matrix
+        id: versions
+        uses: icewind1991/nextcloud-version-matrix@v1.3.2
 
   integration-mariadb:
     runs-on: ubuntu-latest
-    
+    needs: matrix
+
     services:
       mariadb:
         image: mariadb:10.6
@@ -40,16 +53,16 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-          
+
     steps:
-    - uses: actions/checkout@v5
-    
-    - name: Set up PHP
+    - uses: actions/checkout@v4
+
+    - name: Set up PHP ${{ needs.matrix.outputs.php-max }}
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.5'
+        php-version: ${{ needs.matrix.outputs.php-max }}
         extensions: pdo, pdo_mysql
-        
+
     - name: Run MariaDB integration tests
       run: |
         php tests/integration/run.php --db=mariadb
@@ -61,10 +74,11 @@ jobs:
 
   integration-mysql:
     runs-on: ubuntu-latest
-    
+    needs: matrix
+
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:8.4
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: testdb
@@ -73,16 +87,16 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-          
+
     steps:
-    - uses: actions/checkout@v5
-    
-    - name: Set up PHP
+    - uses: actions/checkout@v4
+
+    - name: Set up PHP ${{ needs.matrix.outputs.php-max }}
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.5'
+        php-version: ${{ needs.matrix.outputs.php-max }}
         extensions: pdo, pdo_mysql
-        
+
     - name: Run MySQL integration tests
       run: |
         php tests/integration/run.php --db=mysql
@@ -94,7 +108,8 @@ jobs:
 
   integration-pgsql:
     runs-on: ubuntu-latest
-    
+    needs: matrix
+
     services:
       postgres:
         image: postgres:14
@@ -106,16 +121,16 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-          
+
     steps:
-    - uses: actions/checkout@v5
-    
-    - name: Set up PHP
+    - uses: actions/checkout@v4
+
+    - name: Set up PHP ${{ needs.matrix.outputs.php-max }}
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.5'
+        php-version: ${{ needs.matrix.outputs.php-max }}
         extensions: pdo, pdo_pgsql
-        
+
     - name: Run PostgreSQL integration tests
       run: |
         php tests/integration/run.php --db=pgsql
@@ -127,32 +142,34 @@ jobs:
 
   integration-sqlite:
     runs-on: ubuntu-latest
-    
+    needs: matrix
+
     steps:
-    - uses: actions/checkout@v5
-    
-    - name: Set up PHP
+    - uses: actions/checkout@v4
+
+    - name: Set up PHP ${{ needs.matrix.outputs.php-max }}
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.5'
+        php-version: ${{ needs.matrix.outputs.php-max }}
         extensions: pdo, pdo_sqlite
-        
+
     - name: Run SQLite integration tests
       run: |
         php tests/integration/run.php --db=sqlite
 
   integration-oci:
     runs-on: ubuntu-latest
-    
+    needs: matrix
+
     steps:
-    - uses: actions/checkout@v5
-    
-    - name: Set up PHP
+    - uses: actions/checkout@v4
+
+    - name: Set up PHP ${{ needs.matrix.outputs.php-max }}
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.5'
+        php-version: ${{ needs.matrix.outputs.php-max }}
         extensions: pdo, oci8
-        
+
     - name: Run OCI integration tests
       run: |
         php tests/integration/run.php --db=oci

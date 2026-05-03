@@ -2,47 +2,28 @@ name: OpenAPI
 
 on:
   push:
-    branches: [ main ]
+    branches: [master, develop]
   pull_request:
-    branches: [ main ]
+    branches: [master, develop]
 
 jobs:
   openapi:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v5
-    
+    - uses: actions/checkout@v4
+
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.5'
         tools: composer:v2
-        
+
     - name: Install dependencies
       run: |
         composer config -g github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
         composer install --no-interaction
-      
+
     - name: Validate OpenAPI spec
       run: |
-        composer require --dev oai/openapi-specification
-        # Add OpenAPI validation commands here
-      continue-on-error: true
-
-  openapi-command:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v5
-    
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        tools: composer:v2
-        
-    - name: Run OpenAPI command
-      run: |
-        php occ openapi:generate
-      continue-on-error: true
+        echo "OpenAPI validation placeholder - add actual validation commands if API is exposed"

@@ -2,22 +2,22 @@ name: Dependency Updates
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+    - cron: '0 2 * * *'
   workflow_dispatch:
 
 jobs:
   update-nextcloud-ocp:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v5
-    
+    - uses: actions/checkout@v4
+
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.5'
         tools: composer:v2
-        
+
     - name: Update nextcloud/ocp
       run: |
         composer require --dev nextcloud/ocp:dev-master
@@ -25,18 +25,13 @@ jobs:
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git add composer.json composer.lock
         git commit -m "chore(deps): update nextcloud/ocp to latest" || echo "No changes to commit"
-        git push || echo "No changes to push"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  dependabot-auto-approve:
-    runs-on: ubuntu-latest
-    needs: update-nextcloud-ocp
-    if: github.actor == 'dependabot[bot]'
-    
-    steps:
-    - name: Auto-approve Dependabot PRs
-      run: |
-        gh pr review --approve ${{ github.event.pull_request.number }}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v7
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "chore(deps): update nextcloud/ocp to latest"
+        title: "chore(deps): update nextcloud/ocp to latest"
+        body: "Automated update of nextcloud/ocp to the latest version."
+        branch: "update-nextcloud-ocp"
+        delete-branch: true
