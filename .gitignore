@@ -110,6 +110,6 @@ htmlcov/
 .hypothesis/
 
 # CI/CD
-.github/
+.github/*
 !.github/workflows/
 ```
