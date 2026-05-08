@@ -50,7 +50,6 @@ htmlcov/
 .nox/
 coverage.xml
 *.cover
-*.log
 
 # CI/CD
 .github/*
