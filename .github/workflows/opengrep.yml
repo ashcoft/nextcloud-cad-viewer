@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v6
     
     - name: Run OpenGrep Full Scan
-      uses: opengrep/opengrep-action@v1
+      uses: opengrep/opengrep-action@v2
       with:
         args: --format github
       continue-on-error: true

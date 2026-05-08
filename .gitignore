@@ -1,65 +1,57 @@
 ```
-# Dependencies
-node_modules/
-
 # Logs and temp files
 *.log
+*.tmp
+*.swp
 
-# Environment variables
+# Environment
 .env
 .env.local
 *.env.*
 
-# Editor/IDE files
+# Editors
 .vscode/
 .idea/
-*.swp
-*.swo
-*.tmp
 
-# Build artifacts
-dist/
-build/
-*.o
-*.obj
-
-# Python cache
+# Dependencies
+node_modules/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+ENV/
+.venv/
+env.bak/
+venv.bak/
 
-# Compressed files
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Coverage reports
-coverage/
-htmlcov/
-.coverage
-
-# System files
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Browserslist
-node_modules/caniuse-lite/
+# Testing
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# CI/CD
+.github/*
+!.github/workflows/
 ```
