@@ -1,58 +1,51 @@
 ```
-# Dependencies
-node_modules/
+# CI/CD
+.github/
 
-# Environment variables
-.env
-.env.local
-.env.*
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Logs
+# Logs and temp files
 *.log
-
-# Temporary files
 *.tmp
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# Dependencies
+node_modules/
 venv/
 .venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-.git/modules/
-.DS_Store
-Thumbs.db
-
-# Build artifacts
+__pycache__/
+.mypy_cache/
+.pytest_cache/
 dist/
 build/
-*.out
+target/
+.gradle/
+
+# Compiled files
+*.pyc
+*.class
+*.o
 *.exe
 *.dll
 *.so
 *.a
-*.o
 *.obj
-*.class
+*.out
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
 
 # Compressed files
 *.zip
@@ -73,78 +66,8 @@ build/
 *.Z
 *.lz
 *.lzo
-
-# Coverage
-coverage/
-htmlcov/
-.coverage
-
-# Gradle
-.gradle/
-build/
-
-# MyPy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# PyTest
-.pytest_cache/
-
-# Julia
-.julia/
-
-# Zig
-zig-cache/
-zig-out/
-
-# Maven
-target/
-
-# npm
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Bower
-bower_components/
-
-# Jupyter
-.ipynb_checkpoints
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-desktop.ini
-
-# Temporary files
-*.tmp
-*.temp
-*.bak
-*.backup
-
-# IDE
-.vscode/
-.idea/
-.settings/
-*.swp
-*.swo
-
-# Testing
-coverage/
-htmlcov/
-.coverage
-*.cover
-.nyc_output/
-.pytest_cache/
-.hypothesis/
-
-# CI/CD
-.github/*
-!.github/workflows/
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
 ```
