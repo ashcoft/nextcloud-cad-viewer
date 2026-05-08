@@ -53,6 +53,6 @@ coverage.xml
 *.log
 
 # CI/CD
-.github/
+.github/*
 !.github/workflows/
 ```
