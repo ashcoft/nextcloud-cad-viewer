@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     
     - name: Use Node.js 22.x
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: '22.x'
         cache: 'npm'
@@ -45,7 +45,7 @@ jobs:
         writeToFile: false
         
     - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v3
       with:
         files: build/cad_viewer-${{ github.ref_name }}.zip
         body: ${{ steps.changelog.outputs.changes }}
