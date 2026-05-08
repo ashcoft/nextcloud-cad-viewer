@@ -82,15 +82,15 @@ jobs:
           php-version: ${{ needs.matrix.outputs.php-max }}
           node-version: false
 
-      - name: Checkout onlyoffice
+      - name: Checkout cad_viewer
         uses: actions/checkout@v4
         with:
           persist-credentials: false
           submodules: true
-          path: nextcloud/apps/onlyoffice
+          path: nextcloud/apps/cad_viewer
 
       - name: Install composer dependencies
-        working-directory: nextcloud/apps/onlyoffice
+        working-directory: nextcloud/apps/cad_viewer
         run: |
           composer install
           composer bin phpunit install
@@ -120,8 +120,8 @@ jobs:
           fi
 
           php occ app:enable --force files_external
-          php occ app:enable --force onlyoffice
+          php occ app:enable --force cad_viewer
 
       - name: Run tests
-        working-directory: nextcloud/apps/onlyoffice
+        working-directory: nextcloud/apps/cad_viewer
         run: composer run test:unit

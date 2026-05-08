@@ -1,70 +1,30 @@
 ```
-# GitHub workflow artifacts (if any generated)
-.github/workflows/*.log
-.github/workflows/artifacts/
-
 # Dependencies
-node_modules/
 vendor/
 composer.lock
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
 
-# Build artifacts
-dist/
-build/
-coverage/
-target/
+# Logs
 *.log
+logs/
+var/log/
 
 # Environment
 .env
 .env.local
 .env.*
+!.env.example
 
-# Editors
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*.tmp
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Cache
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-
-# Testing
-.coverage
-htmlcov/
-.pytest_cache/
-.mypy_cache/
-
-# Compression
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
+# Tests
+.phpunit.result.cache
+coverage/
 ```

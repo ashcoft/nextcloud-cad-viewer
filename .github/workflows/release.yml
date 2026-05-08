@@ -87,11 +87,11 @@ jobs:
 
       - name: Create app directory
         run: |
-          mkdir -p onlyoffice
-          rsync -av --exclude='onlyoffice' --exclude='.git' --exclude='tests' --exclude='node_modules' --exclude='.github' . onlyoffice/
+          mkdir -p cad_viewer
+          rsync -av --exclude='cad_viewer' --exclude='.git' --exclude='tests' --exclude='node_modules' --exclude='.github' . cad_viewer/
 
       - name: Cleanup unnecessary files
-        working-directory: onlyoffice
+        working-directory: cad_viewer
         run: |
           rm -rf ./.github/
           rm -rf ./.git/
@@ -112,13 +112,13 @@ jobs:
           rm -f ./webpack.js
 
       - name: Create app archive
-        run: tar -czvf onlyoffice.tar.gz onlyoffice
+        run: tar -czvf cad_viewer.tar.gz cad_viewer
 
       - name: Upload app archive
         uses: actions/upload-artifact@v4
         with:
-          name: onlyoffice-app
-          path: onlyoffice.tar.gz
+          name: cad_viewer-app
+          path: cad_viewer.tar.gz
 
   release:
     needs: package
@@ -142,7 +142,7 @@ jobs:
       - name: Download app archive
         uses: actions/download-artifact@v4
         with:
-          name: onlyoffice-app
+          name: cad_viewer-app
 
       - name: Generate changelog
         run: |
@@ -156,7 +156,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           body_file: RELEASE.md
-          files: onlyoffice.tar.gz
+          files: cad_viewer.tar.gz
           prerelease: ${{ inputs.release_type == 'prerelease' || contains(steps.get_version.outputs.version, 'beta') || contains(steps.get_version.outputs.version, 'rc') }}
           generate_release_notes: true
         env:
@@ -173,10 +173,10 @@ jobs:
       - name: Download app archive
         uses: actions/download-artifact@v4
         with:
-          name: onlyoffice-app
+          name: cad_viewer-app
 
       - name: Extract archive
-        run: tar -xzf onlyoffice.tar.gz
+        run: tar -xzf cad_viewer.tar.gz
 
       - name: Publish to Nextcloud App Store
         run: |
