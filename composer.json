@@ -1,12 +1,60 @@
 {
-  "repositories": [
+  
+  "name": "ashcoft/nextcloud-cad-viewer",
+  
+  "description": "CAD Viewer app for Nextcloud",
+  
+  "type": "project",
+  
+  "license": "AGPL-3.0-or-later",
+  
+  "authors": [
+    
     {
-      "type": "vcs",
-      "url": "https://github.com/nextcloud/server.git"
+      
+      "name": "Ashcoft"
+      
     }
+    
   ],
-  "require": {
-    "php": "^8.5",
-    "nextcloud/server": "^32.0|^33.0"
+  
+  "config": {
+    
+    "optimize-autoloader": true,
+    
+    "classmap-authoritative": true,
+    
+    "platform": {
+      
+      "php": "8.5"
+      
+    }
+    
+  },
+  
+  "scripts": {
+    
+    "test": "phpunit --configuration tests/phpunit.xml"
+    
   }
+  
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
