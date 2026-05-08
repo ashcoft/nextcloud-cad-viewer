@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     
-    - name: Use Node.js 22.x
+    - name: Use Node.js 24.x
       uses: actions/setup-node@v6
       with:
         node-version: '24.x'
@@ -31,7 +31,7 @@ jobs:
         
     - name: Build app package
       run: |
-        npm run build
+        NODE_OPTIONS="--max-old-space-size=4096" npm run build
         mkdir -p build/cad_viewer
         rsync -av --exclude='node_modules' --exclude='.git' --exclude='tests' --exclude='.github' . build/cad_viewer/
         cd build && zip -r cad_viewer-${{ github.ref_name }}.zip cad_viewer/

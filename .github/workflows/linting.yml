@@ -9,121 +9,121 @@ on:
 jobs:
   lint-php:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v6
-    
+
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.5'
         tools: composer:v2
-        
+
     - name: Install dependencies
       run: composer install --no-interaction
-      
+
     - name: Run PHP linter
       run: composer run-script lint
 
   lint-php-cs:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v6
-    
+
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.5'
         tools: composer:v2
-        
+
     - name: Install dependencies
       run: composer install --no-interaction
-      
+
     - name: Install PHP-CS-Fixer
       run: composer require --dev friendsofphp/php-cs-fixer
-      
+
     - name: Run PHP-CS-Fixer
       run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
   lint-eslint:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v6
-    
+
     - name: Use Node.js 24.x
       uses: actions/setup-node@v6
       with:
         node-version: '24.x'
         cache: 'npm'
-        
+
     - name: Install dependencies
       run: npm ci
-      
+
     - name: Run ESLint
       run: npm run lint
 
   lint-typescript:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v6
-    
+
     - name: Use Node.js 24.x
       uses: actions/setup-node@v6
       with:
         node-version: '24.x'
         cache: 'npm'
-        
+
     - name: Install dependencies
       run: npm ci
-      
+
     - name: Run TypeScript check
       run: npx tsc --noEmit
       continue-on-error: true
 
   lint-stylelint:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v6
-    
+
     - name: Use Node.js 24.x
       uses: actions/setup-node@v6
       with:
         node-version: '24.x'
         cache: 'npm'
-        
+
     - name: Install dependencies
       run: npm ci
-      
+
     - name: Install stylelint
       run: npm install --save-dev stylelint stylelint-config-standard
-      
+
     - name: Run stylelint
       run: npx stylelint "css/**/*.css"
       continue-on-error: true
 
   lint-info-xml:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v6
-    
+
     - name: Validate info.xml
       run: |
         xmllint --noout appinfo/info.xml
 
   lint-github-actions:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v6
-    
+
     - name: Download actionlint
       run: |
         curl -L https://github.com/rhysd/actionlint/releases/latest/download/actionlint_linux_amd64.tar.gz | tar xz
-        
+
     - name: Run actionlint
       run: ./actionlint .github/workflows/*.yml
