@@ -18,7 +18,7 @@ jobs:
           MYSQL_DATABASE: testdb
           
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
@@ -48,7 +48,7 @@ jobs:
           MYSQL_DATABASE: testdb
           
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
@@ -78,7 +78,7 @@ jobs:
           POSTGRES_DB: testdb
           
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
@@ -101,7 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
@@ -121,7 +121,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
