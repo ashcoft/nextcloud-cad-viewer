@@ -18,5 +18,5 @@ jobs:
     - name: Run OpenGrep Full Scan
       uses: opengrep/opengrep-action@v1
       with:
-        args: --config rules.yaml
+        args: --format github
       continue-on-error: true
