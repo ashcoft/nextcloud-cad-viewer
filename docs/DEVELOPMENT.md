@@ -3,10 +3,10 @@
 ## Local Setup
 
 ### Prerequisites
-- Node.js 22+
+- Node.js 24+
 - npm or yarn
-- Nextcloud 32/33 installation
-- PHP 8.4 - 8.5
+- Nextcloud 33 installation
+- PHP 8.5
 
 ### Installation
 1. Clone the repository
