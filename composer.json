@@ -3,6 +3,13 @@
     "php": "^8.5"
   },
   "require-dev": {
-    "nextcloud/ocp": "^33.0"
-  }
+    "nextcloud/ocp": "dev-master",
+    "phpunit/phpunit": "^10.4"
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/nextcloud-releases/ocp.git"
+    }
+  ]
 }
