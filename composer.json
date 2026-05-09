@@ -1,12 +1,14 @@
 {
+  "require": {
+    "php": "^8.5"
+  },
+  "require-dev": {
+    "nextcloud/ocp": "dev-master"
+  },
   "repositories": [
     {
       "type": "vcs",
-      "url": "https://github.com/nextcloud/server.git"
+      "url": "https://github.com/nextcloud-releases/ocp.git"
     }
-  ],
-  "require": {
-    "php": "^8.5",
-    "nextcloud/server": "^32.0|^33.0"
-  }
+  ]
 }
