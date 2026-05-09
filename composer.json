@@ -3,7 +3,8 @@
     "php": "^8.5"
   },
   "require-dev": {
-    "nextcloud/ocp": "dev-master"
+    "nextcloud/ocp": "dev-master",
+    "phpunit/phpunit": "^10.4"
   },
   "repositories": [
     {
