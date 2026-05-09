@@ -38,7 +38,13 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.vue', '.json'],
     alias: {
-      'vue$': 'vue/dist/vue.esm-bundler.js'
+      'vue$': 'vue/dist/vue.esm-bundler.js',
+      'three/examples/jsm/controls/OrbitControls': 'three/addons/controls/OrbitControls.js',
+      'three/examples/jsm/libs/stats.module': 'three/addons/libs/stats.module.js',
+      // Provide empty modules for Node.js built-ins
+      'fs': path.resolve(__dirname, 'src/polyfills/empty.js'),
+      'path': path.resolve(__dirname, 'src/polyfills/empty.js'),
+      'crypto': path.resolve(__dirname, 'src/polyfills/empty.js')
     }
   },
   externals: {
