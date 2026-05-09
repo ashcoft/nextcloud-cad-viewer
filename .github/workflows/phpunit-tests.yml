@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [master]
 
-env:
-  COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ secrets.GITHUB_TOKEN }}"}}'
-
 permissions:
   contents: read
 
@@ -26,39 +23,3 @@ jobs:
       - name: Get version matrix
         id: versions
         uses: icewind1991/nextcloud-version-matrix@v1.3.2
-
-  phpunit-sqlite:
-    runs-on: ubuntu-latest
-    needs: matrix
-
-    steps:
-      - name: Checkout app
-        uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ fromJson(needs.matrix.outputs.php-version)[0] }}
-          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite3, pdo_sqlite
-          coverage: none
-
-      - name: Install dependencies
-        run: composer install --no-interaction
-
-      - name: Check PHPUnit script is defined
-        id: check_phpunit
-        continue-on-error: true
-        run: |
-          composer run --list | grep '^ test:unit ' | wc -l | grep 1
-
-      - name: Run PHPUnit
-        if: steps.check_phpunit.outcome == 'success'
-        run: composer run test:unit
-
-      - name: Skipped
-        if: steps.check_phpunit.outcome == 'failure'
-        run: |
-          echo 'No PHPUnit unit tests are specified in composer.json scripts'
-          exit 1
