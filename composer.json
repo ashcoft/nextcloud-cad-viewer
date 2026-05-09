@@ -8,8 +8,7 @@
   "repositories": [
     {
       "type": "vcs",
-      "url": "https://github.com/nextcloud-releases/ocp.git",
-      "no-api": true
+      "url": "https://github.com/nextcloud-releases/ocp.git"
     }
   ]
 }
