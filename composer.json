@@ -1,12 +1,31 @@
 {
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/nextcloud/server.git"
-    }
-  ],
+  "name": "nextcloud/cad-viewer",
+  "description": "DWG/DXF file viewer for Nextcloud",
+  "type": "project",
+  "license": "MIT",
   "require": {
-    "php": "^8.5",
-    "nextcloud/server": "^32.0|^33.0"
+    "php": "^8.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.5",
+    "phpstan/phpstan": "^1.10",
+    "friendsofphp/php-cs-fixer": "^3.40",
+    "nextcloud/ocp": "^32.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "OCA\\CadViewer\\": "lib/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "OCA\\CadViewer\\Tests\\": "tests/unit/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit",
+    "lint": "php -l lib/",
+    "analyze": "phpstan analyse --level max lib/",
+    "cs-fix": "php-cs-fixer fix"
   }
 }

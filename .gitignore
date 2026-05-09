@@ -1,5 +1,21 @@
 ```
-# GitHub workflow files that were deleted
-.github/workflows/dependency-management.yml
-.github/workflows/dependency-updates.yml
+# Dependencies
+vendor/
+
+# Logs and temp files
+*.log
+.phpunit.result.cache
+
+# Environment
+.env
+.env.local
+.env.*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
 ```
