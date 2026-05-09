@@ -2,114 +2,63 @@ name: PHPUnit Tests
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 env:
   COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ secrets.GITHUB_TOKEN }}"}}'
 
+permissions:
+  contents: read
+
 jobs:
-  phpunit-mariadb:
+  matrix:
     runs-on: ubuntu-latest
-    services:
-      mariadb:
-        image: mariadb:10.6
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: testdb
+    outputs:
+      php-version: ${{ steps.versions.outputs.php-available-list }}
     steps:
-    - uses: actions/checkout@v6
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        extensions: pdo, pdo_mysql
-    - name: Install dependencies
-      run: composer install --no-interaction
-    - name: Run PHPUnit (MariaDB)
-      run: vendor/bin/phpunit --configuration tests/phpunit.xml
-      env:
-        DB_TYPE: mariadb
-        DB_NAME: testdb
-        DB_USER: root
-        DB_PASS: root
-  phpunit-mysql:
-    runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: testdb
-    steps:
-    - uses: actions/checkout@v6
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        extensions: pdo, pdo_mysql
-    - name: Install dependencies
-      run: composer install --no-interaction
-    - name: Run PHPUnit (MySQL)
-      run: vendor/bin/phpunit --configuration tests/phpunit.xml
-      env:
-        DB_TYPE: mysql
-        DB_NAME: testdb
-        DB_USER: root
-        DB_PASS: root
-  phpunit-pgsql:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: testdb
-    steps:
-    - uses: actions/checkout@v6
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        extensions: pdo, pdo_pgsql
-    - name: Install dependencies
-      run: composer install --no-interaction
-    - name: Run PHPUnit (PostgreSQL)
-      run: vendor/bin/phpunit --configuration tests/phpunit.xml
-      env:
-        DB_TYPE: pgsql
-        DB_NAME: testdb
-        DB_USER: postgres
-        DB_PASS: postgres
+      - name: Checkout app
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Get version matrix
+        id: versions
+        uses: icewind1991/nextcloud-version-matrix@v1.3.2
+
   phpunit-sqlite:
     runs-on: ubuntu-latest
+    needs: matrix
+
     steps:
-    - uses: actions/checkout@v6
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        extensions: pdo, pdo_sqlite
-    - name: Install dependencies
-      run: composer install --no-interaction
-    - name: Run PHPUnit (SQLite)
-      run: vendor/bin/phpunit --configuration tests/phpunit.xml
-      env:
-        DB_TYPE: sqlite
-  phpunit-oci:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v6
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        extensions: pdo, oci8
-    - name: Install dependencies
-      run: composer install --no-interaction
-    - name: Run PHPUnit (OCI)
-      run: vendor/bin/phpunit --configuration tests/phpunit.xml
-      env:
-        DB_TYPE: oci
-      continue-on-error: true
+      - name: Checkout app
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ fromJson(needs.matrix.outputs.php-version)[0] }}
+          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite3, pdo_sqlite
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction
+
+      - name: Check PHPUnit script is defined
+        id: check_phpunit
+        continue-on-error: true
+        run: |
+          composer run --list | grep '^ test:unit ' | wc -l | grep 1
+
+      - name: Run PHPUnit
+        if: steps.check_phpunit.outcome == 'success'
+        run: composer run test:unit
+
+      - name: Skipped
+        if: steps.check_phpunit.outcome == 'failure'
+        run: |
+          echo 'No PHPUnit unit tests are specified in composer.json scripts'
+          exit 1

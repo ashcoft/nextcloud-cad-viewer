@@ -11,5 +11,8 @@
       "type": "vcs",
       "url": "https://github.com/nextcloud-releases/ocp.git"
     }
-  ]
+  ],
+  "scripts": {
+    "test:unit": "vendor/bin/phpunit --configuration tests/phpunit.xml"
+  }
 }
