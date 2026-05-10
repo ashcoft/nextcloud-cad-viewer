@@ -90,7 +90,7 @@ jobs:
 
       - name: Run PHP-CS-Fixer
         run: |
-          php php-cs-fixer fix --dry-run --diff --rules=@PSR12 .
+          php php-cs-fixer fix --dry-run --diff --diff-format=udiff --rules=@PSR12 .
 
   lint:
     runs-on: ubuntu-latest
