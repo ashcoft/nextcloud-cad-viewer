@@ -1,129 +1,145 @@
 name: Linting
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lint-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   lint-php:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-versions: ['8.5']
+    name: php-lint
 
     steps:
-    - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        tools: composer:v2
+      - name: Set up PHP ${{ matrix.php-versions }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          coverage: none
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Install dependencies
-      run: composer install --no-interaction
-
-    - name: Run PHP linter
-      run: composer run-script lint
+      - name: Lint PHP
+        run: |
+          find . -name '*.php' -not -path './lib/composer/*' -not -path './build/stubs/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l
 
   lint-php-cs:
     runs-on: ubuntu-latest
+    name: php-cs
 
     steps:
-    - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        tools: composer:v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer, phpcs
 
-    - name: Install dependencies
-      run: composer install --no-interaction
+      - name: Install dependencies
+        run: composer install --no-interaction
 
-    - name: Install PHP-CS-Fixer
-      run: composer require --dev friendsofphp/php-cs-fixer
+      - name: Run phpcs
+        run: |
+          phpcs --standard=PSR12 --extensions=php,module,inc,install --ignore=node_modules,vendor,3rdparty,Migration --warning-severity=0 ./
 
-    - name: Run PHP-CS-Fixer
-      run: vendor/bin/php-cs-fixer fix --dry-run --diff
-
-  lint-eslint:
+  lint:
     runs-on: ubuntu-latest
+    name: ESLint + Stylelint
 
     steps:
-    - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-    - name: Use Node.js 24.x
-      uses: actions/setup-node@v6
-      with:
-        node-version: '24.x'
-        cache: 'npm'
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.x'
+          cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Run ESLint
-      run: npm run lint
+      - name: Code Linting
+        run: npx eslint src/
+
+      - name: CSS Linting
+        run: npx stylelint css/
 
   lint-typescript:
     runs-on: ubuntu-latest
+    name: TypeScript
 
     steps:
-    - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-    - name: Use Node.js 24.x
-      uses: actions/setup-node@v6
-      with:
-        node-version: '24.x'
-        cache: 'npm'
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.x'
+          cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Run TypeScript check
-      run: npx tsc --noEmit
-      continue-on-error: true
-
-  lint-stylelint:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v6
-
-    - name: Use Node.js 24.x
-      uses: actions/setup-node@v6
-      with:
-        node-version: '24.x'
-        cache: 'npm'
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Install stylelint
-      run: npm install --save-dev stylelint stylelint-config-standard
-
-    - name: Run stylelint
-      run: npx stylelint "css/**/*.css"
-      continue-on-error: true
+      - name: Run TypeScript check
+        run: npx tsc --noEmit
+        continue-on-error: true
 
   lint-info-xml:
     runs-on: ubuntu-latest
+    name: info.xml
 
     steps:
-    - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-    - name: Validate info.xml
-      run: |
-        xmllint --noout appinfo/info.xml
+      - name: Validate info.xml
+        run: xmllint --noout appinfo/info.xml
 
   lint-github-actions:
     runs-on: ubuntu-latest
+    name: GitHub Actions
 
     steps:
-    - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-    - name: Download actionlint
-      run: |
-        curl -L https://github.com/rhysd/actionlint/releases/latest/download/actionlint_linux_amd64.tar.gz | tar xz
+      - name: Download actionlint
+        run: |
+          curl -L https://github.com/rhysd/actionlint/releases/latest/download/actionlint_linux_amd64.tar.gz | tar xz
 
-    - name: Run actionlint
-      run: ./actionlint .github/workflows/*.yml
+      - name: Run actionlint
+        run: ./actionlint .github/workflows/*.yml
+
+  summary:
+    permissions:
+      contents: none
+    runs-on: ubuntu-latest
+    needs: [lint-php, lint-php-cs, lint, lint-typescript, lint-info-xml, lint-github-actions]
+    if: always()
+    name: lint-summary
+
+    steps:
+      - name: Summary status
+        run: |
+          if [[ "${{ needs.lint-php.result }}" != "success" ]] && [[ "${{ needs.lint-php.result }}" != "skipped" ]]; then exit 1; fi
+          if [[ "${{ needs.lint-php-cs.result }}" != "success" ]] && [[ "${{ needs.lint-php-cs.result }}" != "skipped" ]]; then exit 1; fi
+          if [[ "${{ needs.lint.result }}" != "success" ]] && [[ "${{ needs.lint.result }}" != "skipped" ]]; then exit 1; fi
+          if [[ "${{ needs.lint-typescript.result }}" != "success" ]] && [[ "${{ needs.lint-typescript.result }}" != "skipped" ]]; then exit 1; fi
+          if [[ "${{ needs.lint-info-xml.result }}" != "success" ]] && [[ "${{ needs.lint-info-xml.result }}" != "skipped" ]]; then exit 1; fi
+          if [[ "${{ needs.lint-github-actions.result }}" != "success" ]] && [[ "${{ needs.lint-github-actions.result }}" != "skipped" ]]; then exit 1; fi
