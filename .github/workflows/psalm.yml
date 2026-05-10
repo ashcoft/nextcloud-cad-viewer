@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: MIT
 
-name: Static analysis
+name: psalm
 
 on: pull_request
 
