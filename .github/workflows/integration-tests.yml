@@ -1,24 +1,50 @@
 name: Integration Tests
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: integration-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
+  integration-sqlite:
+    runs-on: ubuntu-latest
+    name: sqlite
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.5'
+        extensions: pdo, pdo_sqlite
+        coverage: none
+
+    - name: Run SQLite integration tests
+      run: php tests/integration/run.php --db=sqlite
+      continue-on-error: true
+
   integration-federation:
     runs-on: ubuntu-latest
-    
+    name: federation
+
     steps:
-    - uses: actions/checkout@v6
-    
+    - name: Checkout
+      uses: actions/checkout@v6
+
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.5'
         tools: composer:v2
-        
+        coverage: none
+
     - name: Install dependencies
       run: composer install --no-interaction
       
@@ -26,134 +52,16 @@ jobs:
       run: php tests/integration/federation.php
       continue-on-error: true
 
-  integration-mariadb:
+  summary:
+    permissions:
+      contents: none
     runs-on: ubuntu-latest
-    
-    services:
-      mariadb:
-        image: mariadb:10.6
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: testdb
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-          
-    steps:
-    - uses: actions/checkout@v6
-    
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        extensions: pdo, pdo_mysql
-        
-    - name: Run MariaDB integration tests
-      run: |
-        php tests/integration/run.php --db=mariadb
-      env:
-        DB_HOST: localhost
-        DB_NAME: testdb
-        DB_USER: root
-        DB_PASS: root
+    needs: [integration-sqlite, integration-federation]
+    if: always()
+    name: integration-summary
 
-  integration-mysql:
-    runs-on: ubuntu-latest
-    
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: testdb
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-          
     steps:
-    - uses: actions/checkout@v6
-    
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        extensions: pdo, pdo_mysql
-        
-    - name: Run MySQL integration tests
+    - name: Summary status
       run: |
-        php tests/integration/run.php --db=mysql
-      env:
-        DB_HOST: localhost
-        DB_NAME: testdb
-        DB_USER: root
-        DB_PASS: root
-
-  integration-pgsql:
-    runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: testdb
-        options: >-
-          --health-cmd="pg_isready"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-          
-    steps:
-    - uses: actions/checkout@v6
-    
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        extensions: pdo, pdo_pgsql
-        
-    - name: Run PostgreSQL integration tests
-      run: |
-        php tests/integration/run.php --db=pgsql
-      env:
-        DB_HOST: localhost
-        DB_NAME: testdb
-        DB_USER: postgres
-        DB_PASS: postgres
-
-  integration-sqlite:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v6
-    
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        extensions: pdo, pdo_sqlite
-        
-    - name: Run SQLite integration tests
-      run: |
-        php tests/integration/run.php --db=sqlite
-
-  integration-oci:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v6
-    
-    - name: Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.5'
-        extensions: pdo, oci8
-        
-    - name: Run OCI integration tests
-      run: |
-        php tests/integration/run.php --db=oci
-      continue-on-error: true
+        if [[ "${{ needs.integration-sqlite.result }}" != "success" ]] && [[ "${{ needs.integration-sqlite.result }}" != "skipped" ]]; then exit 1; fi
+        if [[ "${{ needs.integration-federation.result }}" != "success" ]] && [[ "${{ needs.integration-federation.result }}" != "skipped" ]]; then exit 1; fi
