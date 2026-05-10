@@ -4,7 +4,12 @@
 
 name: Static analysis
 
-on: pull_request
+on:
+  workflow_dispatch:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
 
 concurrency:
   group: psalm-${{ github.head_ref || github.run_id }}
@@ -31,12 +36,16 @@ jobs:
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite
           coverage: none
           ini-file: development
+          ini-values: 'error_reporting=E_ALL|E_STRICT'
 
       - name: Install dependencies
-        run: composer install --no-dev
+        run: composer install --no-dev --no-interaction
+
+      - name: Install Psalm
+        run: composer require --dev vimeo/psalm --no-interaction
 
       - name: Install nextcloud/ocp
-        run: composer require --dev nextcloud/ocp:dev-main --ignore-platform-reqs --with-dependencies
+        run: composer require --dev nextcloud/ocp:dev-main --ignore-platform-reqs --with-dependencies --no-interaction
 
       - name: Run Psalm
-        run: composer require --dev vimeo/psalm && vendor/bin/psalm --threads=1 --monochrome --no-progress
+        run: vendor/bin/psalm --threads=1 --monochrome --no-progress --output-format=github
