@@ -62,34 +62,6 @@ npm run lint
 npm test
 ```
 
-## File Structure
-
-```plaintext
- cad_viewer/
- ├── appinfo/
- │   └── info.xml # App manifest
- ├── lib/
- │   ├── AppInfo/
- │   │   └── Application.php
- │   ├── Controller/
- │   │   └── FileController.php
- │   └── Listener/
- │       └── LoadViewer.php
- ├── src/
- │   ├── main.js
- │   ├── App.vue
- │   ├── components/
- │   └── router/
- ├── css/
- │   └── cad-viewer.css
- ├── docs/
- │   ├── UPDATING.md
- │   └── DEVELOPMENT.md
- ├── package.json
- ├── webpack.config.js
- └── README.md
-```
-
 ## Updating CAD Viewer
 
 When new versions of [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer) are released:
