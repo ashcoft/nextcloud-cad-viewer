@@ -1,0 +1,42 @@
+# Static analysis workflow
+# SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
+# SPDX-License-Identifier: MIT
+
+name: Static analysis
+
+on: pull_request
+
+concurrency:
+  group: psalm-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  psalm:
+    runs-on: ubuntu-latest
+    name: static-psalm-analysis
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite
+          coverage: none
+          ini-file: development
+
+      - name: Install dependencies
+        run: composer install --no-dev
+
+      - name: Install nextcloud/ocp
+        run: composer require --dev nextcloud/ocp:dev-main --ignore-platform-reqs --with-dependencies
+
+      - name: Run Psalm
+        run: composer require --dev vimeo/psalm && vendor/bin/psalm --threads=1 --monochrome --no-progress
