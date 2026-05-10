@@ -4,12 +4,7 @@
 
 name: Static analysis
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [master, develop]
-  pull_request:
-    branches: [master, develop]
+on: pull_request
 
 concurrency:
   group: psalm-${{ github.head_ref || github.run_id }}
@@ -19,33 +14,47 @@ permissions:
   contents: read
 
 jobs:
-  psalm:
+  static-analysis:
     runs-on: ubuntu-latest
-    name: static-psalm-analysis
 
+    name: static-psalm-analysis
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           persist-credentials: false
 
-      - name: Set up PHP
+      - name: Get php version
+        id: versions
+        uses: icewind1991/nextcloud-version-matrix@v1.3.2
+
+      - name: Check enforcement of minimum PHP version ${{ steps.versions.outputs.php-min }} in psalm.xml
+        run: grep 'phpVersion="${{ steps.versions.outputs.php-min }}' psalm.xml || echo "No psalm.xml found"
+
+      - name: Set up php${{ steps.versions.outputs.php-available }}
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.5'
+          php-version: ${{ steps.versions.outputs.php-available }}
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite
           coverage: none
           ini-file: development
-          ini-values: 'error_reporting=E_ALL|E_STRICT'
+          ini-values: disable_functions=
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
-        run: composer install --no-dev --no-interaction
+        run: |
+          composer remove nextcloud/ocp --dev --no-scripts || true
+          composer install --no-dev
 
-      - name: Install Psalm
-        run: composer require --dev vimeo/psalm --no-interaction
+      - name: Check for vulnerable PHP dependencies
+        run: composer require --dev roave/security-advisories:dev-latest
 
       - name: Install nextcloud/ocp
-        run: composer require --dev nextcloud/ocp:dev-main --ignore-platform-reqs --with-dependencies --no-interaction
+        run: composer require --dev nextcloud/ocp:dev-${{ steps.versions.outputs.branches-max }} --ignore-platform-reqs --with-dependencies
 
-      - name: Run Psalm
+      - name: Install Psalm
+        run: composer require --dev vimeo/psalm
+
+      - name: Run coding standards check
         run: vendor/bin/psalm --threads=1 --monochrome --no-progress --output-format=github
