@@ -39,8 +39,10 @@ jobs:
           coverage: none
           ini-file: development
           ini-values: disable_functions=
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure GitHub token for Composer
+        run: |
+          composer config --global --auth github-oauth.github.com "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Install dependencies
         run: |
