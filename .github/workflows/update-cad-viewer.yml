@@ -1,0 +1,182 @@
+name: Update CAD Viewer Dependency
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update even if no new release detected'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Get current @mlightcad/cad-viewer version
+        id: current-version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').dependencies['@mlightcad/cad-viewer'].replace('^', '')")
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+
+      - name: Get latest upstream release version
+        id: latest-version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LATEST_VERSION=$(gh api repos/mlightcad/cad-viewer/releases/latest --jq '.tag_name' | sed 's/^v//')
+          if [ -z "$LATEST_VERSION" ]; then
+            # Fallback to latest tag if no release exists
+            LATEST_VERSION=$(gh api repos/mlightcad/cad-viewer/tags --jq '.[0].name' | sed 's/^v//')
+          fi
+          echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          echo "Latest upstream version: $LATEST_VERSION"
+
+      - name: Check if update is needed
+        id: check-update
+        run: |
+          CURRENT="${{ steps.current-version.outputs.version }}"
+          LATEST="${{ steps.latest-version.outputs.version }}"
+          FORCE="${{ github.event.inputs.force_update }}"
+
+          if [ "$FORCE" = "true" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+            echo "Force update requested"
+            exit 0
+          fi
+
+          if [ "$CURRENT" = "$LATEST" ]; then
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+            echo "Already on latest version: $CURRENT"
+          else
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+            echo "New version available: $LATEST (current: $CURRENT)"
+          fi
+
+      - name: Install dependencies
+        if: steps.check-update.outputs.update_needed == 'true'
+        run: npm install --legacy-peer-deps
+
+      - name: Update @mlightcad packages
+        if: steps.check-update.outputs.update_needed == 'true'
+        run: |
+          npm update @mlightcad/cad-viewer @mlightcad/cad-simple-viewer @mlightcad/data-model --legacy-peer-deps
+
+      - name: Get updated versions
+        if: steps.check-update.outputs.update_needed == 'true'
+        id: updated-versions
+        run: |
+          CAD_VIEWER_VERSION=$(node -p "require('./package.json').dependencies['@mlightcad/cad-viewer'].replace('^', '')")
+          SIMPLE_VIEWER_VERSION=$(node -p "require('./package.json').dependencies['@mlightcad/cad-simple-viewer'].replace('^', '')")
+          DATA_MODEL_VERSION=$(node -p "require('./package.json').dependencies['@mlightcad/data-model'].replace('^', '')")
+          echo "cad-viewer=$CAD_VIEWER_VERSION" >> $GITHUB_OUTPUT
+          echo "cad-simple-viewer=$SIMPLE_VIEWER_VERSION" >> $GITHUB_OUTPUT
+          echo "data-model=$DATA_MODEL_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build the app
+        if: steps.check-update.outputs.update_needed == 'true'
+        run: npm run build
+
+      - name: Run tests
+        if: steps.check-update.outputs.update_needed == 'true'
+        run: npm test
+
+      - name: Create branch and commit
+        if: steps.check-update.outputs.update_needed == 'true'
+        run: |
+          NEW_VERSION="${{ steps.updated-versions.outputs.cad-viewer }}"
+          BRANCH_NAME="update/cad-viewer-${NEW_VERSION}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if branch already exists remotely
+          if git ls-remote --heads origin "refs/heads/${BRANCH_NAME}" | grep -q "${BRANCH_NAME}"; then
+            echo "Branch $BRANCH_NAME already exists, skipping"
+            exit 0
+          fi
+
+          git checkout -b "$BRANCH_NAME"
+          git add package.json package-lock.json js/
+
+          git commit -m "chore: update @mlightcad/cad-viewer to ${NEW_VERSION}
+
+          Updates @mlightcad/cad-viewer from ${{ steps.current-version.outputs.version }} to ${NEW_VERSION}
+          Updates @mlightcad/cad-simple-viewer to ${{ steps.updated-versions.outputs.cad-simple-viewer }}
+          Updates @mlightcad/data-model to ${{ steps.updated-versions.outputs.data-model }}
+
+          - Run npm update for @mlightcad packages
+          - Rebuilt the app with new dependencies
+          - All tests passing
+
+          🤖 Generated with [Qoder][https://qoder.com]"
+
+          git push -u origin "$BRANCH_NAME"
+          echo "branch_created=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.check-update.outputs.update_needed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEW_VERSION="${{ steps.updated-versions.outputs.cad-viewer }}"
+          BRANCH_NAME="${{ steps.create-branch.outputs.branch_created }}"
+
+          if [ -z "$BRANCH_NAME" ]; then
+            echo "No branch created, skipping PR"
+            exit 0
+          fi
+
+          # Check if PR already exists
+          EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
+          if [ -n "$EXISTING_PR" ]; then
+            echo "PR #$EXISTING_PR already exists for $BRANCH_NAME"
+            exit 0
+          fi
+
+          gh pr create \
+            --title "chore: update @mlightcad/cad-viewer to ${NEW_VERSION}" \
+            --body "## Summary
+
+          Update @mlightcad/cad-viewer dependency from \`${{ steps.current-version.outputs.version }}\` to \`${NEW_VERSION}\`.
+
+          ### Changes
+          - @mlightcad/cad-viewer: \`${{ steps.current-version.outputs.version }}\` → \`${{ steps.updated-versions.outputs.cad-viewer }}\`
+          - @mlightcad/cad-simple-viewer: \`${{ steps.updated-versions.outputs.cad-simple-viewer }}\`
+          - @mlightcad/data-model: \`${{ steps.updated-versions.outputs.data-model }}\`
+
+          ### Verification
+          - [x] Dependencies updated with \`npm update\`
+          - [x] App rebuilt with \`npm run build\`
+          - [x] Tests passing with \`npm test\`
+
+          ### Upstream Release
+          See [mlightcad/cad-viewer releases](https://github.com/mlightcad/cad-viewer/releases) for changelog.
+
+          ---
+          🤖 Generated with [Qoder][https://qoder.com]" \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --label "dependencies"
