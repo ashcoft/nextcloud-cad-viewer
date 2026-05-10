@@ -1,13 +1,8 @@
-<div id="cad-viewer-app" data-file-ids="<?php if (!empty($_FILE['fileIds'])): ?> <?php echo htmlspecialchars($_FILE['fileIds']); ?><?php endif; ?>"></div>
-
 <?php
-script_tag('cad_viewer', 'cad-viewer');
-style_tag('cad_viewer', 'cad-viewer');
+declare(strict_types=1);
+/** @var array $_ */
 ?>
-
-<style>
-#cad-viewer-app {
-    height: 100vh;
-    width: 100%;
-}
-</style>
+<div id="cad-viewer-container"
+     data-file-ids="<?php echo !empty($_['fileIds']) ? htmlspecialchars($_['fileIds'], ENT_QUOTES, 'UTF-8') : ''; ?>"
+     data-request-token="<?php echo htmlspecialchars($_['requesttoken'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+</div>

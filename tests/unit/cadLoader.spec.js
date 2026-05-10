@@ -3,17 +3,24 @@ import { isSupportedCADFormat, getFileExtension } from '../../src/utils/cadLoade
 
 describe('CAD Loader Utilities', () => {
   describe('isSupportedCADFormat', () => {
-    it('should return true for DWG MIME type', () => {
+    it('should return true for DWG MIME types', () => {
       expect(isSupportedCADFormat('application/acad')).toBe(true);
+      expect(isSupportedCADFormat('image/vnd.dwg')).toBe(true);
+      expect(isSupportedCADFormat('application/dwg')).toBe(true);
+      expect(isSupportedCADFormat('application/x-autocad')).toBe(true);
+      expect(isSupportedCADFormat('application/autocad_dwg')).toBe(true);
     });
 
-    it('should return true for DXF MIME type', () => {
+    it('should return true for DXF MIME types', () => {
       expect(isSupportedCADFormat('image/vnd.dxf')).toBe(true);
+      expect(isSupportedCADFormat('application/dxf')).toBe(true);
+      expect(isSupportedCADFormat('application/x-dxf')).toBe(true);
     });
 
     it('should return false for unsupported MIME types', () => {
       expect(isSupportedCADFormat('image/png')).toBe(false);
       expect(isSupportedCADFormat('application/pdf')).toBe(false);
+      expect(isSupportedCADFormat('text/plain')).toBe(false);
     });
   });
 
