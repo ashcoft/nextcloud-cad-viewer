@@ -50,7 +50,12 @@ module.exports = {
   externals: {
     '@nextcloud/axios': 'OCA.Core.Axios',
     '@nextcloud/router': 'OCA.Core.Router',
-    '@nextcloud/l10n': 'OCA.Core.L10n'
+    '@nextcloud/l10n': 'OCA.Core.L10n',
+    '@nextcloud/files': 'OCA.Files',
+    'element-plus': 'elementPlus',
+    '@mlightcad/cad-viewer': 'cadViewer',
+    '@mlightcad/cad-simple-viewer': 'cadSimpleViewer',
+    'three': 'three'
   }
 };
 
