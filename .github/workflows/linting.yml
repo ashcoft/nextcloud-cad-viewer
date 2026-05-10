@@ -51,7 +51,6 @@ jobs:
       - name: Run PHP-CS-Fixer
         run: |
           php php-cs-fixer fix --dry-run --diff --diff-format=udiff --rules=@PSR12 .
-        continue-on-error: true
 
   lint:
     runs-on: ubuntu-latest
