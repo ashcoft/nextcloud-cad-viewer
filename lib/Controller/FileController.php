@@ -8,18 +8,37 @@ declare(strict_types=1);
 
 namespace OCA\CadViewer\Controller;
 
+use OCA\CadViewer\AppInfo\Application;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
-use OCP\AppFramework\Http\FileDisplayResponse;
+use OCP\AppFramework\Http\StreamResponse;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
+use OCP\Files\NotPermittedException;
 use OCP\IRequest;
 use OCP\IUserSession;
 
 class FileController extends Controller {
     private IRootFolder $rootFolder;
     private IUserSession $userSession;
+
+    /** @var string[] Supported CAD MIME types */
+    private const SUPPORTED_MIME_TYPES = [
+        'application/acad',
+        'application/autocad_dwg',
+        'application/dwg',
+        'application/x-autocad',
+        'application/x-dwg',
+        'image/vnd.dwg',
+        'image/vnd.dxf',
+        'application/dxf',
+        'application/x-dxf',
+        'image/x-dxf',
+    ];
 
     public function __construct(
         string $appName,
@@ -33,9 +52,10 @@ class FileController extends Controller {
     }
 
     /**
-     * @NoAdminRequired
-     * @NoCSRFRequired
+     * Get file metadata for a CAD file
      */
+    #[NoAdminRequired]
+    #[NoCSRFRequired]
     public function getFile(int $fileId): DataResponse {
         try {
             $user = $this->userSession->getUser();
@@ -57,8 +77,8 @@ class FileController extends Controller {
             }
 
             $mimeType = $file->getMimeType();
-            if (!in_array($mimeType, ['application/acad', 'image/vnd.dxf', 'application/x-autocad'])) {
-                return new DataResponse(['error' => 'Unsupported file type'], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
+            if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
+                return new DataResponse(['error' => 'Unsupported file type: ' . $mimeType], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
             }
 
             return new DataResponse([
@@ -70,15 +90,62 @@ class FileController extends Controller {
             ]);
         } catch (NotFoundException $e) {
             return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
+        } catch (NotPermittedException $e) {
+            return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
         } catch (\Exception $e) {
             return new DataResponse(['error' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
-     * @NoAdminRequired
-     * @NoCSRFRequired
+     * Stream the raw CAD file content for the viewer to load
      */
+    #[NoAdminRequired]
+    #[NoCSRFRequired]
+    public function getFileContent(int $fileId) {
+        try {
+            $user = $this->userSession->getUser();
+            if ($user === null) {
+                return new DataResponse(['error' => 'Unauthorized'], Http::STATUS_UNAUTHORIZED);
+            }
+
+            $userFolder = $this->rootFolder->getUserFolder($user->getUID());
+            $files = $userFolder->getById($fileId);
+
+            if (empty($files)) {
+                return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
+            }
+
+            $file = $files[0];
+
+            if (!$file->isReadable()) {
+                return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
+            }
+
+            $mimeType = $file->getMimeType();
+            $stream = $file->fopen('r');
+            if ($stream === false) {
+                return new DataResponse(['error' => 'Could not open file'], Http::STATUS_INTERNAL_SERVER_ERROR);
+            }
+
+            $response = new StreamResponse($stream);
+            $response->addHeader('Content-Type', $mimeType);
+            $response->addHeader('Content-Disposition', 'inline; filename="' . $file->getName() . '"');
+            return $response;
+        } catch (NotFoundException $e) {
+            return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
+        } catch (NotPermittedException $e) {
+            return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
+        } catch (\Exception $e) {
+            return new DataResponse(['error' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Get a preview/thumbnail for a CAD file
+     */
+    #[NoAdminRequired]
+    #[NoCSRFRequired]
     public function preview(int $fileId) {
         try {
             $user = $this->userSession->getUser();
@@ -99,9 +166,23 @@ class FileController extends Controller {
                 return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
             }
 
-            return new FileDisplayResponse($file, Http::STATUS_OK, ['Content-Type' => $file->getMimeType()]);
+            $mimeType = $file->getMimeType();
+            if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
+                return new DataResponse(['error' => 'Unsupported file type'], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
+            }
+
+            $stream = $file->fopen('r');
+            if ($stream === false) {
+                return new DataResponse(['error' => 'Could not open file'], Http::STATUS_INTERNAL_SERVER_ERROR);
+            }
+
+            $response = new StreamResponse($stream);
+            $response->addHeader('Content-Type', $mimeType);
+            return $response;
         } catch (NotFoundException $e) {
             return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
+        } catch (NotPermittedException $e) {
+            return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
         } catch (\Exception $e) {
             return new DataResponse(['error' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
         }

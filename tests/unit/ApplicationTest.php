@@ -14,7 +14,6 @@ use PHPUnit\Framework\TestCase;
 
 class ApplicationTest extends TestCase {
     public function testAppId(): void {
-        $app = new Application();
         $this->assertSame('cad_viewer', Application::APP_ID);
     }
 
@@ -26,21 +25,21 @@ class ApplicationTest extends TestCase {
     public function testRegister(): void {
         $app = new Application();
         $mockContext = $this->createMock(IRegistrationContext::class);
-        
+
         $mockContext->expects($this->once())
             ->method('registerEventListener')
             ->with(
-                \OCP\Files\Events\BeforeDirectoryRendered::class,
+                \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
                 \OCA\CadViewer\Listener\LoadViewer::class
             );
-        
+
         $app->register($mockContext);
     }
 
     public function testBoot(): void {
         $app = new Application();
         $mockContext = $this->createMock(\OCP\AppFramework\Bootstrap\IBootContext::class);
-        
+
         // boot method should do nothing but not throw
         $app->boot($mockContext);
         $this->assertTrue(true);

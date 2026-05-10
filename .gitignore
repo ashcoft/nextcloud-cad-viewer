@@ -1,5 +1,33 @@
-```
-# GitHub workflow files that were deleted
-.github/workflows/dependency-management.yml
-.github/workflows/dependency-updates.yml
-```
+# Dependencies
+node_modules/
+
+# Build output (keep in repo, but ignore map files if any)
+*.map
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
+
+# Environment
+.env
+.env.local
+
+# PHP
+vendor/
+composer.lock
+
+# Package manager
+package-lock.json
