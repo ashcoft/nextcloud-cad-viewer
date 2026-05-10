@@ -92,11 +92,11 @@ jobs:
         run: |
           php php-cs-fixer fix --dry-run --diff --rules=@PSR12 .
 
-  lint:
+  lint-eslint:
     runs-on: ubuntu-latest
     needs: changes
     if: needs.changes.outputs.src != 'false'
-    name: NPM lint
+    name: ESLint
 
     steps:
       - name: Checkout
@@ -119,14 +119,44 @@ jobs:
           PUPPETEER_SKIP_DOWNLOAD: true
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
+      - name: Run ESLint
+        run: npx eslint src/
+
+  lint-stylelint:
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.src != 'false'
+    name: Stylelint
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Set up npm
+        run: npm i -g 'npm@11'
+
+      - name: Install dependencies
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+          PUPPETEER_SKIP_DOWNLOAD: true
+        run: npm ci
+
+      - name: Run Stylelint
+        run: npx stylelint css/**
 
   summary:
     permissions:
       contents: none
     runs-on: ubuntu-latest-low
-    needs: [changes, lint-php, lint-php-cs, lint]
+    needs: [changes, lint-php, lint-php-cs, lint-eslint, lint-stylelint]
     if: always()
 
     name: lint-summary
@@ -137,5 +167,6 @@ jobs:
           if [[ "${{ needs.changes.outputs.src }}" != "false" ]]; then
             if [[ "${{ needs.lint-php.result }}" != "success" ]]; then exit 1; fi
             if [[ "${{ needs.lint-php-cs.result }}" != "success" ]]; then exit 1; fi
-            if [[ "${{ needs.lint.result }}" != "success" ]]; then exit 1; fi
+            if [[ "${{ needs.lint-eslint.result }}" != "success" ]]; then exit 1; fi
+            if [[ "${{ needs.lint-stylelint.result }}" != "success" ]]; then exit 1; fi
           fi
