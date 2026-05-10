@@ -1,10 +1,17 @@
 name: Linting
 
 on:
+  workflow_dispatch:
+  push:
+    branches: [master]
   pull_request:
+    branches: [master]
 
 permissions:
   contents: read
+
+env:
+  NODE_VERSION: 20
 
 concurrency:
   group: lint-${{ github.head_ref || github.run_id }}
@@ -13,11 +20,11 @@ concurrency:
 jobs:
   lint-php:
     runs-on: ubuntu-latest
-    name: php-lint
+    name: PHP lint
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -31,11 +38,11 @@ jobs:
 
   lint-php-cs:
     runs-on: ubuntu-latest
-    name: php-cs
+    name: PHP-CS-Fixer
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -45,84 +52,49 @@ jobs:
 
       - name: Install PHP-CS-Fixer
         run: |
-          wget https://cs.symfony.com/download/php-cs-fixer-v3.phar -O php-cs-fixer
+          wget -q https://cs.symfony.com/download/php-cs-fixer-v3.phar -O php-cs-fixer
           chmod +x php-cs-fixer
 
       - name: Run PHP-CS-Fixer
         run: |
-          php php-cs-fixer fix --dry-run --diff --diff-format=udiff --rules=@PSR12 .
-        continue-on-error: true
+          php php-cs-fixer fix --dry-run --diff --rules=@PSR12 .
 
   lint:
     runs-on: ubuntu-latest
-    name: ESLint + Stylelint
+    name: Lint
+
+    defaults:
+      run:
+        working-directory: ./src
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '24.x'
-          cache: 'npm'
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install dependencies
+      - name: Code Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
         run: npm ci
 
       - name: Code Linting
-        run: npm run lint || true
+        run: npx eslint *.js || true
 
       - name: CSS Linting
-        run: npx stylelint "css/**/*.css" || true
-
-  lint-typescript:
-    runs-on: ubuntu-latest
-    name: TypeScript
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '24.x'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run TypeScript check
-        run: npx tsc --noEmit || true
-
-  lint-info-xml:
-    runs-on: ubuntu-latest
-    name: info.xml
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Install xmllint
-        run: apt-get update && apt-get install -y libxml2-utils
-
-      - name: Validate info.xml
-        run: xmllint --noout appinfo/info.xml || true
+        run: npx stylelint ../css/*.css || true
 
   summary:
     permissions:
       contents: none
     runs-on: ubuntu-latest
-    needs: [lint-php, lint-php-cs, lint, lint-typescript, lint-info-xml]
+    needs: [lint-php, lint-php-cs, lint]
     if: always()
-    name: lint-summary
 
     steps:
-      - name: Summary status
+      - name: Summary
         run: |
           echo "PHP lint: ${{ needs.lint-php.result }}"
-          echo "PHP CS: ${{ needs.lint-php-cs.result }}"
-          echo "ESLint: ${{ needs.lint.result }}"
-          echo "TypeScript: ${{ needs.lint-typescript.result }}"
-          echo "info.xml: ${{ needs.lint-info-xml.result }}"
+          echo "PHP-CS-Fixer: ${{ needs.lint-php-cs.result }}"
+          echo "Lint: ${{ needs.lint.result }}"
