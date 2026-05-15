@@ -37,7 +37,7 @@
     "babel-jest": "^30.4.1",
     "babel-loader": "^10.1.1",
     "css-loader": "^7.1.4",
-    "eslint": "^10.3.0",
+    "eslint": "^10.4.0",
     "eslint-plugin-vue": "^10.9.1",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
