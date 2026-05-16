@@ -11,38 +11,53 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  matrix:
+    runs-on: ubuntu-latest-low
+    outputs:
+      php-max: ${{ steps.versions.outputs.php-max }}
+    steps:
+      - name: Checkout app
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Get version matrix
+        id: versions
+        uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2
+
   integration-sqlite:
     runs-on: ubuntu-latest
+    needs: matrix
     name: sqlite
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: Set up PHP
-      uses: shivammathur/setup-php@v2
+      uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
       with:
-        php-version: '8.5'
+        php-version: ${{ needs.matrix.outputs.php-max }}
         extensions: pdo, pdo_sqlite
         coverage: none
 
     - name: Run SQLite integration tests
       run: php tests/integration/run.php --db=sqlite
-      run: php tests/integration/run.php --db=sqlite
 
 
   integration-federation:
     runs-on: ubuntu-latest
+    needs: matrix
     name: federation
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: Set up PHP
-      uses: shivammathur/setup-php@v2
+      uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
       with:
-        php-version: '8.5'
+        php-version: ${{ needs.matrix.outputs.php-max }}
         tools: composer:v2
         coverage: none
 
