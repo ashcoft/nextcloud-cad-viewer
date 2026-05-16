@@ -7,7 +7,7 @@
   "repository": "https://github.com/ashcoft/nextcloud-cad-viewer",
   "engines": {
     "node": "^24",
-    "npm": "^11.3"
+    "npm": "^11"
   },
   "scripts": {
     "build": "webpack --mode production",

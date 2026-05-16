@@ -1,10 +1,14 @@
 {
+  "name": "ashcoft/nextcloud-cad-viewer",
+  "description": "Nextcloud app for DWG/DXF viewer integration",
+  "license": "MIT",
   "require": {
     "php": "^8.2"
   },
   "require-dev": {
     "nextcloud/ocp": "dev-master",
-    "phpunit/phpunit": "^10.4"
+    "phpunit/phpunit": "^10.4",
+    "vimeo/psalm": "^5.20"
   },
   "autoload": {
     "psr-4": {
@@ -12,6 +16,8 @@
     }
   },
   "scripts": {
-    "test:unit": "vendor/bin/phpunit --configuration tests/phpunit.xml"
+    "test:unit": "vendor/bin/phpunit --configuration tests/phpunit.xml",
+    "psalm": "psalm",
+    "lint": "find . -name '*.php' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l"
   }
 }
