@@ -5,6 +5,10 @@
   "license": "MIT",
   "author": "CAD Viewer Contributors",
   "repository": "https://github.com/ashcoft/nextcloud-cad-viewer",
+  "engines": {
+    "node": "^24",
+    "npm": "^11"
+  },
   "scripts": {
     "build": "webpack --mode production",
     "dev": "webpack --mode development --watch",
@@ -14,7 +18,7 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
     "@mlightcad/cad-simple-viewer": "^1.0.5",
-    "@mlightcad/cad-viewer": "^1.5.0",
+    "@mlightcad/cad-viewer": "git+https://github.com/mlightcad/cad-viewer.git#main",
     "@mlightcad/data-model": "^1.7.34",
     "@nextcloud/initial-state": "^3.0.0",
     "@nextcloud/router": "^3.1.0",
