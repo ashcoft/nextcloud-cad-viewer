@@ -3,10 +3,10 @@
 # https://github.com/nextcloud/.github
 # https://docs.github.com/en/actions/learn-github-actions/sharing-workflows-with-your-organization
 #
-# SPDX-FileCopyrightText: 2023-2024 Nextcloud GmbH and Nextcloud contributors
+# SPDX-FileCopyrightText: 2022-2024 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: MIT
 
-name: PHPUnit MariaDB
+name: PHPUnit SQLite
 
 on: pull_request
 
@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: phpunit-mariadb-${{ github.head_ref || github.run_id }}
+  group: phpunit-sqlite-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -25,13 +25,13 @@ jobs:
       server-max: ${{ steps.versions.outputs.branches-max-list }}
     steps:
       - name: Checkout app
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
       - name: Get version matrix
         id: versions
-        uses: icewind1991/nextcloud-version-matrix@v1.3.2
+        uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2
 
   changes:
     runs-on: ubuntu-latest-low
@@ -60,7 +60,7 @@ jobs:
               - 'composer.json'
               - 'composer.lock'
 
-  phpunit-mariadb:
+  phpunit-sqlite:
     runs-on: ubuntu-latest
 
     needs: [changes, matrix]
@@ -70,18 +70,8 @@ jobs:
       matrix:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
-        mariadb-versions: ['10.6', '11.8']
 
-    name: MariaDB ${{ matrix.mariadb-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
-
-    services:
-      mariadb:
-        image: ghcr.io/nextcloud/continuous-integration-mariadb-${{ matrix.mariadb-versions }}:latest # zizmor: ignore[unpinned-images]
-        ports:
-          - 4444:3306/tcp
-        env:
-          MARIADB_ROOT_PASSWORD: rootpassword
-        options: --health-cmd="mariadb-admin ping" --health-interval 5s --health-timeout 2s --health-retries 5
+    name: SQLite PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
 
     steps:
       - name: Set app env
@@ -91,7 +81,7 @@ jobs:
           echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 
       - name: Checkout server
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
           submodules: true
@@ -99,17 +89,17 @@ jobs:
           ref: ${{ matrix.server-versions }}
 
       - name: Checkout app
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
           path: apps/${{ env.APP_NAME }}
 
       - name: Set up php ${{ matrix.php-versions }}
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
         with:
           php-version: ${{ matrix.php-versions }}
           # https://docs.nextcloud.com/server/stable/admin_manual/installation/source_installation.html#prerequisites-for-manual-installation
-          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, mysql, pdo_mysql
+          extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite
           coverage: none
           ini-file: development
           # Temporary workaround for missing pcntl_* in PHP 8.3
@@ -117,14 +107,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Enable ONLY_FULL_GROUP_BY MariaDB option
-        run: |
-          echo "SET GLOBAL sql_mode=(SELECT CONCAT(@@sql_mode,',ONLY_FULL_GROUP_BY'));" | mysql -h 127.0.0.1 -P 4444 -u root -prootpassword
-          echo 'SELECT @@sql_mode;' | mysql -h 127.0.0.1 -P 4444 -u root -prootpassword
-
       - name: Check composer file existence
         id: check_composer
-        uses: andstor/file-existence-action@v3.1.0
+        uses: andstor/file-existence-action@558493d6c74bf472d87c84eab196434afc2fa029 # v3.1.0
         with:
           files: apps/${{ env.APP_NAME }}/composer.json
 
@@ -141,7 +126,7 @@ jobs:
           DB_PORT: 4444
         run: |
           mkdir data
-          ./occ maintenance:install --verbose --database=mysql --database-name=nextcloud --database-host=127.0.0.1 --database-port=$DB_PORT --database-user=root --database-pass=rootpassword --admin-user admin --admin-pass admin
+          ./occ maintenance:install --verbose --database=sqlite --database-name=nextcloud --database-host=127.0.0.1 --database-port=$DB_PORT --database-user=root --database-pass=rootpassword --admin-user admin --admin-pass admin
           ./occ app:enable --force ${{ env.APP_NAME }}
 
       - name: Check PHPUnit script is defined
@@ -191,12 +176,12 @@ jobs:
     permissions:
       contents: none
     runs-on: ubuntu-latest-low
-    needs: [changes, phpunit-mariadb]
+    needs: [changes, phpunit-sqlite]
 
     if: always()
 
-    name: phpunit-mariadb-summary
+    name: phpunit-sqlite-summary
 
     steps:
       - name: Summary status
-        run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-mariadb.result != 'success' }}; then exit 1; fi
+        run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-sqlite.result != 'success' }}; then exit 1; fi
