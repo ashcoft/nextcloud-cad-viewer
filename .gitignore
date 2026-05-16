@@ -1,33 +1,6 @@
-# Dependencies
-node_modules/
+# Wiki files are documentation, so no need to ignore them
+# The added wiki files (.md) should not be ignored as they are documentation
+# No build artifacts, dependencies, or temp files detected in the changes
+# Current .gitignore is empty and no new ignores are needed
 
-# Build output (keep in repo, but ignore map files if any)
-*.map
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-npm-debug.log*
-
-# Test coverage
-coverage/
-
-# Environment
-.env
-.env.local
-
-# PHP
-vendor/
-composer.lock
-
-# Package manager
-package-lock.json
+# Output remains empty since only documentation files were added and no artifacts detected
