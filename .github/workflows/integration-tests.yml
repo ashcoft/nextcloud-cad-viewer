@@ -62,7 +62,7 @@ jobs:
         coverage: none
 
     - name: Install dependencies
-      run: composer install --no-interaction
+      run: composer install --no-interaction --ignore-platform-reqs
       
     - name: Run federation integration tests
       run: php tests/integration/federation.php

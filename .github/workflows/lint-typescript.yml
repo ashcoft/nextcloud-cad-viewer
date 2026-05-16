@@ -70,6 +70,7 @@ jobs:
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
+          cache: 'npm'
 
       - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
         run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
@@ -78,7 +79,7 @@ jobs:
         env:
           CYPRESS_INSTALL_BINARY: 0
         run: |
-          npm ci
+          npm ci --legacy-peer-deps
 
       - name: Check types
         run: |

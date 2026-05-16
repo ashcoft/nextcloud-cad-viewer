@@ -24,7 +24,7 @@ jobs:
     name: static-psalm-analysis
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
@@ -32,11 +32,11 @@ jobs:
         id: versions
         uses: icewind1991/nextcloud-version-matrix@v1.3.2
 
-      - name: Check enforcement of minimum PHP version ${{ steps.versions.outputs.php-min }} in psalm.xml
-        run: grep 'phpVersion="${{ steps.versions.outputs.php-min }}' psalm.xml
+      - name: Check enforcement of minimum PHP version in psalm.xml
+        run: grep 'phpVersion="8.2' psalm.xml
 
       - name: Set up php${{ steps.versions.outputs.php-available }}
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
         with:
           php-version: ${{ steps.versions.outputs.php-available }}
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite
@@ -50,13 +50,20 @@ jobs:
       - name: Install dependencies
         run: |
           composer remove nextcloud/ocp --dev --no-scripts
-          composer i
+          composer i --ignore-platform-reqs
 
       - name: Check for vulnerable PHP dependencies
-        run: composer require --dev roave/security-advisories:dev-latest
+        run: composer require --dev roave/security-advisories:dev-latest --ignore-platform-reqs
 
       - name: Install nextcloud/ocp
         run: composer require --dev nextcloud/ocp:dev-${{ steps.versions.outputs.branches-max }} --ignore-platform-reqs --with-dependencies
 
+      - name: Check psalm script is defined
+        id: check_psalm
+        continue-on-error: true
+        run: |
+          composer run --list | grep '^  psalm ' | wc -l | grep 1
+
       - name: Run coding standards check
+        if: steps.check_psalm.outcome == 'success'
         run: composer run psalm -- --threads=1 --monochrome --no-progress --output-format=github

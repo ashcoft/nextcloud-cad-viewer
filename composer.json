@@ -1,17 +1,11 @@
 {
   "require": {
-    "php": "^8.1"
+    "php": "^8.2"
   },
   "require-dev": {
     "nextcloud/ocp": "dev-master",
     "phpunit/phpunit": "^10.4"
   },
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/nextcloud-releases/ocp.git"
-    }
-  ],
   "autoload": {
     "psr-4": {
       "OCA\\CadViewer\\": "lib/"
