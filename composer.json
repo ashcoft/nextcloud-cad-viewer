@@ -4,7 +4,8 @@
   },
   "require-dev": {
     "nextcloud/ocp": "dev-master",
-    "phpunit/phpunit": "^10.4"
+    "phpunit/phpunit": "^10.4",
+    "vimeo/psalm": "^5.0"
   },
   "repositories": [
     {
@@ -19,6 +20,7 @@
   },
   "scripts": {
     "test:unit": "vendor/bin/phpunit --configuration tests/phpunit.xml",
-    "openapi": "php -r 'echo \"No OpenAPI generation required - this app uses the external CAD viewer library\\n\";' && exit 0"
+    "openapi": "php -r 'echo \"No OpenAPI generation required - this app uses the external CAD viewer library\\n\";' && exit 0",
+    "psalm": "psalm --threads=1"
   }
 }
