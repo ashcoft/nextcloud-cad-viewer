@@ -4,3 +4,4 @@
 # Current .gitignore is empty and no new ignores are needed
 
 # Output remains empty since only documentation files were added and no artifacts detected
+.env
