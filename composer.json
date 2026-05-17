@@ -18,6 +18,7 @@
     }
   },
   "scripts": {
-    "test:unit": "vendor/bin/phpunit --configuration tests/phpunit.xml"
+    "test:unit": "vendor/bin/phpunit --configuration tests/phpunit.xml",
+    "openapi": "php -r 'echo \"No OpenAPI generation required - this app uses the external CAD viewer library\\n\";' && exit 0"
   }
 }
