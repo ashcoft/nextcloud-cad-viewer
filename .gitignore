@@ -37,8 +37,3 @@
 
 # JetBrains Fleet settings
 /.fleet
-
-# Environment
-.env
-.env.local
-.env.*.local
