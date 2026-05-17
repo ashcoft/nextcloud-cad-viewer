@@ -16,6 +16,7 @@
 /tests/php/coverage-html
 /tests/php/clover.xml
 /tests/php/.phpunit.result.cache
+/.phpunit.cache
 /tests/integration/vendor
 /tests/integration/output
 /drone
@@ -27,6 +28,8 @@
 # Compiled frontend assets
 /css
 /js
+!/js/cad-viewer.js
+!/js/*.cad-viewer.js
 
 # VScode settings
 /.vscode
@@ -37,8 +40,3 @@
 
 # JetBrains Fleet settings
 /.fleet
-
-# Environment
-.env
-.env.local
-.env.*.local
