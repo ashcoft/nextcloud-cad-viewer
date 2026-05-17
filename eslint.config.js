@@ -18,6 +18,8 @@ module.exports = [
       // Build output
       'dist/*',
       'node_modules/*',
+      // Polyfills
+      'src/polyfills/*',
     ],
   },
   {
@@ -27,6 +29,10 @@ module.exports = [
       ecmaVersion: 2022,
       sourceType: 'module',
       parser: vueParser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+      },
       globals: {
         document: 'readonly',
         window: 'readonly',
@@ -49,7 +55,7 @@ module.exports = [
   },
   {
     name: 'cad-viewer/javascript',
-    files: ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
+    files: ['**/*.js', '**/*.jsx'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',

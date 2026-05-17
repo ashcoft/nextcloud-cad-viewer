@@ -8,7 +8,6 @@
         findUnusedCode="false"
         findUnusedIssueHandlerSuppression="false"
         phpVersion="8.2"
->
         <plugins>
         </plugins>
         <projectFiles>
