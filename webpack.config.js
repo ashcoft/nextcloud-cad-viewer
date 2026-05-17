@@ -2,7 +2,7 @@ const path = require('path');
 const { VueLoaderPlugin } = require('vue-loader');
 
 module.exports = {
-  entry: './src/main.js',
+  entry: './src/main.ts',
   output: {
     path: path.resolve(__dirname, 'js'),
     filename: 'cad-viewer.js',
@@ -17,7 +17,8 @@ module.exports = {
         loader: 'vue-loader',
       },
       {
-        test: /\.js$/,
+        // Handles .ts, .tsx, .js, .jsx — including <script lang="ts"> blocks from vue-loader
+        test: /\.[jt]sx?$/,
         loader: 'babel-loader',
         exclude: /node_modules/,
         resolve: {
@@ -38,13 +39,12 @@ module.exports = {
     new VueLoaderPlugin(),
   ],
   resolve: {
-    extensions: ['.js', '.vue', '.json'],
+    extensions: ['.ts', '.tsx', '.js', '.vue', '.json'],
     alias: {
       'vue$': 'vue/dist/vue.esm-bundler.js',
-      // Fix three.js module resolution for packages that import without .js extension
+      '@': path.resolve(__dirname, 'src'),
       'three/examples/jsm/controls/OrbitControls$': 'three/examples/jsm/controls/OrbitControls.js',
       'three/examples/jsm/libs/stats.module$': 'three/examples/jsm/libs/stats.module.js',
-      // Provide empty modules for Node.js built-ins
       'fs': path.resolve(__dirname, 'src/polyfills/empty.js'),
       'path': path.resolve(__dirname, 'src/polyfills/empty.js'),
       'crypto': path.resolve(__dirname, 'src/polyfills/empty.js'),

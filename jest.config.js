@@ -1,10 +1,10 @@
 module.exports = {
   testEnvironment: 'jsdom',
-  moduleFileExtensions: ['js', 'jsx', 'json', 'vue'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'vue'],
   transform: {
     '^.+\\.vue$': '@vue/vue3-jest',
     '.+\\.(css|styl|less|sass|scss|svg|png|jpg|ttf|woff|woff2)$': 'jest-transform-stub',
-    '^.+\\.jsx?$': 'babel-jest',
+    '^.+\\.[jt]sx?$': 'babel-jest',
   },
   transformIgnorePatterns: [
     'node_modules/(?!(element-plus|@element-plus|@mlightcad|lodash-es)/)',
@@ -30,13 +30,15 @@ module.exports = {
     'jest-watch-typeahead/testname',
   ],
   collectCoverageFrom: [
-    'src/**/*.{js,vue}',
-    '!src/main.js',
-    '!src/router/index.js',
+    'src/**/*.{ts,vue}',
+    '!src/main.ts',
+    '!src/router/index.ts',
     '!**/node_modules/**',
   ],
   globals: {
     OC: {},
     OCA: {},
+    t: (app, text) => text,
+    n: (app, singular) => singular,
   },
 };

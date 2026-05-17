@@ -14,10 +14,10 @@
   </div>
 </template>
 
-<script>
-import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue';
-import { loadCADViewer } from './utils/cadLoader';
-import { generateUrl } from '@nextcloud/router';
+<script lang="ts">
+import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
+import { generateUrl } from '@nextcloud/router'
+import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
 
 export default defineComponent({
   name: 'CadViewerApp',
@@ -28,85 +28,77 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const loading = ref(true);
-    const error = ref(null);
-    const viewerContainer = ref(null);
-    const viewerInstance = ref(null);
-    const fileUrl = ref(null);
+    const loading = ref<boolean>(true)
+    const error = ref<string | null>(null)
+    const viewerContainer = ref<HTMLElement | null>(null)
+    const viewerInstance = ref<ViewerInstance | null>(null)
+    const fileUrl = ref<string | null>(null)
 
-    let mountedApp = null;
+    async function initViewer(): Promise<void> {
+      let fid: string | number | null = props.fileId
+
+      if (!fid) {
+        const container = document.getElementById('cad-viewer-container')
+        if (container) {
+          fid = container.dataset.fileIds ?? ''
+        }
+      }
+
+      if (!fid) {
+        const params = new URLSearchParams(window.location.search)
+        fid = params.get('fileIds') ?? params.get('fileId') ?? ''
+      }
+
+      if (!fid) {
+        error.value = t('cad_viewer', 'No file selected. Please open a DWG or DXF file from Nextcloud.')
+        loading.value = false
+        return
+      }
+
+      fileUrl.value = generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: fid as string })
+
+      if (viewerContainer.value) {
+        viewerInstance.value = await loadCADViewer(viewerContainer.value, {
+          url: fileUrl.value,
+          theme: 'dark',
+        })
+      }
+    }
 
     onMounted(async () => {
       try {
-        // Resolve file ID from props, route, or data attribute
-        let fileId = props.fileId;
-
-        if (!fileId) {
-          // Try from data attribute on container
-          const container = document.getElementById('cad-viewer-container');
-          if (container) {
-            fileId = container.dataset.fileIds || '';
-          }
-        }
-
-        // If still no fileId, try from URL query parameter
-        if (!fileId) {
-          const params = new URLSearchParams(window.location.search);
-          fileId = params.get('fileIds') || params.get('fileId') || '';
-        }
-
-        if (!fileId) {
-          error.value = t('cad_viewer', 'No file selected. Please open a DWG or DXF file from Nextcloud.');
-          loading.value = false;
-          return;
-        }
-
-        // Build the API URL for streaming the file content
-        fileUrl.value = generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: fileId });
-
-        if (viewerContainer.value) {
-          mountedApp = await loadCADViewer(viewerContainer.value, {
-            url: fileUrl.value,
-            theme: 'dark',
-          });
-          viewerInstance.value = mountedApp;
-        }
+        await initViewer()
       } catch (err) {
-        error.value = t('cad_viewer', 'Failed to load CAD viewer: ') + err.message;
+        const msg = err instanceof Error ? err.message : String(err)
+        error.value = t('cad_viewer', 'Failed to load CAD viewer: ') + msg
       } finally {
-        loading.value = false;
+        loading.value = false
       }
-    });
+    })
 
     onBeforeUnmount(() => {
-      if (viewerInstance.value && typeof viewerInstance.value.dispose === 'function') {
-        viewerInstance.value.dispose();
-      }
-      if (mountedApp) {
-        mountedApp = null;
-      }
-    });
+      viewerInstance.value?.dispose()
+      viewerInstance.value = null
+    })
 
-    const retryLoad = async () => {
-      error.value = null;
-      loading.value = true;
+    async function retryLoad(): Promise<void> {
+      error.value = null
+      loading.value = true
 
       if (viewerContainer.value && fileUrl.value) {
-        if (viewerInstance.value) {
-          viewerInstance.value.dispose();
-        }
+        viewerInstance.value?.dispose()
         try {
-          mountedApp = await loadCADViewer(viewerContainer.value, {
+          viewerInstance.value = await loadCADViewer(viewerContainer.value, {
             url: fileUrl.value,
             theme: 'dark',
-          });
-          viewerInstance.value = mountedApp;
+          })
         } catch (err) {
-          error.value = t('cad_viewer', 'Failed to load CAD viewer: ') + err.message;
+          const msg = err instanceof Error ? err.message : String(err)
+          error.value = t('cad_viewer', 'Failed to load CAD viewer: ') + msg
         }
       }
-      loading.value = false;
-    };
+      loading.value = false
+    }
 
     return {
       loading,
@@ -114,9 +106,9 @@ export default defineComponent({
       viewerContainer,
       fileUrl,
       retryLoad,
-    };
+    }
   },
-});
+})
 </script>
 
 <style scoped>
