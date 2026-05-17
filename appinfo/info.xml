@@ -29,7 +29,7 @@
   <repository type="git">https://github.com/ashcoft/nextcloud-cad-viewer.git</repository>
   <screenshot>https://raw.githubusercontent.com/ashcoft/nextcloud-cad-viewer/main/docs/screenshot.png</screenshot>
   <dependencies>
-    <php min-version="8.2"/>
+    <php min-version="8.5"/>
     <nextcloud min-version="33" max-version="33"/>
   </dependencies>
   <navigations>
