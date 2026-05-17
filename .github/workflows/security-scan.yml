@@ -19,16 +19,24 @@ jobs:
     timeout-minutes: 30
     
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@63e4bdc93048c6d9800b99332842de18443db5b1 # v3.28.12
       with:
         languages: javascript, php
         queries: security-extended
-        
+
+    - name: Set up node
+      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      with:
+        node-version: '24'
+
+    - name: Set up npm
+      run: npm i -g 'npm@11'
+
     - name: Set up PHP
-      uses: shivammathur/setup-php@v2
+      uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
       with:
         php-version: '8.5'
         tools: composer:v2
@@ -43,7 +51,7 @@ jobs:
         NODE_OPTIONS="--max-old-space-size=4096" npm run build || true
         
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@63e4bdc93048c6d9800b99332842de18443db5b1 # v3.28.12
       with:
         category: "/language:multiple"
 
@@ -52,10 +60,10 @@ jobs:
     needs: codeql-analyze
     
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     
     - name: Set up PHP
-      uses: shivammathur/setup-php@v2
+      uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
       with:
         php-version: '8.5'
         tools: composer:v2
@@ -74,10 +82,10 @@ jobs:
     needs: codeql-analyze
     
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     
     - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
+      uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
       with:
         scan-type: 'fs'
         scan-ref: '.'
@@ -86,7 +94,7 @@ jobs:
         severity: 'CRITICAL,HIGH,MEDIUM'
         
     - name: Upload Trivy results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@63e4bdc93048c6d9800b99332842de18443db5b1 # v3.28.12
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
@@ -97,7 +105,7 @@ jobs:
     needs: codeql-analyze
     
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     
     - name: Install OSV-Scanner
       run: |
@@ -109,7 +117,7 @@ jobs:
         osv-scanner --format=sarif --output=osv-results.sarif . || true
         
     - name: Upload OSV results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@63e4bdc93048c6d9800b99332842de18443db5b1 # v3.28.12
       if: always()
       with:
         sarif_file: 'osv-results.sarif'
