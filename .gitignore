@@ -1,44 +1,65 @@
-# Exclude npm stuff
-/build
-/node_modules
-
-# PHP Code Sniffer
-/vendor
-/vendor-bin/*/vendor
-/lib/Vendor
-/.php-cs-fixer.cache
-
-# Local docs
-/site
-
-# Karma/jasmine coverage data
-/coverage
-/tests/php/coverage-html
-/tests/php/clover.xml
-/tests/php/.phpunit.result.cache
-/tests/integration/vendor
-/tests/integration/output
-/drone
-/findings.sarif
-
-# PHP Dev server output (integration tests)
-/tests/integration/phpserver*.log
-
-# Compiled frontend assets
-/css
-/js
-
-# VScode settings
-/.vscode
-*.code-workspace
-
-# JetBrains IDEs settings
-/.idea
-
-# JetBrains Fleet settings
-/.fleet
-
-# Environment
+```
+# Environment variables
 .env
 .env.local
-.env.*.local
+.env.*
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+
+# Dependencies
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.egg-info/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Build artifacts
+build/
+dist/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.o
+*.a
+*.lib
+*.dll
+*.exe
+*.out
+*.class
+
+# Coverage reports
+.coverage
+coverage/
+htmlcov/
+.nyc_output/
+
+# Testing
+.pytest_cache/
+.mypy_cache/
+.hypothesis/
+
+# IDE specific
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# CI/CD
+.github/
+!.github/workflows/
+```
