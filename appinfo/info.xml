@@ -36,7 +36,6 @@
     <navigation>
       <name>CAD Viewer</name>
       <route>cad_viewer.view.index</route>
-      <icon>app.svg</icon>
     </navigation>
   </navigations>
 </info>
