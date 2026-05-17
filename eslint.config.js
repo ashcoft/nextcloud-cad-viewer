@@ -2,13 +2,29 @@ const vuePlugin = require('eslint-plugin-vue');
 const js = require('@eslint/js');
 const vueParser = require('vue-eslint-parser');
 
+/**
+ * SPDX-FileCopyrightText: 2025 CAD Viewer Contributors
+ * SPDX-License-Identifier: MIT
+ */
 module.exports = [
   js.configs.recommended,
   ...vuePlugin.configs['flat/recommended'],
   {
+    name: 'cad-viewer/ignores',
+    ignores: [
+      // Generated files
+      'js/*',
+      'vendor/*',
+      // Build output
+      'dist/*',
+      'node_modules/*',
+    ],
+  },
+  {
+    name: 'cad-viewer/vue',
     files: ['**/*.vue'],
     languageOptions: {
-      ecmaVersion: 2021,
+      ecmaVersion: 2022,
       sourceType: 'module',
       parser: vueParser,
       globals: {
@@ -19,6 +35,7 @@ module.exports = [
         OCA: 'readonly',
         t: 'readonly',
         n: 'readonly',
+        console: 'readonly',
       },
     },
     rules: {
@@ -31,14 +48,14 @@ module.exports = [
     },
   },
   {
-    files: ['**/*.js', '**/*.jsx'],
+    name: 'cad-viewer/javascript',
+    files: ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
     languageOptions: {
-      ecmaVersion: 2021,
+      ecmaVersion: 2022,
       sourceType: 'module',
       globals: {
         browser: true,
         node: true,
-        es2021: true,
         console: true,
         document: 'readonly',
         window: 'readonly',
@@ -48,6 +65,8 @@ module.exports = [
         t: 'readonly',
         n: 'readonly',
         module: 'readonly',
+        require: 'readonly',
+        exports: 'readonly',
       },
     },
     rules: {
