@@ -79,6 +79,8 @@ jobs:
           npm ci
 
       - name: Set up dependencies
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
         run: composer i
 
       - name: Regenerate OpenAPI
