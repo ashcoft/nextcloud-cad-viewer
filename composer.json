@@ -14,7 +14,7 @@
     "php": "^8.5"
   },
   "require-dev": {
-    "nextcloud/ocp": "dev-stable31",
+    "nextcloud/ocp": "dev-stable33",
     "phpunit/phpunit": "^10.4",
     "roave/security-advisories": "dev-latest",
     "vimeo/psalm": "^5.0"
