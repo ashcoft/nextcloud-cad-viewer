@@ -1,7 +1,52 @@
-# Wiki files are documentation, so no need to ignore them
-# The added wiki files (.md) should not be ignored as they are documentation
-# No build artifacts, dependencies, or temp files detected in the changes
-# Current .gitignore is empty and no new ignores are needed
+# Exclude npm stuff
+/build
+/node_modules
 
-# Output remains empty since only documentation files were added and no artifacts detected
+# PHP Code Sniffer
+/vendor
+/vendor-bin/*/vendor
+/lib/Vendor
+/.php-cs-fixer.cache
+
+# Local docs
+/site
+
+# Karma/jasmine coverage data
+/coverage
+/tests/php/coverage-html
+/tests/php/clover.xml
+/tests/php/.phpunit.result.cache
+/tests/integration/vendor
+/tests/integration/output
+/drone
+/findings.sarif
+
+# PHP Dev server output (integration tests)
+/tests/integration/phpserver*.log
+
+# Compiled frontend assets
+/css
+/js
+
+# VScode settings
+/.vscode
+*.code-workspace
+
+# JetBrains IDEs settings
+/.idea
+
+# JetBrains Fleet settings
+/.fleet
+
+# Environment
 .env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
