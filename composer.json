@@ -5,13 +5,13 @@
   "authors": [
     {
       "name": "ashcoft",
-      "email": "ashcoft@example.com",
+      "email": "dony@dony.me",
       "homepage": "https://github.com/ashcoft/nextcloud-cad-viewer"
     }
   ],
   "require": {
     "bamarni/composer-bin-plugin": "^1.8",
-    "php": "^8.1"
+    "php": "^8.5"
   },
   "require-dev": {
     "nextcloud/ocp": "dev-stable31",
