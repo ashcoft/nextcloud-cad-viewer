@@ -6,7 +6,7 @@
 # SPDX-FileCopyrightText: 2026 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: MIT
 
-name: Apply rector changes
+name: rector
 
 on:
   workflow_dispatch:
