@@ -15,9 +15,11 @@
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3.95",
+    "nextcloud/coding-standard": "^1.1",
     "nextcloud/ocp": "dev-stable33",
     "phpstan/phpstan": "^2.1",
     "phpunit/phpunit": "^10.4",
+    "rector/rector": "^2.4",
     "roave/security-advisories": "dev-latest",
     "vimeo/psalm": "^5.0"
   },
@@ -44,6 +46,8 @@
     "cs:check": "php-cs-fixer fix --dry-run --diff",
     "cs:fix": "php-cs-fixer fix",
     "psalm": "psalm --threads=1 --no-cache",
+    "phpstan": "phpstan analyze --no-progress",
+    "rector": "rector process",
     "test:unit": "phpunit tests -c tests/phpunit.xml --colors=always --fail-on-warning --fail-on-risky",
     "openapi": "php -r 'echo \"No OpenAPI generation required - this app uses the external CAD viewer library\\n\";' && exit 0"
   },
