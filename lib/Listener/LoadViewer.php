@@ -13,8 +13,10 @@ use OCP\Util;
 /**
  * @template-implements IEventListener<BeforeTemplateRenderedEvent>
  */
-class LoadViewer implements IEventListener {
-    public function handle(Event $event): void {
+class LoadViewer implements IEventListener
+{
+    public function handle(Event $event): void
+    {
         if (!$event instanceof BeforeTemplateRenderedEvent) {
             return;
         }

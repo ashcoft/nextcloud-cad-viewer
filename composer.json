@@ -14,7 +14,9 @@
     "php": "^8.2"
   },
   "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.95",
     "nextcloud/ocp": "dev-stable33",
+    "phpstan/phpstan": "^2.1",
     "phpunit/phpunit": "^10.4",
     "roave/security-advisories": "dev-latest",
     "vimeo/psalm": "^5.0"
@@ -26,7 +28,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "OCA\\CadViewer\\Tests\\": "tests/unit/",
+      "OCA\\CadViewer\\Tests\\Unit\\": "tests/unit/",
       "OCP\\": "vendor/nextcloud/ocp/OCP/",
       "NCU\\": "vendor/nextcloud/ocp/NCU/"
     }

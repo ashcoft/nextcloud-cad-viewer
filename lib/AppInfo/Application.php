@@ -11,14 +11,17 @@ use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\Util;
 
-class Application extends App implements IBootstrap {
+class Application extends App implements IBootstrap
+{
     public const APP_ID = 'cad_viewer';
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct(self::APP_ID);
     }
 
-    public function register(IRegistrationContext $context): void {
+    public function register(IRegistrationContext $context): void
+    {
         // Register event listener to inject scripts/styles when files app loads
         $context->registerEventListener(
             \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
@@ -26,6 +29,5 @@ class Application extends App implements IBootstrap {
         );
     }
 
-    public function boot(IBootContext $context): void {
-    }
+    public function boot(IBootContext $context): void {}
 }

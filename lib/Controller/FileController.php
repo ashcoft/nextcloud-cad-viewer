@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -22,7 +23,8 @@ use OCP\Files\NotPermittedException;
 use OCP\IRequest;
 use OCP\IUserSession;
 
-class FileController extends Controller {
+class FileController extends Controller
+{
     private IRootFolder $rootFolder;
     private IUserSession $userSession;
 
@@ -56,7 +58,8 @@ class FileController extends Controller {
      */
     #[NoAdminRequired]
     #[NoCSRFRequired]
-    public function getFile(int $fileId): DataResponse {
+    public function getFile(int $fileId): DataResponse
+    {
         try {
             $user = $this->userSession->getUser();
             if ($user === null) {
@@ -102,7 +105,8 @@ class FileController extends Controller {
      */
     #[NoAdminRequired]
     #[NoCSRFRequired]
-    public function getFileContent(int $fileId) {
+    public function getFileContent(int $fileId)
+    {
         try {
             $user = $this->userSession->getUser();
             if ($user === null) {
@@ -146,7 +150,8 @@ class FileController extends Controller {
      */
     #[NoAdminRequired]
     #[NoCSRFRequired]
-    public function preview(int $fileId) {
+    public function preview(int $fileId)
+    {
         try {
             $user = $this->userSession->getUser();
             if ($user === null) {
