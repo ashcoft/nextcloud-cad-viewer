@@ -114,7 +114,7 @@ jobs:
           CYPRESS_INSTALL_BINARY: 0
         run: |
           cd ${{ env.APP_NAME }}
-          npm ci
+          npm install --legacy-peer-deps
           npm run build --if-present
 
       - name: Check Krankerl config
