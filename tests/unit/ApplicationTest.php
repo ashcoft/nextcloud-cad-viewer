@@ -6,7 +6,7 @@ declare(strict_types=1);
  * @license MIT
  */
 
-namespace OCA\CadViewer\Tests\Unit;
+namespace OCA\CadViewer\Tests;
 
 use OCA\CadViewer\AppInfo\Application;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
