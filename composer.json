@@ -32,7 +32,8 @@
     "psr-4": {
       "OCA\\CadViewer\\Tests\\Unit\\": "tests/unit/",
       "OCP\\": "vendor/nextcloud/ocp/OCP/",
-      "NCU\\": "vendor/nextcloud/ocp/NCU/"
+      "NCU\\": "vendor/nextcloud/ocp/NCU/",
+      "OC\\": "tests/stubs/OC/"
     }
   },
   "scripts": {
