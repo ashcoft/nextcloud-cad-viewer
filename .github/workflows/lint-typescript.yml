@@ -71,54 +71,6 @@ jobs:
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
-        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
-
->>>>>>> 23493a4 (chore(deps): bump babel-jest)
-=======
-      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
-        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
-
->>>>>>> 8ac05b0 (chore(deps): bump @vueuse/core from 11.3.0 to 14.3.0)
-=======
-      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
-        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
-
->>>>>>> f7f83ec (chore(deps): bump eslint from 9.39.4 to 10.4.0)
-=======
-      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
-        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
-
->>>>>>> d9b2c49 (chore(deps): bump eslint-plugin-vue from 9.33.0 to 10.9.1)
-=======
-      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
-        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
-
->>>>>>> 4ecdee2 (chore(deps): bump typescript-eslint from 8.59.3 to 8.59.4)
-=======
-      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
-        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
-
->>>>>>> 3a9dd59 (chore(deps): bump lodash-es from 4.17.21 to 4.18.1)
-=======
-      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
-        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
-
->>>>>>> 5f2499e (chore(deps): bump @eslint/js from 9.39.4 to 10.0.1)
-=======
-      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
-        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
-
->>>>>>> f6489a7 (chore(deps): bump jest-watch-typeahead from 2.2.2 to 3.0.1)
       - name: Install dependencies
         env:
           CYPRESS_INSTALL_BINARY: 0
