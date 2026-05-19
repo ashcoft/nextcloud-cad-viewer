@@ -71,9 +71,6 @@ jobs:
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
 
-      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
-        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
-
       - name: Install dependencies
         env:
           CYPRESS_INSTALL_BINARY: 0

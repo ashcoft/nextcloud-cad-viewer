@@ -66,10 +66,6 @@ jobs:
         with:
           node-version: ${{ steps.node_versions.outputs.nodeVersion }}
 
-      - name: Set up npm ${{ steps.node_versions.outputs.npmVersion }}
-        if: ${{ steps.node_versions.outputs.nodeVersion }}
-        run: npm i -g 'npm@${{ steps.node_versions.outputs.npmVersion }}'
-
       - name: Install dependencies
         if: ${{ steps.node_versions.outputs.nodeVersion }}
         env:
