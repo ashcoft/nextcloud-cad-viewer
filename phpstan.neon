@@ -8,8 +8,5 @@ parameters:
     treatPhpDocTypesAsCertain: false
     ignoreErrors:
         -
-            message: '#Call to an undefined method OCP\\Files\\Node::fopen\(\).#'
-            path: lib/Controller/FileController.php
-        -
             message: '#Property OCA\\CadViewer\\Controller\\ViewController::\$urlGenerator is never read, only written.#'
             path: lib/Controller/ViewController.php
