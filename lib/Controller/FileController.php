@@ -74,6 +74,9 @@ class FileController extends Controller
             }
 
             $file = $files[0];
+            if (!($file instanceof \OCP\Files\File)) {
+                return new DataResponse(['error' => 'Not a file'], Http::STATUS_BAD_REQUEST);
+            }
 
             if (!$file->isReadable()) {
                 return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
@@ -105,7 +108,7 @@ class FileController extends Controller
      */
     #[NoAdminRequired]
     #[NoCSRFRequired]
-    public function getFileContent(int $fileId)
+    public function getFileContent(int $fileId): DataResponse|StreamResponse
     {
         try {
             $user = $this->userSession->getUser();
@@ -121,6 +124,9 @@ class FileController extends Controller
             }
 
             $file = $files[0];
+            if (!($file instanceof \OCP\Files\File)) {
+                return new DataResponse(['error' => 'Not a file'], Http::STATUS_BAD_REQUEST);
+            }
 
             if (!$file->isReadable()) {
                 return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
@@ -150,7 +156,7 @@ class FileController extends Controller
      */
     #[NoAdminRequired]
     #[NoCSRFRequired]
-    public function preview(int $fileId)
+    public function preview(int $fileId): DataResponse|StreamResponse
     {
         try {
             $user = $this->userSession->getUser();
@@ -166,6 +172,9 @@ class FileController extends Controller
             }
 
             $file = $files[0];
+            if (!($file instanceof \OCP\Files\File)) {
+                return new DataResponse(['error' => 'Not a file'], Http::STATUS_BAD_REQUEST);
+            }
 
             if (!$file->isReadable()) {
                 return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
