@@ -10,6 +10,10 @@ This is a Nextcloud app called `cad_viewer` that integrates the `@mlightcad/cad-
 - **Nextcloud Compatibility:** Target Nextcloud 33 (uses `nextcloud/ocp:dev-stable33`).
 - **Frontend:** Vue 3 with Element Plus.
 
+## Prerequisites for /mlightcad/cad-viewer
+- **Engine** Node.js >= 24
+- **pnpm Compatibility:** pnpm >= 10
+
 ## Development Guidelines
 
 ### Dependencies
