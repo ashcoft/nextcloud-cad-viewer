@@ -17,6 +17,7 @@
 /tests/php/clover.xml
 /tests/php/.phpunit.result.cache
 /.phpunit.cache
+/tests/.phpunit.cache
 /tests/integration/vendor
 /tests/integration/output
 /drone
