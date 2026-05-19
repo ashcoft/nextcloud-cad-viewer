@@ -6,8 +6,9 @@
   "author": "CAD Viewer Contributors",
   "repository": "https://github.com/ashcoft/nextcloud-cad-viewer",
   "engines": {
-    "node": "^20 || ^22",
-    "npm": "^10 || ^11"
+    "node": ">=24",
+    "npm": "^10 || ^11",
+    "pnpm": ">=10"
   },
   "scripts": {
     "build": "webpack --mode production",
@@ -39,7 +40,7 @@
     "@babel/preset-typescript": "^7.23.0",
     "@eslint/js": "^10.0.1",
     "@types/lodash-es": "^4.17.12",
-    "@types/node": "^22.0.0",
+    "@types/node": "^24.12.4",
     "@vue/compiler-sfc": "^3.5.0",
     "@vue/test-utils": "^2.4.0",
     "@vue/vue3-jest": "^29.2.0",
