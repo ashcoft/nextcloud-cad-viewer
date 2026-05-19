@@ -4,7 +4,7 @@
 
 ### Prerequisites
 - Node.js 24+
-- npm or yarn
+- pnpm 10+ (preferred), npm or yarn
 - Nextcloud 33 installation
 - PHP 8.5
 
