@@ -91,7 +91,7 @@ Once installed, the CAD Viewer integrates seamlessly with Nextcloud:
 ### Prerequisites
 
 - Node.js 24+
-- pnpm 10+ (preferred), npm or yarn
+- pnpm 10+
 - Nextcloud 33 development environment
 - PHP 8.2+
 
