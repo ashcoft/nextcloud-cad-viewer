@@ -68,7 +68,7 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   #cad-viewer-container {
     min-height: calc(100vh - 50px);
   }

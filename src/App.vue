@@ -134,7 +134,7 @@ export default defineComponent({
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
+  border: 3px solid rgb(255 255 255 / 30%);
   border-top-color: #0082c9;
   border-radius: 50%;
   animation: spin 1s linear infinite;

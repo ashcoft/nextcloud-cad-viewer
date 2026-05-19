@@ -77,7 +77,7 @@ jobs:
 
       - name: Install node dependencies & build app
         run: |
-          npm ci
+          npm install --legacy-peer-deps
           TESTING=true npm run build --if-present
 
       - name: Save context

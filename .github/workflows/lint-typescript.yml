@@ -78,7 +78,7 @@ jobs:
         env:
           CYPRESS_INSTALL_BINARY: 0
         run: |
-          npm ci
+          npm install --legacy-peer-deps
 
       - name: Check types
         run: |
