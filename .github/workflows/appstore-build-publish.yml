@@ -11,6 +11,7 @@ name: Build and publish app release
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -18,6 +19,10 @@ permissions:
 jobs:
   build_and_publish:
     runs-on: ubuntu-latest
+
+    env:
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+      APPSTORE_TOKEN: ${{ secrets.APPSTORE_TOKEN }}
 
     steps:
       - name: Check actor permission
@@ -107,7 +112,7 @@ jobs:
           make appstore
 
       - name: Check server download link for ${{ env.NC_MIN_VERSION }}
-        if: ${{ secrets.APP_PRIVATE_KEY != '' }}
+        if: ${{ env.APP_PRIVATE_KEY != '' }}
         run: |
           NCVERSION='${{ env.NC_MIN_VERSION }}'
           DOWNLOAD_URL=$(curl -s "https://updates.nextcloud.com/updater_server/latest?channel=beta&version=$NCVERSION" | jq -r '.downloads.zip[0]')
@@ -116,7 +121,7 @@ jobs:
       - name: Download server ${{ env.NC_MIN_VERSION }}
         continue-on-error: true
         id: server-download
-        if: ${{ secrets.APP_PRIVATE_KEY != '' && env.DOWNLOAD_URL != 'null' }}
+        if: ${{ env.APP_PRIVATE_KEY != '' && env.DOWNLOAD_URL != 'null' }}
         run: |
           echo "Downloading release tarball from $DOWNLOAD_URL"
           wget $DOWNLOAD_URL -O nextcloud.zip
@@ -124,7 +129,7 @@ jobs:
 
       - name: Checkout server master fallback
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        if: ${{ secrets.APP_PRIVATE_KEY != '' && steps.server-download.outcome != 'success' }}
+        if: ${{ env.APP_PRIVATE_KEY != '' && steps.server-download.outcome != 'success' }}
         with:
           persist-credentials: false
           submodules: true
@@ -132,14 +137,14 @@ jobs:
           path: nextcloud
 
       - name: Sign app
-        if: ${{ secrets.APP_PRIVATE_KEY != '' }}
+        if: ${{ env.APP_PRIVATE_KEY != '' }}
         run: |
           # Extracting release
           cd app-src/build/artifacts
           tar -xvf ${{ env.APP_NAME }}.tar.gz
           cd ../../../
           # Setting up keys
-          echo '${{ secrets.APP_PRIVATE_KEY }}' > ${{ env.APP_NAME }}.key
+          echo '${{ env.APP_PRIVATE_KEY }}' > ${{ env.APP_NAME }}.key
           wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
           # Signing
           php nextcloud/occ integrity:sign-app --privateKey=./${{ env.APP_NAME }}.key --certificate=./${{ env.APP_NAME }}.crt --path=$(pwd)/app-src/build/artifacts/${{ env.APP_NAME }}
@@ -167,10 +172,10 @@ jobs:
           overwrite: true
 
       - name: Upload app to Nextcloud appstore
-        if: ${{ secrets.APPSTORE_TOKEN != '' && secrets.APP_PRIVATE_KEY != '' }}
+        if: ${{ env.APPSTORE_TOKEN != '' && env.APP_PRIVATE_KEY != '' }}
         uses: nextcloud-releases/nextcloud-appstore-push-action@a011fe619bcf6e77ddebc96f9908e1af4071b9c1 # v1.0.3
         with:
           app_name: ${{ env.APP_NAME }}
-          appstore_token: ${{ secrets.APPSTORE_TOKEN }}
+          appstore_token: ${{ env.APPSTORE_TOKEN }}
           download_url: https://github.com/${{ github.repository }}/releases/download/${{ env.APP_VERSION_TAG }}/${{ env.APP_NAME }}-${{ env.APP_VERSION_TAG }}.tar.gz
-          app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
+          app_private_key: ${{ env.APP_PRIVATE_KEY }}
