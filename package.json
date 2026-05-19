@@ -6,8 +6,8 @@
   "author": "CAD Viewer Contributors",
   "repository": "https://github.com/ashcoft/nextcloud-cad-viewer",
   "engines": {
-    "node": "^24",
-    "npm": "^11"
+    "node": "^20 || ^22",
+    "npm": "^10 || ^11"
   },
   "scripts": {
     "build": "webpack --mode production",
