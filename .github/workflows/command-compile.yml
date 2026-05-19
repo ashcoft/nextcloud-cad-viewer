@@ -128,9 +128,6 @@ jobs:
           node-version: ${{ steps.package-engines-versions.outputs.nodeVersion }}
           cache: npm
 
-      - name: Set up npm ${{ steps.package-engines-versions.outputs.npmVersion }}
-        run: npm i -g 'npm@${{ steps.package-engines-versions.outputs.npmVersion }}'
-
       - name: Rebase to ${{ needs.init.outputs.base_ref }}
         if: ${{ contains(needs.init.outputs.arg1, 'rebase') }}
         env:
