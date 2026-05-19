@@ -54,7 +54,13 @@ class FileController extends Controller
     }
 
     /**
-     * Get file metadata for a CAD file
+     * Fetches metadata for a CAD file owned by the current user.
+     *
+     * Returns a JSON payload with the file's `id`, `name`, `size`, `mimeType`, and `path`
+     * when the file is accessible and its MIME type is supported.
+     *
+     * @param int $fileId The ID of the file to retrieve metadata for (within the current user's files).
+     * @return DataResponse A response containing the file metadata on success, or an error object with an `error` message and an appropriate HTTP status on failure (e.g., unauthorized, not found, access denied, unsupported media type, or internal server error).
      */
     #[NoAdminRequired]
     #[NoCSRFRequired]
@@ -104,7 +110,14 @@ class FileController extends Controller
     }
 
     /**
-     * Stream the raw CAD file content for the viewer to load
+     * Stream a CAD file's raw contents to the client.
+     *
+     * Streams the requested file from the current user's folder with appropriate
+     * `Content-Type` and `Content-Disposition` headers. On failure returns a JSON
+     * `DataResponse` containing an `error` message and an appropriate HTTP status.
+     *
+     * @param int $fileId The id of the file to stream from the current user's folder.
+     * @return DataResponse|StreamResponse `StreamResponse` streaming the file with `Content-Type` and `Content-Disposition` headers, or `DataResponse` with an `error` message and the corresponding HTTP status code.
      */
     #[NoAdminRequired]
     #[NoCSRFRequired]
@@ -152,7 +165,16 @@ class FileController extends Controller
     }
 
     /**
-     * Get a preview/thumbnail for a CAD file
+     * Provides a preview stream for a supported CAD file.
+     *
+     * Returns a streaming response that serves the file contents and sets the response
+     * `Content-Type` header to the file's MIME type when the file is accessible and its
+     * MIME type is supported. On failure returns a `DataResponse` containing an `error`
+     * message and the corresponding HTTP status code (e.g., 401 Unauthorized, 404 File not
+     * found, 400 Not a file, 403 Access denied, 415 Unsupported file type, 500 Internal
+     * server error).
+     *
+     * @return DataResponse|StreamResponse A StreamResponse serving the file preview on success, or a DataResponse with an `error` message and appropriate HTTP status on failure.
      */
     #[NoAdminRequired]
     #[NoCSRFRequired]
