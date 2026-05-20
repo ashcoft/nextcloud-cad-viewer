@@ -39,6 +39,8 @@ $(app_dir):
 		--exclude='*.tar.gz' \
 		--exclude='*.zip' \
 		./ $(app_dir)/
+	find $(app_dir) -type d -exec chmod 755 {} +
+	find $(app_dir) -type f -exec chmod 644 {} +
 
 appstore: clean $(app_dir)
 	cd $(build_dir) && tar -czf $(app_id).tar.gz --owner=www-data --group=www-data $(app_id)
