@@ -25,13 +25,13 @@
     "@mlightcad/data-model": "1.7.38",
     "@nextcloud/initial-state": "^3.0.0",
     "@nextcloud/router": "^3.1.0",
-    "@vueuse/core": "^14.3.0",
+    "@vueuse/core": "11.1.0",
     "axios": "^1.16.1",
-    "element-plus": "2.14.0",
-    "lodash-es": "4.18.1",
+    "element-plus": "2.12.0",
+    "lodash-es": "4.17.21",
     "three": "0.172.0",
-    "vue": "3.5.34",
-    "vue-i18n": "11.4.4",
+    "vue": "3.4.21",
+    "vue-i18n": "10.0.1",
     "vue-router": "^5.0.7"
   },
   "devDependencies": {
@@ -69,5 +69,29 @@
     "vue-tsc": "^3.3.1",
     "webpack": "^5.89.0",
     "webpack-cli": "^7.0.0"
+  },
+  "overrides": {
+    "@mlightcad/data-model": "1.7.38",
+    "@mlightcad/libredwg-converter": "3.5.38",
+    "@mlightcad/mtext-input-box": "0.2.11",
+    "@mlightcad/mtext-renderer": "0.10.14",
+    "@mlightcad/ribbon": "0.1.9",
+    "element-plus": "2.12.0",
+    "three": "0.172.0",
+    "vue": "3.4.21",
+    "vue-i18n": "10.0.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "@mlightcad/data-model": "1.7.38",
+      "@mlightcad/libredwg-converter": "3.5.38",
+      "@mlightcad/mtext-input-box": "0.2.11",
+      "@mlightcad/mtext-renderer": "0.10.14",
+      "@mlightcad/ribbon": "0.1.9",
+      "element-plus": "2.12.0",
+      "three": "0.172.0",
+      "vue": "3.4.21",
+      "vue-i18n": "10.0.1"
+    }
   }
 }
