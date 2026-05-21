@@ -32,6 +32,10 @@
 !/js/cad-viewer.js
 !/js/*.cad-viewer.js
 
+# Playwright
+/playwright-report
+/test-results
+
 # VScode settings
 /.vscode
 *.code-workspace
