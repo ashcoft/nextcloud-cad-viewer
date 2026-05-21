@@ -50,7 +50,10 @@ jobs:
 
       - name: Validate app version against tag
         run: |
-          [ "${{ env.APP_VERSION_TAG }}" = "v${{ env.APP_VERSION }}" ]
+          if [ "${{ env.APP_VERSION_TAG }}" != "v${{ env.APP_VERSION }}" ]; then
+            echo "::error::Release tag (${{ env.APP_VERSION_TAG }}) does not match app version (v${{ env.APP_VERSION }}) in info.xml"
+            exit 1
+          fi
 
       - name: Read package.json node and npm engines version
         uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
