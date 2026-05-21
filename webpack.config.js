@@ -9,6 +9,7 @@ module.exports = {
     library: 'CadViewer',
     libraryTarget: 'window',
     clean: true,
+    publicPath: '',
   },
   module: {
     rules: [

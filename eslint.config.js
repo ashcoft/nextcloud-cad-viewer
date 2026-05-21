@@ -1,14 +1,16 @@
 const vuePlugin = require('eslint-plugin-vue');
 const js = require('@eslint/js');
 const vueParser = require('vue-eslint-parser');
+const tseslint = require('typescript-eslint');
 
 /**
  * SPDX-FileCopyrightText: 2025 CAD Viewer Contributors
  * SPDX-License-Identifier: MIT
  */
-module.exports = [
+module.exports = tseslint.config(
   js.configs.recommended,
   ...vuePlugin.configs['flat/recommended'],
+  ...tseslint.configs.recommended,
   {
     name: 'cad-viewer/ignores',
     ignores: [
@@ -24,12 +26,13 @@ module.exports = [
   },
   {
     name: 'cad-viewer/vue',
-    files: ['**/*.vue'],
+    files: ['**/*.vue', '**/*.ts'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
       parser: vueParser,
       parserOptions: {
+        parser: tseslint.parser,
         ecmaVersion: 2022,
         sourceType: 'module',
       },
@@ -42,6 +45,7 @@ module.exports = [
         t: 'readonly',
         n: 'readonly',
         console: 'readonly',
+        HTMLElement: 'readonly',
       },
     },
     rules: {
@@ -79,4 +83,4 @@ module.exports = [
       'no-console': 'off',
     },
   },
-];
+);
