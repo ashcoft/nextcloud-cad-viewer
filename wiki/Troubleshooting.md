@@ -58,7 +58,7 @@ This guide helps you diagnose and resolve common issues with Nextcloud CAD Viewe
 1. **Clean reinstall:**
    ```bash
    cd /var/www/nextcloud/apps/cad_viewer
-   rm -rf node_modules package-lock.json
+   rm -rf node_modules pnpm-lock.yaml
    npm cache clean --force
    npm install
    npm run build

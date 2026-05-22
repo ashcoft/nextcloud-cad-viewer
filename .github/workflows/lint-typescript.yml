@@ -42,7 +42,7 @@ jobs:
             src:
               - '.github/workflows/lint-typescript.yml'
               - 'package.json'
-              - 'package-lock.json'
+              - 'pnpm-lock.yaml'
               - 'tsconfig.json'
               - '**.ts'
               - '**.vue'
@@ -71,16 +71,18 @@ jobs:
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
 
+      - uses: pnpm/action-setup@v5
+
       - name: Install dependencies
         env:
           CYPRESS_INSTALL_BINARY: 0
         run: |
-          npm install --legacy-peer-deps
+          pnpm install --frozen-lockfile
 
       - name: Check types
         run: |
-          npm run --if-present check-types
-          npm run --if-present ts:check
+          pnpm run --if-present check-types
+          pnpm run --if-present ts:check
 
   summary:
     permissions:

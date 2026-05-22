@@ -13,7 +13,6 @@ use OCA\CadViewer\AppInfo\Application;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
-use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\StreamResponse;
@@ -57,7 +56,6 @@ class FileController extends Controller
      * Get file metadata for a CAD file
      */
     #[NoAdminRequired]
-    #[NoCSRFRequired]
     public function getFile(int $fileId): DataResponse
     {
         try {
@@ -107,7 +105,6 @@ class FileController extends Controller
      * Stream the raw CAD file content for the viewer to load
      */
     #[NoAdminRequired]
-    #[NoCSRFRequired]
     public function getFileContent(int $fileId): DataResponse|StreamResponse
     {
         try {
@@ -155,7 +152,6 @@ class FileController extends Controller
      * Get a preview/thumbnail for a CAD file
      */
     #[NoAdminRequired]
-    #[NoCSRFRequired]
     public function preview(int $fileId): DataResponse|StreamResponse
     {
         try {

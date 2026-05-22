@@ -303,7 +303,7 @@ Open browser developer tools (F12) and check the console for any JavaScript erro
 **Solution:**
 ```bash
 cd /var/www/nextcloud/apps/cad_viewer
-rm -rf node_modules package-lock.json
+rm -rf node_modules pnpm-lock.yaml
 npm cache clean --force
 npm install
 npm run build
