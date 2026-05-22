@@ -4,7 +4,7 @@ project_dir=$(shell pwd)
 build_dir=$(project_dir)/build/artifacts
 app_dir=$(build_dir)/$(app_id)
 
-all: appstore
+all: appstore source
 
 clean:
 	rm -rf $(build_dir)
@@ -14,10 +14,18 @@ $(app_dir):
 	rsync -a \
 		--exclude=.git \
 		--exclude=.github \
+		--exclude=.gitignore \
+		--exclude=.editorconfig \
+		--exclude=.php-cs-fixer.dist.php \
+		--exclude=.php-cs-fixer.cache \
+		--exclude=.reuse \
+		--exclude=LICENSES \
 		--exclude=node_modules \
 		--exclude=src \
 		--exclude=tests \
 		--exclude=vendor-bin \
+		--exclude=docs \
+		--exclude=wiki \
 		--exclude=Makefile \
 		--exclude=composer.json \
 		--exclude=composer.lock \
@@ -39,6 +47,7 @@ $(app_dir):
 		--exclude=playwright-report \
 		--exclude=test-results \
 		--exclude=build \
+		--exclude=openapi.json \
 		--exclude='*.tar.gz' \
 		--exclude='*.zip' \
 		./ $(app_dir)/
@@ -48,3 +57,8 @@ $(app_dir):
 appstore: clean $(app_dir)
 	cd $(build_dir) && tar -czf $(app_id).tar.gz --owner=www-data --group=www-data $(app_id)
 	cd $(build_dir) && zip -r $(app_id).zip $(app_id)
+
+source:
+	mkdir -p $(build_dir)
+	git archive --format=tar.gz --prefix=$(app_id)/ -o $(build_dir)/$(app_id)-source.tar.gz HEAD
+	git archive --format=zip --prefix=$(app_id)/ -o $(build_dir)/$(app_id)-source.zip HEAD

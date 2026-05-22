@@ -121,7 +121,7 @@ jobs:
       - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }} with makefile
         run: |
           cd app-src
-          make appstore
+          make all
 
       - name: Check server download link for ${{ env.NC_MIN_VERSION }}
         if: ${{ env.APP_PRIVATE_KEY != '' }}
@@ -165,7 +165,7 @@ jobs:
           tar -zcvf ${{ env.APP_NAME }}.tar.gz --owner=www-data --group=www-data ${{ env.APP_NAME }}
           zip -r ${{ env.APP_NAME }}.zip ${{ env.APP_NAME }}
 
-      - name: Attach tarball to github release
+      - name: Attach app tarball to github release
         uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # 2.11.5
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -174,12 +174,30 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
 
-      - name: Attach zip to github release
+      - name: Attach app zip to github release
         uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # 2.11.5
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: app-src/build/artifacts/${{ env.APP_NAME }}.zip
           asset_name: ${{ env.APP_NAME }}-${{ env.APP_VERSION_TAG }}.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      - name: Attach source tarball to github release
+        uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # 2.11.5
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: app-src/build/artifacts/${{ env.APP_NAME }}-source.tar.gz
+          asset_name: ${{ env.APP_NAME }}-${{ env.APP_VERSION_TAG }}-source.tar.gz
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      - name: Attach source zip to github release
+        uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # 2.11.5
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: app-src/build/artifacts/${{ env.APP_NAME }}-source.zip
+          asset_name: ${{ env.APP_NAME }}-${{ env.APP_VERSION_TAG }}-source.zip
           tag: ${{ github.ref }}
           overwrite: true
 
