@@ -25,6 +25,7 @@ jobs:
       fail-fast: false
       matrix:
         branches:
+          - master
           - ${{ github.event.repository.default_branch }}
           - 'stable34'
           - 'stable33'
