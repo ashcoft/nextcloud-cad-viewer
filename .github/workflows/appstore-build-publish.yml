@@ -115,8 +115,7 @@ jobs:
           CYPRESS_INSTALL_BINARY: 0
         run: |
           cd app-src
-          pnpm install --frozen-lockfile
-          pnpm run build --if-present
+          make production-setup
 
       - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }} with makefile
         run: |
