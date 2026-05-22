@@ -46,4 +46,4 @@ jobs:
             test-results/
           if-no-files-found: ignore
       - name: Package with makefile
-        run: make appstore
+        run: make all
