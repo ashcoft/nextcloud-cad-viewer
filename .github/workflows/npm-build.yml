@@ -73,6 +73,8 @@ jobs:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
           cache: 'pnpm'
 
+      - uses: pnpm/action-setup@v5
+
       - name: Install dependencies & build
         env:
           CYPRESS_INSTALL_BINARY: 0
