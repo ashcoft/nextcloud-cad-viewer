@@ -50,7 +50,7 @@ This guide helps you diagnose and resolve common issues with Nextcloud CAD Viewe
 ### Build Errors During Installation
 
 **Symptoms:**
-- `npm run build` fails with errors
+- `pnpm run build` fails with errors
 - Missing dependencies
 
 **Solutions:**
@@ -58,10 +58,10 @@ This guide helps you diagnose and resolve common issues with Nextcloud CAD Viewe
 1. **Clean reinstall:**
    ```bash
    cd /var/www/nextcloud/apps/cad_viewer
-   rm -rf node_modules package-lock.json
-   npm cache clean --force
-   npm install
-   npm run build
+   rm -rf node_modules pnpm-lock.yaml
+   pnpm store prune
+   pnpm install
+   pnpm run build
    ```
 
 2. **Check Node.js version:**
@@ -77,10 +77,10 @@ This guide helps you diagnose and resolve common issues with Nextcloud CAD Viewe
    Ensure sufficient space for node_modules (typically 200-300MB)
 
 4. **Network issues:**
-   If behind a proxy, configure npm:
+   If behind a proxy, configure pnpm:
    ```bash
-   npm config set proxy http://proxy.company.com:8080
-   npm config set https-proxy http://proxy.company.com:8080
+   pnpm config set proxy http://proxy.company.com:8080
+   pnpm config set https-proxy http://proxy.company.com:8080
    ```
 
 ### App Won't Enable

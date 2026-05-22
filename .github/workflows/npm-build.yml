@@ -38,7 +38,7 @@ jobs:
               - 'src/**'
               - 'appinfo/info.xml'
               - 'package.json'
-              - 'package-lock.json'
+              - 'pnpm-lock.yaml'
               - 'tsconfig.json'
               - '**.js'
               - '**.ts'
@@ -50,7 +50,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.src != 'false'
 
-    name: NPM build
+    name: pnpm build
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -64,24 +64,22 @@ jobs:
           fallbackNode: '^24'
           fallbackNpm: '^11.3'
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fe1bf29314050d53c511394c8e70a049d5a8989e # v5.0.0
+
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
-
-      - name: Validate package-lock.json # See https://github.com/npm/cli/issues/4460
-        run: |
-          npm i -g npm-package-lock-add-resolved@1.1.4
-          npm-package-lock-add-resolved
-          git --no-pager diff --exit-code
+          cache: 'pnpm'
 
       - name: Install dependencies & build
         env:
           CYPRESS_INSTALL_BINARY: 0
           PUPPETEER_SKIP_DOWNLOAD: true
         run: |
-          npm install --legacy-peer-deps
-          npm run build --if-present
+          pnpm install --frozen-lockfile
+          pnpm run build --if-present
 
       - name: Check build changes
         run: |
