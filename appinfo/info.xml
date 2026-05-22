@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
-<info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance"
-      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
   <id>cad_viewer</id>
   <name>CAD Viewer</name>
   <summary>DWG/DXF file viewer for Nextcloud</summary>
@@ -14,7 +13,7 @@
 - Dark/light theme
 - Fullscreen mode
 - Responsive design]]></description>
-  <version>0.0.3</version>
+  <version>1.0.0</version>
   <licence>MIT</licence>
   <author mail="support@example.com">CAD Viewer Contributors</author>
   <namespace>CadViewer</namespace>
