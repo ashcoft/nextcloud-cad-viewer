@@ -19,15 +19,10 @@ This is a Nextcloud app called `cad_viewer` that integrates the `@mlightcad/cad-
 ### Dependencies
 - **Backend:** Use Composer. When updating dependencies, ensure compatibility with PHP 8.2 unless specifically instructed to upgrade.
   - If you need to update `composer.lock` but your local environment has a different PHP version, use `--ignore-platform-reqs`.
-- **Frontend:** Use pnpm (version >= 10) or npm.
-  - When using **npm**, always use the `--legacy-peer-deps` flag due to peer dependency conflicts in `@mlightcad` packages:
-    ```bash
-    npm install --legacy-peer-deps
-    ```
-  - When using **pnpm**, use the standard install command:
-    ```bash
-    pnpm install
-    ```
+- **Frontend:** Use pnpm (version >= 10).
+  ```bash
+  pnpm install
+  ```
 
 ### Testing
 - **Backend Tests:** Run PHPUnit tests using:
@@ -37,7 +32,7 @@ This is a Nextcloud app called `cad_viewer` that integrates the `@mlightcad/cad-
   Note: Unit tests may fail locally if they depend on Nextcloud core classes that are not fully mocked or available in the environment.
 - **Frontend Tests:** Run Jest tests using:
   ```bash
-  npm test
+  pnpm test
   ```
 - **Static Analysis:** Run Psalm using:
   ```bash

@@ -8,7 +8,7 @@ Thank you for your interest in contributing to CAD Viewer! This document provide
 2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/nextcloud-cad-viewer.git`
 3. Create a branch: `git checkout -b feature/your-feature-name`
 4. Make your changes
-5. Run tests: `npm test` and `composer test`
+5. Run tests: `pnpm test` and `composer test`
 6. Commit your changes: `git commit -m "feat: add your feature"`
 7. Push to your fork: `git push origin feature/your-feature-name`
 8. Open a Pull Request
@@ -44,7 +44,7 @@ refactor: improve Vue component structure
 
 ### JavaScript/Vue
 - Follow ESLint configuration
-- Run `npm run lint` before committing
+- Run `pnpm run lint` before committing
 - Use TypeScript where possible
 
 ### CSS

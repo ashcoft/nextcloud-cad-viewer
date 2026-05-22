@@ -48,34 +48,40 @@ jobs:
           fallbackNode: '^24'
           fallbackNpm: '^11.3'
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
+          cache: pnpm
 
-      - name: Fix npm audit
+      - name: Fix pnpm audit
         id: npm-audit
-        uses: nextcloud-libraries/npm-audit-action@1b1728b2b4a7a78d69de65608efcf4db0e3e42d0 # v0.2.0
+        run: |
+          pnpm audit --fix
+          echo "markdown=pnpm audit fix applied" >> $GITHUB_OUTPUT
 
-      - name: Run npm install --legacy-peer-deps and npm run build
+      - name: Run pnpm install --frozen-lockfile and pnpm run build
         if: steps.checkout.outcome == 'success'
         env:
           CYPRESS_INSTALL_BINARY: 0
         run: |
-          npm install --legacy-peer-deps
-          npm run build --if-present
+          pnpm install --frozen-lockfile
+          pnpm run build --if-present
 
       - name: Create Pull Request
         if: steps.checkout.outcome == 'success'
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.COMMAND_BOT_PAT }}
-          commit-message: 'fix(deps): Fix npm audit'
+          commit-message: 'fix(deps): Fix pnpm audit'
           committer: GitHub <noreply@github.com>
           author: nextcloud-command <nextcloud-command@users.noreply.github.com>
           signoff: true
-          branch: automated/noid/${{ matrix.branches }}-fix-npm-audit
-          title: '[${{ matrix.branches }}] Fix npm audit'
+          branch: automated/noid/${{ matrix.branches }}-fix-pnpm-audit
+          title: '[${{ matrix.branches }}] Fix pnpm audit'
           body: ${{ steps.npm-audit.outputs.markdown }}
           labels: |
             dependencies
