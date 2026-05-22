@@ -2,6 +2,7 @@
   "name": "nextcloud-cad-viewer",
   "version": "0.0.2",
   "description": "Nextcloud app for DWG/DXF viewer integration",
+  "packageManager": "pnpm@10.30.3",
   "license": "MIT",
   "author": "CAD Viewer Contributors",
   "repository": "https://github.com/ashcoft/nextcloud-cad-viewer",
