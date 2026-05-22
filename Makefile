@@ -35,6 +35,9 @@ $(app_dir):
 		--exclude=sonar-project.properties \
 		--exclude=commitlint.config.js \
 		--exclude=AGENTS.md \
+		--exclude=playwright.config.ts \
+		--exclude=playwright-report \
+		--exclude=test-results \
 		--exclude=build \
 		--exclude='*.tar.gz' \
 		--exclude='*.zip' \
