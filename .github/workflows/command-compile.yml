@@ -122,11 +122,14 @@ jobs:
           fallbackNode: '^24'
           fallbackNpm: '^11.3'
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+
       - name: Set up node ${{ steps.package-engines-versions.outputs.nodeVersion }}
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ steps.package-engines-versions.outputs.nodeVersion }}
-          cache: npm
+          cache: pnpm
 
       - name: Rebase to ${{ needs.init.outputs.base_ref }}
         if: ${{ contains(needs.init.outputs.arg1, 'rebase') }}
@@ -175,8 +178,8 @@ jobs:
           CYPRESS_INSTALL_BINARY: 0
           PUPPETEER_SKIP_DOWNLOAD: true
         run: |
-          npm install --legacy-peer-deps
-          npm run build --if-present
+          pnpm install --frozen-lockfile
+          pnpm run build --if-present
 
       - name: Commit default
         if: ${{ !contains(needs.init.outputs.arg1, 'fixup') && !contains(needs.init.outputs.arg1, 'amend') }}

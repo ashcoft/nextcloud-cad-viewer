@@ -4,17 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  '@mlightcad/data-model': 1.7.38
-  '@mlightcad/libredwg-converter': 3.5.38
-  '@mlightcad/mtext-input-box': 0.2.11
-  '@mlightcad/mtext-renderer': 0.10.14
-  '@mlightcad/ribbon': 0.1.9
-  element-plus: 2.14.0
-  three: 0.172.0
-  vue: 3.5.34
-  vue-i18n: 11.4.4
-
 importers:
 
   .:
@@ -856,7 +845,7 @@ packages:
   '@element-plus/icons-vue@2.3.2':
     resolution: {integrity: sha512-OzIuTaIfC8QXEPmJvB4Y4kw34rSXdCJzxcD1kFStBvr8bK6X1zQAYDo0CNMjojnfTqRQCJ0I7prlErcoRiET2A==}
     peerDependencies:
-      vue: 3.5.34
+      vue: ^3.2.0
 
   '@eslint-community/eslint-utils@4.9.1':
     resolution: {integrity: sha512-phrYmNiYppR7znFEdqgfWHXR6NCkZEK7hwWDHZUjit/2/U0r6XvkDl0SYnoM51Hq7FhCGdLDT6zxCCOY1hexsQ==}
@@ -1082,7 +1071,7 @@ packages:
   '@mlightcad/cad-simple-viewer@1.5.0':
     resolution: {integrity: sha512-q+lSGdX2yS+TQQUb7VwMao2mcK62A3CNnPeBxg0KLiQulOAkkoMoXMTwYngQXwROurAL+SpEAqZlh2FzXYzKvA==}
     peerDependencies:
-      '@mlightcad/data-model': 1.7.38
+      '@mlightcad/data-model': 1.7.33
       lodash-es: 4.17.21
       three: 0.172.0
 
@@ -1090,11 +1079,11 @@ packages:
     resolution: {integrity: sha512-1MxllJEvdF3vPvX2CqVT8Yr+KbBn2b7lHeBO5qegO07ErzB7zDjPua5tqQ9w3d+hxqgCTn2qmzy6yy/qC/P36A==}
     peerDependencies:
       '@mlightcad/cad-simple-viewer': 1.5.0
-      '@mlightcad/data-model': 1.7.38
+      '@mlightcad/data-model': 1.7.33
       '@vueuse/core': ^11.1.0
-      element-plus: 2.14.0
-      vue: 3.5.34
-      vue-i18n: 11.4.4
+      element-plus: 2.13.6
+      vue: 3.5.31
+      vue-i18n: 10.0.8
 
   '@mlightcad/common@1.4.38':
     resolution: {integrity: sha512-5HKXl//u4GZ+9nSvt2wx/Lu2TQdl0MQ0ppjLu7jr1pPUYELDfqr+yWD5URwPmIubXG0ntsOAQT0VGBb8oQp7JQ==}
@@ -1116,10 +1105,10 @@ packages:
       '@mlightcad/common': 1.4.38
       '@mlightcad/geometry-engine': 3.2.38
 
-  '@mlightcad/libredwg-converter@3.5.38':
-    resolution: {integrity: sha512-Z/szP1reHHueJ+Hi7Jt0DIvY9TaFagkd3KASXKOHMg1OO4+QV9YtG6mHYB5knuNvAqeNrk3KJS/WffQq/g2weQ==}
+  '@mlightcad/libredwg-converter@3.5.33':
+    resolution: {integrity: sha512-NBU08kqZuqwHNnl3l6pg8AFw4elaSgSUEjZGy5VDG7U0ZbVP7eXgcSyYizApKlFB8FF/Fie+2lrfV2MP+fbjDQ==}
     peerDependencies:
-      '@mlightcad/data-model': 1.7.38
+      '@mlightcad/data-model': 1.7.33
 
   '@mlightcad/libredwg-web@0.7.1':
     resolution: {integrity: sha512-jHiLB6Rktty0eJLS+/awITmTQbTrJl4U6hkzqzzbBfHzhrR38mKnQTPLuhZMyX1IcKOM0zuDOh7Fd/J7Rj6/KQ==}
@@ -1336,7 +1325,7 @@ packages:
     resolution: {integrity: sha512-h9t4ArDdniO9ekYHAD95t9AZcAbb19lEGK+26iAjUODOIJKmObDNBSe4+6ELQAA3vtYiFPPBtHh7+cQCKi3Dng==}
     engines: {node: '>=20.19.0'}
     peerDependencies:
-      vue: 3.5.34
+      vue: ^2.7.0 || ^3.2.25
     peerDependenciesMeta:
       vue:
         optional: true
@@ -1390,7 +1379,7 @@ packages:
     peerDependencies:
       '@vue/compiler-dom': 3.x
       '@vue/server-renderer': 3.x
-      vue: 3.5.34
+      vue: 3.x
     peerDependenciesMeta:
       '@vue/server-renderer':
         optional: true
@@ -1403,7 +1392,7 @@ packages:
       babel-jest: 29.x
       jest: 29.x
       typescript: '>= 4.3'
-      vue: 3.5.34
+      vue: ^3.0.0-0
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -1411,7 +1400,7 @@ packages:
   '@vueuse/core@14.3.0':
     resolution: {integrity: sha512-aHfz47g0ZhMtTVHmIzMVpJy8ePhhOy68GY5bv110+5DVtZ+W7BsOx+m61UNQqfrWyPztIHIanWa3E2tib3NFIw==}
     peerDependencies:
-      vue: 3.5.34
+      vue: ^3.5.0
 
   '@vueuse/metadata@14.3.0':
     resolution: {integrity: sha512-BwxmbAzwAVF50+MW57GXOUEV61nFBGnlBvrTqj49PqWJu3uw7hdu72ztXeZ33RdZtDY6kO+bfCAE1PCn88Tktw==}
@@ -1419,7 +1408,7 @@ packages:
   '@vueuse/shared@14.3.0':
     resolution: {integrity: sha512-bZpge9eSXwa4ToSiqJ7j6KRwhAsneMFoSz3LMWKQDkqimm3D/tbFlrklrs/IOqC8tEcYmXQZJ6N0UrjhBirVCg==}
     peerDependencies:
-      vue: 3.5.34
+      vue: ^3.5.0
 
   '@webassemblyjs/ast@1.14.1':
     resolution: {integrity: sha512-nuBEDgQfm1ccRp/8bCQrx1frohyufl4JlbMMZ4P1wpeOfDhF6FQkxZJ1b/e+PLwr6X1Nhw6OLme5usuBWYBvuQ==}
@@ -1978,7 +1967,7 @@ packages:
   element-plus@2.14.0:
     resolution: {integrity: sha512-POgH+TtoreaEKWqYYAVQyE6i8rQMEFqAEublyF29dBA5yASWPLKY6EzfeqBTr2Uv26mPss4vSrMrNPyaK7LX5w==}
     peerDependencies:
-      vue: 3.5.34
+      vue: ^3.3.7
 
   emittery@0.13.1:
     resolution: {integrity: sha512-DeWwawk6r5yR9jFgnDKYt4sLS0LmHJJi3ZOnb5/JdbYwj3nW+FxQnHIjhBKz8YLC7oRNPVM9NQ47I3CVx34eqQ==}
@@ -3673,7 +3662,7 @@ packages:
     resolution: {integrity: sha512-gIbXVSFQV4jcSJxfwdZ5zSZmZ+12CnX0K3vBkRSd6Zn+HSzCp+QwUgPwpD/uN0oKNKI9RzlUXPKVedEuMgNG0A==}
     engines: {node: '>= 22'}
     peerDependencies:
-      vue: 3.5.34
+      vue: ^3.0.0
 
   vue-loader@17.4.2:
     resolution: {integrity: sha512-yTKOA4R/VN4jqjw4y5HrynFL8AK0Z3/Jt7eOJXEitsm0GMRHDBjCfCiuTiLP7OESvsZYo2pATCWhDqxC5ZrM6w==}
@@ -3693,7 +3682,7 @@ packages:
       '@pinia/colada': '>=0.21.2'
       '@vue/compiler-sfc': ^3.5.34
       pinia: ^3.0.4
-      vue: 3.5.34
+      vue: ^3.5.34
     peerDependenciesMeta:
       '@pinia/colada':
         optional: true
@@ -5061,7 +5050,7 @@ snapshots:
   '@mlightcad/cad-simple-viewer@1.5.0(@mlightcad/data-model@1.7.38)(lodash-es@4.18.1)(three@0.172.0)':
     dependencies:
       '@mlightcad/data-model': 1.7.38
-      '@mlightcad/libredwg-converter': 3.5.38(@mlightcad/data-model@1.7.38)
+      '@mlightcad/libredwg-converter': 3.5.33(@mlightcad/data-model@1.7.38)
       lodash-es: 4.18.1
       mitt: 3.0.1
       rbush: 4.0.1
@@ -5105,7 +5094,7 @@ snapshots:
       '@mlightcad/common': 1.4.38
       '@mlightcad/geometry-engine': 3.2.38(@mlightcad/common@1.4.38)
 
-  '@mlightcad/libredwg-converter@3.5.38(@mlightcad/data-model@1.7.38)':
+  '@mlightcad/libredwg-converter@3.5.33(@mlightcad/data-model@1.7.38)':
     dependencies:
       '@mlightcad/data-model': 1.7.38
       '@mlightcad/libredwg-web': 0.7.1

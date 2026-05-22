@@ -6,27 +6,27 @@
 - Node.js 24+
 - pnpm 10+
 - Nextcloud 33 installation
-- PHP 8.5
+- PHP 8.2
 
 ### Installation
 1. Clone the repository
 2. Navigate to the directory
 3. Install dependencies:
    ```bash
-   npm install
+   pnpm install
    ```
 
 ## Building
 
 ### Development Build (with watch)
 ```bash
-npm run dev
+pnpm run dev
 ```
 This will rebuild automatically as you change files.
 
 ### Production Build
 ```bash
-npm run build
+pnpm run build
 ```
 
 ## Project Structure
@@ -74,15 +74,15 @@ Bootstrap class that registers listeners and initializes the app
 
 ## Testing
 ```bash
-npm test
+pnpm test
 ```
 Run Jest tests
 
 ## Code Style
 Eslint enforces project code style. Run linter:
 ```bash
-npm run lint
-npm run lint -- --fix
+pnpm run lint
+pnpm run lint -- --fix
 ```
 
 ## Nextcloud Integration
@@ -115,21 +115,21 @@ Check `nextcloud/data/nextcloud.log` for PHP errors
 
 ### Webpack Build Debug
 ```bash
-npm run dev -- --stats
+pnpm run dev -- --stats
 ```
 
 ## Submitting Code
 1. Create a feature branch
 2. Make your changes
-3. Run linter: `npm run lint --fix`
-4. Build: `npm run build`
+3. Run linter: `pnpm run lint --fix`
+4. Build: `pnpm run build`
 5. Test thoroughly
 6. Submit PR with description
 
 ## Release Process
 1. Update version in `package.json` and `appinfo/info.xml`
 2. Update `CHANGELOG.md`
-3. Build: `npm run build`
+3. Build: `pnpm run build`
 4. Commit: `git commit -m "v1.0.0 release"`
 5. Tag: `git tag v1.0.0`
 6. Push: `git push origin main --tags`

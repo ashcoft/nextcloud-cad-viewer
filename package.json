@@ -82,18 +82,5 @@
     "three": "0.172.0",
     "vue": "3.5.34",
     "vue-i18n": "11.4.4"
-  },
-  "pnpm": {
-    "overrides": {
-      "@mlightcad/data-model": "1.7.38",
-      "@mlightcad/libredwg-converter": "3.5.38",
-      "@mlightcad/mtext-input-box": "0.2.11",
-      "@mlightcad/mtext-renderer": "0.10.14",
-      "@mlightcad/ribbon": "0.1.9",
-      "element-plus": "2.14.0",
-      "three": "0.172.0",
-      "vue": "3.5.34",
-      "vue-i18n": "11.4.4"
-    }
   }
 }
