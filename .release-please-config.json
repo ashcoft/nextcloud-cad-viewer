@@ -1,0 +1,32 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "nextcloud-cad-viewer",
+      "changelog-sections": [
+        {
+          "type": "feat",
+          "section": "Features",
+          "hidden": false
+        },
+        {
+          "type": "fix",
+          "section": "Bug Fixes",
+          "hidden": false
+        },
+        {
+          "type": "chore",
+          "section": "Miscellaneous",
+          "hidden": false
+        }
+      ],
+      "extra-files": [
+        {
+          "type": "xml",
+          "path": "appinfo/info.xml",
+          "xpath": "//info/version"
+        }
+      ]
+    }
+  }
+}
