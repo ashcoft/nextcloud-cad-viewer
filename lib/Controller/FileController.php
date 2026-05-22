@@ -57,7 +57,6 @@ class FileController extends Controller
      * Get file metadata for a CAD file
      */
     #[NoAdminRequired]
-    #[NoCSRFRequired]
     public function getFile(int $fileId): DataResponse
     {
         try {
@@ -107,7 +106,6 @@ class FileController extends Controller
      * Stream the raw CAD file content for the viewer to load
      */
     #[NoAdminRequired]
-    #[NoCSRFRequired]
     public function getFileContent(int $fileId): DataResponse|StreamResponse
     {
         try {
@@ -155,7 +153,6 @@ class FileController extends Controller
      * Get a preview/thumbnail for a CAD file
      */
     #[NoAdminRequired]
-    #[NoCSRFRequired]
     public function preview(int $fileId): DataResponse|StreamResponse
     {
         try {
