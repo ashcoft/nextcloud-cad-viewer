@@ -68,7 +68,7 @@ jobs:
       - name: Setup pnpm
         # Skip if no package.json
         if: ${{ steps.versions.outputs.nodeVersion }}
-        uses: pnpm/action-setup@fe1bf29314050d53c511394c8e70a049d5a8989e # v5.0.0
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
 
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
         # Skip if no package.json
