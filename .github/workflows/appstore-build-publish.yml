@@ -50,7 +50,10 @@ jobs:
 
       - name: Validate app version against tag
         run: |
-          if [ "${{ env.APP_VERSION_TAG }}" != "v${{ env.APP_VERSION }}" ]; then
+          # Convert tag and expected version to lowercase for comparison
+          TAG_LOWER=$(echo "${{ env.APP_VERSION_TAG }}" | tr '[:upper:]' '[:lower:]')
+          EXPECTED_LOWER="v${{ env.APP_VERSION }}"
+          if [ "$TAG_LOWER" != "$EXPECTED_LOWER" ]; then
             echo "::error::Release tag (${{ env.APP_VERSION_TAG }}) does not match app version (v${{ env.APP_VERSION }}) in info.xml"
             exit 1
           fi
