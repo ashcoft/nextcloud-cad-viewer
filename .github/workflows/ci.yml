@@ -24,6 +24,26 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Set up php 8.2
+        uses: shivammathur/setup-php@c6130985df365022a16f2c31e786967732a316c0 # 2.32.0
+        with:
+          php-version: 8.2
+          coverage: none
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check composer.json
+        id: check_composer
+        uses: andstor/file-existence-action@558493d6c74bf472d87c84eab196434afc2fa029 # v3.1.0
+        with:
+          files: "composer.json"
+
+      - name: Install composer dependencies
+        if: steps.check_composer.outputs.files_exists == 'true'
+        run: |
+          composer install --no-dev
+
       - name: Lint code
         run: make lint
       - name: Build projects
