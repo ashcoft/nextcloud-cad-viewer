@@ -45,7 +45,7 @@ jobs:
           composer install --no-dev
 
       - name: Lint code
-        run: make lint
+        run: pnpm run lint
       - name: Build projects
         run: |
           export NODE_OPTIONS="--max-old-space-size=4096"
