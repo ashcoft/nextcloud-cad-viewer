@@ -27,7 +27,7 @@ function registerFileAction(): void {
     if (OCA.Files && typeof OCA.Files.registerFileAction === 'function') {
       OCA.Files.registerFileAction({
         name: 'cad-viewer-open',
-        displayName: t('cad_viewer', 'View in CAD Viewer'),
+        displayName: t('cad_viewer', 'Open with CAD Viewer'),
         mime,
         permissions: OC.PERMISSION_READ,
         icon: () => OC.imagePath('core', 'actions/screen'),
