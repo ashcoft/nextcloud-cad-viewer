@@ -22,7 +22,7 @@ $(app_dir):
 		--exclude=composer.json \
 		--exclude=composer.lock \
 		--exclude=package.json \
-		--exclude=package-lock.json \
+		--exclude=pnpm-lock.yaml \
 		--exclude=tsconfig.json \
 		--exclude=webpack.config.js \
 		--exclude=babel.config.js \

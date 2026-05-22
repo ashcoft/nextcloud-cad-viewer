@@ -42,7 +42,7 @@ jobs:
             src:
               - '.github/workflows/lint-typescript.yml'
               - 'package.json'
-              - 'package-lock.json'
+              - 'pnpm-lock.yaml'
               - 'tsconfig.json'
               - '**.ts'
               - '**.vue'

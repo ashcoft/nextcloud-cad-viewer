@@ -168,7 +168,7 @@ When new versions of [mlightcad/cad-viewer](https://github.com/mlightcad/cad-vie
 
 4. Commit and push changes:
    ```bash
-   git add package.json package-lock.json
+   git add package.json pnpm-lock.yaml
    git commit -m "Update cad-viewer dependency"
    git push
    ```
