@@ -39,7 +39,7 @@ jobs:
           make composer-install
 
       - name: Lint code
-        run: make lint
+        run: pnpm run lint
       - name: Build projects
         run: make build-js-production
       - name: Run unit tests
