@@ -25,13 +25,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Lint code
-        run: pnpm run lint
+        run: make lint
       - name: Build projects
         run: |
           export NODE_OPTIONS="--max-old-space-size=4096"
-          pnpm run build
+          make build-js-production
       - name: Run unit tests
-        run: pnpm test
+        run: make test
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
       - name: Run E2E tests
