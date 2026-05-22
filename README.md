@@ -60,8 +60,8 @@ A native Nextcloud app providing DWG and DXF file viewing capabilities based on 
 4. Build the frontend assets:
    ```bash
    cd cad_viewer
-   npm install
-   npm run build
+   pnpm install
+   pnpm run build
    ```
 
 ## 🚀 Usage
@@ -103,26 +103,26 @@ git clone https://github.com/ashcoft/nextcloud-cad-viewer.git
 cd nextcloud-cad-viewer
 
 # Install dependencies
-npm install
+pnpm install
 ```
 
 ### Build Commands
 
 ```bash
 # Development build with watch mode
-npm run dev
+pnpm run dev
 
 # Production build
-npm run build
+pnpm run build
 
 # Run linter
-npm run lint
+pnpm run lint
 
 # Fix linting issues
-npm run lint -- --fix
+pnpm run lint -- --fix
 
 # Run tests
-npm test
+pnpm test
 ```
 
 ### Project Structure
@@ -156,12 +156,12 @@ When new versions of [mlightcad/cad-viewer](https://github.com/mlightcad/cad-vie
 
 1. Update the dependency:
    ```bash
-   npm update @mlightcad/cad-viewer
+   pnpm update @mlightcad/cad-viewer
    ```
 
 2. Rebuild the application:
    ```bash
-   npm run build
+   pnpm run build
    ```
 
 3. Test thoroughly with various DWG/DXF files
@@ -201,7 +201,7 @@ The app works out of the box with no additional configuration required. All sett
 1. Clear node_modules and reinstall:
    ```bash
    rm -rf node_modules
-   npm install
+   pnpm install
    ```
 
 2. Ensure you're using Node.js 24+
@@ -221,7 +221,7 @@ The app works out of the box with no additional configuration required. All sett
 Run the test suite:
 
 ```bash
-npm test
+pnpm test
 ```
 
 For compatibility testing procedures, see [COMPATIBILITY.md](docs/COMPATIBILITY.md).
@@ -237,8 +237,8 @@ Contributions are welcome! Please follow these steps:
 1. **Fork** the repository
 2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
 3. **Make** your changes
-4. **Run** linter and tests (`npm run lint --fix && npm test`)
-5. **Build** the production assets (`npm run build`)
+4. **Run** linter and tests (`pnpm run lint --fix && pnpm test`)
+5. **Build** the production assets (`pnpm run build`)
 6. **Commit** your changes (`git commit -m 'Add amazing feature'`)
 7. **Push** to the branch (`git push origin feature/amazing-feature`)
 8. **Open** a Pull Request

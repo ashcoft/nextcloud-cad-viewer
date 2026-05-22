@@ -134,8 +134,8 @@ If you downloaded a source archive (not a pre-built release), you need to build 
 
 ```bash
 cd cad_viewer
-npm install
-npm run build
+pnpm install
+pnpm run build
 ```
 
 #### Step 5: Enable the App
@@ -162,13 +162,13 @@ cd cad_viewer
 #### Step 2: Install Dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
 #### Step 3: Build the Application
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 #### Step 4: Set Permissions
@@ -304,9 +304,9 @@ Open browser developer tools (F12) and check the console for any JavaScript erro
 ```bash
 cd /var/www/nextcloud/apps/cad_viewer
 rm -rf node_modules pnpm-lock.yaml
-npm cache clean --force
-npm install
-npm run build
+pnpm store prune
+pnpm install
+pnpm run build
 ```
 
 ### Issue: Files Not Opening in Viewer

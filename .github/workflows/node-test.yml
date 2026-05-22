@@ -71,23 +71,27 @@ jobs:
           fallbackNode: '^24'
           fallbackNpm: '^11.3'
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
+          cache: 'pnpm'
 
       - name: Install dependencies & build
         env:
           CYPRESS_INSTALL_BINARY: 0
         run: |
-          npm install --legacy-peer-deps
-          npm run build --if-present
+          pnpm install --frozen-lockfile
+          pnpm run build --if-present
 
       - name: Test
-        run: npm run test --if-present
+        run: pnpm run test --if-present
 
       - name: Test and process coverage
-        run: npm run test:coverage --if-present
+        run: pnpm run test:coverage --if-present
 
       - name: Collect coverage
         uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
