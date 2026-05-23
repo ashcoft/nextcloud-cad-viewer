@@ -8,6 +8,9 @@
 
 name: Auto approve nextcloud/ocp
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   pull_request_target:  # zizmor: ignore[dangerous-triggers]
     branches:

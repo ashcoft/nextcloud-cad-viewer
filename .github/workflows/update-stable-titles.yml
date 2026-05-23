@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: MIT
 name: Update PRs titles on stable branches
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   pull_request:
     types: [opened, edited]
