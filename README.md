@@ -25,7 +25,7 @@ A native Nextcloud app providing DWG and DXF file viewing capabilities based on 
 | Component | Version |
 |-----------|---------|
 | Nextcloud | 33+     |
-| PHP       | 8.2+    |
+| PHP       | 8.3+    |
 | Node.js   | 24+ (dev. only) |
 | pnpm      | 10+ (dev. only) |
 
@@ -93,7 +93,7 @@ Once installed, the CAD Viewer integrates seamlessly with Nextcloud:
 - Node.js 24+
 - pnpm 10+
 - Nextcloud 33 development environment
-- PHP 8.2+
+- PHP 8.3+
 
 ### Setup Development Environment
 
