@@ -26,7 +26,9 @@
           "path": "appinfo/info.xml",
           "xpath": "//info/version"
         }
-      ]
+      ],
+      "initial-version": "1.0.2"
     }
-  }
+  },
+  "bootstrap-sha": "cd232ce7e3e50755abe92b19d8dfe0ed7bd378cc"
 }
