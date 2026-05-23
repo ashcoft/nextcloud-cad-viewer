@@ -1,4 +1,7 @@
 name: CI
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 on:
   push:
     branches:
@@ -41,10 +44,10 @@ jobs:
         if: ${{ steps.versions.outputs.nodeVersion }}
         run: pnpm install --frozen-lockfile
 
-      - name: Set up php 8.2
+      - name: Set up php 8.3
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
-          php-version: 8.2
+          php-version: 8.3
           coverage: none
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
