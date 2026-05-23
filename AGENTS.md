@@ -3,10 +3,10 @@
 This document provides instructions and tips for AI agents working on this repository.
 
 ## Project Overview
-This is a Nextcloud app called `cad_viewer` that integrates the `@mlightcad/cad-viewer` library to view DWG and DXF files entirely in the browser.
+This is a Nextcloud app called `cad_viewer` that integrates the `@mlightcad/cad-viewer` library to view DWG and DXF files entirely in the nextcloud 33+.
 
 ## Technical Stack
-- **Backend:** PHP ^8.2
+- **Backend:** PHP ^8.3
 - **Nextcloud Compatibility:** Target Nextcloud 33 (uses `nextcloud/ocp:dev-stable33`).
 - **Frontend:** Vue 3 with Element Plus.
 
