@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.0.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v1.0.0...nextcloud-cad-viewer-v1.0.1) (2026-05-23)
+
+
+### Bug Fixes
+
+* consolidate release and publish workflows to ensure assets are attached ([f8dcfa3](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f8dcfa3314b65cdc4f6fc7f19914d2883d54aaf7))
+* consolidate release workflow and fix CI dependency issue ([072a3a4](https://github.com/ashcoft/nextcloud-cad-viewer/commit/072a3a4925caa4f3887831db3a388eaf905dbee2))
+* consolidate release workflow and fix CI test failures ([bf515a1](https://github.com/ashcoft/nextcloud-cad-viewer/commit/bf515a159d4b567a180ed2c21eedd6f083e21a04))
+
+
+### Miscellaneous
+
+* **deps:** bump three in the mlightcad-ecosystem group ([5a6dd1f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/5a6dd1f239469be8960b57ca04e456abcd498ec6))
+
 ## [1.0.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v0.0.3...nextcloud-cad-viewer-v1.0.0) (2026-05-22)
 
 
@@ -143,5 +157,3 @@
 * update .gitignore for Nextcloud 33 compatible ([09ed35e](https://github.com/ashcoft/nextcloud-cad-viewer/commit/09ed35e7a8f2fce66ad7fe22f97ed8733f767052))
 * Update compatibility for Nextcloud 32-33 and PHP 8.1-8.5 ([cd5501c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/cd5501c11c30d7a641b4b2913015a3c8bf76b797))
 * use .reuse/dep5 instead of REUSE.toml for v3.0 compatibility ([dbe6f93](https://github.com/ashcoft/nextcloud-cad-viewer/commit/dbe6f939b4fcd5c4e56bd5c0007dbee02c3e7c29))
-
-
