@@ -14,10 +14,11 @@ use OCP\IURLGenerator;
 class ViewController extends Controller
 {
     public function __construct(
+        string $appName,
         IRequest $request,
         private IURLGenerator $urlGenerator,
     ) {
-        parent::__construct(Application::APP_ID, $request);
+        parent::__construct($appName, $request);
     }
 
     #[NoAdminRequired]
