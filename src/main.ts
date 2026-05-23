@@ -19,7 +19,7 @@ const SUPPORTED_MIMES = [
 ]
 
 function registerFileAction(): void {
-  if (typeof OC === 'undefined' || typeof OCA === 'undefined') {
+  if (typeof OC === 'undefined' || typeof OCA === 'undefined' || typeof t !== 'function') {
     return
   }
 
