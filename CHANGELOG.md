@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v1.0.2...nextcloud-cad-viewer-v1.0.3) (2026-05-23)
+
+
+### Bug Fixes
+
+* resolve missing release assets and Nextcloud 33 runtime errors ([cc308b8](https://github.com/ashcoft/nextcloud-cad-viewer/commit/cc308b8c35ec38a075a34202e707ff91244e9d43))
+
 ## [1.0.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v1.0.1...nextcloud-cad-viewer-v1.0.2) (2026-05-23)
 
 
