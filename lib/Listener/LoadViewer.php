@@ -21,8 +21,12 @@ class LoadViewer implements IEventListener
             return;
         }
 
-        // Inject the CAD viewer scripts and styles on every page
-        // The script will only activate when a CAD file is opened
+        $app = $event->getResponse()->getApp();
+        if ($app !== 'files' && $app !== 'files_sharing' && $app !== Application::APP_ID) {
+            return;
+        }
+
+        // Inject the CAD viewer scripts and styles
         Util::addScript(Application::APP_ID, 'cad-viewer');
         Util::addStyle(Application::APP_ID, 'cad-viewer');
     }
