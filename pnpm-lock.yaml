@@ -13,10 +13,10 @@ importers:
         version: 2.3.2(vue@3.5.34(typescript@6.0.3))
       '@mlightcad/cad-simple-viewer':
         specifier: 1.5.0
-        version: 1.5.0(@mlightcad/data-model@1.7.38)(lodash-es@4.18.1)(three@0.184.0)
+        version: 1.5.0(@mlightcad/data-model@1.7.38)(lodash-es@4.18.1)(three@0.172.0)
       '@mlightcad/cad-viewer':
         specifier: 1.5.0
-        version: 1.5.0(@mlightcad/cad-simple-viewer@1.5.0(@mlightcad/data-model@1.7.38)(lodash-es@4.18.1)(three@0.184.0))(@mlightcad/data-model@1.7.38)(@vueuse/core@14.3.0(vue@3.5.34(typescript@6.0.3)))(element-plus@2.14.0(vue@3.5.34(typescript@6.0.3)))(vue-i18n@11.4.4(vue@3.5.34(typescript@6.0.3)))(vue@3.5.34(typescript@6.0.3))
+        version: 1.5.0(@mlightcad/cad-simple-viewer@1.5.0(@mlightcad/data-model@1.7.38)(lodash-es@4.18.1)(three@0.172.0))(@mlightcad/data-model@1.7.38)(@vueuse/core@14.3.0(vue@3.5.34(typescript@6.0.3)))(element-plus@2.14.0(vue@3.5.34(typescript@6.0.3)))(vue-i18n@11.4.4(vue@3.5.34(typescript@6.0.3)))(vue@3.5.34(typescript@6.0.3))
       '@mlightcad/data-model':
         specifier: 1.7.38
         version: 1.7.38
@@ -39,8 +39,8 @@ importers:
         specifier: 4.18.1
         version: 4.18.1
       three:
-        specifier: 0.184.0
-        version: 0.184.0
+        specifier: 0.172.0
+        version: 0.172.0
       vue:
         specifier: 3.5.34
         version: 3.5.34(typescript@6.0.3)
@@ -3523,9 +3523,6 @@ packages:
   three@0.172.0:
     resolution: {integrity: sha512-6HMgMlzU97MsV7D/tY8Va38b83kz8YJX+BefKjspMNAv0Vx6dxMogHOrnRl/sbMIs3BPUKijPqDqJ/+UwJbIow==}
 
-  three@0.184.0:
-    resolution: {integrity: sha512-wtTRjG92pM5eUg/KuUnHsqSAlPM296brTOcLgMRqEeylYTh/CdtvKUvCyyCQTzFuStieWxvZb8mVTMvdPyUpxg==}
-
   tinyglobby@0.2.16:
     resolution: {integrity: sha512-pn99VhoACYR8nFHhxqix+uvsbXineAasWm5ojXoN8xEwK5Kd3/TrhNn1wByuD52UxWRLy8pu+kRMniEi6Eq9Zg==}
     engines: {node: '>=12.0.0'}
@@ -5050,19 +5047,19 @@ snapshots:
 
   '@lukeed/csprng@1.1.0': {}
 
-  '@mlightcad/cad-simple-viewer@1.5.0(@mlightcad/data-model@1.7.38)(lodash-es@4.18.1)(three@0.184.0)':
+  '@mlightcad/cad-simple-viewer@1.5.0(@mlightcad/data-model@1.7.38)(lodash-es@4.18.1)(three@0.172.0)':
     dependencies:
       '@mlightcad/data-model': 1.7.38
       '@mlightcad/libredwg-converter': 3.5.33(@mlightcad/data-model@1.7.38)
       lodash-es: 4.18.1
       mitt: 3.0.1
       rbush: 4.0.1
-      three: 0.184.0
+      three: 0.172.0
 
-  '@mlightcad/cad-viewer@1.5.0(@mlightcad/cad-simple-viewer@1.5.0(@mlightcad/data-model@1.7.38)(lodash-es@4.18.1)(three@0.184.0))(@mlightcad/data-model@1.7.38)(@vueuse/core@14.3.0(vue@3.5.34(typescript@6.0.3)))(element-plus@2.14.0(vue@3.5.34(typescript@6.0.3)))(vue-i18n@11.4.4(vue@3.5.34(typescript@6.0.3)))(vue@3.5.34(typescript@6.0.3))':
+  '@mlightcad/cad-viewer@1.5.0(@mlightcad/cad-simple-viewer@1.5.0(@mlightcad/data-model@1.7.38)(lodash-es@4.18.1)(three@0.172.0))(@mlightcad/data-model@1.7.38)(@vueuse/core@14.3.0(vue@3.5.34(typescript@6.0.3)))(element-plus@2.14.0(vue@3.5.34(typescript@6.0.3)))(vue-i18n@11.4.4(vue@3.5.34(typescript@6.0.3)))(vue@3.5.34(typescript@6.0.3))':
     dependencies:
       '@element-plus/icons-vue': 2.3.2(vue@3.5.34(typescript@6.0.3))
-      '@mlightcad/cad-simple-viewer': 1.5.0(@mlightcad/data-model@1.7.38)(lodash-es@4.18.1)(three@0.184.0)
+      '@mlightcad/cad-simple-viewer': 1.5.0(@mlightcad/data-model@1.7.38)(lodash-es@4.18.1)(three@0.172.0)
       '@mlightcad/data-model': 1.7.38
       '@vueuse/core': 14.3.0(vue@3.5.34(typescript@6.0.3))
       element-plus: 2.14.0(vue@3.5.34(typescript@6.0.3))
@@ -7783,8 +7780,6 @@ snapshots:
       minimatch: 3.1.5
 
   three@0.172.0: {}
-
-  three@0.184.0: {}
 
   tinyglobby@0.2.16:
     dependencies:
