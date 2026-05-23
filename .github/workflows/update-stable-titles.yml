@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   update-pr-title:
-    runs-on: ubuntu-latest-low
+    runs-on: self-hosted-low
     permissions:
       pull-requests: write
       contents: read

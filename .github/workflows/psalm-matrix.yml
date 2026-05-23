@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   matrix:
-    runs-on: ubuntu-latest-low
+    runs-on: self-hosted-low
     outputs:
       ocp-matrix: ${{ steps.versions.outputs.ocp-matrix }}
       php-min: ${{ steps.versions.outputs.php-min }}
@@ -40,7 +40,7 @@ jobs:
         run: grep 'phpVersion="${{ steps.versions.outputs.php-min }}' psalm.xml
 
   static-analysis:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: matrix
     strategy:
       # do not stop on another job's failure
@@ -78,7 +78,7 @@ jobs:
         run: composer run psalm -- --threads=1 --monochrome --no-progress --output-format=github
 
   summary:
-    runs-on: ubuntu-latest-low
+    runs-on: self-hosted-low
     needs: static-analysis
 
     if: always()

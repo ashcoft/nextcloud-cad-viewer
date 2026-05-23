@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   xml-linters:
-    runs-on: ubuntu-latest-low
+    runs-on: self-hosted-low
 
     name: info.xml lint
     steps:

@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   init:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     # On pull requests and if the comment starts with `/openapi`
     if: github.event.issue.pull_request != '' && startsWith(github.event.comment.body, '/openapi')
@@ -95,7 +95,7 @@ jobs:
           reactions: '-1'
 
   process:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: init
 
     steps:

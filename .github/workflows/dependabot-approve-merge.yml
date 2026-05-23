@@ -27,7 +27,7 @@ concurrency:
 jobs:
   auto-approve-merge:
     if: github.event.pull_request.user.login == 'dependabot[bot]'
-    runs-on: ubuntu-latest-low
+    runs-on: self-hosted-low
     permissions:
       # for auto-approve step to work
       pull-requests: write
