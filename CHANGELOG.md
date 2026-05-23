@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.0...nextcloud-cad-viewer-v2.0.1) (2026-05-23)
+
+
+### Bug Fixes
+
+* resolve CI failures and upgrade environment to Node 24, PHP 8.3, and Nextcloud 33-34 ([41831ce](https://github.com/ashcoft/nextcloud-cad-viewer/commit/41831ce76839c247e2c016990a7c3de38221a941))
+* resolve CI failures, upgrade to Node 24, PHP 8.3, and Nextcloud 33-34 ([e697a38](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e697a382ac0322ca7a919f54adb10b135181c6f8))
+
 ## [2.0.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v1.0.2...nextcloud-cad-viewer-v2.0.0) (2026-05-23)
 
 
