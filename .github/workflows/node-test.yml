@@ -36,7 +36,6 @@ jobs:
       src: ${{ steps.changes.outputs.src}}
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
         id: changes
         continue-on-error: true
@@ -88,13 +87,13 @@ jobs:
           CYPRESS_INSTALL_BINARY: 0
         run: |
           pnpm install --frozen-lockfile
-          pnpm run build --if-present
+          pnpm run --if-present build
 
       - name: Test
-        run: pnpm run test --if-present
+        run: pnpm run --if-present test
 
       - name: Test and process coverage
-        run: pnpm run test:coverage --if-present
+        run: pnpm run --if-present test:coverage
 
       - name: Collect coverage
         uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1

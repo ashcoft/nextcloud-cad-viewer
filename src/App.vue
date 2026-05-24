@@ -27,11 +27,12 @@ declare global {
 }
 
 const t = (app: string, text: string) => {
-  return (window as any).t ? (window as any).t(app, text) : text
+  const nextcloudTranslate = (window as unknown as { t?: (app: string, text: string) => string }).t
+  return nextcloudTranslate ? nextcloudTranslate(app, text) : text
 }
 
 // Use the new app ID for translations
-const appTranslation = (text: string) => t('nextcloud-cad-viewer', text)
+const appTranslation = (text: string) => t('cad_viewer', text)
 
 export default defineComponent({
   name: 'CadViewerApp',
@@ -69,7 +70,7 @@ export default defineComponent({
         return
       }
 
-      fileUrl.value = generateUrl('/apps/nextcloud-cad-viewer/api/file/{fileId}/content', { fileId: fid as string })
+      fileUrl.value = generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: fid as string })
 
       if (viewerContainer.value) {
         viewerInstance.value = await loadCADViewer(viewerContainer.value, {

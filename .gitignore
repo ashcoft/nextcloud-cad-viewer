@@ -39,11 +39,6 @@ Thumbs.db
 .env.local
 .env.*
 
-# Nextcloud and Tooling
-vendor/
-.php-cs-fixer.cache
-.phpunit.cache/
-
 # IDE
 .vscode/
 .idea/
