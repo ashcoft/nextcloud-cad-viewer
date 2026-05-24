@@ -1,6 +1,5 @@
 import { createApp, type App } from 'vue'
 import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
 import { i18n, MlCadViewer } from '@mlightcad/cad-viewer'
 import type { AcApSettings } from '@mlightcad/cad-simple-viewer'
 import { AcApSettingManager } from '@mlightcad/cad-simple-viewer'

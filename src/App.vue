@@ -19,6 +19,17 @@ import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
 
+// Global translation function from Nextcloud
+declare global {
+  interface Window {
+    t: (app: string, text: string) => string
+  }
+}
+
+const t = (app: string, text: string) => {
+  return (window as any).t ? (window as any).t(app, text) : text
+}
+
 export default defineComponent({
   name: 'CadViewerApp',
   props: {
@@ -106,6 +117,7 @@ export default defineComponent({
       viewerContainer,
       fileUrl,
       retryLoad,
+      t,
     }
   },
 })
