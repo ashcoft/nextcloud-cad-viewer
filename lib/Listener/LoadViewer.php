@@ -6,6 +6,7 @@ namespace OCA\CadViewer\Listener;
 
 use OCA\CadViewer\AppInfo\Application;
 use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
+use OCP\AppFramework\Http\TemplateResponse;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Util;
@@ -21,7 +22,12 @@ class LoadViewer implements IEventListener
             return;
         }
 
-        $app = $event->getResponse()->getApp();
+        $response = $event->getResponse();
+        if (!($response instanceof TemplateResponse)) {
+            return;
+        }
+
+        $app = $response->getApp();
         if ($app !== 'files' && $app !== 'files_sharing' && $app !== Application::APP_ID) {
             return;
         }
