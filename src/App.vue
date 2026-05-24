@@ -2,12 +2,12 @@
   <div id="cad-viewer-wrapper" class="cad-viewer-wrapper">
     <div v-if="loading" class="cad-viewer-loading">
       <div class="spinner"></div>
-      <p>{{ t('cad_viewer', 'Loading CAD Viewer...') }}</p>
+      <p>{{ appTranslation('Loading CAD Viewer...') }}</p>
     </div>
     <div v-else-if="error" class="cad-viewer-error">
       <p>{{ error }}</p>
       <button v-if="fileUrl" class="button primary" @click="retryLoad">
-        {{ t('cad_viewer', 'Retry') }}
+        {{ appTranslation('Retry') }}
       </button>
     </div>
     <div v-else ref="viewerContainer" class="cad-viewer-canvas"></div>
@@ -29,6 +29,9 @@ declare global {
 const t = (app: string, text: string) => {
   return (window as any).t ? (window as any).t(app, text) : text
 }
+
+// Use the new app ID for translations
+const appTranslation = (text: string) => t('nextcloud-cad-viewer', text)
 
 export default defineComponent({
   name: 'CadViewerApp',
@@ -61,12 +64,12 @@ export default defineComponent({
       }
 
       if (!fid) {
-        error.value = t('cad_viewer', 'No file selected. Please open a DWG or DXF file from Nextcloud.')
+        error.value = appTranslation('No file selected. Please open a DWG or DXF file from Nextcloud.')
         loading.value = false
         return
       }
 
-      fileUrl.value = generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: fid as string })
+      fileUrl.value = generateUrl('/apps/nextcloud-cad-viewer/api/file/{fileId}/content', { fileId: fid as string })
 
       if (viewerContainer.value) {
         viewerInstance.value = await loadCADViewer(viewerContainer.value, {
@@ -81,7 +84,7 @@ export default defineComponent({
         await initViewer()
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err)
-        error.value = t('cad_viewer', 'Failed to load CAD viewer: ') + msg
+        error.value = appTranslation('Failed to load CAD viewer: ') + msg
       } finally {
         loading.value = false
       }
@@ -105,7 +108,7 @@ export default defineComponent({
           })
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err)
-          error.value = t('cad_viewer', 'Failed to load CAD viewer: ') + msg
+          error.value = appTranslation('Failed to load CAD viewer: ') + msg
         }
       }
       loading.value = false
@@ -117,7 +120,7 @@ export default defineComponent({
       viewerContainer,
       fileUrl,
       retryLoad,
-      t,
+      appTranslation,
     }
   },
 })

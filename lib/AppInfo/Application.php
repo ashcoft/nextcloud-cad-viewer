@@ -13,7 +13,7 @@ use OCP\Util;
 
 class Application extends App implements IBootstrap
 {
-    public const APP_ID = 'cad_viewer';
+    public const APP_ID = 'nextcloud-cad-viewer';
 
     public function __construct()
     {

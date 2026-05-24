@@ -27,14 +27,14 @@ function registerFileAction(): void {
     if (OCA.Files && typeof OCA.Files.registerFileAction === 'function') {
       OCA.Files.registerFileAction({
         name: 'cad-viewer-open',
-        displayName: t('cad_viewer', 'Open with CAD Viewer'),
+        displayName: t('nextcloud-cad-viewer', 'Open with CAD Viewer'),
         mime,
         permissions: OC.PERMISSION_READ,
         icon: () => OC.imagePath('core', 'actions/screen'),
         actionHandler: (_fileName: string, context: { fileInfo?: { id: number | string } }) => {
           const fileId = context.fileInfo?.id
           if (fileId) {
-            window.location.href = OC.generateUrl('/apps/cad_viewer/view') + '?fileIds=' + fileId
+            window.location.href = OC.generateUrl('/apps/nextcloud-cad-viewer/view') + '?fileIds=' + fileId
           }
         },
       })

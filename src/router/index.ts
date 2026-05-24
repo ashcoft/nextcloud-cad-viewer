@@ -18,7 +18,7 @@ const routes: RouteRecordRaw[] = [
 ]
 
 const router = createRouter({
-  history: createWebHistory('/apps/cad_viewer/'),
+  history: createWebHistory('/apps/nextcloud-cad-viewer/'),
   routes,
 })
 
