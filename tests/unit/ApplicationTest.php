@@ -29,7 +29,7 @@ class ApplicationTest extends TestCase
 
     public function testAppId(): void
     {
-        $this->assertSame('nextcloud-cad-viewer', Application::APP_ID);
+        $this->assertSame('cad_viewer', Application::APP_ID);
     }
 
     public function testConstructor(): void
