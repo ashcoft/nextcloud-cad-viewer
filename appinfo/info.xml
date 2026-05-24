@@ -33,8 +33,10 @@
   </dependencies>
   <navigations>
     <navigation>
+      <id>cad_viewer</id>
       <name>CAD Viewer</name>
       <route>cad_viewer.view.index</route>
+      <type>link</type>
     </navigation>
   </navigations>
 </info>
