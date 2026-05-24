@@ -1,47 +1,58 @@
-# Exclude npm stuff
-/build
-/node_modules
+```
+# Dependencies
+node_modules/
 
-# PHP Code Sniffer
-/vendor
-/vendor-bin/*/vendor
-/lib/Vendor
-/.php-cs-fixer.cache
+# Build artifacts
+dist/
+build/
+target/
 
-# Local docs
-/site
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.ENV
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/modules/
+.DS_Store
+Thumbs.db
 
-# Karma/jasmine coverage data
-/coverage
-/tests/php/coverage-html
-/tests/php/clover.xml
-/tests/php/.phpunit.result.cache
-/.phpunit.cache
-/tests/.phpunit.cache
-/tests/integration/vendor
-/tests/integration/output
-/drone
-/findings.sarif
+# Logs
+*.log
 
-# PHP Dev server output (integration tests)
-/tests/integration/phpserver*.log
+# Environment variables
+.env
+.env.local
+.env.*
 
-# Compiled frontend assets
-/css
-/js
-!/js/cad-viewer.js
-!/js/*.cad-viewer.js
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
 
-# Playwright
-/playwright-report
-/test-results
-
-# VScode settings
-/.vscode
-*.code-workspace
-
-# JetBrains IDEs settings
-/.idea
-
-# JetBrains Fleet settings
-/.fleet
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Icon?
+```
