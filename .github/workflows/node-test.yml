@@ -87,13 +87,13 @@ jobs:
           CYPRESS_INSTALL_BINARY: 0
         run: |
           pnpm install --frozen-lockfile
-          pnpm run build --if-present
+          pnpm run --if-present build
 
       - name: Test
-        run: pnpm run test --if-present
+        run: pnpm run --if-present test
 
       - name: Test and process coverage
-        run: pnpm run test:coverage --if-present
+        run: pnpm run --if-present test:coverage
 
       - name: Collect coverage
         uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
