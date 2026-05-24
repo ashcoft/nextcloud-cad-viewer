@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.1...nextcloud-cad-viewer-v2.0.2) (2026-05-24)
+
+
+### Bug Fixes
+
+* add release assets build and fix Internal Server Error on NC33 ([271f552](https://github.com/ashcoft/nextcloud-cad-viewer/commit/271f5522562b7ec7729a1af540b9737ed264902a))
+
 ## [2.0.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.0...nextcloud-cad-viewer-v2.0.1) (2026-05-23)
 
 
