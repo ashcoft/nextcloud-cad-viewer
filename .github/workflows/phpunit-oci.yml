@@ -34,7 +34,7 @@ jobs:
 
       - name: Get version matrix
         id: versions
-        uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2
+        uses: nextcloud-ci/nextcloud-version-matrix@9196b025f1873130088b297995a229558ddba # v1.3.2
 
   changes:
     runs-on: ubuntu-latest
@@ -101,7 +101,7 @@ jobs:
         if: ${{ env.APP_NAME == '' }}
         run: |
           # Split and keep last
-          echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
+          echo "APP_NAME=cad_viewer" >> $GITHUB_ENV
 
       - name: Checkout server
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
