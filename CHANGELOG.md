@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.0.3](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.2...nextcloud-cad-viewer-v2.0.3) (2026-05-25)
+
+
+### Bug Fixes
+
+* correct app_id parsing in Makefile ([42598ae](https://github.com/ashcoft/nextcloud-cad-viewer/commit/42598aee21df9afaa377e0b3b9f940f1e851afde))
+* resolve CI failures and rename app ID to compliant 'cad_viewer' ([1a937ce](https://github.com/ashcoft/nextcloud-cad-viewer/commit/1a937ce702a51309de50cbea0cac16ee8c3b9bb4))
+* resolve CI failures and TypeScript deprecation warnings ([42af756](https://github.com/ashcoft/nextcloud-cad-viewer/commit/42af756827f87ee766425e2204b28dea8ce2bf5e))
+
+
+### Miscellaneous
+
+* pin Node.js version to 24 in GitHub workflows ([bd8494c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/bd8494cebda1dfec11c29d4b6c488247763b8c8d))
+
 ## [2.0.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.1...nextcloud-cad-viewer-v2.0.2) (2026-05-24)
 
 
