@@ -10,16 +10,25 @@ namespace {
 }
 
 namespace OCP {
+    interface IServerContainer
+    {
+        public function query(string $name, bool $autoload = true);
+    }
+
     interface IServerContainerExtended extends IServerContainer
     {
         public function getRegisteredAppContainer(string $appName);
     }
 }
 
-namespace OC\AppFramework\DependencyInjection {
-    use OCP\AppFramework\IAppContainer;
+namespace OCP\AppFramework {
+    interface IAppContainer extends \OCP\IServerContainer
+    {
+    }
+}
 
-    class DIContainer implements IAppContainer
+namespace OC\AppFramework\DependencyInjection {
+    class DIContainer implements \OCP\AppFramework\IAppContainer
     {
         public function __construct(string $appName, array $urlParams = []) {}
         public function query(string $name, bool $autoload = true)
