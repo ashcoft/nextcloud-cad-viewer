@@ -47,6 +47,15 @@ namespace OCP\AppFramework\Http {
 }
 
 namespace OCP\AppFramework {
+    class App
+    {
+        public function __construct(string $appName)
+        {
+        }
+    }
+}
+
+namespace OCP\AppFramework {
     interface IAppContainer extends \OCP\IServerContainer
     {
         public function get(string $id);
