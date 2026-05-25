@@ -10,6 +10,12 @@ namespace {
 }
 
 namespace OCP {
+    interface IConfig
+    {
+        public function getSystemValue(string $key, $default = null);
+        public function getAppValue(string $appName, string $key, string $default = null): string;
+    }
+
     interface IServerContainer
     {
         public function query(string $name, bool $autoload = true);
@@ -18,6 +24,24 @@ namespace OCP {
     interface IServerContainerExtended extends IServerContainer
     {
         public function getRegisteredAppContainer(string $appName);
+    }
+}
+
+namespace OCP\AppFramework\Bootstrap {
+    interface IRegistrationContext
+    {
+        public function registerEventListener(string $eventClass, string $listenerClass): void;
+    }
+
+    interface IBootContext
+    {
+        public function getServer(): \OCP\IServerContainer;
+    }
+}
+
+namespace OCP\AppFramework\Http {
+    class BeforeTemplateRenderedEvent
+    {
     }
 }
 
