@@ -11,3 +11,6 @@ parameters:
         -
             message: '#Property OCA\\CadViewer\\Controller\\ViewController::\$urlGenerator is never read, only written.#'
             path: lib/Controller/ViewController.php
+        -
+            message: '#^Instanceof between OCP\\AppFramework\\Http\\TemplateResponse and OCP\\AppFramework\\Http\\TemplateResponse will always evaluate to true\.$#'
+            path: lib/Listener/LoadViewer.php
