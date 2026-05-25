@@ -19,6 +19,7 @@ namespace OCP {
     interface IServerContainer
     {
         public function query(string $name, bool $autoload = true);
+        public function get(string $id);
     }
 
     interface IServerContainerExtended extends IServerContainer
@@ -48,6 +49,7 @@ namespace OCP\AppFramework\Http {
 namespace OCP\AppFramework {
     interface IAppContainer extends \OCP\IServerContainer
     {
+        public function get(string $id);
     }
 }
 
