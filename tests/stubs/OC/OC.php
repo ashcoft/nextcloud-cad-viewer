@@ -38,6 +38,12 @@ namespace OCP\AppFramework\Bootstrap {
     {
         public function getServer(): \OCP\IServerContainer;
     }
+
+    interface IBootstrap
+    {
+        public function register(IRegistrationContext $context): void;
+        public function boot(IBootContext $context): void;
+    }
 }
 
 namespace OCP\AppFramework\Http {
