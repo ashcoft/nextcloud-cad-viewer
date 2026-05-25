@@ -5,6 +5,7 @@ parameters:
         - lib
     bootstrapFiles:
         - vendor/autoload.php
+    phpVersion: 80200
     treatPhpDocTypesAsCertain: false
     ignoreErrors:
         -
