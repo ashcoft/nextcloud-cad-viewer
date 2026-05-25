@@ -4,7 +4,7 @@ parameters:
         - lib
     bootstrapFiles:
         - vendor/autoload.php
-    # min: 8.3
+    # min: 8.2
     treatPhpDocTypesAsCertain: false
     ignoreErrors:
         -
