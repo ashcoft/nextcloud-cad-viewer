@@ -41,6 +41,9 @@ class FileController extends Controller
         'image/x-dxf',
     ];
 
+    private const ERROR_UNSUPPORTED_FILE_TYPE = 'Unsupported file type';
+    private const ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME = 'Unsupported file type: ';
+
     public function __construct(
         string $appName,
         IRequest $request,
@@ -82,7 +85,7 @@ class FileController extends Controller
 
             $mimeType = $file->getMimeType();
             if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
-                return new DataResponse(['error' => 'Unsupported file type: ' . $mimeType], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
+                throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
             }
 
             return new DataResponse([
@@ -96,6 +99,8 @@ class FileController extends Controller
             return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
         } catch (NotPermittedException $e) {
             return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
+        } catch (\UnexpectedValueException $e) {
+            return new DataResponse(['error' => self::ERROR_UNSUPPORTED_FILE_TYPE], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
         } catch (\Exception $e) {
             return new DataResponse(['error' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
         }
@@ -130,6 +135,10 @@ class FileController extends Controller
             }
 
             $mimeType = $file->getMimeType();
+            if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
+                throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
+            }
+
             $stream = $file->fopen('r');
             if ($stream === false) {
                 return new DataResponse(['error' => 'Could not open file'], Http::STATUS_INTERNAL_SERVER_ERROR);
@@ -143,6 +152,8 @@ class FileController extends Controller
             return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
         } catch (NotPermittedException $e) {
             return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
+        } catch (\UnexpectedValueException $e) {
+            return new DataResponse(['error' => self::ERROR_UNSUPPORTED_FILE_TYPE], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
         } catch (\Exception $e) {
             return new DataResponse(['error' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
         }
@@ -178,7 +189,7 @@ class FileController extends Controller
 
             $mimeType = $file->getMimeType();
             if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
-                return new DataResponse(['error' => 'Unsupported file type'], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
+                throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
             }
 
             $stream = $file->fopen('r');
@@ -193,6 +204,8 @@ class FileController extends Controller
             return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
         } catch (NotPermittedException $e) {
             return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
+        } catch (\UnexpectedValueException $e) {
+            return new DataResponse(['error' => self::ERROR_UNSUPPORTED_FILE_TYPE], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
         } catch (\Exception $e) {
             return new DataResponse(['error' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
         }
