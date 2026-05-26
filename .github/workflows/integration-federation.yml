@@ -8,8 +8,8 @@ env:
 
 on:
   pull_request:
-  schedule:
-    - cron: "5 2 * * *"
+    # Only running on PR for this file to save CI time
+    # This workflow tests Nextcloud Talk/Spreed features which are not applicable to this CAD viewer app
 
 permissions:
   contents: read
