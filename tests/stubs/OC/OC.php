@@ -48,16 +48,12 @@ namespace OCP\AppFramework\Bootstrap {
 
 namespace OCP\AppFramework\Http {
     class BeforeTemplateRenderedEvent
-    {
-    }
 }
 
 namespace OCP\AppFramework {
     class App
     {
         public function __construct(string $appName)
-        {
-        }
     }
 }
 
