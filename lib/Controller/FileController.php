@@ -13,7 +13,6 @@ use OCA\CadViewer\AppInfo\Application;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
-use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\StreamResponse;
 use OCP\Files\IRootFolder;
@@ -24,9 +23,6 @@ use OCP\IUserSession;
 
 class FileController extends Controller
 {
-    private IRootFolder $rootFolder;
-    private IUserSession $userSession;
-
     /** @var string[] Supported CAD MIME types */
     private const SUPPORTED_MIME_TYPES = [
         'application/acad',
@@ -40,6 +36,9 @@ class FileController extends Controller
         'application/x-dxf',
         'image/x-dxf',
     ];
+
+    private IRootFolder $rootFolder;
+    private IUserSession $userSession;
 
     public function __construct(
         string $appName,
@@ -64,32 +63,13 @@ class FileController extends Controller
                 return new DataResponse(['error' => 'Unauthorized'], Http::STATUS_UNAUTHORIZED);
             }
 
-            $userFolder = $this->rootFolder->getUserFolder($user->getUID());
-            $files = $userFolder->getById($fileId);
-
-            if (empty($files)) {
-                return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
-            }
-
-            $file = $files[0];
-            if (!($file instanceof \OCP\Files\File)) {
-                return new DataResponse(['error' => 'Not a file'], Http::STATUS_BAD_REQUEST);
-            }
-
-            if (!$file->isReadable()) {
-                return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
-            }
-
-            $mimeType = $file->getMimeType();
-            if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
-                return new DataResponse(['error' => 'Unsupported file type: ' . $mimeType], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
-            }
+            $file = $this->getValidatedFile($user->getUID(), $fileId);
 
             return new DataResponse([
                 'id' => $file->getId(),
                 'name' => $file->getName(),
                 'size' => $file->getSize(),
-                'mimeType' => $mimeType,
+                'mimeType' => $file->getMimeType(),
                 'path' => $file->getPath(),
             ]);
         } catch (NotFoundException $e) {
@@ -113,31 +93,16 @@ class FileController extends Controller
                 return new DataResponse(['error' => 'Unauthorized'], Http::STATUS_UNAUTHORIZED);
             }
 
-            $userFolder = $this->rootFolder->getUserFolder($user->getUID());
-            $files = $userFolder->getById($fileId);
+            $file = $this->getValidatedFile($user->getUID(), $fileId);
 
-            if (empty($files)) {
-                return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
-            }
-
-            $file = $files[0];
-            if (!($file instanceof \OCP\Files\File)) {
-                return new DataResponse(['error' => 'Not a file'], Http::STATUS_BAD_REQUEST);
-            }
-
-            if (!$file->isReadable()) {
-                return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
-            }
-
-            $mimeType = $file->getMimeType();
             $stream = $file->fopen('r');
             if ($stream === false) {
                 return new DataResponse(['error' => 'Could not open file'], Http::STATUS_INTERNAL_SERVER_ERROR);
             }
 
             $response = new StreamResponse($stream);
-            $response->addHeader('Content-Type', $mimeType);
-            $response->addHeader('Content-Disposition', 'inline; filename="' . $file->getName() . '"');
+            $response->addHeader('Content-Type', $file->getMimeType());
+            $response->addHeader('Content-Disposition', 'inline; filename="' . htmlspecialchars($file->getName(), ENT_QUOTES, 'UTF-8') . '"');
             return $response;
         } catch (NotFoundException $e) {
             return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
@@ -160,26 +125,7 @@ class FileController extends Controller
                 return new DataResponse(['error' => 'Unauthorized'], Http::STATUS_UNAUTHORIZED);
             }
 
-            $userFolder = $this->rootFolder->getUserFolder($user->getUID());
-            $files = $userFolder->getById($fileId);
-
-            if (empty($files)) {
-                return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
-            }
-
-            $file = $files[0];
-            if (!($file instanceof \OCP\Files\File)) {
-                return new DataResponse(['error' => 'Not a file'], Http::STATUS_BAD_REQUEST);
-            }
-
-            if (!$file->isReadable()) {
-                return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
-            }
-
-            $mimeType = $file->getMimeType();
-            if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
-                return new DataResponse(['error' => 'Unsupported file type'], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
-            }
+            $file = $this->getValidatedFile($user->getUID(), $fileId);
 
             $stream = $file->fopen('r');
             if ($stream === false) {
@@ -187,7 +133,7 @@ class FileController extends Controller
             }
 
             $response = new StreamResponse($stream);
-            $response->addHeader('Content-Type', $mimeType);
+            $response->addHeader('Content-Type', $file->getMimeType());
             return $response;
         } catch (NotFoundException $e) {
             return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
@@ -196,5 +142,37 @@ class FileController extends Controller
         } catch (\Exception $e) {
             return new DataResponse(['error' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    /**
+     * Get and validate a CAD file from user storage
+     *
+     * @throws NotFoundException
+     * @throws NotPermittedException
+     */
+    private function getValidatedFile(string $userId, int $fileId): \OCP\Files\File
+    {
+        $userFolder = $this->rootFolder->getUserFolder($userId);
+        $files = $userFolder->getById($fileId);
+
+        if (empty($files)) {
+            throw new NotFoundException('File not found');
+        }
+
+        $file = $files[0];
+        if (!($file instanceof \OCP\Files\File)) {
+            throw new NotFoundException('Not a file');
+        }
+
+        if (!$file->isReadable()) {
+            throw new NotPermittedException('Access denied');
+        }
+
+        $mimeType = $file->getMimeType();
+        if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
+            throw new NotFoundException('Unsupported file type');
+        }
+
+        return $file;
     }
 }
