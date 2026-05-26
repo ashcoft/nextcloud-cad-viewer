@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.0.3](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.2...nextcloud-cad-viewer-v2.0.3) (2026-05-26)
+
+
+### Bug Fixes
+
+* correct app_id parsing in Makefile ([42598ae](https://github.com/ashcoft/nextcloud-cad-viewer/commit/42598aee21df9afaa377e0b3b9f940f1e851afde))
+* correct phpstan.neon configuration and address static analysis warnings ([80fca85](https://github.com/ashcoft/nextcloud-cad-viewer/commit/80fca85091fc076f75da6022928bae1ee47cd3a7))
+* expand single-line function bodies to multi-line format ([dc0d59f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/dc0d59fe9b02bffb13fee5bdb222dc48ab037703))
+* resolve CI failures and rename app ID to compliant 'cad_viewer' ([1a937ce](https://github.com/ashcoft/nextcloud-cad-viewer/commit/1a937ce702a51309de50cbea0cac16ee8c3b9bb4))
+* resolve CI failures and TypeScript deprecation warnings ([42af756](https://github.com/ashcoft/nextcloud-cad-viewer/commit/42af756827f87ee766425e2204b28dea8ce2bf5e))
+* use phpVersion instead of invalid min in phpstan.neon ([a397ae4](https://github.com/ashcoft/nextcloud-cad-viewer/commit/a397ae4f054171e6d019a0a9c1845d40ccc3ab9d))
+
+
+### Miscellaneous
+
+* **deps:** bump @mlightcad/data-model in the mlightcad-ecosystem group ([e9a59db](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e9a59dbc20e28c8550efe01119f48eb59086c651))
+* **deps:** bump nextcloud/coding-standard from 1.1.0 to 1.5.0 ([93036ae](https://github.com/ashcoft/nextcloud-cad-viewer/commit/93036ae1201336b7ccbfc1d489f651d2f35d3a16))
+* **deps:** bump the babel-dependencies group with 4 updates ([0d6a875](https://github.com/ashcoft/nextcloud-cad-viewer/commit/0d6a87535137590ad88b149f7a333fc27b57ddb8))
+* **deps:** bump typescript-eslint from 8.59.4 to 8.60.0 ([d23afe0](https://github.com/ashcoft/nextcloud-cad-viewer/commit/d23afe00a326347128f092746ee0b889391309bf))
+* **deps:** bump vue-tsc in the vue-dependencies group ([b06d266](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b06d26659cf1d5096627feaf2fc811b6bf543582))
+* **deps:** bump webpack from 5.107.1 to 5.107.2 ([04c6179](https://github.com/ashcoft/nextcloud-cad-viewer/commit/04c6179d30b2c9e1223b87394634f7c6d392191b))
+* pin Node.js version to 24 in GitHub workflows ([bd8494c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/bd8494cebda1dfec11c29d4b6c488247763b8c8d))
+
 ## [2.0.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.1...nextcloud-cad-viewer-v2.0.2) (2026-05-24)
 
 
