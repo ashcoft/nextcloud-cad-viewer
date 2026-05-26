@@ -23,7 +23,7 @@
     "@element-plus/icons-vue": "^2.3.1",
     "@mlightcad/cad-simple-viewer": "1.5.0",
     "@mlightcad/cad-viewer": "1.5.0",
-    "@mlightcad/data-model": "1.7.38",
+    "@mlightcad/data-model": "1.7.40",
     "@nextcloud/initial-state": "^3.0.0",
     "@nextcloud/router": "^3.1.0",
     "@vueuse/core": "14.3.0",
@@ -73,7 +73,7 @@
     "webpack-cli": "^7.0.0"
   },
   "overrides": {
-    "@mlightcad/data-model": "1.7.38",
+    "@mlightcad/data-model": "1.7.40",
     "@mlightcad/libredwg-converter": "3.5.38",
     "@mlightcad/mtext-input-box": "0.2.11",
     "@mlightcad/mtext-renderer": "0.10.14",
