@@ -22,10 +22,16 @@ namespace OC\AppFramework\DependencyInjection {
     class DIContainer implements IAppContainer
     {
         public function __construct(string $appName, array $urlParams = []) {}
-        public function query(string $name, bool $autoload = true) { return null; }
+        public function query(string $name, bool $autoload = true)
+        {
+            return null;
+        }
         public function registerService($name, \Closure $closure, $shared = true) {}
         public function registerParameter($name, $value) {}
-        public function resolve($name) { return null; }
+        public function resolve($name)
+        {
+            return null;
+        }
         public function registerAlias($alias, $target) {}
         public function getAppName()
         {
@@ -39,7 +45,10 @@ namespace OC\AppFramework\DependencyInjection {
         }
         public function registerCapability($serviceName) {}
         public function registerEventListener(string $event, string $listener, int $priority = 0) {}
-        public function get(string $id) { return null; }
+        public function get(string $id)
+        {
+            return null;
+        }
         public function has(string $id): bool
         {
             return false;

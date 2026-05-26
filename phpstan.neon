@@ -1,12 +1,9 @@
+# min: 8.2
 parameters:
     level: 5
     paths:
         - lib
     bootstrapFiles:
         - vendor/autoload.php
-    # min: 8.3
+    phpVersion: 80200
     treatPhpDocTypesAsCertain: false
-    ignoreErrors:
-        -
-            message: '#Property OCA\\CadViewer\\Controller\\ViewController::\$urlGenerator is never read, only written.#'
-            path: lib/Controller/ViewController.php

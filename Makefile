@@ -3,7 +3,7 @@
 
 # Makefile for building the project
 
-app_id=$(shell sed -n 's/.*<id>\(.*\)<\/id>.*/\1/p' appinfo/info.xml | xargs)
+app_id=$(shell sed -n 's/.*<id>\(.*\)<\/id>.*/\1/p' appinfo/info.xml | head -1)
 app_version=$(shell sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' appinfo/info.xml | xargs)
 project_dir=$(CURDIR)
 build_dir=$(project_dir)/build/artifacts

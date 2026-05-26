@@ -32,11 +32,9 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set version outputs
+      - name: Get version matrix
         id: versions
-        run: |
-          echo "php-min=8.3" >> $GITHUB_OUTPUT
-          echo 'ocp-matrix={"include":[{"ocp-version":"dev-stable33"}]}' >> $GITHUB_OUTPUT
+        uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2
 
       - name: Check enforcement of minimum PHP version ${{ steps.versions.outputs.php-min }} in psalm.xml
         run: grep 'phpVersion="${{ steps.versions.outputs.php-min }}"' psalm.xml
