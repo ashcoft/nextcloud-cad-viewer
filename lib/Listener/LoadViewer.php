@@ -6,7 +6,6 @@ namespace OCA\CadViewer\Listener;
 
 use OCA\CadViewer\AppInfo\Application;
 use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
-use OCP\AppFramework\Http\TemplateResponse;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Util;
@@ -23,7 +22,7 @@ class LoadViewer implements IEventListener
         }
 
         $response = $event->getResponse();
-        if (!($response instanceof TemplateResponse)) {
+        if ($response === null) {
             return;
         }
 
