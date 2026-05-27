@@ -77,7 +77,6 @@ jobs:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
           cache: 'pnpm'
 
-      - uses: pnpm/action-setup@v5
 
       - name: Install dependencies
         env:
