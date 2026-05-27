@@ -22,9 +22,6 @@ class LoadViewer implements IEventListener
         }
 
         $response = $event->getResponse();
-        if ($response === null) {
-            return;
-        }
 
         $app = $response->getApp();
         if ($app !== 'files' && $app !== 'files_sharing' && $app !== Application::APP_ID) {
