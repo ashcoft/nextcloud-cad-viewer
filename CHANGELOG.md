@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.6](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.5...nextcloud-cad-viewer-v2.0.6) (2026-05-27)
+
+
+### Bug Fixes
+
+* **release:** always upload Nextcloud app artifacts on release ([ea95feb](https://github.com/ashcoft/nextcloud-cad-viewer/commit/ea95febcb3e2bceb56dd376def415882aa11cabb))
+
 ## [2.0.5](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v2.0.4...v2.0.5) (2026-05-27)
 
 
