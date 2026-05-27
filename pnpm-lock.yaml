@@ -15,8 +15,8 @@ importers:
         specifier: 1.5.0
         version: 1.5.0(@mlightcad/data-model@1.7.40)(lodash-es@4.18.1)(three@0.184.0)
       '@mlightcad/cad-viewer':
-        specifier: 1.5.1
-        version: 1.5.1(@mlightcad/cad-simple-viewer@1.5.0(@mlightcad/data-model@1.7.40)(lodash-es@4.18.1)(three@0.184.0))(@mlightcad/data-model@1.7.40)(@vueuse/core@14.3.0(vue@3.5.34(typescript@6.0.3)))(element-plus@2.14.0(vue@3.5.34(typescript@6.0.3)))(three@0.184.0)(vue-i18n@11.4.4(vue@3.5.34(typescript@6.0.3)))(vue@3.5.34(typescript@6.0.3))
+        specifier: 1.5.0
+        version: 1.5.0(@mlightcad/cad-simple-viewer@1.5.0(@mlightcad/data-model@1.7.40)(lodash-es@4.18.1)(three@0.184.0))(@mlightcad/data-model@1.7.40)(@vueuse/core@14.3.0(vue@3.5.34(typescript@6.0.3)))(element-plus@2.14.0(vue@3.5.34(typescript@6.0.3)))(vue-i18n@11.4.4(vue@3.5.34(typescript@6.0.3)))(vue@3.5.34(typescript@6.0.3))
       '@mlightcad/data-model':
         specifier: 1.7.40
         version: 1.7.40
@@ -1086,16 +1086,15 @@ packages:
       lodash-es: 4.17.21
       three: 0.172.0
 
-  '@mlightcad/cad-viewer@1.5.1':
-    resolution: {integrity: sha512-gz+8QvRGL2WkcYFiEqvURp7eNsWy4WWRZEIMbcQax5ZOEWCXiuP1FJLaABkt+svLi9V+EmKiS6TqRwhdEK4XgA==}
+  '@mlightcad/cad-viewer@1.5.0':
+    resolution: {integrity: sha512-1MxllJEvdF3vPvX2CqVT8Yr+KbBn2b7lHeBO5qegO07ErzB7zDjPua5tqQ9w3d+hxqgCTn2qmzy6yy/qC/P36A==}
     peerDependencies:
-      '@mlightcad/cad-simple-viewer': 1.5.1
-      '@mlightcad/data-model': ^1.7.40
+      '@mlightcad/cad-simple-viewer': 1.5.0
+      '@mlightcad/data-model': 1.7.33
       '@vueuse/core': ^11.1.0
-      element-plus: ^2.12.0
-      three: ^0.172.0
-      vue: ^3.4.21
-      vue-i18n: ^11.4.4
+      element-plus: 2.13.6
+      vue: 3.5.31
+      vue-i18n: 10.0.8
 
   '@mlightcad/common@1.4.40':
     resolution: {integrity: sha512-RQDG7j6MiwVNbCAmszNLRzOJNc/pMilPnNzS2wnVTRI9k8wtINQmvEyEJjBQGSGK7p/2gmY1JwoKjYH36izcsw==}
@@ -3541,6 +3540,9 @@ packages:
     resolution: {integrity: sha512-cAGWPIyOHU6zlmg88jwm7VRyXnMN7iV68OGAbYDk/Mh/xC/pzVPlQtY6ngoIH/5/tciuhGfvESU8GrHrcxD56w==}
     engines: {node: '>=8'}
 
+  three@0.172.0:
+    resolution: {integrity: sha512-6HMgMlzU97MsV7D/tY8Va38b83kz8YJX+BefKjspMNAv0Vx6dxMogHOrnRl/sbMIs3BPUKijPqDqJ/+UwJbIow==}
+
   three@0.184.0:
     resolution: {integrity: sha512-wtTRjG92pM5eUg/KuUnHsqSAlPM296brTOcLgMRqEeylYTh/CdtvKUvCyyCQTzFuStieWxvZb8mVTMvdPyUpxg==}
 
@@ -5089,7 +5091,7 @@ snapshots:
       rbush: 4.0.1
       three: 0.184.0
 
-  '@mlightcad/cad-viewer@1.5.1(@mlightcad/cad-simple-viewer@1.5.0(@mlightcad/data-model@1.7.40)(lodash-es@4.18.1)(three@0.184.0))(@mlightcad/data-model@1.7.40)(@vueuse/core@14.3.0(vue@3.5.34(typescript@6.0.3)))(element-plus@2.14.0(vue@3.5.34(typescript@6.0.3)))(three@0.184.0)(vue-i18n@11.4.4(vue@3.5.34(typescript@6.0.3)))(vue@3.5.34(typescript@6.0.3))':
+  '@mlightcad/cad-viewer@1.5.0(@mlightcad/cad-simple-viewer@1.5.0(@mlightcad/data-model@1.7.40)(lodash-es@4.18.1)(three@0.184.0))(@mlightcad/data-model@1.7.40)(@vueuse/core@14.3.0(vue@3.5.34(typescript@6.0.3)))(element-plus@2.14.0(vue@3.5.34(typescript@6.0.3)))(vue-i18n@11.4.4(vue@3.5.34(typescript@6.0.3)))(vue@3.5.34(typescript@6.0.3))':
     dependencies:
       '@element-plus/icons-vue': 2.3.2(vue@3.5.34(typescript@6.0.3))
       '@mlightcad/cad-simple-viewer': 1.5.0(@mlightcad/data-model@1.7.40)(lodash-es@4.18.1)(three@0.184.0)
@@ -5097,7 +5099,7 @@ snapshots:
       '@vueuse/core': 14.3.0(vue@3.5.34(typescript@6.0.3))
       element-plus: 2.14.0(vue@3.5.34(typescript@6.0.3))
       lodash-es: 4.17.21
-      three: 0.184.0
+      three: 0.172.0
       vue: 3.5.34(typescript@6.0.3)
       vue-i18n: 11.4.4(vue@3.5.34(typescript@6.0.3))
 
@@ -7818,6 +7820,8 @@ snapshots:
       '@istanbuljs/schema': 0.1.6
       glob: 7.2.3
       minimatch: 3.1.5
+
+  three@0.172.0: {}
 
   three@0.184.0: {}
 
