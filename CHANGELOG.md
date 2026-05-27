@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.4](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.3...nextcloud-cad-viewer-v2.0.4) (2026-05-27)
+
+
+### Miscellaneous
+
+* **deps:** bump @mlightcad/cad-viewer in the mlightcad-ecosystem group ([2e6ad5c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/2e6ad5c4af162b56a278c4a6fbb93fa3709b104f))
+* **deps:** bump phpstan/phpstan from 2.1.55 to 2.1.56 ([698344c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/698344cab473d0fa53eda48e8453d9ebd50eb5b2))
+* **deps:** bump rector/rector from 2.4.4 to 2.4.5 ([2fcc511](https://github.com/ashcoft/nextcloud-cad-viewer/commit/2fcc511fd42a4ac4540d32c8a118ea2cdf7085b1))
+
 ## [2.0.3](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.2...nextcloud-cad-viewer-v2.0.3) (2026-05-26)
 
 
