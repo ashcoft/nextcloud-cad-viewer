@@ -34,7 +34,7 @@ jobs:
           fetch-depth: 0
 
       - name: Read package.json node and npm engines version
-        uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
+        uses: softprops/action-gh-release@v2.2.0
         id: versions
         continue-on-error: true
         with:
