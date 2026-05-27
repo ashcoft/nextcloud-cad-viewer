@@ -268,3 +268,5 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and changes.
 - **Nextcloud App Store**: https://apps.nextcloud.com/apps/cad_viewer
 - **CAD Viewer (upstream)**: https://github.com/mlightcad/cad-viewer
 - **MLightCAD**: https://github.com/mlightcad
+# Test release
+# Test release - v2.0.7-test
