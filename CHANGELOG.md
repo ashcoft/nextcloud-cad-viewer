@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.8](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.7...nextcloud-cad-viewer-v2.0.8) (2026-05-27)
+
+
+### Bug Fixes
+
+* correct release-please outputs syntax ([0a87662](https://github.com/ashcoft/nextcloud-cad-viewer/commit/0a87662b6f7969f230e694b52139fa35b5513479))
+
 ## [2.0.7](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.6...nextcloud-cad-viewer-v2.0.7) (2026-05-27)
 
 
