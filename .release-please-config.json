@@ -29,7 +29,7 @@
       ],
       "initial-version": "1.0.2",
       "include-v-in-tag": true,
-      "include-component-in-tag": false
+      "include-component-in-tag": true
     }
   },
   "bootstrap-sha": "cd232ce7e3e50755abe92b19d8dfe0ed7bd378cc"
