@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.10](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.9...nextcloud-cad-viewer-v2.0.10) (2026-05-27)
+
+
+### Bug Fixes
+
+* release workflow - ensure pnpm install runs after setup-node ([c7a9a68](https://github.com/ashcoft/nextcloud-cad-viewer/commit/c7a9a68a2ab570ce3b6cee62a76eb4a3c2cd39b3))
+
+
+### Miscellaneous
+
+* remove npm-build workflow, use artifact for Nextcloud app build ([f32442d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f32442d937c384e5881529da39501275b42e735a))
+
 ## [2.0.9](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.8...nextcloud-cad-viewer-v2.0.9) (2026-05-27)
 
 
