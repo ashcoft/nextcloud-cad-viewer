@@ -79,10 +79,8 @@ jobs:
         run: ls -lah build/artifacts/cad_viewer.tar.gz build/artifacts/cad_viewer.zip
 
       - name: Attach assets to release
-        uses: skjnldsv/upload-release-action@06746811559ed5a7a72667104b2c86e0c6566085 # v3.0.0
+        uses: softprops/action-gh-release@v2.2.0
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ needs.release-please.outputs.tag_name }}
-          file: build/artifacts/cad_viewer.{tar.gz,zip}
-          file_glob: true
-          overwrite: true
+          files: |
+            build/artifacts/cad_viewer.tar.gz
+            build/artifacts/cad_viewer.zip
