@@ -27,7 +27,9 @@
           "xpath": "//info/version"
         }
       ],
-      "initial-version": "1.0.2"
+      "initial-version": "1.0.2",
+      "include-v-in-tag": true,
+      "include-component-in-tag": false
     }
   },
   "bootstrap-sha": "cd232ce7e3e50755abe92b19d8dfe0ed7bd378cc"
