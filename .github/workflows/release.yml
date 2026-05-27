@@ -52,10 +52,6 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
-      - name: Install dependencies
-        if: ${{ steps.versions.outputs.nodeVersion }}
-        run: pnpm install --frozen-lockfile
-
       - name: Set up php 8.3
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
@@ -63,6 +59,9 @@ jobs:
           coverage: none
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install pnpm dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Install composer dependencies
         run: composer install
