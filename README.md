@@ -93,7 +93,7 @@ Once installed, the CAD Viewer integrates seamlessly with Nextcloud:
 - Node.js 24+
 - pnpm 10+
 - Nextcloud 33 development environment
-- PHP 8.3+
+- PHP 8.2+
 
 ### Setup Development Environment
 
