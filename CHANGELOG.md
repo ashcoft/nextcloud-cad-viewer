@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.9](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.8...nextcloud-cad-viewer-v2.0.9) (2026-05-27)
+
+
+### Bug Fixes
+
+* **release:** replace broken upload-release-action with softprops/action-gh-release ([5c953c7](https://github.com/ashcoft/nextcloud-cad-viewer/commit/5c953c774f67747d33db3e1322bf1ddaa2455efa))
+
 ## [2.0.8](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.7...nextcloud-cad-viewer-v2.0.8) (2026-05-27)
 
 
