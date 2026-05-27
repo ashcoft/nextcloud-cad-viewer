@@ -1,5 +1,61 @@
 # Changelog
 
+## [2.0.7](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.6...nextcloud-cad-viewer-v2.0.7) (2026-05-27)
+
+
+### Bug Fixes
+
+* add checkout step to integration-mariadb changes job ([7e4c37a](https://github.com/ashcoft/nextcloud-cad-viewer/commit/7e4c37a4354b3567644b95b9cf80d19b43266d96))
+* add get method to interfaces for PHPUnit mocking ([80505bb](https://github.com/ashcoft/nextcloud-cad-viewer/commit/80505bbf68b58dfb62e456103ff744afa9266cbf))
+* add IBootstrap interface for PHPUnit ([0c10b37](https://github.com/ashcoft/nextcloud-cad-viewer/commit/0c10b37a75882309214d2c88c473838b32c07c4f))
+* add missing OCP interfaces to stubs for PHPUnit ([fbe88ef](https://github.com/ashcoft/nextcloud-cad-viewer/commit/fbe88ef277be972b5d4a9f08db62bccd3fd91e74))
+* add missing OCP interfaces to stubs for PHPUnit ([f094c0d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f094c0dc022318bbefdaa9b70bcee6219d916abd))
+* add OCP\AppFramework\App class for PHPUnit ([daa4d5f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/daa4d5fd7f65587cfbc07092a53d23728d3d9260))
+* add release assets build and fix Internal Server Error on NC33 ([271f552](https://github.com/ashcoft/nextcloud-cad-viewer/commit/271f5522562b7ec7729a1af540b9737ed264902a))
+* align code style with php-cs-fixer rules ([a9ae0a1](https://github.com/ashcoft/nextcloud-cad-viewer/commit/a9ae0a156a9a5fe13b8bb00835a7418a142842fb))
+* correct app_id parsing in Makefile ([42598ae](https://github.com/ashcoft/nextcloud-cad-viewer/commit/42598aee21df9afaa377e0b3b9f940f1e851afde))
+* correct phpstan.neon configuration and address static analysis warnings ([80fca85](https://github.com/ashcoft/nextcloud-cad-viewer/commit/80fca85091fc076f75da6022928bae1ee47cd3a7))
+* define constants for duplicate error message strings ([fb0f1ff](https://github.com/ashcoft/nextcloud-cad-viewer/commit/fb0f1ff6393c0dd743ae078450db4cf9ad51e3b3))
+* **deps:** align cad-viewer version with lockfile ([349bc6c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/349bc6c2986e0e3aaf9cbfe351e56ce10a4b2d34))
+* expand single-line function bodies to multi-line format ([dc0d59f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/dc0d59fe9b02bffb13fee5bdb222dc48ab037703))
+* include lib/** in paths-filter for node workflows ([375b5bf](https://github.com/ashcoft/nextcloud-cad-viewer/commit/375b5bffcaa10b31368a8acd7ff0a97662587937))
+* **release:** always upload Nextcloud app artifacts on release ([ea95feb](https://github.com/ashcoft/nextcloud-cad-viewer/commit/ea95febcb3e2bceb56dd376def415882aa11cabb))
+* **release:** keep component-prefixed tags for compare continuity ([9aa0fdf](https://github.com/ashcoft/nextcloud-cad-viewer/commit/9aa0fdf4c797be6025a704cd5190b5bc320f903c))
+* **release:** remove duplicate tag-release workflow ([249840b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/249840bfda476d2e1c204070316145e455d720a1))
+* remove unnecessary null check in LoadViewer.php ([e451531](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e4515319c02409f4989e9e8141eb7b289cf32fb2))
+* remove unused code and cleanup phpstan config ([dfce232](https://github.com/ashcoft/nextcloud-cad-viewer/commit/dfce232cacea04c4b442b5c839b8747c4f81f085))
+* resolve CI failures and rename app ID to compliant 'cad_viewer' ([1a937ce](https://github.com/ashcoft/nextcloud-cad-viewer/commit/1a937ce702a51309de50cbea0cac16ee8c3b9bb4))
+* resolve CI failures and TypeScript deprecation warnings ([42af756](https://github.com/ashcoft/nextcloud-cad-viewer/commit/42af756827f87ee766425e2204b28dea8ce2bf5e))
+* resolve CI failures and upgrade environment to Node 24, PHP 8.3, and Nextcloud 33-34 ([41831ce](https://github.com/ashcoft/nextcloud-cad-viewer/commit/41831ce76839c247e2c016990a7c3de38221a941))
+* resolve CI failures, upgrade to Node 24, PHP 8.3, and Nextcloud 33-34 ([e697a38](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e697a382ac0322ca7a919f54adb10b135181c6f8))
+* throw UnexpectedValueException for unsupported MIME types ([e6fc0ec](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e6fc0ec4108582a9264e129f5b113d0d32f60544))
+* update pnpm lockfile to match package.json ([f8feb77](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f8feb77d0508a99d7a951437eee8ed714bd54c71))
+* update type check for BeforeTemplateRenderedEvent response ([57b3d35](https://github.com/ashcoft/nextcloud-cad-viewer/commit/57b3d35c8e205c7e69fa1f3c436654f555a707ac))
+* use phpVersion instead of invalid min in phpstan.neon ([a397ae4](https://github.com/ashcoft/nextcloud-cad-viewer/commit/a397ae4f054171e6d019a0a9c1845d40ccc3ab9d))
+
+
+### Miscellaneous
+
+* **deps:** bump @mlightcad/cad-viewer in the mlightcad-ecosystem group ([2e6ad5c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/2e6ad5c4af162b56a278c4a6fbb93fa3709b104f))
+* **deps:** bump @mlightcad/data-model in the mlightcad-ecosystem group ([e9a59db](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e9a59dbc20e28c8550efe01119f48eb59086c651))
+* **deps:** bump nextcloud/coding-standard from 1.1.0 to 1.5.0 ([93036ae](https://github.com/ashcoft/nextcloud-cad-viewer/commit/93036ae1201336b7ccbfc1d489f651d2f35d3a16))
+* **deps:** bump phpstan/phpstan from 2.1.55 to 2.1.56 ([698344c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/698344cab473d0fa53eda48e8453d9ebd50eb5b2))
+* **deps:** bump rector/rector from 2.4.4 to 2.4.5 ([2fcc511](https://github.com/ashcoft/nextcloud-cad-viewer/commit/2fcc511fd42a4ac4540d32c8a118ea2cdf7085b1))
+* **deps:** bump the babel-dependencies group with 4 updates ([0d6a875](https://github.com/ashcoft/nextcloud-cad-viewer/commit/0d6a87535137590ad88b149f7a333fc27b57ddb8))
+* **deps:** bump typescript-eslint from 8.59.4 to 8.60.0 ([d23afe0](https://github.com/ashcoft/nextcloud-cad-viewer/commit/d23afe00a326347128f092746ee0b889391309bf))
+* **deps:** bump vue-tsc in the vue-dependencies group ([b06d266](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b06d26659cf1d5096627feaf2fc811b6bf543582))
+* **deps:** bump webpack from 5.107.1 to 5.107.2 ([04c6179](https://github.com/ashcoft/nextcloud-cad-viewer/commit/04c6179d30b2c9e1223b87394634f7c6d392191b))
+* **main:** release 2.0.5 ([c980db4](https://github.com/ashcoft/nextcloud-cad-viewer/commit/c980db47770f50efa9c63e4b8e1afe2299efc169))
+* **main:** release nextcloud-cad-viewer 2.0.0 ([953825d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/953825d495c2f326f844c930e65eeffeecd3cb7c))
+* **main:** release nextcloud-cad-viewer 2.0.1 ([7dba702](https://github.com/ashcoft/nextcloud-cad-viewer/commit/7dba702a744ac2610b3000d58e67cca52276ea75))
+* **main:** release nextcloud-cad-viewer 2.0.2 ([1d5f312](https://github.com/ashcoft/nextcloud-cad-viewer/commit/1d5f3129b607cc9dc7312a7a84606646ba72e4a0))
+* **main:** release nextcloud-cad-viewer 2.0.3 ([1e79684](https://github.com/ashcoft/nextcloud-cad-viewer/commit/1e7968472a3561162e5b3cd1277c33a1f23ee699))
+* **main:** release nextcloud-cad-viewer 2.0.4 ([a56bf85](https://github.com/ashcoft/nextcloud-cad-viewer/commit/a56bf852e3fe5133f8fdfcb8bdc3a5ba34c9b84e))
+* **main:** release nextcloud-cad-viewer 2.0.6 ([e7400f4](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e7400f46da9812a9c33220bb5954f545ba83dd1e))
+* pin Node.js version to 24 in GitHub workflows ([bd8494c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/bd8494cebda1dfec11c29d4b6c488247763b8c8d))
+* rebuild JS assets ([1f419c1](https://github.com/ashcoft/nextcloud-cad-viewer/commit/1f419c1d06cf2627e58c62c0fdb01237b9e4f61d))
+* remove integration-mariadb workflow ([2f432cd](https://github.com/ashcoft/nextcloud-cad-viewer/commit/2f432cd60a39a359fb64bd776507a806436b09ab))
+
 ## [2.0.6](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.5...nextcloud-cad-viewer-v2.0.6) (2026-05-27)
 
 
