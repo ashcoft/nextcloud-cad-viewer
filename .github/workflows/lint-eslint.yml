@@ -39,6 +39,7 @@ jobs:
             src:
               - '.github/workflows/**'
               - 'src/**'
+              - 'lib/**'
               - 'appinfo/info.xml'
               - 'package.json'
               - 'pnpm-lock.yaml'

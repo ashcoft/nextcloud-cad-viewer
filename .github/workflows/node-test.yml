@@ -46,6 +46,7 @@ jobs:
               - '__tests__/**'
               - '__mocks__/**'
               - 'src/**'
+              - 'lib/**'
               - 'appinfo/info.xml'
               - 'package.json'
               - 'pnpm-lock.yaml'
