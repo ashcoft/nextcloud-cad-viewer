@@ -1,0 +1,73 @@
+name: Artifact
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          extensions: mbstring, xmlwriter, zip
+          coverage: none
+
+      - name: Get Info
+        run: |
+          echo "version=$(grep -Eo '[0-9]+(\.[0-9]+)+' CHANGELOG.md | head -n 1)" >> $GITHUB_OUTPUT
+        id: info
+
+      - name: Build Artifact
+        run: |
+          cd ${{ github.workspace }}
+          cwd=$(pwd)
+          git submodule update --init --recursive
+          pnpm install
+          pnpm run build
+          composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+          mkdir -p cad_viewer
+          rsync -av --exclude='cad_viewer' . cad_viewer
+          cd cad_viewer
+          rm -rf ./.github/
+          rm -rf ./.git/
+          rm -rf ./node_modules/
+          rm -rf ./src/
+          rm -rf ./tests/
+          rm ./.eslintrc.js
+          rm ./.gitignore
+          rm ./.gitmodules
+          rm ./.stylelintrc.json
+          rm ./composer.json
+          rm ./composer.lock
+          rm ./package.json
+          rm ./pnpm-lock.yaml
+          rm ./babel.config.js
+          rm ./commitlint.config.js
+          rm ./eslint.config.js
+          rm ./jest.config.js
+          rm ./playwright.config.ts
+          rm ./rector.php
+          rm ./stylelint.config.js
+          rm ./tsconfig.json
+          rm ./webpack.config.js
+          cd $cwd
+          tar -czvf cad_viewer.tar.gz cad_viewer
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cad_viewer
+          path: cad_viewer.tar.gz
