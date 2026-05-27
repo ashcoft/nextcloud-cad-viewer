@@ -21,13 +21,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Read package.json node and npm engines version
-        uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
+      - name: Read package.json node engine version
         id: versions
-        continue-on-error: true
-        with:
-          fallbackNode: '^24'
-          fallbackNpm: '^11.3'
+        run: |
+          node_version=$(node -p "try {require('./package.json').engines?.node || '^24'} catch { '^24' }")
+          echo "nodeVersion=${node_version}" >> "$GITHUB_OUTPUT"
 
       - name: Setup pnpm
         if: ${{ steps.versions.outputs.nodeVersion }}
@@ -43,6 +41,10 @@ jobs:
       - name: Install dependencies
         if: ${{ steps.versions.outputs.nodeVersion }}
         run: pnpm install --frozen-lockfile
+
+      - name: Verify mlightcad package compatibility
+        run: |
+          node -e "const p=require('./package.json'); const v=p.dependencies||{}; const cv=v['@mlightcad/cad-viewer']; const csv=v['@mlightcad/cad-simple-viewer']; if (cv && csv && cv!==csv) { console.error(`Incompatible mlightcad versions: @mlightcad/cad-viewer=${cv}, @mlightcad/cad-simple-viewer=${csv}. Pin matching versions to avoid webpack export errors.`); process.exit(1);}"
 
       - name: Set up php 8.3
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
