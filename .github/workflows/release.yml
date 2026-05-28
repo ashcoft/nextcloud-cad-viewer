@@ -72,14 +72,31 @@ jobs:
           make production-setup
 
       - name: Package Nextcloud app with makefile
-        run: make appstore
+        run: |
+          make appstore
+          cd build/artifacts && for f in *.tar.gz *.zip; do [ -f "$f" ] && mv "$f" "${f%.tar.gz}-${GITHUB_REF##*/}.tar.gz" 2>/dev/null || mv "$f" "${f%.zip}-${GITHUB_REF##*/}.zip" 2>/dev/null; done
 
       - name: Verify app artifacts
-        run: ls -lah build/artifacts/cad_viewer.tar.gz build/artifacts/cad_viewer.zip
+        run: ls -lah build/artifacts/
+
+      - name: Set filename
+        id: vars
+        run: |
+          echo "zip_file_name=cad_viewer-${GITHUB_REF##*/}.zip" >> $GITHUB_OUTPUT
+          echo "tar_file_name=cad_viewer-${GITHUB_REF##*/}.tar.gz" >> $GITHUB_OUTPUT
 
       - name: Attach assets to release
         uses: softprops/action-gh-release@v2.2.0
         with:
           files: |
-            build/artifacts/cad_viewer.tar.gz
-            build/artifacts/cad_viewer.zip
+            build/artifacts/${{ steps.vars.outputs.tar_file_name }}
+            build/artifacts/${{ steps.vars.outputs.zip_file_name }}
+
+      - name: Publish to Nextcloud App Store
+        if: ${{ secrets.NEXTCLOUD_TOKEN && secrets.NEXTCLOUD_KEY }}
+        run: |
+          sleep 60
+          echo "${{ secrets.NEXTCLOUD_KEY }}" > cad_viewer.key
+          export signature=`openssl dgst -sha512 -sign cad_viewer.key build/artifacts/${{ steps.vars.outputs.tar_file_name }} | openssl base64`
+          export requestJSON="{\"download\":\"https://github.com/${{ github.repository }}/releases/download/${{ needs.release-please.outputs.tag_name }}/${{ steps.vars.outputs.tar_file_name }}\", \"signature\": \"${signature//$'\n'/\\n}\"}"
+          curl -X POST https://apps.nextcloud.com/api/v1/apps/releases -H "Authorization: Token ${{ secrets.NEXTCLOUD_TOKEN }}" -H "Content-Type: application/json" -d "${requestJSON}"
