@@ -126,13 +126,13 @@ jobs:
     needs: build
     steps:
       - name: Download app artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: cad_viewer-${{ needs.build.outputs.tag_name }}
           path: build/artifacts/
 
       - name: Download source artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: source-${{ needs.build.outputs.tag_name }}
           path: build/artifacts/
