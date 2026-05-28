@@ -22,7 +22,7 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
     "@mlightcad/cad-simple-viewer": "1.5.0",
-    "@mlightcad/cad-viewer": "1.5.0",
+    "@mlightcad/cad-viewer": "1.5.1",
     "@mlightcad/data-model": "1.7.40",
     "@nextcloud/initial-state": "^3.0.0",
     "@nextcloud/router": "^3.1.0",
@@ -31,7 +31,7 @@
     "element-plus": "2.14.0",
     "lodash-es": "4.18.1",
     "three": "0.184.0",
-    "vue": "3.5.34",
+    "vue": "3.5.35",
     "vue-i18n": "11.4.4",
     "vue-router": "^5.0.7"
   },
@@ -80,7 +80,7 @@
     "@mlightcad/ribbon": "0.1.9",
     "element-plus": "2.14.0",
     "three": "0.184.0",
-    "vue": "3.5.34",
+    "vue": "3.5.35",
     "vue-i18n": "11.4.4"
   }
 }
