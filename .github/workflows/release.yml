@@ -100,7 +100,7 @@ jobs:
         run: ls -lah build/artifacts/
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cad_viewer-${{ steps.set-tag.outputs.tag_name }}
           path: |
@@ -114,7 +114,7 @@ jobs:
           git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip HEAD
 
       - name: Upload source artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: source-${{ steps.set-tag.outputs.tag_name }}
           path: |
