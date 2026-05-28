@@ -83,3 +83,12 @@ jobs:
           files: |
             build/artifacts/cad_viewer.tar.gz
             build/artifacts/cad_viewer.zip
+
+      - name: Publish to Nextcloud App Store
+        if: ${{ secrets.NEXTCLOUD_TOKEN && secrets.NEXTCLOUD_KEY }}
+        run: |
+          sleep 60
+          echo "${{ secrets.NEXTCLOUD_KEY }}" > cad_viewer.key
+          export signature=`openssl dgst -sha512 -sign cad_viewer.key build/artifacts/cad_viewer.tar.gz | openssl base64`
+          export requestJSON="{\"download\":\"https://github.com/${{ github.repository }}/releases/download/${{ needs.release-please.outputs.tag_name }}/cad_viewer.tar.gz\", \"signature\": \"${signature//$'\n'/\\n}\"}"
+          curl -X POST https://apps.nextcloud.com/api/v1/apps/releases -H "Authorization: Token ${{ secrets.NEXTCLOUD_TOKEN }}" -H "Content-Type: application/json" -d "${requestJSON}"
