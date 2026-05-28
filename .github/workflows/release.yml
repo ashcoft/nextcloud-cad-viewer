@@ -2,8 +2,8 @@ name: release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       tag_name:
@@ -17,25 +17,11 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
-  release-please:
-    runs-on: ubuntu-latest
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-    steps:
-      - uses: googleapis/release-please-action@v4.1.3
-        id: release
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          config-file: .release-please-config.json
-          manifest-file: .release-please-manifest.json
-
   build:
     runs-on: ubuntu-latest
     outputs:
@@ -52,13 +38,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             TAG_NAME="${{ github.event.inputs.tag_name }}"
           else
-            # Wait for release-please to create the tag
-            sleep 10
-            # Get the latest tag
-            TAG_NAME=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-            if [[ -z "$TAG_NAME" ]]; then
-              TAG_NAME="${{ needs.release-please.outputs.tag_name }}"
-            fi
+            TAG_NAME="${GITHUB_REF##*/}"
           fi
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
 
@@ -86,8 +66,6 @@ jobs:
         with:
           php-version: 8.3
           coverage: none
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install pnpm dependencies
         env:
@@ -131,36 +109,21 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    needs: [release-please, build]
-    if: ${{ needs.release-please.outputs.release_created }}
+    needs: build
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: cad_viewer-${{ needs.release-please.outputs.tag_name }}
+          name: cad_viewer-${{ needs.build.outputs.tag_name }}
           path: build/artifacts/
 
-      - name: Attach assets to release
+      - name: Create Release
         uses: softprops/action-gh-release@v2.2.0
         with:
-          tag_name: ${{ needs.release-please.outputs.tag_name }}
+          tag_name: ${{ needs.build.outputs.tag_name }}
           generate_release_notes: true
           files: |
-            build/artifacts/cad_viewer-${{ needs.release-please.outputs.tag_name }}.tar.gz
-            build/artifacts/cad_viewer-${{ needs.release-please.outputs.tag_name }}.zip
+            build/artifacts/cad_viewer-${{ needs.build.outputs.tag_name }}.tar.gz
+            build/artifacts/cad_viewer-${{ needs.build.outputs.tag_name }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish to Nextcloud App Store
-        run: |
-          if [[ -n "$NEXTCLOUD_TOKEN" && -n "$NEXTCLOUD_KEY" ]]; then
-            sleep 60
-            echo "$NEXTCLOUD_KEY" > cad_viewer.key
-            export signature=`openssl dgst -sha512 -sign cad_viewer.key build/artifacts/cad_viewer-${{ needs.release-please.outputs.tag_name }}.tar.gz | openssl base64`
-            export requestJSON="{\"download\":\"https://github.com/${{ github.repository }}/releases/download/${{ needs.release-please.outputs.tag_name }}/cad_viewer-${{ needs.release-please.outputs.tag_name }}.tar.gz\", \"signature\": \"${signature//$'\n'/\\n}\"}"
-            curl -X POST https://apps.nextcloud.com/api/v1/apps/releases -H "Authorization: Token $NEXTCLOUD_TOKEN" -H "Content-Type: application/json" -d "${requestJSON}"
-          fi
-        env:
-          NEXTCLOUD_TOKEN: ${{ secrets.NEXTCLOUD_TOKEN }}
-          NEXTCLOUD_KEY: ${{ secrets.NEXTCLOUD_KEY }}
-        continue-on-error: true
