@@ -4,10 +4,24 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name for manual release (e.g., v0.0.2)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Create as prerelease'
+        required: false
+        default: 'false'
+        type: boolean
 
 permissions:
   contents: write
   pull-requests: write
+
+env:
+  NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
   release-please:
@@ -23,15 +37,23 @@ jobs:
           config-file: .release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  release:
+  build:
     runs-on: ubuntu-latest
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created }}
+    if: ${{ needs.release-please.outputs.release_created || github.event.inputs.tag_name }}
+    outputs:
+      tag_name: ${{ steps.set-tag.outputs.tag_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
+
+      - name: Set tag name
+        id: set-tag
+        run: |
+          TAG_NAME="${{ needs.release-please.outputs.tag_name || github.event.inputs.tag_name }}"
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
 
       - name: Read package.json node and npm engines version
         uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
@@ -39,7 +61,7 @@ jobs:
         continue-on-error: true
         with:
           fallbackNode: '^24'
-          fallbackNpm: '^11.3'
+          fallbackPnpm: '^10'
 
       - name: Setup pnpm
         if: ${{ steps.versions.outputs.nodeVersion }}
@@ -49,7 +71,7 @@ jobs:
         if: ${{ steps.versions.outputs.nodeVersion }}
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24'
+          node-version: ${{ steps.versions.outputs.nodeVersion }}
           cache: 'pnpm'
 
       - name: Set up php 8.3
@@ -61,42 +83,63 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install pnpm dependencies
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+          PUPPETEER_SKIP_DOWNLOAD: true
         run: pnpm install --frozen-lockfile
 
       - name: Install composer dependencies
-        run: composer install
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Build JavaScript
+        run: pnpm run build
 
       - name: Build projects
-        run: |
-          export NODE_OPTIONS="--max-old-space-size=4096"
-          make production-setup
+        run: make production-setup
 
       - name: Package Nextcloud app with makefile
         run: |
           make appstore
-          cd build/artifacts && for f in *.tar.gz *.zip; do [ -f "$f" ] && mv "$f" "${f%.tar.gz}-${GITHUB_REF##*/}.tar.gz" 2>/dev/null || mv "$f" "${f%.zip}-${GITHUB_REF##*/}.zip" 2>/dev/null; done
+          cd build/artifacts && for f in *.tar.gz *.zip; do [ -f "$f" ] && mv "$f" "${f%.tar.gz}-${needs.release-please.outputs.tag_name || github.event.inputs.tag_name}.tar.gz" 2>/dev/null || mv "$f" "${f%.zip}-${needs.release-please.outputs.tag_name || github.event.inputs.tag_name}.zip" 2>/dev/null; done
 
       - name: Verify app artifacts
         run: ls -lah build/artifacts/
 
-      - name: Set filename
-        id: vars
-        run: |
-          echo "zip_file_name=cad_viewer-${GITHUB_REF##*/}.zip" >> $GITHUB_OUTPUT
-          echo "tar_file_name=cad_viewer-${GITHUB_REF##*/}.tar.gz" >> $GITHUB_OUTPUT
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cad_viewer-${{ steps.set-tag.outputs.tag_name }}
+          path: |
+            build/artifacts/cad_viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz
+            build/artifacts/cad_viewer-${{ steps.set-tag.outputs.tag_name }}.zip
 
-      - name: Attach assets to release
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: cad_viewer-${{ needs.build.outputs.tag_name }}
+          path: build/artifacts/
+
+      - name: Create Release
         uses: softprops/action-gh-release@v2.2.0
         with:
+          tag_name: ${{ needs.build.outputs.tag_name }}
+          prerelease: ${{ github.event.inputs.prerelease || false }}
+          generate_release_notes: true
           files: |
-            build/artifacts/${{ steps.vars.outputs.tar_file_name }}
-            build/artifacts/${{ steps.vars.outputs.zip_file_name }}
+            build/artifacts/cad_viewer-${{ needs.build.outputs.tag_name }}.tar.gz
+            build/artifacts/cad_viewer-${{ needs.build.outputs.tag_name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to Nextcloud App Store
         if: ${{ secrets.NEXTCLOUD_TOKEN && secrets.NEXTCLOUD_KEY }}
         run: |
           sleep 60
           echo "${{ secrets.NEXTCLOUD_KEY }}" > cad_viewer.key
-          export signature=`openssl dgst -sha512 -sign cad_viewer.key build/artifacts/${{ steps.vars.outputs.tar_file_name }} | openssl base64`
-          export requestJSON="{\"download\":\"https://github.com/${{ github.repository }}/releases/download/${{ needs.release-please.outputs.tag_name }}/${{ steps.vars.outputs.tar_file_name }}\", \"signature\": \"${signature//$'\n'/\\n}\"}"
+          export signature=`openssl dgst -sha512 -sign cad_viewer.key build/artifacts/cad_viewer-${{ needs.build.outputs.tag_name }}.tar.gz | openssl base64`
+          export requestJSON="{\"download\":\"https://github.com/${{ github.repository }}/releases/download/${{ needs.build.outputs.tag_name }}/cad_viewer-${{ needs.build.outputs.tag_name }}.tar.gz\", \"signature\": \"${signature//$'\n'/\\n}\"}"
           curl -X POST https://apps.nextcloud.com/api/v1/apps/releases -H "Authorization: Token ${{ secrets.NEXTCLOUD_TOKEN }}" -H "Content-Type: application/json" -d "${requestJSON}"
