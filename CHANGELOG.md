@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.1.0...nextcloud-cad-viewer-v2.1.1) (2026-05-28)
+
+
+### Bug Fixes
+
+* ensure release job only runs for valid release conditions ([03de16f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/03de16f99c2f3d88cba04a9a9828d0854ef42105))
+
 ## [2.1.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/nextcloud-cad-viewer-v2.0.9...nextcloud-cad-viewer-v2.1.0) (2026-05-28)
 
 
