@@ -107,14 +107,34 @@ jobs:
             build/artifacts/cad_viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz
             build/artifacts/cad_viewer-${{ steps.set-tag.outputs.tag_name }}.zip
 
+      - name: Create source archives
+        run: |
+          cd ${{ github.workspace }}
+          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz HEAD
+          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip HEAD
+
+      - name: Upload source artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-${{ steps.set-tag.outputs.tag_name }}
+          path: |
+            build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz
+            build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip
+
   release:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Download artifacts
+      - name: Download app artifacts
         uses: actions/download-artifact@v4
         with:
           name: cad_viewer-${{ needs.build.outputs.tag_name }}
+          path: build/artifacts/
+
+      - name: Download source artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: source-${{ needs.build.outputs.tag_name }}
           path: build/artifacts/
 
       - name: Create Release
@@ -125,5 +145,7 @@ jobs:
           files: |
             build/artifacts/cad_viewer-${{ needs.build.outputs.tag_name }}.tar.gz
             build/artifacts/cad_viewer-${{ needs.build.outputs.tag_name }}.zip
+            build/artifacts/nextcloud-cad-viewer-${{ needs.build.outputs.tag_name }}.tar.gz
+            build/artifacts/nextcloud-cad-viewer-${{ needs.build.outputs.tag_name }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
