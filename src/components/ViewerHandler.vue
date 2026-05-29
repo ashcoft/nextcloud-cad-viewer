@@ -161,6 +161,7 @@ export default defineComponent({
 
 .cad-viewer-loading,
 .cad-viewer-error {
+  position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
