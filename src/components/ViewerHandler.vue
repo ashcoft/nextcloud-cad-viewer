@@ -27,6 +27,9 @@ function t(app: string, text: string): string {
   return nextcloudTranslate ? nextcloudTranslate(app, text) : text
 }
 
+// Browser animation frame function type
+const raf = globalThis.requestAnimationFrame.bind(globalThis)
+
 const appTranslation = (text: string) => t('cad_viewer', text)
 
 export default defineComponent({
@@ -74,7 +77,7 @@ export default defineComponent({
           if (container && container.isConnected) {
             resolve()
           } else {
-            requestAnimationFrame(checkContainer)
+            raf(checkContainer)
           }
         }
         checkContainer()
@@ -158,11 +161,7 @@ export default defineComponent({
 
 .cad-viewer-loading,
 .cad-viewer-error {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
