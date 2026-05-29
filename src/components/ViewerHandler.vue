@@ -21,14 +21,9 @@ import { generateUrl } from '@nextcloud/router'
 import { loadCADViewer, type ViewerInstance } from '../utils/cadLoader'
 
 // Global translation function from Nextcloud
-declare global {
-  interface GlobalThis {
-    t?: (app: string, text: string) => string
-  }
-}
-
-const t = (app: string, text: string) => {
-  const nextcloudTranslate = globalThis.t
+function t(app: string, text: string): string {
+  const nextcloudGlobal = globalThis as unknown as { t?: (app: string, text: string) => string }
+  const nextcloudTranslate = nextcloudGlobal.t
   return nextcloudTranslate ? nextcloudTranslate(app, text) : text
 }
 

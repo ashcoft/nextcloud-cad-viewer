@@ -20,29 +20,28 @@ const SUPPORTED_MIMES = [
 ]
 
 // Declare global types for Nextcloud Viewer
-declare global {
-  interface GlobalThis {
-    OCA?: {
-      Viewer?: {
-        registerHandler: (handler: {
-          id: string
-          group?: string
-          mimes: string[]
-          component: unknown
-          downloadCallback?: (fileInfo: unknown) => Promise<void>
-        }) => void
-      }
-    }
-  }
+interface NextcloudViewer {
+  registerHandler: (handler: {
+    id: string
+    group?: string
+    mimes: string[]
+    component: unknown
+    downloadCallback?: (fileInfo: unknown) => Promise<void>
+  }) => void
+}
+
+interface NextcloudOCA {
+  Viewer?: NextcloudViewer
 }
 
 function registerViewerHandler(): void {
-  if (globalThis.OCA?.Viewer === undefined) {
+  const nextcloudGlobal = globalThis as unknown as { OCA?: NextcloudOCA }
+  if (nextcloudGlobal.OCA?.Viewer === undefined) {
     console.warn('OCA.Viewer not available, CAD viewer handler not registered')
     return
   }
 
-  globalThis.OCA.Viewer.registerHandler({
+  nextcloudGlobal.OCA.Viewer.registerHandler({
     id: 'cad-viewer',
     group: 'cad',
     mimes: SUPPORTED_MIMES,
