@@ -13,7 +13,7 @@
 - Dark/light theme
 - Fullscreen mode
 - Responsive design]]></description>
-  <version>2.1.2</version>
+  <version>0.0.2</version>
   <licence>MIT</licence>
   <author mail="support@example.com">CAD Viewer Contributors</author>
   <namespace>CadViewer</namespace>
