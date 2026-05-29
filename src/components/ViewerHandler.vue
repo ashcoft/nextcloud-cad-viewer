@@ -60,7 +60,10 @@ export default defineComponent({
 
       // Build the URL to fetch file content via the Nextcloud WebDAV endpoint
       // The path is typically like /username/files/folder/file.dwg
-      const fileUrl = generateUrl('/remote.php/webdav{path}', { path: props.path })
+      // Encode each path segment individually to preserve '/' separators
+      const pathSegments = props.path.split('/').filter(Boolean)
+      const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
+      const fileUrl = generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
 
       retryUrl.value = fileUrl
 

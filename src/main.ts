@@ -49,6 +49,10 @@ function registerViewerHandler(): void {
   })
 }
 
+// Register the viewer handler at module load time (not in DOMContentLoaded)
+// The script is loaded via Util::addScript which ensures early loading
+registerViewerHandler()
+
 function registerFileAction(): void {
   if (typeof OC === 'undefined' || typeof OCA === 'undefined') {
     return
@@ -74,10 +78,7 @@ function registerFileAction(): void {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Register as a Nextcloud Viewer handler for DWG/DXF files
-  registerViewerHandler()
-
-  // Also register file action for sidebar menu
+  // Register file action for sidebar menu (needs DOM to be ready)
   registerFileAction()
 
   const mountEl =
