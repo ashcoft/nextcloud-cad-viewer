@@ -22,7 +22,6 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
-    "@mlightcad/cad-simple-viewer": "1.5.0",
     "@mlightcad/cad-viewer": "1.5.0",
     "@mlightcad/data-model": "1.7.40",
     "@nextcloud/initial-state": "^3.0.0",
