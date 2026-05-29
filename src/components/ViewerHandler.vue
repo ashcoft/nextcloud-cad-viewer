@@ -1,16 +1,17 @@
 <template>
   <div class="cad-viewer-handler">
-    <div v-if="loading" class="cad-viewer-loading">
-      <div class="spinner"></div>
-      <p>{{ appTranslation('Loading CAD Viewer...') }}</p>
+    <div ref="viewerContainer" class="cad-viewer-canvas">
+      <div v-if="loading" class="cad-viewer-loading">
+        <div class="spinner"></div>
+        <p>{{ appTranslation('Loading CAD Viewer...') }}</p>
+      </div>
+      <div v-else-if="error" class="cad-viewer-error">
+        <p>{{ error }}</p>
+        <button v-if="retryUrl" class="button primary" @click="retryLoad">
+          {{ appTranslation('Retry') }}
+        </button>
+      </div>
     </div>
-    <div v-else-if="error" class="cad-viewer-error">
-      <p>{{ error }}</p>
-      <button v-if="retryUrl" class="button primary" @click="retryLoad">
-        {{ appTranslation('Retry') }}
-      </button>
-    </div>
-    <div v-else ref="viewerContainer" class="cad-viewer-canvas"></div>
   </div>
 </template>
 
@@ -64,11 +65,22 @@ export default defineComponent({
 
       // Build the URL to fetch file content via the Nextcloud WebDAV endpoint
       // The path is typically like /username/files/folder/file.dwg
-      const encodedPath = encodeURIComponent(props.path)
       const fileUrl = generateUrl('/remote.php/webdav{path}', { path: props.path })
-        .replace('{path}', encodedPath)
 
       retryUrl.value = fileUrl
+
+      // Wait for container to be in the DOM
+      await new Promise<void>((resolve) => {
+        const checkContainer = () => {
+          const container = viewerContainer.value
+          if (container && container.isConnected) {
+            resolve()
+          } else {
+            requestAnimationFrame(checkContainer)
+          }
+        }
+        checkContainer()
+      })
 
       if (viewerContainer.value) {
         try {
@@ -81,6 +93,7 @@ export default defineComponent({
           error.value = appTranslation('Failed to load CAD viewer: ') + msg
         }
       }
+      loading.value = false
     }
 
     onMounted(async () => {
@@ -89,7 +102,6 @@ export default defineComponent({
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err)
         error.value = appTranslation('Failed to load CAD viewer: ') + msg
-      } finally {
         loading.value = false
       }
     })
@@ -139,8 +151,20 @@ export default defineComponent({
   background: #1e1e1e;
 }
 
+.cad-viewer-canvas {
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
 .cad-viewer-loading,
 .cad-viewer-error {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -148,6 +172,7 @@ export default defineComponent({
   padding: 2rem;
   color: #fff;
   gap: 1rem;
+  background: #1e1e1e;
 }
 
 .spinner {
@@ -167,11 +192,5 @@ export default defineComponent({
 
 .cad-viewer-error {
   color: #d93025;
-}
-
-.cad-viewer-canvas {
-  flex: 1;
-  width: 100%;
-  overflow: hidden;
 }
 </style>
