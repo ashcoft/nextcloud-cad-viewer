@@ -21,7 +21,7 @@ const SUPPORTED_MIMES = [
 
 // Declare global types for Nextcloud Viewer
 declare global {
-  interface Window {
+  interface GlobalThis {
     OCA?: {
       Viewer?: {
         registerHandler: (handler: {
@@ -37,12 +37,12 @@ declare global {
 }
 
 function registerViewerHandler(): void {
-  if (typeof window.OCA === 'undefined' || typeof window.OCA.Viewer === 'undefined') {
+  if (globalThis.OCA?.Viewer === undefined) {
     console.warn('OCA.Viewer not available, CAD viewer handler not registered')
     return
   }
 
-  window.OCA.Viewer.registerHandler({
+  globalThis.OCA.Viewer.registerHandler({
     id: 'cad-viewer',
     group: 'cad',
     mimes: SUPPORTED_MIMES,

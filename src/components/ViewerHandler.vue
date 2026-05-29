@@ -21,13 +21,13 @@ import { loadCADViewer, type ViewerInstance } from '../utils/cadLoader'
 
 // Global translation function from Nextcloud
 declare global {
-  interface Window {
-    t: (app: string, text: string) => string
+  interface GlobalThis {
+    t?: (app: string, text: string) => string
   }
 }
 
 const t = (app: string, text: string) => {
-  const nextcloudTranslate = (window as unknown as { t?: (app: string, text: string) => string }).t
+  const nextcloudTranslate = globalThis.t
   return nextcloudTranslate ? nextcloudTranslate(app, text) : text
 }
 
