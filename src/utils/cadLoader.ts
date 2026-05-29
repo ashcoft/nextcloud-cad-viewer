@@ -1,8 +1,6 @@
 import { createApp, type App } from 'vue'
 import ElementPlus from 'element-plus'
 import { i18n, MlCadViewer } from '@mlightcad/cad-viewer'
-import type { AcApSettings } from '@mlightcad/cad-simple-viewer'
-import { AcApSettingManager } from '@mlightcad/cad-simple-viewer'
 
 export interface CADViewerOptions {
   locale?: string
@@ -84,21 +82,6 @@ export async function loadCADViewer(
   }
 
   return instance
-}
-
-export function configureUI(settings: Partial<AcApSettings>): void {
-  const mgr = AcApSettingManager.instance
-  if (!mgr) {
-    return
-  }
-
-  const keys = Object.keys(settings) as Array<keyof AcApSettings>
-  for (const key of keys) {
-    const value = settings[key]
-    if (value !== undefined) {
-      mgr.set(key, value as AcApSettings[typeof key])
-    }
-  }
 }
 
 export function isSupportedCADFormat(mimeType: string): boolean {
