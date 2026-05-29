@@ -12,10 +12,10 @@
  */
 
 /*!
- * vue-router v5.0.7
- * (c) 2026 Eduardo San Martin Morote
- * @license MIT
- */
+* vue-router v5.1.0
+* (c) 2026 Eduardo San Martin Morote
+* @license MIT
+*/
 
 /*! Element Plus Icons Vue v2.3.2 */
 

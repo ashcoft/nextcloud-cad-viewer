@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import CadViewerApp from './App.vue'
 import router from './router'
+import CadViewerHandler from './components/ViewerHandler.vue'
 
 const app = createApp(CadViewerApp)
 app.use(router)
@@ -17,6 +18,37 @@ const SUPPORTED_MIMES = [
   'application/x-dxf',
   'image/x-dxf',
 ]
+
+// Declare global types for Nextcloud Viewer
+declare global {
+  interface Window {
+    OCA?: {
+      Viewer?: {
+        registerHandler: (handler: {
+          id: string
+          group?: string
+          mimes: string[]
+          component: unknown
+          downloadCallback?: (fileInfo: unknown) => Promise<void>
+        }) => void
+      }
+    }
+  }
+}
+
+function registerViewerHandler(): void {
+  if (typeof window.OCA === 'undefined' || typeof window.OCA.Viewer === 'undefined') {
+    console.warn('OCA.Viewer not available, CAD viewer handler not registered')
+    return
+  }
+
+  window.OCA.Viewer.registerHandler({
+    id: 'cad-viewer',
+    group: 'cad',
+    mimes: SUPPORTED_MIMES,
+    component: CadViewerHandler,
+  })
+}
 
 function registerFileAction(): void {
   if (typeof OC === 'undefined' || typeof OCA === 'undefined') {
@@ -43,6 +75,10 @@ function registerFileAction(): void {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Register as a Nextcloud Viewer handler for DWG/DXF files
+  registerViewerHandler()
+
+  // Also register file action for sidebar menu
   registerFileAction()
 
   const mountEl =
