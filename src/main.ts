@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import CadViewerApp from './App.vue'
 import router from './router'
+import CadViewerHandler from './components/ViewerHandler.vue'
 
 const app = createApp(CadViewerApp)
 app.use(router)
@@ -17,6 +18,40 @@ const SUPPORTED_MIMES = [
   'application/x-dxf',
   'image/x-dxf',
 ]
+
+// Declare global types for Nextcloud Viewer
+interface NextcloudViewer {
+  registerHandler: (handler: {
+    id: string
+    group?: string
+    mimes: string[]
+    component: unknown
+    downloadCallback?: (fileInfo: unknown) => Promise<void>
+  }) => void
+}
+
+interface NextcloudOCA {
+  Viewer?: NextcloudViewer
+}
+
+function registerViewerHandler(): void {
+  const nextcloudGlobal = globalThis as unknown as { OCA?: NextcloudOCA }
+  if (nextcloudGlobal.OCA?.Viewer === undefined) {
+    console.warn('OCA.Viewer not available, CAD viewer handler not registered')
+    return
+  }
+
+  nextcloudGlobal.OCA.Viewer.registerHandler({
+    id: 'cad-viewer',
+    group: 'cad',
+    mimes: SUPPORTED_MIMES,
+    component: CadViewerHandler,
+  })
+}
+
+// Register the viewer handler at module load time (not in DOMContentLoaded)
+// The script is loaded via Util::addScript which ensures early loading
+registerViewerHandler()
 
 function registerFileAction(): void {
   if (typeof OC === 'undefined' || typeof OCA === 'undefined') {
@@ -43,6 +78,7 @@ function registerFileAction(): void {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Register file action for sidebar menu (needs DOM to be ready)
   registerFileAction()
 
   const mountEl =
