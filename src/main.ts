@@ -37,23 +37,30 @@ interface NextcloudOCA {
 // Register the viewer handler when DOM is ready to ensure OCA.Viewer is available
 function registerViewerHandler(): void {
   const nextcloudGlobal = globalThis as unknown as { OCA?: NextcloudOCA }
-  if (nextcloudGlobal.OCA?.Viewer === undefined) {
-    console.warn('OCA.Viewer not available, CAD viewer handler not registered')
-    return
+  
+  // Try to register immediately first in case OCA.Viewer is already available
+  if (nextcloudGlobal.OCA?.Viewer) {
+    nextcloudGlobal.OCA.Viewer.registerHandler({
+      id: 'cad-viewer',
+      group: 'cad',
+      mimes: SUPPORTED_MIMES,
+      component: CadViewerHandler,
+    })
+    console.log('CAD viewer handler registered successfully')
+  } else {
+    console.warn('OCA.Viewer not available yet, will retry on DOMContentLoaded')
   }
-
-  nextcloudGlobal.OCA.Viewer.registerHandler({
-    id: 'cad-viewer',
-    group: 'cad',
-    mimes: SUPPORTED_MIMES,
-    component: CadViewerHandler,
-  })
 }
 
-// Use DOMContentLoaded to ensure OCA.Viewer is available
-document.addEventListener('DOMContentLoaded', () => {
+// Register immediately if possible, otherwise wait for DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    registerViewerHandler()
+  })
+} else {
+  // DOM already loaded, try immediately
   registerViewerHandler()
-})
+}
 
 function registerFileAction(): void {
   if (typeof OC === 'undefined' || typeof OCA === 'undefined') {

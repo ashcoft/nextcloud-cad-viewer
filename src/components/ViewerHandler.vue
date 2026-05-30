@@ -32,6 +32,16 @@ const raf = globalThis.requestAnimationFrame.bind(globalThis)
 
 const appTranslation = (text: string) => t('cad_viewer', text)
 
+// Define props interface for Nextcloud Viewer
+interface ViewerProps {
+  path?: string
+  fileid?: number | string
+  mime?: string
+  filename?: string
+  source?: string
+  davPath?: string
+}
+
 export default defineComponent({
   name: 'CadViewerHandler',
   props: {
@@ -41,7 +51,27 @@ export default defineComponent({
       required: false,
       default: '',
     },
+    fileid: {
+      type: [Number, String],
+      required: false,
+      default: null,
+    },
     mime: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    filename: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    source: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    davPath: {
       type: String,
       required: false,
       default: '',
@@ -55,20 +85,43 @@ export default defineComponent({
     const retryUrl = ref<string | null>(null)
 
     async function initViewer(): Promise<void> {
-      if (!props.path) {
+      // Determine the file URL to use
+      let fileUrl: string | null = null
+      
+      // Priority 1: Use fileid with the app's API endpoint
+      const fileId = props.fileid
+      if (fileId) {
+        fileUrl = generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileId) })
+        retryUrl.value = fileUrl
+      }
+      
+      // Priority 2: Fallback to source if provided
+      if (!fileUrl && props.source) {
+        fileUrl = props.source
+        retryUrl.value = fileUrl
+      }
+      
+      // Priority 3: Fallback to davPath with WebDAV
+      if (!fileUrl && props.davPath) {
+        const pathSegments = props.davPath.split('/').filter(Boolean)
+        const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
+        fileUrl = generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
+        retryUrl.value = fileUrl
+      }
+      
+      // Priority 4: Fallback to path with WebDAV
+      if (!fileUrl && props.path) {
+        const pathSegments = props.path.split('/').filter(Boolean)
+        const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
+        fileUrl = generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
+        retryUrl.value = fileUrl
+      }
+
+      if (!fileUrl) {
         error.value = appTranslation('No file selected. Please open a DWG or DXF file from Nextcloud.')
         loading.value = false
         return
       }
-
-      // Build the URL to fetch file content via the Nextcloud WebDAV endpoint
-      // The path is typically like /username/files/folder/file.dwg
-      // Encode each path segment individually to preserve '/' separators
-      const pathSegments = props.path.split('/').filter(Boolean)
-      const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
-      const fileUrl = generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
-
-      retryUrl.value = fileUrl
 
       // Wait for container to be in the DOM
       await new Promise<void>((resolve) => {
@@ -85,6 +138,8 @@ export default defineComponent({
 
       if (viewerContainer.value) {
         try {
+          // Load the CAD viewer with the file URL
+          // The axios request will include session cookies automatically
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
             url: fileUrl,
             theme: 'dark',
