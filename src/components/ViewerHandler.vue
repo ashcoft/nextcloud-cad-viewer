@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { loadCADViewer, type ViewerInstance } from '../utils/cadLoader'
 
@@ -84,6 +84,39 @@ export default defineComponent({
     const viewerInstance = ref<ViewerInstance | null>(null)
     const retryUrl = ref<string | null>(null)
 
+    // Compute the actual file path to use
+    const filePath = computed(() => {
+      // First try prop.path
+      if (props.path) return props.path
+      // Then try fileInfo.path
+      if (props.fileInfo?.path) return props.fileInfo.path
+      // Build from directory and filename if available
+      if (props.fileInfo?.directory && props.fileInfo?.name) {
+        return props.fileInfo.directory + '/' + props.fileInfo.name
+      }
+      // Finally try filename directly
+      if (props.fileInfo?.filename) return props.fileInfo.filename
+      if (props.fileInfo?.name) return props.fileInfo.name
+      return ''
+    })
+
+    // Compute the file URL for the CAD viewer
+    const fileUrl = computed(() => {
+      const path = filePath.value
+      if (!path) return ''
+
+      // Use the backend API to get file content
+      const fileId = props.fileInfo?.id
+      if (fileId) {
+        return generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileId) })
+      }
+
+      // Fallback to WebDAV if no file ID
+      const pathSegments = path.split('/').filter(Boolean)
+      const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
+      return generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
+    })
+
     async function initViewer(): Promise<void> {
       // Determine the file URL to use
       let fileUrl: string | null = null
@@ -141,7 +174,7 @@ export default defineComponent({
           // Load the CAD viewer with the file URL
           // The axios request will include session cookies automatically
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
-            url: fileUrl,
+            url: url,
             theme: 'dark',
           })
         } catch (err) {

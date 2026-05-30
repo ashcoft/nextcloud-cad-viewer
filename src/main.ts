@@ -3,6 +3,13 @@ import CadViewerApp from './App.vue'
 import router from './router'
 import CadViewerHandler from './components/ViewerHandler.vue'
 
+// Global translation function from Nextcloud - must be declared before use
+const t = (app: string, text: string): string => {
+  const nextcloudGlobal = globalThis as unknown as { t?: (app: string, text: string) => string }
+  const nextcloudTranslate = nextcloudGlobal.t
+  return nextcloudTranslate ? nextcloudTranslate(app, text) : text
+}
+
 const app = createApp(CadViewerApp)
 app.use(router)
 
@@ -26,41 +33,105 @@ interface NextcloudViewer {
     group?: string
     mimes: string[]
     component: unknown
+    fileInfo?: {
+      id: number | string
+      path?: string
+      mime?: string
+      filename?: string
+    }
     downloadCallback?: (fileInfo: unknown) => Promise<void>
   }) => void
 }
 
 interface NextcloudOCA {
   Viewer?: NextcloudViewer
+  Files?: {
+    registerFileAction: (action: {
+      name: string
+      displayName: string
+      mime: string
+      permissions: number
+      icon: () => string
+      actionHandler: (fileName: string, context: { fileInfo?: { id: number | string; path?: string } }) => void
+    }) => void
+  }
 }
 
-// Register the viewer handler when DOM is ready to ensure OCA.Viewer is available
+// Track if we've already registered to avoid duplicate registrations
+let isRegistered = false
+
+// Register the CAD viewer handler with Nextcloud Viewer
 function registerViewerHandler(): void {
+  if (isRegistered) return
+  
   const nextcloudGlobal = globalThis as unknown as { OCA?: NextcloudOCA }
   
-  // Try to register immediately first in case OCA.Viewer is already available
-  if (nextcloudGlobal.OCA?.Viewer) {
+  if (nextcloudGlobal.OCA?.Viewer !== undefined) {
     nextcloudGlobal.OCA.Viewer.registerHandler({
       id: 'cad-viewer',
       group: 'cad',
       mimes: SUPPORTED_MIMES,
       component: CadViewerHandler,
     })
-    console.log('CAD viewer handler registered successfully')
-  } else {
-    console.warn('OCA.Viewer not available yet, will retry on DOMContentLoaded')
+    isRegistered = true
+    console.log('CAD Viewer handler registered successfully')
+    return true
   }
+  return false
 }
 
-// Register immediately if possible, otherwise wait for DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    registerViewerHandler()
-  })
-} else {
-  // DOM already loaded, try immediately
-  registerViewerHandler()
+// Set up polling to ensure registration happens when OCA.Viewer becomes available
+function setupViewerPolling(): void {
+  // If already registered, nothing to do
+  if (registerViewerHandler()) return
+  
+  // Poll every 100ms for up to 10 seconds
+  let pollCount = 0
+  const maxPolls = 100
+  
+  const pollInterval = setInterval(() => {
+    if (registerViewerHandler()) {
+      clearInterval(pollInterval)
+      return
+    }
+    
+    pollCount++
+    if (pollCount >= maxPolls) {
+      clearInterval(pollInterval)
+      console.warn('OCA.Viewer not available after 10 seconds, CAD viewer handler not registered')
+    }
+  }, 100)
 }
+
+// Also use MutationObserver to detect when OCA.Viewer becomes available
+function setupViewerObserver(): void {
+  if (isRegistered) return
+  
+  const nextcloudGlobal = globalThis as unknown as { OCA?: NextcloudOCA }
+  
+  // Try immediately first
+  if (registerViewerHandler()) return
+  
+  // Set up MutationObserver to watch for OCA object changes
+  if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver(() => {
+      if (registerViewerHandler()) {
+        observer.disconnect()
+      }
+    })
+    
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    })
+  }
+  
+  // Also set up polling as backup
+  setupViewerPolling()
+}
+
+// Initialize viewer registration immediately when script loads
+setupViewerObserver()
 
 function registerFileAction(): void {
   if (typeof OC === 'undefined' || typeof OCA === 'undefined') {
@@ -89,6 +160,9 @@ function registerFileAction(): void {
 document.addEventListener('DOMContentLoaded', () => {
   // Register file action for sidebar menu (needs DOM to be ready)
   registerFileAction()
+
+  // Try registration again at DOMContentLoaded in case it wasn't available earlier
+  registerViewerHandler()
 
   const mountEl =
     document.getElementById('cad-viewer-app') ??
