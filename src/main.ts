@@ -34,6 +34,7 @@ interface NextcloudOCA {
   Viewer?: NextcloudViewer
 }
 
+// Register the viewer handler when DOM is ready to ensure OCA.Viewer is available
 function registerViewerHandler(): void {
   const nextcloudGlobal = globalThis as unknown as { OCA?: NextcloudOCA }
   if (nextcloudGlobal.OCA?.Viewer === undefined) {
@@ -49,9 +50,10 @@ function registerViewerHandler(): void {
   })
 }
 
-// Register the viewer handler at module load time (not in DOMContentLoaded)
-// The script is loaded via Util::addScript which ensures early loading
-registerViewerHandler()
+// Use DOMContentLoaded to ensure OCA.Viewer is available
+document.addEventListener('DOMContentLoaded', () => {
+  registerViewerHandler()
+})
 
 function registerFileAction(): void {
   if (typeof OC === 'undefined' || typeof OCA === 'undefined') {
