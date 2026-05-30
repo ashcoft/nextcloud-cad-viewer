@@ -1,5 +1,5 @@
 ---
-"nextcloud-cad-viewer": minor
+"nextcloud-cad-viewer": patch
 ---
 
-Add new feature for CAD file viewing
+Initial release with DWG/DXF viewing capabilities
