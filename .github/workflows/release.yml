@@ -187,8 +187,6 @@ jobs:
           files: |
             build/artifacts/cad_viewer-${{ needs.build.outputs.tag_name }}.tar.gz
             build/artifacts/cad_viewer-${{ needs.build.outputs.tag_name }}.zip
-            build/artifacts/nextcloud-cad-viewer-${{ needs.build.outputs.tag_name }}.tar.gz
-            build/artifacts/nextcloud-cad-viewer-${{ needs.build.outputs.tag_name }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -330,8 +328,6 @@ jobs:
           files: |
             build/artifacts/cad_viewer-${{ needs.manual-release.outputs.tag_name }}.tar.gz
             build/artifacts/cad_viewer-${{ needs.manual-release.outputs.tag_name }}.zip
-            build/artifacts/nextcloud-cad-viewer-${{ needs.manual-release.outputs.tag_name }}.tar.gz
-            build/artifacts/nextcloud-cad-viewer-${{ needs.manual-release.outputs.tag_name }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
