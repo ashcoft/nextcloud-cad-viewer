@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { loadCADViewer, type ViewerInstance } from '../utils/cadLoader'
 
@@ -46,6 +46,19 @@ export default defineComponent({
       required: false,
       default: '',
     },
+    // Nextcloud viewer also passes fileInfo object
+    fileInfo: {
+      type: Object as () => {
+        id?: number | string
+        path?: string
+        mime?: string
+        filename?: string
+        directory?: string
+        name?: string
+      } | undefined,
+      required: false,
+      default: undefined,
+    },
   },
   setup(props) {
     const loading = ref<boolean>(true)
@@ -54,21 +67,50 @@ export default defineComponent({
     const viewerInstance = ref<ViewerInstance | null>(null)
     const retryUrl = ref<string | null>(null)
 
+    // Compute the actual file path to use
+    const filePath = computed(() => {
+      // First try prop.path
+      if (props.path) return props.path
+      // Then try fileInfo.path
+      if (props.fileInfo?.path) return props.fileInfo.path
+      // Build from directory and filename if available
+      if (props.fileInfo?.directory && props.fileInfo?.name) {
+        return props.fileInfo.directory + '/' + props.fileInfo.name
+      }
+      // Finally try filename directly
+      if (props.fileInfo?.filename) return props.fileInfo.filename
+      if (props.fileInfo?.name) return props.fileInfo.name
+      return ''
+    })
+
+    // Compute the file URL for the CAD viewer
+    const fileUrl = computed(() => {
+      const path = filePath.value
+      if (!path) return ''
+
+      // Use the backend API to get file content
+      const fileId = props.fileInfo?.id
+      if (fileId) {
+        return generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileId) })
+      }
+
+      // Fallback to WebDAV if no file ID
+      const pathSegments = path.split('/').filter(Boolean)
+      const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
+      return generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
+    })
+
     async function initViewer(): Promise<void> {
-      if (!props.path) {
+      const path = filePath.value
+      const url = fileUrl.value
+
+      if (!url) {
         error.value = appTranslation('No file selected. Please open a DWG or DXF file from Nextcloud.')
         loading.value = false
         return
       }
 
-      // Build the URL to fetch file content via the Nextcloud WebDAV endpoint
-      // The path is typically like /username/files/folder/file.dwg
-      // Encode each path segment individually to preserve '/' separators
-      const pathSegments = props.path.split('/').filter(Boolean)
-      const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
-      const fileUrl = generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
-
-      retryUrl.value = fileUrl
+      retryUrl.value = url
 
       // Wait for container to be in the DOM
       await new Promise<void>((resolve) => {
@@ -86,7 +128,7 @@ export default defineComponent({
       if (viewerContainer.value) {
         try {
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
-            url: fileUrl,
+            url: url,
             theme: 'dark',
           })
         } catch (err) {
