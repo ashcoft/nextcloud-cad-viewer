@@ -1,4 +1,7 @@
-name: Artifact
+name: Build Nextcloud App
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
   workflow_dispatch:
@@ -7,30 +10,37 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
-  artifact:
+  build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
-      - name: Read package.json node and npm engines version
+      - name: Read package.json node and pnpm engines version
         uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
         id: versions
-        continue-on-error: true
         with:
           fallbackNode: '^24'
-          fallbackNpm: '^11.3'
+          fallbackPnpm: '^10'
 
       - name: Setup pnpm
+        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         if: ${{ steps.versions.outputs.nodeVersion }}
-        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
 
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
-        if: ${{ steps.versions.outputs.nodeVersion }}
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        if: ${{ steps.versions.outputs.nodeVersion }}
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
           cache: 'pnpm'
@@ -44,29 +54,29 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install pnpm dependencies
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+          PUPPETEER_SKIP_DOWNLOAD: true
         run: pnpm install --frozen-lockfile
 
       - name: Install composer dependencies
         run: composer install --no-dev --optimize-autoloader
 
       - name: Build JavaScript
-        run: |
-          export NODE_OPTIONS="--max-old-space-size=4096"
-          pnpm run build
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
+        run: pnpm run build
 
-      - name: Build Artifact
+      - name: Build Nextcloud App
         run: |
-          cd ${{ github.workspace }}
-          cwd=$(pwd)
           git submodule update --init --recursive
           make production-setup
           make appstore
-          cd $cwd
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: cad_viewer
+          name: cad_viewer-${{ github.sha }}
           path: |
             build/artifacts/cad_viewer.tar.gz
             build/artifacts/cad_viewer.zip

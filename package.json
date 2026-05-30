@@ -1,6 +1,6 @@
 {
   "name": "nextcloud-cad-viewer",
-  "version": "2.0.7",
+  "version": "0.0.4",
   "description": "Nextcloud app for DWG/DXF viewer integration",
   "packageManager": "pnpm@10.30.3",
   "license": "MIT",
@@ -12,6 +12,7 @@
     "pnpm": ">=10"
   },
   "scripts": {
+    "changeset": "changeset",
     "build": "webpack --mode production",
     "dev": "webpack --mode development --watch",
     "lint": "eslint src/",
@@ -21,19 +22,18 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
-    "@mlightcad/cad-simple-viewer": "1.5.0",
-    "@mlightcad/cad-viewer": "1.5.0",
-    "@mlightcad/data-model": "1.7.40",
+    "@mlightcad/cad-viewer": "1.5.1",
+    "@mlightcad/data-model": "1.8.0",
     "@nextcloud/initial-state": "^3.0.0",
     "@nextcloud/router": "^3.1.0",
     "@vueuse/core": "14.3.0",
     "axios": "^1.16.1",
-    "element-plus": "2.14.0",
+    "element-plus": "2.14.1",
     "lodash-es": "4.18.1",
     "three": "0.184.0",
-    "vue": "3.5.34",
+    "vue": "3.5.35",
     "vue-i18n": "11.4.4",
-    "vue-router": "^5.0.7"
+    "vue-router": "^5.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
@@ -44,14 +44,15 @@
     "@playwright/test": "^1.60.0",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^24.12.4",
-    "@vue/compiler-sfc": "^3.5.0",
+    "@vue/compiler-sfc": "^3.5.35",
     "@vue/test-utils": "^2.4.0",
     "@vue/vue3-jest": "^29.2.0",
+    "@changesets/cli": "^2.29.2",
     "ajv": "^8.17.1",
     "babel-jest": "^30.4.1",
     "babel-loader": "^10.1.0",
     "css-loader": "^7.1.0",
-    "eslint": "^10.4.0",
+    "eslint": "^10.4.1",
     "eslint-plugin-vue": "^10.9.1",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
@@ -70,17 +71,17 @@
     "vue-loader": "^17.4.0",
     "vue-tsc": "^3.3.2",
     "webpack": "^5.107.2",
-    "webpack-cli": "^7.0.0"
+    "webpack-cli": "^7.0.3"
   },
   "overrides": {
-    "@mlightcad/data-model": "1.7.40",
+    "@mlightcad/data-model": "1.8.0",
     "@mlightcad/libredwg-converter": "3.5.38",
     "@mlightcad/mtext-input-box": "0.2.11",
     "@mlightcad/mtext-renderer": "0.10.14",
     "@mlightcad/ribbon": "0.1.9",
-    "element-plus": "2.14.0",
+    "element-plus": "2.14.1",
     "three": "0.184.0",
-    "vue": "3.5.34",
+    "vue": "3.5.35",
     "vue-i18n": "11.4.4"
   }
 }

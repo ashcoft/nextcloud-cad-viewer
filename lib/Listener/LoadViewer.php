@@ -29,6 +29,7 @@ class LoadViewer implements IEventListener
         }
 
         // Inject the CAD viewer scripts and styles
+        // Using addScript to ensure the handler registers before the viewer loads
         Util::addScript(Application::APP_ID, 'cad-viewer');
         Util::addStyle(Application::APP_ID, 'cad-viewer');
     }
