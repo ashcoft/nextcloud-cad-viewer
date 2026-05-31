@@ -5,18 +5,15 @@ declare(strict_types=1);
 namespace OCA\CadViewer\AppInfo;
 
 use OCA\CadViewer\Listener\LoadViewer;
-use OCA\CadViewer\Listener\RegisterMimeTypes;
-use OCA\CadViewer\Listener\RegisterMimeTypeAliases;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
-use OCP\Util;
 
 class Application extends App implements IBootstrap
 {
     public const APP_ID = 'cad_viewer';
-    private const CANONICAL_DWG_MIME = 'application/dwg';
+    public const CANONICAL_DWG_MIME = 'application/dwg';
 
     public const MIME_TYPES = [
         'application/acad' => 'dwg',
@@ -50,20 +47,6 @@ class Application extends App implements IBootstrap
         $context->registerEventListener(
             \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
             LoadViewer::class
-        );
-
-        // Register MIME types for DWG and DXF files
-        $context->registerEventListener(
-            \OCP\Files\Event\RegisterAdditionalMimeTypeEvent::class,
-            RegisterMimeTypes::class,
-            ['mimeTypes' => self::MIME_TYPES]
-        );
-
-        // Register MIME type aliases
-        $context->registerEventListener(
-            \OCP\Files\Event\RegisterAdditionalMimeTypeEvent::class,
-            RegisterMimeTypeAliases::class,
-            ['aliases' => self::MIME_TYPE_ALIASES]
         );
     }
 

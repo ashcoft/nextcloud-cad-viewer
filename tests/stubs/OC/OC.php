@@ -31,7 +31,7 @@ namespace OCP {
 namespace OCP\AppFramework\Bootstrap {
     interface IRegistrationContext
     {
-        public function registerEventListener(string $eventClass, string $listenerClass, array $options = []): void;
+        public function registerEventListener(string $eventClass, string $listenerClass): void;
     }
 
     interface IBootContext
