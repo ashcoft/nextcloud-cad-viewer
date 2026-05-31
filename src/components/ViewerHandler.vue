@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, onBeforeUnmount, computed, type PropType } from 'vue'
+import { defineComponent, ref, onMounted, onBeforeUnmount, type PropType } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { loadCADViewer, type ViewerInstance } from '../utils/cadLoader'
 
@@ -86,22 +86,6 @@ export default defineComponent({
     const viewerContainer = ref<HTMLElement | null>(null)
     const viewerInstance = ref<ViewerInstance | null>(null)
     const retryUrl = ref<string | null>(null)
-
-    // Compute the actual file path to use
-    const filePath = computed(() => {
-      // First try prop.path
-      if (props.path) return props.path
-      // Then try fileInfo.path
-      if (props.fileInfo?.path) return props.fileInfo.path
-      // Build from directory and filename if available
-      if (props.fileInfo?.directory && props.fileInfo?.name) {
-        return props.fileInfo.directory + '/' + props.fileInfo.name
-      }
-      // Finally try filename directly
-      if (props.fileInfo?.filename) return props.fileInfo.filename
-      if (props.fileInfo?.name) return props.fileInfo.name
-      return ''
-    })
 
     async function initViewer(): Promise<void> {
       // Determine the file URL to use

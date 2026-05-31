@@ -12,6 +12,7 @@ namespace OCA\CadViewer\Tests\Unit;
 require_once __DIR__ . '/../stubs/OC/OC.php';
 
 use OCA\CadViewer\AppInfo\Application;
+use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\IConfig;
 use OCP\IServerContainerExtended;
@@ -43,24 +44,12 @@ class ApplicationTest extends TestCase
         $app = new Application();
         $mockContext = $this->createMock(IRegistrationContext::class);
 
-        // Expect LoadViewer listener registration
-        $mockContext->expects($this->exactly(3))
+        // Expect only LoadViewer listener registration
+        $mockContext->expects($this->once())
             ->method('registerEventListener')
-            ->withConsecutive(
-                [
-                    \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
-                    \OCA\CadViewer\Listener\LoadViewer::class
-                ],
-                [
-                    \OCP\Files\Event\RegisterAdditionalMimeTypeEvent::class,
-                    \OCA\CadViewer\Listener\RegisterMimeTypes::class,
-                    ['mimeTypes' => Application::MIME_TYPES]
-                ],
-                [
-                    \OCP\Files\Event\RegisterAdditionalMimeTypeEvent::class,
-                    \OCA\CadViewer\Listener\RegisterMimeTypeAliases::class,
-                    ['aliases' => Application::MIME_TYPE_ALIASES]
-                ]
+            ->with(
+                \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
+                \OCA\CadViewer\Listener\LoadViewer::class
             );
 
         $app->register($mockContext);
@@ -69,7 +58,7 @@ class ApplicationTest extends TestCase
     public function testBoot(): void
     {
         $app = new Application();
-        $mockContext = $this->createMock(\OCP\AppFramework\Bootstrap\IBootContext::class);
+        $mockContext = $this->createMock(IBootContext::class);
 
         // boot method should do nothing but not throw
         $app->boot($mockContext);
