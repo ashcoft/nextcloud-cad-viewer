@@ -67,10 +67,8 @@ jobs:
   build:
     name: Build Release
     runs-on: ubuntu-latest
-    needs: changeset-version
     outputs:
       tag_name: ${{ steps.set-tag.outputs.tag_name }}
-      artifact_tag: ${{ steps.set-tag.outputs.artifact_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -80,20 +78,10 @@ jobs:
       - name: Read tag from version
         id: set-tag
         run: |
-          # Get the latest tag matching the package name pattern
-          git fetch --tags
-          TAG=$(git describe --tags --abbrev=0 2>/dev/null | grep -oP 'nextcloud-cad-viewer-v\K[0-9.]+' || echo "")
-          if [ -z "$TAG" ]; then
-            # Fallback: use package.json version
-            TAG=$(node -p "require('./package.json').version")
-          fi
-          # For GitHub Release tag
-          TAG_NAME="nextcloud-cad-viewer-v${TAG}"
-          # For artifact filenames (simpler)
-          ARTIFACT_TAG="cad_viewer-v${TAG}"
+          VERSION=$(node -p "require('./package.json').version")
+          TAG_NAME="v${VERSION}"
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "artifact_tag=$ARTIFACT_TAG" >> $GITHUB_OUTPUT
-          echo "version=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Read package.json node and npm engines version
         uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
@@ -126,11 +114,6 @@ jobs:
           PUPPETEER_SKIP_DOWNLOAD: true
         run: pnpm install --frozen-lockfile
 
-      - name: Update info.xml version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          sed -i "s/<version>.*<\/version>/<version>$VERSION<\/version>/" appinfo/info.xml
-
       - name: Install composer dependencies
         run: composer install --no-dev --optimize-autoloader
 
@@ -147,9 +130,9 @@ jobs:
           for f in *.tar.gz *.zip; do
             if [ -f "$f" ]; then
               if [[ "$f" == *.tar.gz ]]; then
-                mv "$f" "cad_viewer-${{ steps.set-tag.outputs.artifact_tag }}.tar.gz"
+                mv "$f" "cad_viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz"
               else
-                mv "$f" "cad_viewer-${{ steps.set-tag.outputs.artifact_tag }}.zip"
+                mv "$f" "cad_viewer-${{ steps.set-tag.outputs.tag_name }}.zip"
               fi
             fi
           done
@@ -160,24 +143,24 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:
-          name: cad_viewer-${{ steps.set-tag.outputs.artifact_tag }}
+          name: cad_viewer-${{ steps.set-tag.outputs.tag_name }}
           path: |
-            build/artifacts/cad_viewer-${{ steps.set-tag.outputs.artifact_tag }}.tar.gz
-            build/artifacts/cad_viewer-${{ steps.set-tag.outputs.artifact_tag }}.zip
+            build/artifacts/cad_viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz
+            build/artifacts/cad_viewer-${{ steps.set-tag.outputs.tag_name }}.zip
 
       - name: Create source archives
         run: |
           cd ${{ github.workspace }}
-          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.artifact_tag }}.tar.gz HEAD
-          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.artifact_tag }}.zip HEAD
+          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz HEAD
+          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip HEAD
 
       - name: Upload source artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: source-${{ steps.set-tag.outputs.artifact_tag }}
+          name: source-${{ steps.set-tag.outputs.tag_name }}
           path: |
-            build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.artifact_tag }}.tar.gz
-            build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.artifact_tag }}.zip
+            build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz
+            build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip
 
   release:
     name: Publish Release
@@ -187,13 +170,13 @@ jobs:
       - name: Download app artifacts
         uses: actions/download-artifact@v8
         with:
-          name: cad_viewer-${{ needs.build.outputs.artifact_tag }}
+          name: cad_viewer-${{ needs.build.outputs.tag_name }}
           path: build/artifacts/
 
       - name: Download source artifacts
         uses: actions/download-artifact@v8
         with:
-          name: source-${{ needs.build.outputs.artifact_tag }}
+          name: source-${{ needs.build.outputs.tag_name }}
           path: build/artifacts/
 
       - name: Create Release
@@ -202,32 +185,10 @@ jobs:
           tag_name: ${{ needs.build.outputs.tag_name }}
           generate_release_notes: true
           files: |
-            build/artifacts/cad_viewer-${{ needs.build.outputs.artifact_tag }}.tar.gz
-            build/artifacts/cad_viewer-${{ needs.build.outputs.artifact_tag }}.zip
+            build/artifacts/cad_viewer-${{ needs.build.outputs.tag_name }}.tar.gz
+            build/artifacts/cad_viewer-${{ needs.build.outputs.tag_name }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Delete automatic source code archives
-        if: github.event_name != 'workflow_dispatch'
-        run: |
-          # Get the release ID
-          RELEASE_ID=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.build.outputs.tag_name }}" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
-          # Get assets for this release
-          cat << 'PYEOF' > /tmp/delete_assets.py
-          import sys,json
-          import urllib.request
-          assets = json.load(sys.stdin)
-          for asset in assets:
-              if asset['name'] in ['Source code.tar.gz', 'Source code.zip']:
-                  print(f"Deleting {asset['name']} (ID: {asset['id']})")
-                  req = urllib.request.Request(
-                      f"https://api.github.com/repos/${{ github.repository }}/releases/assets/{asset['id']}",
-                      method='DELETE',
-                      headers={'Authorization': 'token ${{ secrets.GITHUB_TOKEN }}'}
-                  )
-                  urllib.request.urlopen(req)
-          PYEOF
-          curl -s "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" | python3 /tmp/delete_assets.py
 
   manual-release:
     name: Manual Release
@@ -235,7 +196,6 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     outputs:
       tag_name: ${{ steps.set-tag.outputs.tag_name }}
-      artifact_tag: ${{ steps.set-tag.outputs.artifact_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -246,14 +206,11 @@ jobs:
         id: set-tag
         run: |
           if [[ -n "${{ github.event.inputs.version }}" ]]; then
-            TAG_NAME="nextcloud-cad-viewer-v${{ github.event.inputs.version }}"
-            ARTIFACT_TAG="cad_viewer-v${{ github.event.inputs.version }}"
+            TAG_NAME="v${{ github.event.inputs.version }}"
           else
             TAG_NAME="${GITHUB_REF##*/}"
-            ARTIFACT_TAG="cad_viewer-$(echo "$TAG_NAME" | sed 's/nextcloud-cad-viewer-//')"
           fi
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "artifact_tag=$ARTIFACT_TAG" >> $GITHUB_OUTPUT
 
       - name: Read package.json node and npm engines version
         uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
@@ -311,9 +268,9 @@ jobs:
           for f in *.tar.gz *.zip; do
             if [ -f "$f" ]; then
               if [[ "$f" == *.tar.gz ]]; then
-                mv "$f" "cad_viewer-${{ steps.set-tag.outputs.artifact_tag }}.tar.gz"
+                mv "$f" "cad_viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz"
               else
-                mv "$f" "cad_viewer-${{ steps.set-tag.outputs.artifact_tag }}.zip"
+                mv "$f" "cad_viewer-${{ steps.set-tag.outputs.tag_name }}.zip"
               fi
             fi
           done
@@ -326,24 +283,24 @@ jobs:
         if: ${{ github.event.inputs.skip_build != 'true' }}
         uses: actions/upload-artifact@v7
         with:
-          name: cad_viewer-${{ steps.set-tag.outputs.artifact_tag }}
+          name: cad_viewer-${{ steps.set-tag.outputs.tag_name }}
           path: |
-            build/artifacts/cad_viewer-${{ steps.set-tag.outputs.artifact_tag }}.tar.gz
-            build/artifacts/cad_viewer-${{ steps.set-tag.outputs.artifact_tag }}.zip
+            build/artifacts/cad_viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz
+            build/artifacts/cad_viewer-${{ steps.set-tag.outputs.tag_name }}.zip
 
       - name: Create source archives
         run: |
           cd ${{ github.workspace }}
-          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.artifact_tag }}.tar.gz HEAD
-          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.artifact_tag }}.zip HEAD
+          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz HEAD
+          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip HEAD
 
       - name: Upload source artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: source-${{ steps.set-tag.outputs.artifact_tag }}
+          name: source-${{ steps.set-tag.outputs.tag_name }}
           path: |
-            build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.artifact_tag }}.tar.gz
-            build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.artifact_tag }}.zip
+            build/artifacts/cad-viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz
+            build/artifacts/cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip
 
   manual-release-publish:
     name: Publish Manual Release
@@ -354,13 +311,13 @@ jobs:
       - name: Download app artifacts
         uses: actions/download-artifact@v8
         with:
-          name: cad_viewer-${{ needs.manual-release.outputs.artifact_tag }}
+          name: cad_viewer-${{ needs.manual-release.outputs.tag_name }}
           path: build/artifacts/
 
       - name: Download source artifacts
         uses: actions/download-artifact@v8
         with:
-          name: source-${{ needs.manual-release.outputs.artifact_tag }}
+          name: source-${{ needs.manual-release.outputs.tag_name }}
           path: build/artifacts/
 
       - name: Create Release
@@ -369,29 +326,7 @@ jobs:
           tag_name: ${{ needs.manual-release.outputs.tag_name }}
           generate_release_notes: true
           files: |
-            build/artifacts/cad_viewer-${{ needs.manual-release.outputs.artifact_tag }}.tar.gz
-            build/artifacts/cad_viewer-${{ needs.manual-release.outputs.artifact_tag }}.zip
+            build/artifacts/cad_viewer-${{ needs.manual-release.outputs.tag_name }}.tar.gz
+            build/artifacts/cad_viewer-${{ needs.manual-release.outputs.tag_name }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Delete automatic source code archives
-        run: |
-          # Get the release ID
-          RELEASE_ID=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.manual-release.outputs.tag_name }}" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
-          # Get assets for this release
-          cat << 'PYEOF' > /tmp/delete_assets.py
-          import sys,json
-          import urllib.request
-          assets = json.load(sys.stdin)
-          for asset in assets:
-              if asset['name'] in ['Source code.tar.gz', 'Source code.zip']:
-                  print(f"Deleting {asset['name']} (ID: {asset['id']})")
-                  req = urllib.request.Request(
-                      f"https://api.github.com/repos/${{ github.repository }}/releases/assets/{asset['id']}",
-                      method='DELETE',
-                      headers={'Authorization': 'token ${{ secrets.GITHUB_TOKEN }}'}
-                  )
-                  urllib.request.urlopen(req)
-          PYEOF
-          curl -s "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" | python3 /tmp/delete_assets.py
-
