@@ -9,12 +9,11 @@ use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
-use OCP\Util;
 
 class Application extends App implements IBootstrap
 {
     public const APP_ID = 'cad_viewer';
-    private const CANONICAL_DWG_MIME = 'application/dwg';
+    public const CANONICAL_DWG_MIME = 'application/dwg';
 
     public const MIME_TYPES = [
         'application/acad' => 'dwg',

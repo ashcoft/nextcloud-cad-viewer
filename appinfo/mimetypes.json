@@ -11,6 +11,10 @@
         "application/x-dxf",
         "image/x-dxf"
     ],
+    "aliases": {
+        "dwg": "application/dwg",
+        "dxf": "image/vnd.dxf"
+    },
     "mimetypealiases": {
         "application/acad": "application/dwg",
         "application/autocad_dwg": "application/dwg",

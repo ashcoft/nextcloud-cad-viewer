@@ -91,8 +91,12 @@ export default defineComponent({
       // Determine the file URL to use
       let fileUrl: string | null = null
       
-      // Priority 1: Use fileid with the app's API endpoint
-      const fileId = props.fileid
+      // Priority 1: Use fileid prop with the app's API endpoint
+      let fileId = props.fileid
+      // Priority 1b: Fallback to fileInfo.id (how Nextcloud Viewer API passes it)
+      if (!fileId && props.fileInfo?.id) {
+        fileId = props.fileInfo.id
+      }
       if (fileId) {
         fileUrl = generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileId) })
         retryUrl.value = fileUrl
