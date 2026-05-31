@@ -174,7 +174,7 @@ export default defineComponent({
           // Load the CAD viewer with the file URL
           // The axios request will include session cookies automatically
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
-            url: url,
+            url: fileUrl,
             theme: 'dark',
           })
         } catch (err) {
