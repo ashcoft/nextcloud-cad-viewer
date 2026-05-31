@@ -16,9 +16,18 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { defineComponent, ref, onMounted, onBeforeUnmount, computed, type PropType } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { loadCADViewer, type ViewerInstance } from '../utils/cadLoader'
+
+// Define file info type
+interface FileInfoType {
+  id?: number | string
+  path?: string
+  directory?: string
+  name?: string
+  filename?: string
+}
 
 // Global translation function from Nextcloud
 function t(app: string, text: string): string {
@@ -32,27 +41,9 @@ const raf = globalThis.requestAnimationFrame.bind(globalThis)
 
 const appTranslation = (text: string) => t('cad_viewer', text)
 
-// Define props interface for Nextcloud Viewer
-interface ViewerProps {
-  path?: string
-  fileid?: number | string
-  mime?: string
-  filename?: string
-  source?: string
-  davPath?: string
-  fileInfo?: {
-    id?: number | string
-    path?: string
-    directory?: string
-    name?: string
-    filename?: string
-  }
-}
-
 export default defineComponent({
   name: 'CadViewerHandler',
   props: {
-    // These props are passed by the Nextcloud Viewer
     path: {
       type: String,
       required: false,
@@ -69,7 +60,7 @@ export default defineComponent({
       default: '',
     },
     filename: {
-      type: Object,
+      type: Object as PropType<FileInfoType | null>,
       required: false,
       default: null,
     },
@@ -84,12 +75,12 @@ export default defineComponent({
       default: '',
     },
     fileInfo: {
-      type: Object,
+      type: Object as PropType<FileInfoType | null>,
       required: false,
       default: null,
     },
   },
-  setup(props) {
+  setup(props: { path?: string; fileid?: number | string; mime?: string; filename?: FileInfoType | null; source?: string; davPath?: string; fileInfo?: FileInfoType | null }) {
     const loading = ref<boolean>(true)
     const error = ref<string | null>(null)
     const viewerContainer = ref<HTMLElement | null>(null)
