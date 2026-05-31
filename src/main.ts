@@ -106,12 +106,10 @@ function setupViewerPolling(): void {
 // Also use MutationObserver to detect when OCA.Viewer becomes available
 function setupViewerObserver(): void {
   if (isRegistered) return
-  
-  const nextcloudGlobal = globalThis as unknown as { OCA?: NextcloudOCA }
-  
+
   // Try immediately first
   if (registerViewerHandler()) return
-  
+
   // Set up MutationObserver to watch for OCA object changes
   if (typeof MutationObserver !== 'undefined') {
     const observer = new MutationObserver(() => {

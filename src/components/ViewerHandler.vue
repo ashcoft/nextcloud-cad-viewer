@@ -103,23 +103,6 @@ export default defineComponent({
       return ''
     })
 
-    // Compute the file URL for the CAD viewer
-    const fileUrl = computed(() => {
-      const path = filePath.value
-      if (!path) return ''
-
-      // Use the backend API to get file content
-      const fileId = props.fileInfo?.id
-      if (fileId) {
-        return generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileId) })
-      }
-
-      // Fallback to WebDAV if no file ID
-      const pathSegments = path.split('/').filter(Boolean)
-      const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
-      return generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
-    })
-
     async function initViewer(): Promise<void> {
       // Determine the file URL to use
       let fileUrl: string | null = null
