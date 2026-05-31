@@ -202,6 +202,10 @@ jobs:
             echo "ERROR: App TAR.GZ artifact not found!"
             exit 1
           fi
+          if ! ls build/artifacts/cad_viewer-${{ needs.create-release.outputs.tag_name }}.zip 1> /dev/null 2>&1; then
+            echo "ERROR: App ZIP artifact not found!"
+            exit 1
+          fi
           echo "All artifacts validated successfully"
 
       - name: Create Release
@@ -353,6 +357,10 @@ jobs:
         run: |
           if ! ls build/artifacts/cad_viewer-${{ needs.manual-release.outputs.tag_name }}.tar.gz 1> /dev/null 2>&1; then
             echo "ERROR: App TAR.GZ artifact not found!"
+            exit 1
+          fi
+          if ! ls build/artifacts/cad_viewer-${{ needs.manual-release.outputs.tag_name }}.zip 1> /dev/null 2>&1; then
+            echo "ERROR: App ZIP artifact not found!"
             exit 1
           fi
           echo "All artifacts validated successfully"
