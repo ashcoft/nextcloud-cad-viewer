@@ -67,6 +67,7 @@ jobs:
   build:
     name: Build Release
     runs-on: ubuntu-latest
+    needs: changeset-version
     outputs:
       tag_name: ${{ steps.set-tag.outputs.tag_name }}
     steps:
