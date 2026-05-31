@@ -75,6 +75,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Update version files
+        if: ${{ github.event.inputs.version }}
+        run: |
+          # Update package.json and package-lock.json using pnpm
+          pnpm version ${{ github.event.inputs.version }} --no-git-tag-version --no-commit-hooks
+          
+          # Update info.xml
+          sed -i "s|<version>.*</version>|<version>${{ github.event.inputs.version }}</version>|" appinfo/info.xml
+
       - name: Install pnpm dependencies
         env:
           CYPRESS_INSTALL_BINARY: 0
@@ -95,16 +104,27 @@ jobs:
           make production-setup
           make appstore
 
+      - name: Rename artifacts with version tag
+        run: |
+          cd build/artifacts
+          if [ -f "cad_viewer.tar.gz" ]; then
+            mv cad_viewer.tar.gz "cad_viewer-${{ steps.get-version.outputs.tag_name }}.tar.gz"
+          fi
+          if [ -f "cad_viewer.zip" ]; then
+            mv cad_viewer.zip "cad_viewer-${{ steps.get-version.outputs.tag_name }}.zip"
+          fi
+          ls -la
+
       - name: Upload Artifact TAR.GZ
         uses: actions/upload-artifact@v4
         with:
           name: cad_viewer-app-tar-${{ steps.get-version.outputs.tag_name }}
-          path: build/artifacts/cad_viewer.tar.gz
+          path: build/artifacts/cad_viewer-${{ steps.get-version.outputs.tag_name }}.tar.gz
           retention-days: 90
 
       - name: Upload Artifact ZIP
         uses: actions/upload-artifact@v4
         with:
           name: cad_viewer-app-zip-${{ steps.get-version.outputs.tag_name }}
-          path: build/artifacts/cad_viewer.zip
+          path: build/artifacts/cad_viewer-${{ steps.get-version.outputs.tag_name }}.zip
           retention-days: 90
