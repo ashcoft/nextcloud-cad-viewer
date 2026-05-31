@@ -57,8 +57,13 @@ interface NextcloudOCA {
   }
 }
 
-// Retry registration with exponential backoff to ensure OCA.Viewer is available
-function registerViewerHandlerWithRetry(maxRetries = 5, baseDelay = 100): void {
+// Track if we've already registered to avoid duplicate registrations
+let isRegistered = false
+
+// Register the CAD viewer handler with Nextcloud Viewer
+function registerViewerHandler(): void {
+  if (isRegistered) return
+  
   const nextcloudGlobal = globalThis as unknown as { OCA?: NextcloudOCA }
   
   if (nextcloudGlobal.OCA?.Viewer !== undefined) {
@@ -68,74 +73,65 @@ function registerViewerHandlerWithRetry(maxRetries = 5, baseDelay = 100): void {
       mimes: SUPPORTED_MIMES,
       component: CadViewerHandler,
     })
+    isRegistered = true
     console.log('CAD Viewer handler registered successfully')
-    return
+    return true
   }
+  return false
+}
 
-  let retries = 0
-  const tryRegister = () => {
-    if (nextcloudGlobal.OCA?.Viewer !== undefined) {
-      nextcloudGlobal.OCA.Viewer.registerHandler({
-        id: 'cad-viewer',
-        group: 'cad',
-        mimes: SUPPORTED_MIMES,
-        component: CadViewerHandler,
-      })
-      console.log('CAD Viewer handler registered successfully')
-      return true
+// Set up polling to ensure registration happens when OCA.Viewer becomes available
+function setupViewerPolling(): void {
+  // If already registered, nothing to do
+  if (registerViewerHandler()) return
+  
+  // Poll every 100ms for up to 10 seconds
+  let pollCount = 0
+  const maxPolls = 100
+  
+  const pollInterval = setInterval(() => {
+    if (registerViewerHandler()) {
+      clearInterval(pollInterval)
+      return
     }
-    return false
-  }
-
-  const attemptRegistration = () => {
-    if (tryRegister()) return
     
-    retries++
-    if (retries <= maxRetries) {
-      const delay = baseDelay * Math.pow(2, retries - 1)
-      setTimeout(attemptRegistration, delay)
-    } else {
-      console.warn('OCA.Viewer not available after max retries, CAD viewer handler not registered')
+    pollCount++
+    if (pollCount >= maxPolls) {
+      clearInterval(pollInterval)
+      console.warn('OCA.Viewer not available after 10 seconds, CAD viewer handler not registered')
     }
-  }
-
-  attemptRegistration()
+  }, 100)
 }
 
 // Also use MutationObserver to detect when OCA.Viewer becomes available
 function setupViewerObserver(): void {
+  if (isRegistered) return
+  
   const nextcloudGlobal = globalThis as unknown as { OCA?: NextcloudOCA }
   
-  if (nextcloudGlobal.OCA?.Viewer !== undefined) {
-    registerViewerHandlerWithRetry()
-    return
+  // Try immediately first
+  if (registerViewerHandler()) return
+  
+  // Set up MutationObserver to watch for OCA object changes
+  if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver(() => {
+      if (registerViewerHandler()) {
+        observer.disconnect()
+      }
+    })
+    
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    })
   }
-
-  // Poll for OCA.Viewer availability
-  let pollCount = 0
-  const pollInterval = setInterval(() => {
-    if (nextcloudGlobal.OCA?.Viewer !== undefined) {
-      clearInterval(pollInterval)
-      registerViewerHandlerWithRetry()
-    } else if (pollCount > 50) { // Stop after ~5 seconds
-      clearInterval(pollInterval)
-      console.warn('OCA.Viewer not available, CAD viewer handler not registered')
-    }
-    pollCount++
-  }, 100)
+  
+  // Also set up polling as backup
+  setupViewerPolling()
 }
 
-// Initialize viewer registration when DOM is ready
-function initViewerRegistration(): void {
-  setupViewerObserver()
-}
-
-// Use DOMContentLoaded as a fallback trigger
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initViewerRegistration)
-} else {
-  initViewerRegistration()
-}
+// Initialize viewer registration immediately when script loads
+setupViewerObserver()
 
 function registerFileAction(): void {
   if (typeof OC === 'undefined' || typeof OCA === 'undefined') {
@@ -164,6 +160,9 @@ function registerFileAction(): void {
 document.addEventListener('DOMContentLoaded', () => {
   // Register file action for sidebar menu (needs DOM to be ready)
   registerFileAction()
+
+  // Try registration again at DOMContentLoaded in case it wasn't available earlier
+  registerViewerHandler()
 
   const mountEl =
     document.getElementById('cad-viewer-app') ??
