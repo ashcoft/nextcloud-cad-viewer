@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.0.8
+
+### Bug Fixes
+
+- fix: resolve TypeScript errors for fileInfo and filename props
+- fix: add artifact_tag output to build job in release workflow
+- fix: resolve GitHub Actions workflow failures
+
+### Maintenance
+
+- chore: refactor release workflow
+- chore(deps): update dependencies to latest versions
+
+### Internal Changes
+
+- Update from task cd3b05a6-9c17-4b60-ad43-bc85c80ef44b (multiple PRs #292-295)
+
 ## 0.0.7
 
 ### Patch Changes
