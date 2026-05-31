@@ -100,7 +100,9 @@ class FileController extends Controller
                     $extension = strtolower(pathinfo($file->getName(), PATHINFO_EXTENSION));
                     if (isset(self::EXTENSION_MIME_MAP[$extension])) {
                         // File has a CAD extension, allow it even with generic MIME type
-                        // The actual MIME type will be used for Content-Type header
+                        // Resolve the MIME type based on file extension
+                        $expectedMimes = self::EXTENSION_MIME_MAP[$extension];
+                        $mimeType = $expectedMimes[0];
                     } else {
                         throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
                     }
