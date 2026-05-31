@@ -39,6 +39,14 @@ class FileController extends Controller
         'application/dxf',
         'application/x-dxf',
         'image/x-dxf',
+        // Fallback for systems that don't detect CAD MIME types properly
+        'application/octet-stream',
+    ];
+
+    /** @var array<string, string[]> Map of file extensions to their expected MIME types */
+    private const EXTENSION_MIME_MAP = [
+        'dwg' => ['application/dwg', 'application/acad', 'application/autocad_dwg', 'application/x-autocad', 'application/x-dwg', 'image/vnd.dwg'],
+        'dxf' => ['application/dxf', 'image/vnd.dxf', 'application/x-dxf', 'image/x-dxf'],
     ];
 
     private const ERROR_UNSUPPORTED_FILE_TYPE = 'Unsupported file type';
@@ -84,8 +92,21 @@ class FileController extends Controller
             }
 
             $mimeType = $file->getMimeType();
+            
+            // Check if MIME type is supported, with extension-based fallback for octet-stream
             if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
-                throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
+                // If MIME type is octet-stream or unknown, check file extension as fallback
+                if ($mimeType === 'application/octet-stream' || !self::isKnownCadMimeType($mimeType)) {
+                    $extension = strtolower(pathinfo($file->getName(), PATHINFO_EXTENSION));
+                    if (isset(self::EXTENSION_MIME_MAP[$extension])) {
+                        // File has a CAD extension, allow it even with generic MIME type
+                        // The actual MIME type will be used for Content-Type header
+                    } else {
+                        throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
+                    }
+                } else {
+                    throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
+                }
             }
 
             return new DataResponse([
@@ -135,8 +156,23 @@ class FileController extends Controller
             }
 
             $mimeType = $file->getMimeType();
+            
+            // Check if MIME type is supported, with extension-based fallback for octet-stream
             if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
-                throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
+                // If MIME type is octet-stream or unknown, check file extension as fallback
+                if ($mimeType === 'application/octet-stream' || !self::isKnownCadMimeType($mimeType)) {
+                    $extension = strtolower(pathinfo($file->getName(), PATHINFO_EXTENSION));
+                    if (isset(self::EXTENSION_MIME_MAP[$extension])) {
+                        // File has a CAD extension, allow it even with generic MIME type
+                        // Use the expected MIME type based on extension for Content-Type
+                        $expectedMimes = self::EXTENSION_MIME_MAP[$extension];
+                        $mimeType = $expectedMimes[0];
+                    } else {
+                        throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
+                    }
+                } else {
+                    throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
+                }
             }
 
             $stream = $file->fopen('r');
@@ -188,8 +224,23 @@ class FileController extends Controller
             }
 
             $mimeType = $file->getMimeType();
+            
+            // Check if MIME type is supported, with extension-based fallback for octet-stream
             if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
-                throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
+                // If MIME type is octet-stream or unknown, check file extension as fallback
+                if ($mimeType === 'application/octet-stream' || !self::isKnownCadMimeType($mimeType)) {
+                    $extension = strtolower(pathinfo($file->getName(), PATHINFO_EXTENSION));
+                    if (isset(self::EXTENSION_MIME_MAP[$extension])) {
+                        // File has a CAD extension, allow it even with generic MIME type
+                        // Use the expected MIME type based on extension for Content-Type
+                        $expectedMimes = self::EXTENSION_MIME_MAP[$extension];
+                        $mimeType = $expectedMimes[0];
+                    } else {
+                        throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
+                    }
+                } else {
+                    throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
+                }
             }
 
             $stream = $file->fopen('r');
@@ -209,5 +260,17 @@ class FileController extends Controller
         } catch (\Exception $e) {
             return new DataResponse(['error' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    /**
+     * Check if a MIME type is a known CAD MIME type (not octet-stream)
+     */
+    private static function isKnownCadMimeType(string $mimeType): bool
+    {
+        return $mimeType !== 'application/octet-stream' && 
+               (strpos($mimeType, 'dwg') !== false || 
+                strpos($mimeType, 'dxf') !== false ||
+                strpos($mimeType, 'acad') !== false ||
+                strpos($mimeType, 'autocad') !== false);
     }
 }

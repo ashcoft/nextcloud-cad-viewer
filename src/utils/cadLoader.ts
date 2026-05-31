@@ -85,7 +85,7 @@ export async function loadCADViewer(
 }
 
 export function isSupportedCADFormat(mimeType: string): boolean {
-  return [
+  const supportedMimeTypes = [
     'application/acad',
     'application/autocad_dwg',
     'application/dwg',
@@ -96,7 +96,16 @@ export function isSupportedCADFormat(mimeType: string): boolean {
     'application/dxf',
     'application/x-dxf',
     'image/x-dxf',
-  ].includes(mimeType)
+    // Fallback for systems that don't detect CAD MIME types properly
+    'application/octet-stream',
+  ]
+  
+  // Direct MIME type match
+  if (supportedMimeTypes.includes(mimeType)) {
+    return true
+  }
+  
+  return false
 }
 
 export function getFileExtension(filename: string): string {

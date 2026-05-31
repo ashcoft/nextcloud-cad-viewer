@@ -24,6 +24,8 @@ const SUPPORTED_MIMES = [
   'application/dxf',
   'application/x-dxf',
   'image/x-dxf',
+  // Fallback for systems that don't detect CAD MIME types properly
+  'application/octet-stream',
 ]
 
 // Declare global types for Nextcloud Viewer

@@ -9,7 +9,8 @@
         "image/vnd.dxf",
         "application/dxf",
         "application/x-dxf",
-        "image/x-dxf"
+        "image/x-dxf",
+        "application/octet-stream"
     ],
     "mimetypealiases": {
         "application/acad": "application/dwg",
