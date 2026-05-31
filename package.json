@@ -11,6 +11,11 @@
     "npm": "^10 || ^11",
     "pnpm": ">=10"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "unrs-resolver"
+    ]
+  },
   "scripts": {
     "changeset": "changeset",
     "build": "webpack --mode production",
