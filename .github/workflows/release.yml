@@ -240,7 +240,7 @@ jobs:
         id: set-tag
         run: |
           if [[ -n "${{ github.event.inputs.version }}" ]]; then
-            TAG_NAME="nextcloud-cad-viewer-v${{ github.event.inputs.version }}"
+            TAG_NAME="v${{ github.event.inputs.version }}"
           else
             # Extract version from tag name (e.g., refs/tags/nextcloud-cad-viewer-v1.0.0 -> 1.0.0)
             TAG_NAME="${GITHUB_REF##*/}"
