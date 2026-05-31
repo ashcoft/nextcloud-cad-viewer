@@ -15,11 +15,12 @@ use OCP\Util;
 class Application extends App implements IBootstrap
 {
     public const APP_ID = 'cad_viewer';
+    private const CANONICAL_DWG_MIME = 'application/dwg';
 
     private const MIME_TYPES = [
         'application/acad' => 'dwg',
         'application/autocad_dwg' => 'dwg',
-        'application/dwg' => 'dwg',
+        self::CANONICAL_DWG_MIME => 'dwg',
         'application/x-autocad' => 'dwg',
         'application/x-dwg' => 'dwg',
         'image/vnd.dwg' => 'dwg',
@@ -30,11 +31,11 @@ class Application extends App implements IBootstrap
     ];
 
     private const MIME_TYPE_ALIASES = [
-        'application/acad' => 'application/dwg',
-        'application/autocad_dwg' => 'application/dwg',
-        'application/x-autocad' => 'application/dwg',
-        'application/x-dwg' => 'application/dwg',
-        'image/vnd.dwg' => 'application/dwg',
+        'application/acad' => self::CANONICAL_DWG_MIME,
+        'application/autocad_dwg' => self::CANONICAL_DWG_MIME,
+        'application/x-autocad' => self::CANONICAL_DWG_MIME,
+        'application/x-dwg' => self::CANONICAL_DWG_MIME,
+        'image/vnd.dwg' => self::CANONICAL_DWG_MIME,
     ];
 
     public function __construct()
