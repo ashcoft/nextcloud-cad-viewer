@@ -67,7 +67,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Build and create release artifacts
+  # Build and create release artifacts (for automatic release on push)
   create-release:
     name: Create Release
     runs-on: ubuntu-latest
@@ -180,27 +180,29 @@ jobs:
             git push origin "${{ steps.get-version.outputs.tag_name }}"
           fi
 
-  # Publish to GitHub Releases
+  # Publish to GitHub Releases (for automatic release on push)
   publish-release:
     name: Publish Release
     runs-on: ubuntu-latest
     needs: create-release
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - name: Download app tar artifact
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: cad_viewer-app-tar-${{ needs.create-release.outputs.tag_name }}
           path: build/artifacts/
-
-      - name: Download app zip artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: cad_viewer-app-zip-${{ needs.create-release.outputs.tag_name }}
-          path: build/artifacts/
+          merge-multiple: true
 
       - name: List downloaded artifacts
         run: ls -lah build/artifacts/
+
+      - name: Validate artifacts exist
+        run: |
+          if ! ls build/artifacts/cad_viewer-${{ needs.create-release.outputs.tag_name }}.tar.gz 1> /dev/null 2>&1; then
+            echo "ERROR: App TAR.GZ artifact not found!"
+            exit 1
+          fi
+          echo "All artifacts validated successfully"
 
       - name: Create Release
         uses: softprops/action-gh-release@v3.0.0
@@ -211,6 +213,8 @@ jobs:
           files: |
             build/artifacts/*.tar.gz
             build/artifacts/*.zip
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -221,6 +225,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     outputs:
       tag_name: ${{ steps.set-tag.outputs.tag_name }}
+      version: ${{ steps.set-tag.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -232,12 +237,13 @@ jobs:
         run: |
           if [[ -n "${{ github.event.inputs.version }}" ]]; then
             TAG_NAME="v${{ github.event.inputs.version }}"
+            VERSION="${{ github.event.inputs.version }}"
           else
             VERSION=$(node -p "require('./package.json').version")
             TAG_NAME="v${VERSION}"
           fi
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "version=${TAG_NAME#v}" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
@@ -329,23 +335,27 @@ jobs:
           path: build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip
           retention-days: 90
 
+  # Publish Manual Release
   manual-release-publish:
     name: Publish Manual Release
     runs-on: ubuntu-latest
     needs: manual-release
     if: github.event_name == 'workflow_dispatch'
     steps:
-      - name: Download app tar artifact
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: cad_viewer-app-tar-${{ needs.manual-release.outputs.tag_name }}
           path: build/artifacts/
+          merge-multiple: true
 
-      - name: Download app zip artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: cad_viewer-app-zip-${{ needs.manual-release.outputs.tag_name }}
-          path: build/artifacts/
+      - name: Validate artifacts exist
+        if: ${{ github.event.inputs.skip_build != 'true' }}
+        run: |
+          if ! ls build/artifacts/cad_viewer-${{ needs.manual-release.outputs.tag_name }}.tar.gz 1> /dev/null 2>&1; then
+            echo "ERROR: App TAR.GZ artifact not found!"
+            exit 1
+          fi
+          echo "All artifacts validated successfully"
 
       - name: Create Release
         uses: softprops/action-gh-release@v3.0.0
@@ -356,6 +366,8 @@ jobs:
           files: |
             build/artifacts/*.tar.gz
             build/artifacts/*.zip
+          draft: false
+          prerelease: false
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

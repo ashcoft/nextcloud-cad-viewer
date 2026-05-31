@@ -5,6 +5,11 @@ env:
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version for build (optional)'
+        required: false
+        type: string
   push:
     branches: [main]
   pull_request:
@@ -20,12 +25,23 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    outputs:
+      tag_name: ${{ steps.get-version.outputs.tag_name || 'pr-build' }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
+
+      - name: Get version
+        id: get-version
+        run: |
+          if [[ -n "${{ github.event.inputs.version }}" ]]; then
+            TAG_NAME="v${{ github.event.inputs.version }}"
+          else
+            TAG_NAME="${{ github.ref_name }}-${{ github.sha }}"
+          fi
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
 
       - name: Read package.json node and pnpm engines version
         uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
@@ -73,11 +89,16 @@ jobs:
           make production-setup
           make appstore
 
-      - name: Upload Artifact
+      - name: Upload Artifact TAR.GZ
         uses: actions/upload-artifact@v4
         with:
-          name: cad_viewer-${{ github.sha }}
-          path: |
-            build/artifacts/cad_viewer.tar.gz
-            build/artifacts/cad_viewer.zip
+          name: cad_viewer-app-tar-${{ steps.get-version.outputs.tag_name }}
+          path: build/artifacts/cad_viewer.tar.gz
+          retention-days: 90
+
+      - name: Upload Artifact ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: cad_viewer-app-zip-${{ steps.get-version.outputs.tag_name }}
+          path: build/artifacts/cad_viewer.zip
           retention-days: 90
