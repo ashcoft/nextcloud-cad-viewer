@@ -43,11 +43,24 @@ class ApplicationTest extends TestCase
         $app = new Application();
         $mockContext = $this->createMock(IRegistrationContext::class);
 
-        $mockContext->expects($this->once())
+        // Expect LoadViewer listener registration
+        $mockContext->expects($this->exactly(3))
             ->method('registerEventListener')
-            ->with(
-                \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
-                \OCA\CadViewer\Listener\LoadViewer::class
+            ->withConsecutive(
+                [
+                    \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
+                    \OCA\CadViewer\Listener\LoadViewer::class
+                ],
+                [
+                    \OCP\Files\Event\RegisterAdditionalMimeTypeEvent::class,
+                    \OCA\CadViewer\Listener\RegisterMimeTypes::class,
+                    ['mimeTypes' => Application::MIME_TYPES]
+                ],
+                [
+                    \OCP\Files\Event\RegisterAdditionalMimeTypeEvent::class,
+                    \OCA\CadViewer\Listener\RegisterMimeTypeAliases::class,
+                    ['aliases' => Application::MIME_TYPE_ALIASES]
+                ]
             );
 
         $app->register($mockContext);

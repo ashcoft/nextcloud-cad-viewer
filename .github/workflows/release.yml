@@ -190,27 +190,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Delete automatic source code archives
-        if: github.event_name != 'workflow_dispatch'
-        run: |
-          # Get the release ID
-          RELEASE_ID=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.build.outputs.tag_name }}" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
-          # Get assets for this release
-          curl -s "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" | python3 -c "
-import sys,json
-assets = json.load(sys.stdin)
-for asset in assets:
-    if asset['name'] in ['Source code.tar.gz', 'Source code.zip']:
-        print(f\"Deleting {asset['name']} (ID: {asset['id']})\")
-        import urllib.request
-        req = urllib.request.Request(
-            f\"https://api.github.com/repos/${{ github.repository }}/releases/assets/{asset['id']}\",
-            method='DELETE',
-            headers={'Authorization': 'token ${{ secrets.GITHUB_TOKEN }}'}
-        )
-        urllib.request.urlopen(req)
-"
-
   manual-release:
     name: Manual Release
     runs-on: ubuntu-latest
@@ -320,8 +299,8 @@ for asset in assets:
         with:
           name: source-${{ steps.set-tag.outputs.tag_name }}
           path: |
-            build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz
-            build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip
+            build/artifacts/cad-viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz
+            build/artifacts/cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip
 
   manual-release-publish:
     name: Publish Manual Release
@@ -351,24 +330,3 @@ for asset in assets:
             build/artifacts/cad_viewer-${{ needs.manual-release.outputs.tag_name }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Delete automatic source code archives
-        run: |
-          # Get the release ID
-          RELEASE_ID=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.manual-release.outputs.tag_name }}" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
-          # Get assets for this release
-          curl -s "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" | python3 -c "
-import sys,json
-assets = json.load(sys.stdin)
-for asset in assets:
-    if asset['name'] in ['Source code.tar.gz', 'Source code.zip']:
-        print(f\"Deleting {asset['name']} (ID: {asset['id']})\")
-        import urllib.request
-        req = urllib.request.Request(
-            f\"https://api.github.com/repos/${{ github.repository }}/releases/assets/{asset['id']}\",
-            method='DELETE',
-            headers={'Authorization': 'token ${{ secrets.GITHUB_TOKEN }}'}
-        )
-        urllib.request.urlopen(req)
-"
-

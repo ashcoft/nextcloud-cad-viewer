@@ -16,9 +16,18 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { defineComponent, ref, onMounted, onBeforeUnmount, computed, type PropType } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { loadCADViewer, type ViewerInstance } from '../utils/cadLoader'
+
+// Define file info type
+interface FileInfoType {
+  id?: number | string
+  path?: string
+  directory?: string
+  name?: string
+  filename?: string
+}
 
 // Global translation function from Nextcloud
 function t(app: string, text: string): string {
@@ -35,32 +44,43 @@ const appTranslation = (text: string) => t('cad_viewer', text)
 export default defineComponent({
   name: 'CadViewerHandler',
   props: {
-    // These props are passed by the Nextcloud Viewer
     path: {
       type: String,
       required: false,
       default: '',
+    },
+    fileid: {
+      type: [Number, String],
+      required: false,
+      default: null,
     },
     mime: {
       type: String,
       required: false,
       default: '',
     },
-    // Nextcloud viewer also passes fileInfo object
-    fileInfo: {
-      type: Object as () => {
-        id?: number | string
-        path?: string
-        mime?: string
-        filename?: string
-        directory?: string
-        name?: string
-      } | undefined,
+    filename: {
+      type: Object as PropType<FileInfoType | null>,
       required: false,
-      default: undefined,
+      default: null,
+    },
+    source: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    davPath: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    fileInfo: {
+      type: Object as PropType<FileInfoType | null>,
+      required: false,
+      default: null,
     },
   },
-  setup(props) {
+  setup(props: { path?: string; fileid?: number | string; mime?: string; filename?: FileInfoType | null; source?: string; davPath?: string; fileInfo?: FileInfoType | null }) {
     const loading = ref<boolean>(true)
     const error = ref<string | null>(null)
     const viewerContainer = ref<HTMLElement | null>(null)
@@ -83,34 +103,44 @@ export default defineComponent({
       return ''
     })
 
-    // Compute the file URL for the CAD viewer
-    const fileUrl = computed(() => {
-      const path = filePath.value
-      if (!path) return ''
-
-      // Use the backend API to get file content
-      const fileId = props.fileInfo?.id
+    async function initViewer(): Promise<void> {
+      // Determine the file URL to use
+      let fileUrl: string | null = null
+      
+      // Priority 1: Use fileid with the app's API endpoint
+      const fileId = props.fileid
       if (fileId) {
-        return generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileId) })
+        fileUrl = generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileId) })
+        retryUrl.value = fileUrl
+      }
+      
+      // Priority 2: Fallback to source if provided
+      if (!fileUrl && props.source) {
+        fileUrl = props.source
+        retryUrl.value = fileUrl
+      }
+      
+      // Priority 3: Fallback to davPath with WebDAV
+      if (!fileUrl && props.davPath) {
+        const pathSegments = props.davPath.split('/').filter(Boolean)
+        const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
+        fileUrl = generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
+        retryUrl.value = fileUrl
+      }
+      
+      // Priority 4: Fallback to path with WebDAV
+      if (!fileUrl && props.path) {
+        const pathSegments = props.path.split('/').filter(Boolean)
+        const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
+        fileUrl = generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
+        retryUrl.value = fileUrl
       }
 
-      // Fallback to WebDAV if no file ID
-      const pathSegments = path.split('/').filter(Boolean)
-      const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
-      return generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
-    })
-
-    async function initViewer(): Promise<void> {
-      const path = filePath.value
-      const url = fileUrl.value
-
-      if (!url) {
+      if (!fileUrl) {
         error.value = appTranslation('No file selected. Please open a DWG or DXF file from Nextcloud.')
         loading.value = false
         return
       }
-
-      retryUrl.value = url
 
       // Wait for container to be in the DOM
       await new Promise<void>((resolve) => {
@@ -127,8 +157,10 @@ export default defineComponent({
 
       if (viewerContainer.value) {
         try {
+          // Load the CAD viewer with the file URL
+          // The axios request will include session cookies automatically
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
-            url: url,
+            url: fileUrl,
             theme: 'dark',
           })
         } catch (err) {

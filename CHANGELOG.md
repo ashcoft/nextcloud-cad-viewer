@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.7
+
+### Patch Changes
+
+- 647a1e9: fix: improve viewer handler registration and file loading for Nextcloud 33+
+
 ## 0.0.4
 
 ### Patch Changes
