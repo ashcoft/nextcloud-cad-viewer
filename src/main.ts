@@ -61,8 +61,8 @@ interface NextcloudOCA {
 let isRegistered = false
 
 // Register the CAD viewer handler with Nextcloud Viewer
-function registerViewerHandler(): void {
-  if (isRegistered) return
+function registerViewerHandler(): boolean {
+  if (isRegistered) return false
   
   const nextcloudGlobal = globalThis as unknown as { OCA?: NextcloudOCA }
   
