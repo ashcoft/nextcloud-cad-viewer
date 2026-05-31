@@ -6,7 +6,7 @@
 # SPDX-FileCopyrightText: 2023-2024 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: MIT
 
-name: Pnpm audit fix
+name: Pnpm audit
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
