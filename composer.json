@@ -42,6 +42,12 @@
       "OC\\": "tests/stubs/OC/"
     }
   },
+  "extra": {
+    "bamarni-bin": {
+      "bin-links": false,
+      "forward-command": true
+    }
+  },
   "scripts": {
     "post-install-cmd": [
       "@composer bin all install --ansi"
