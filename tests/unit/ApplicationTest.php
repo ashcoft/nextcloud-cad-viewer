@@ -44,15 +44,25 @@ class ApplicationTest extends TestCase
         $app = new Application();
         $mockContext = $this->createMock(IRegistrationContext::class);
 
-        // Expect only LoadViewer listener registration
-        $mockContext->expects($this->once())
-            ->method('registerEventListener')
-            ->with(
-                \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
-                \OCA\CadViewer\Listener\LoadViewer::class
-            );
+        // Expect three listener registrations: LoadViewer, RegisterMimeTypes, RegisterMimeTypeAliases
+        $mockContext->expects($this->exactly(3))
+            ->method('registerEventListener');
 
         $app->register($mockContext);
+    }
+
+    public function testMimeTypesConstant(): void
+    {
+        $this->assertNotEmpty(Application::MIME_TYPES);
+        $this->assertArrayHasKey('application/dwg', Application::MIME_TYPES);
+        $this->assertSame('dwg', Application::MIME_TYPES['application/dwg']);
+    }
+
+    public function testMimeTypeAliasesConstant(): void
+    {
+        $this->assertNotEmpty(Application::MIME_TYPE_ALIASES);
+        $this->assertArrayHasKey('application/acad', Application::MIME_TYPE_ALIASES);
+        $this->assertSame('application/dwg', Application::MIME_TYPE_ALIASES['application/acad']);
     }
 
     public function testBoot(): void
