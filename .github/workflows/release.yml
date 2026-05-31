@@ -79,10 +79,16 @@ jobs:
       - name: Read tag from version
         id: set-tag
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          TAG_NAME="v${VERSION}"
+          # Get the latest tag matching the package name pattern
+          git fetch --tags
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null | grep -oP 'nextcloud-cad-viewer-v\K[0-9.]+' || echo "")
+          if [ -z "$TAG" ]; then
+            # Fallback: use package.json version
+            TAG=$(node -p "require('./package.json').version")
+          fi
+          TAG_NAME="nextcloud-cad-viewer-v${TAG}"
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$TAG" >> $GITHUB_OUTPUT
 
       - name: Read package.json node and npm engines version
         uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
@@ -114,6 +120,11 @@ jobs:
           CYPRESS_INSTALL_BINARY: 0
           PUPPETEER_SKIP_DOWNLOAD: true
         run: pnpm install --frozen-lockfile
+
+      - name: Update info.xml version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          sed -i "s/<version>.*<\/version>/<version>$VERSION<\/version>/" appinfo/info.xml
 
       - name: Install composer dependencies
         run: composer install --no-dev --optimize-autoloader
@@ -229,8 +240,9 @@ jobs:
         id: set-tag
         run: |
           if [[ -n "${{ github.event.inputs.version }}" ]]; then
-            TAG_NAME="v${{ github.event.inputs.version }}"
+            TAG_NAME="nextcloud-cad-viewer-v${{ github.event.inputs.version }}"
           else
+            # Extract version from tag name (e.g., refs/tags/nextcloud-cad-viewer-v1.0.0 -> 1.0.0)
             TAG_NAME="${GITHUB_REF##*/}"
           fi
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
