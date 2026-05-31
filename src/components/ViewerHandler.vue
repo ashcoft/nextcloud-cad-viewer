@@ -40,6 +40,13 @@ interface ViewerProps {
   filename?: string
   source?: string
   davPath?: string
+  fileInfo?: {
+    id?: number | string
+    path?: string
+    directory?: string
+    name?: string
+    filename?: string
+  }
 }
 
 export default defineComponent({
@@ -62,9 +69,9 @@ export default defineComponent({
       default: '',
     },
     filename: {
-      type: String,
+      type: Object,
       required: false,
-      default: '',
+      default: null,
     },
     source: {
       type: String,
@@ -75,6 +82,11 @@ export default defineComponent({
       type: String,
       required: false,
       default: '',
+    },
+    fileInfo: {
+      type: Object,
+      required: false,
+      default: null,
     },
   },
   setup(props) {
