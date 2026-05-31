@@ -15,7 +15,7 @@
 
 ### Internal Changes
 
-- Update from task cd3b05a6-9c17-4b60-ad43-bc85c80ef44b (multiple PRs #292-295)
+- Merge multiple internal changes from PRs #292-295
 
 ## 0.0.7
 
