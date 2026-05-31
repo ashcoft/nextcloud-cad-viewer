@@ -18,7 +18,7 @@ class Application extends App implements IBootstrap
     public const APP_ID = 'cad_viewer';
     private const CANONICAL_DWG_MIME = 'application/dwg';
 
-    private const MIME_TYPES = [
+    public const MIME_TYPES = [
         'application/acad' => 'dwg',
         'application/autocad_dwg' => 'dwg',
         self::CANONICAL_DWG_MIME => 'dwg',
@@ -31,7 +31,7 @@ class Application extends App implements IBootstrap
         'image/x-dxf' => 'dxf',
     ];
 
-    private const MIME_TYPE_ALIASES = [
+    public const MIME_TYPE_ALIASES = [
         'application/acad' => self::CANONICAL_DWG_MIME,
         'application/autocad_dwg' => self::CANONICAL_DWG_MIME,
         'application/x-autocad' => self::CANONICAL_DWG_MIME,
