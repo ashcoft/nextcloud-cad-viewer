@@ -150,10 +150,27 @@ jobs:
           path: build/artifacts/cad_viewer-${{ steps.get-version.outputs.tag_name }}.zip
           retention-days: 90
 
-      - name: Create source archives
+      # IMPORTANT FIX: Create source archives from CURRENT WORKSPACE, not HEAD
+      - name: Create source archives from current workspace
         run: |
-          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${{ steps.get-version.outputs.tag_name }}.tar.gz HEAD
-          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${{ steps.get-version.outputs.tag_name }}.zip HEAD
+          # Create a clean copy of current source (excluding build artifacts)
+          mkdir -p build/source
+          git archive --format=tar --prefix=nextcloud-cad-viewer-${{ steps.get-version.outputs.tag_name }}/ HEAD | tar -x -C build/source/
+          
+          # Also include any non-committed build files if needed (like compiled assets)
+          # But for source code, we only want tracked files
+          
+          # Create archives
+          cd build/source
+          tar -czf "../artifacts/nextcloud-cad-viewer-${{ steps.get-version.outputs.tag_name }}.tar.gz" .
+          cd ../artifacts
+          zip -r "nextcloud-cad-viewer-${{ steps.get-version.outputs.tag_name }}.zip" ../source/*
+          
+          # Move zip to correct location
+          mv ../source/*.zip . 2>/dev/null || true
+          cd ../..
+          
+          echo "Source archives created from commit: $(git rev-parse HEAD)"
 
       - name: Upload Source TAR.GZ
         uses: actions/upload-artifact@v4
@@ -197,6 +214,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: cad_viewer-app-zip-${{ needs.create-release.outputs.tag_name }}
+          path: build/artifacts/
+
+      - name: Download source tar artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: source-tar-${{ needs.create-release.outputs.tag_name }}
+          path: build/artifacts/
+
+      - name: Download source zip artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: source-zip-${{ needs.create-release.outputs.tag_name }}
           path: build/artifacts/
 
       - name: List downloaded artifacts
@@ -249,7 +278,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Setup php 8.3
-        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
+        uses: shivamathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
           php-version: '8.3'
           coverage: none
@@ -310,10 +339,17 @@ jobs:
           path: build/artifacts/cad_viewer-${{ steps.set-tag.outputs.tag_name }}.zip
           retention-days: 90
 
-      - name: Create source archives
+      - name: Create source archives from current workspace
         run: |
-          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz HEAD
-          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip HEAD
+          mkdir -p build/source
+          git archive --format=tar --prefix=nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}/ HEAD | tar -x -C build/source/
+          cd build/source
+          tar -czf "../artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz" .
+          cd ../artifacts
+          zip -r "nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip" ../source/*
+          mv ../source/*.zip . 2>/dev/null || true
+          cd ../..
+          echo "Source archives created from commit: $(git rev-parse HEAD)"
 
       - name: Upload Source TAR.GZ
         uses: actions/upload-artifact@v4
@@ -345,6 +381,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: cad_viewer-app-zip-${{ needs.manual-release.outputs.tag_name }}
+          path: build/artifacts/
+
+      - name: Download source tar artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: source-tar-${{ needs.manual-release.outputs.tag_name }}
+          path: build/artifacts/
+
+      - name: Download source zip artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: source-zip-${{ needs.manual-release.outputs.tag_name }}
           path: build/artifacts/
 
       - name: Create Release
