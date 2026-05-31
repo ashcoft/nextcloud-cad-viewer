@@ -1,1 +1,49 @@
-Nothing should be ignored based on the provided file changes. The only modified file is 'lib/AppInfo/Application.php', which is a source code file and should not be added to .gitignore.
+```php
+# Compiled and build artifacts
+*.pyc
+*.class
+*.o
+*.obj
+*.out
+*.exe
+*.dll
+*.so
+*.a
+
+# Dependencies
+node_modules/
+venv/
+.venv/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+target/
+.gradle/
+
+# Build directories
+dist/
+build/
+coverage/
+htmlcov/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.local
+*.env.*
+
+# Editors and IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System files
+.DS_Store
+Thumbs.db
+```
