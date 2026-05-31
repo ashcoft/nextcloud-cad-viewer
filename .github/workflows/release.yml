@@ -111,25 +111,25 @@ jobs:
           TAG_NAME: ${{ steps.get-version.outputs.tag_name }}
           VERSION: ${{ steps.get-version.outputs.version }}
         run: |
-          if ! grep -q "^## ${VERSION}$" CHANGELOG.md; then
-            # Create changelog entry
+          if ! grep -q "^## ${VERSION}" CHANGELOG.md; then
             DATE=$(date +%Y-%m-%d)
-            NEW_ENTRY="## ${VERSION} (${DATE})
-
-### Features
-
-- TBD: Add feature notes
-
-### Bug Fixes
-
-- TBD: Add bug fix notes
-
-### Maintenance
-
-- TBD: Add maintenance notes
-"
-            # Insert after "# Changelog" line
-            sed -i "1a\\${NEW_ENTRY}" CHANGELOG.md
+            {
+              echo ""
+              echo "## ${VERSION} (${DATE})"
+              echo ""
+              echo "### Features"
+              echo ""
+              echo "- TBD: Add feature notes"
+              echo ""
+              echo "### Bug Fixes"
+              echo ""
+              echo "- TBD: Add bug fix notes"
+              echo ""
+              echo "### Maintenance"
+              echo ""
+              echo "- TBD: Add maintenance notes"
+            } > /tmp/changelog_entry.txt
+            sed -i '1r /tmp/changelog_entry.txt' CHANGELOG.md
             echo "Added ${VERSION} entry to CHANGELOG.md"
           else
             echo "Version ${VERSION} already in CHANGELOG.md"
