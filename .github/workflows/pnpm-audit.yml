@@ -66,11 +66,13 @@ jobs:
           pnpm audit --fix
           echo "markdown=pnpm audit fix applied" >> $GITHUB_OUTPUT
 
-      - name: Run pnpm install --frozen-lockfile and pnpm run build
+      - name: Run pnpm install and build
         if: steps.checkout.outcome == 'success'
         env:
           CYPRESS_INSTALL_BINARY: 0
         run: |
+          # NOTE: Cannot use --frozen-lockfile because pnpm audit --fix
+          # modifies package.json overrides which requires lockfile regeneration
           pnpm install
           pnpm run --if-present build
 
