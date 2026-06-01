@@ -145,7 +145,7 @@ jobs:
           overwrite: true
 
       - name: Publish to GitHub Releases
-        uses: softprops/action-gh-release@7ee72ceea78c3b1f99e8d10bd9e5f8e3f0a2a8e3 # v3.0.0
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
           generate_release_notes: true
           files: |
@@ -391,7 +391,7 @@ jobs:
           echo "All artifacts validated successfully"
 
       - name: Create Release
-        uses: softprops/action-gh-release@7ee72ceea78c3b1f99e8d10bd9e5f8e3f0a2a8e3 # v3.0.0
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
           tag_name: ${{ needs.create-release.outputs.tag_name }}
           name: ${{ needs.create-release.outputs.tag_name }}
@@ -552,7 +552,7 @@ jobs:
           echo "All artifacts validated successfully"
 
       - name: Create Release
-        uses: softprops/action-gh-release@7ee72ceea78c3b1f99e8d10bd9e5f8e3f0a2a8e3 # v3.0.0
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
           tag_name: ${{ needs.manual-release.outputs.tag_name }}
           name: ${{ needs.manual-release.outputs.tag_name }}
