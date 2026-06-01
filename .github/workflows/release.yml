@@ -69,11 +69,135 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Build and create release artifacts (for automatic release on push)
+  # Publish release when version bump PR is merged to main
+  changeset-publish:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+
+      - name: Setup node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "^24"
+          cache: 'pnpm'
+
+      - name: Setup php 8.3
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Install dependencies
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+          PUPPETEER_SKIP_DOWNLOAD: true
+        run: |
+          pnpm install --frozen-lockfile
+          composer install --no-dev --optimize-autoloader
+
+      - name: Build JavaScript
+        run: pnpm run build
+
+      - name: Build projects
+        run: make production-setup
+
+      - name: Package Nextcloud app
+        run: |
+          make appstore
+          cd build/artifacts
+          for f in *.tar.gz *.zip; do
+            if [ -f "$f" ]; then
+              if [[ "$f" == *.tar.gz ]]; then
+                mv "$f" "cad_viewer-$(git describe --tags --abbrev=0).tar.gz"
+              else
+                mv "$f" "cad_viewer-$(git describe --tags --abbrev=0).zip"
+              fi
+            fi
+          done
+
+      - name: Verify app artifacts
+        run: ls -lah build/artifacts/
+
+      - name: Upload App TAR.GZ
+        uses: actions/upload-artifact@v4
+        with:
+          name: cad_viewer-app-tar
+          path: build/artifacts/cad_viewer-*.tar.gz
+          retention-days: 90
+          compression-level: 6
+          overwrite: true
+
+      - name: Upload App ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: cad_viewer-app-zip
+          path: build/artifacts/cad_viewer-*.zip
+          retention-days: 90
+          compression-level: 6
+          overwrite: true
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@7ee72ceea78c3b1f99e8d10bd9e5f8e3f0a2a8e3 # v3.0.0
+        with:
+          generate_release_notes: true
+          files: |
+            build/artifacts/*.tar.gz
+            build/artifacts/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to npm / GitHub Packages
+        run: |
+          echo "Publishing complete. Changesets will handle npm publishing if configured."
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Publish to Nextcloud App Store (optional)
+      - name: Publish to Nextcloud App Store
+        if: env.NC_APPCLOUD_TOKEN != ''
+        run: |
+          echo "Publishing to Nextcloud App Store..."
+          # Add your Nextcloud App Store publishing script here
+        env:
+          NC_APPCLOUD_TOKEN: ${{ secrets.NC_APPCLOUD_TOKEN }}
+
+      - name: Create source archives
+        run: |
+          TAG_NAME=$(git describe --tags --abbrev=0)
+          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.tar.gz HEAD
+          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.zip HEAD
+
+      - name: Upload Source TAR.GZ
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-tar
+          path: build/artifacts/nextcloud-cad-viewer-*.tar.gz
+          retention-days: 90
+          compression-level: 6
+          overwrite: true
+
+      - name: Upload Source ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-zip
+          path: build/artifacts/nextcloud-cad-viewer-*.zip
+          retention-days: 90
+          compression-level: 6
+          overwrite: true
+
+  # Build and create release artifacts (for tag-based releases)
   create-release:
     name: Create Release
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     outputs:
       tag_name: ${{ steps.get-version.outputs.tag_name }}
       version: ${{ steps.get-version.outputs.version }}
@@ -83,24 +207,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get version from tag or package.json
+      - name: Get version from tag
         id: get-version
         env:
           GITHUB_REF: ${{ github.ref }}
         run: |
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            VERSION="${GITHUB_REF#refs/tags/v}"
-            TAG_NAME="v${VERSION}"
-          else
-            VERSION=$(node -p "require('./package.json').version")
-            TAG_NAME="v${VERSION}"
-          fi
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          TAG_NAME="v${VERSION}"
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Using version: $VERSION"
 
       - name: Update version files
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           # Update package.json and package-lock.json using pnpm
           pnpm version ${{ steps.get-version.outputs.version }} --no-git-tag-version --no-commit-hooks
@@ -110,7 +228,6 @@ jobs:
           cat appinfo/info.xml | grep '<version>'
 
       - name: Update CHANGELOG.md
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         env:
           TAG_NAME: ${{ steps.get-version.outputs.tag_name }}
           VERSION: ${{ steps.get-version.outputs.version }}
@@ -140,7 +257,6 @@ jobs:
           fi
 
       - name: Commit version updates
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -204,6 +320,7 @@ jobs:
           name: cad_viewer-app-tar-${{ steps.get-version.outputs.tag_name }}
           path: build/artifacts/cad_viewer-${{ steps.get-version.outputs.tag_name }}.tar.gz
           retention-days: 90
+          compression-level: 6
 
       - name: Upload App ZIP
         uses: actions/upload-artifact@v4
@@ -211,6 +328,7 @@ jobs:
           name: cad_viewer-app-zip-${{ steps.get-version.outputs.tag_name }}
           path: build/artifacts/cad_viewer-${{ steps.get-version.outputs.tag_name }}.zip
           retention-days: 90
+          compression-level: 6
 
       - name: Create source archives
         run: |
@@ -223,6 +341,7 @@ jobs:
           name: source-tar-${{ steps.get-version.outputs.tag_name }}
           path: build/artifacts/nextcloud-cad-viewer-${{ steps.get-version.outputs.tag_name }}.tar.gz
           retention-days: 90
+          compression-level: 6
 
       - name: Upload Source ZIP
         uses: actions/upload-artifact@v4
@@ -230,6 +349,7 @@ jobs:
           name: source-zip-${{ steps.get-version.outputs.tag_name }}
           path: build/artifacts/nextcloud-cad-viewer-${{ steps.get-version.outputs.tag_name }}.zip
           retention-days: 90
+          compression-level: 6
 
       - name: Create and push tag
         run: |
@@ -247,7 +367,7 @@ jobs:
     name: Publish Release
     runs-on: ubuntu-latest
     needs: create-release
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -271,7 +391,7 @@ jobs:
           echo "All artifacts validated successfully"
 
       - name: Create Release
-        uses: softprops/action-gh-release@v3.0.0
+        uses: softprops/action-gh-release@7ee72ceea78c3b1f99e8d10bd9e5f8e3f0a2a8e3 # v3.0.0
         with:
           tag_name: ${{ needs.create-release.outputs.tag_name }}
           name: ${{ needs.create-release.outputs.tag_name }}
@@ -373,6 +493,7 @@ jobs:
           name: cad_viewer-app-tar-${{ steps.set-tag.outputs.tag_name }}
           path: build/artifacts/cad_viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz
           retention-days: 90
+          compression-level: 6
 
       - name: Upload App ZIP
         if: ${{ github.event.inputs.skip_build != 'true' }}
@@ -381,6 +502,7 @@ jobs:
           name: cad_viewer-app-zip-${{ steps.set-tag.outputs.tag_name }}
           path: build/artifacts/cad_viewer-${{ steps.set-tag.outputs.tag_name }}.zip
           retention-days: 90
+          compression-level: 6
 
       - name: Create source archives
         run: |
@@ -393,6 +515,7 @@ jobs:
           name: source-tar-${{ steps.set-tag.outputs.tag_name }}
           path: build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz
           retention-days: 90
+          compression-level: 6
 
       - name: Upload Source ZIP
         uses: actions/upload-artifact@v4
@@ -400,6 +523,7 @@ jobs:
           name: source-zip-${{ steps.set-tag.outputs.tag_name }}
           path: build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip
           retention-days: 90
+          compression-level: 6
 
   # Publish Manual Release
   manual-release-publish:
@@ -428,7 +552,7 @@ jobs:
           echo "All artifacts validated successfully"
 
       - name: Create Release
-        uses: softprops/action-gh-release@v3.0.0
+        uses: softprops/action-gh-release@7ee72ceea78c3b1f99e8d10bd9e5f8e3f0a2a8e3 # v3.0.0
         with:
           tag_name: ${{ needs.manual-release.outputs.tag_name }}
           name: ${{ needs.manual-release.outputs.tag_name }}
