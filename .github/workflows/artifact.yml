@@ -121,6 +121,7 @@ jobs:
           name: cad_viewer-app-tar-${{ steps.get-version.outputs.tag_name }}
           path: build/artifacts/cad_viewer-${{ steps.get-version.outputs.tag_name }}.tar.gz
           retention-days: 90
+          compression-level: 6
 
       - name: Upload Artifact ZIP
         uses: actions/upload-artifact@v4
@@ -128,3 +129,4 @@ jobs:
           name: cad_viewer-app-zip-${{ steps.get-version.outputs.tag_name }}
           path: build/artifacts/cad_viewer-${{ steps.get-version.outputs.tag_name }}.zip
           retention-days: 90
+          compression-level: 6
