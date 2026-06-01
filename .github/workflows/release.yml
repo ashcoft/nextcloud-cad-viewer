@@ -34,9 +34,62 @@ permissions:
 
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
+  APP_NAME: cad_viewer
 
 jobs:
-  # Create version bump PR when changesets exist
+  # Determine release type and configuration
+  setup:
+    name: Determine Release Configuration
+    runs-on: ubuntu-latest
+    outputs:
+      release_type: ${{ steps.config.outputs.release_type }}
+      version: ${{ steps.config.outputs.version }}
+      tag_name: ${{ steps.config.outputs.tag_name }}
+      should_build: ${{ steps.config.outputs.should_build }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Determine release configuration
+        id: config
+        env:
+          REF: ${{ github.ref }}
+          EVENT: ${{ github.event_name }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_SKIP_BUILD: ${{ github.event.inputs.skip_build }}
+        run: |
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            if [[ -n "$INPUT_VERSION" ]]; then
+              VERSION="$INPUT_VERSION"
+              TAG_NAME="v${VERSION}"
+            else
+              VERSION=$(node -p "require('./package.json').version")
+              TAG_NAME="v${VERSION}"
+            fi
+            if [[ "$INPUT_SKIP_BUILD" == "true" ]]; then
+              SHOULD_BUILD="false"
+            else
+              SHOULD_BUILD="true"
+            fi
+            echo "release_type=manual" >> $GITHUB_OUTPUT
+          elif [[ "$REF" == refs/tags/v* ]]; then
+            VERSION="${REF#refs/tags/v}"
+            TAG_NAME="${REF#refs/tags/}"
+            SHOULD_BUILD="true"
+            echo "release_type=tag" >> $GITHUB_OUTPUT
+          else
+            VERSION=$(node -p "require('./package.json').version")
+            TAG_NAME="v${VERSION}"
+            SHOULD_BUILD="false"
+            echo "release_type=pr" >> $GITHUB_OUTPUT
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "should_build=${SHOULD_BUILD}" >> $GITHUB_OUTPUT
+
+  # Create version bump PR when changesets exist (PR only)
   changeset-pr:
     name: Create Version PR
     runs-on: ubuntu-latest
@@ -69,9 +122,200 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Publish release when version bump PR is merged to main
-  changeset-publish:
+  # Build and package the app (for tag/manual releases)
+  build:
+    name: Build App Package
+    runs-on: ubuntu-latest
+    needs: setup
+    if: needs.setup.outputs.should_build == 'true'
+    outputs:
+      tag_name: ${{ needs.setup.outputs.tag_name }}
+      version: ${{ needs.setup.outputs.version }}
+      release_type: ${{ needs.setup.outputs.release_type }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+
+      - name: Setup node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "^24"
+          cache: 'pnpm'
+
+      - name: Setup php 8.3
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Install dependencies
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+          PUPPETEER_SKIP_DOWNLOAD: true
+        run: |
+          pnpm install --frozen-lockfile
+          composer install --no-dev --optimize-autoloader
+
+      - name: Update version files
+        if: ${{ needs.setup.outputs.release_type != 'tag' }}
+        env:
+          VERSION: ${{ needs.setup.outputs.version }}
+        run: |
+          pnpm version $VERSION --no-git-tag-version --no-commit-hooks
+          sed -i "s|<version>.*</version>|<version>$VERSION</version>|" appinfo/info.xml
+
+      - name: Update CHANGELOG.md
+        if: ${{ needs.setup.outputs.release_type == 'tag' }}
+        env:
+          TAG_NAME: ${{ needs.setup.outputs.tag_name }}
+          VERSION: ${{ needs.setup.outputs.version }}
+        run: |
+          if ! grep -q "^## ${VERSION}" CHANGELOG.md; then
+            DATE=$(date +%Y-%m-%d)
+            {
+              echo ""
+              echo "## ${VERSION} (${DATE})"
+              echo ""
+              echo "### Features"
+              echo ""
+              echo "- TBD: Add feature notes"
+              echo ""
+              echo "### Bug Fixes"
+              echo ""
+              echo "- TBD: Add bug fix notes"
+              echo ""
+              echo "### Maintenance"
+              echo ""
+              echo "- TBD: Add maintenance notes"
+            } > /tmp/changelog_entry.txt
+            sed -i '1r /tmp/changelog_entry.txt' CHANGELOG.md
+          fi
+
+      - name: Commit version updates
+        if: ${{ needs.setup.outputs.release_type == 'tag' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json appinfo/info.xml CHANGELOG.md 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update version files for ${{ needs.setup.outputs.tag_name }}"
+            git push
+          fi
+
+      - name: Build JavaScript
+        run: pnpm run build
+
+      - name: Build projects
+        run: make production-setup
+
+      - name: Create source archives
+        env:
+          TAG_NAME: ${{ needs.setup.outputs.tag_name }}
+        run: |
+          mkdir -p build/artifacts
+          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.tar.gz HEAD
+          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.zip HEAD
+
+      - name: Package Nextcloud app
+        env:
+          TAG_NAME: ${{ needs.setup.outputs.tag_name }}
+        run: |
+          make appstore
+          cd build/artifacts
+          if [ -f "cad_viewer.tar.gz" ]; then
+            mv cad_viewer.tar.gz "cad_viewer-${TAG_NAME}.tar.gz"
+          fi
+          if [ -f "cad_viewer.zip" ]; then
+            mv cad_viewer.zip "cad_viewer-${TAG_NAME}.zip"
+          fi
+
+      - name: Create and push tag
+        if: ${{ needs.setup.outputs.release_type == 'tag' }}
+        env:
+          TAG_NAME: ${{ needs.setup.outputs.tag_name }}
+        run: |
+          if git rev-parse "$TAG_NAME" 2>/dev/null; then
+            echo "Tag $TAG_NAME already exists"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
+            git push origin "$TAG_NAME"
+          fi
+
+      - name: Upload all artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-${{ needs.setup.outputs.tag_name }}
+          path: build/artifacts/
+          retention-days: 90
+          compression-level: 6
+          overwrite: true
+
+  # Publish release to GitHub
+  publish:
     name: Publish Release
+    runs-on: ubuntu-latest
+    needs: [setup, build]
+    if: |
+      (needs.setup.outputs.release_type == 'tag' || needs.setup.outputs.release_type == 'manual')
+      && needs.setup.outputs.should_build == 'true'
+    env:
+      TAG_NAME: ${{ needs.setup.outputs.tag_name }}
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-${{ needs.setup.outputs.tag_name }}
+          path: build/artifacts/
+
+      - name: List downloaded artifacts
+        run: ls -lah build/artifacts/
+
+      - name: Validate artifacts exist
+        run: |
+          if ! ls build/artifacts/cad_viewer-${TAG_NAME}.tar.gz 1> /dev/null 2>&1; then
+            echo "ERROR: App TAR.GZ artifact not found!"
+            exit 1
+          fi
+          if ! ls build/artifacts/cad_viewer-${TAG_NAME}.zip 1> /dev/null 2>&1; then
+            echo "ERROR: App ZIP artifact not found!"
+            exit 1
+          fi
+          echo "All artifacts validated successfully"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: ${{ env.TAG_NAME }}
+          generate_release_notes: true
+          files: |
+            build/artifacts/cad_viewer-${TAG_NAME}.tar.gz
+            build/artifacts/cad_viewer-${TAG_NAME}.zip
+            build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.tar.gz
+            build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to Nextcloud App Store
+        if: env.NC_APPCLOUD_TOKEN != ''
+        env:
+          NC_APPCLOUD_TOKEN: ${{ secrets.NC_APPCLOUD_TOKEN }}
+        run: |
+          echo "Publishing to Nextcloud App Store..."
+          # Add your Nextcloud App Store publishing script here
+
+  # Handle push to main branch (changeset-based release from version bump PR)
+  changeset-release:
+    name: Publish Changeset Release
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
@@ -109,36 +353,40 @@ jobs:
       - name: Build projects
         run: make production-setup
 
+      - name: Get version from package.json
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG_NAME="v${VERSION}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+
       - name: Package Nextcloud app
+        env:
+          TAG_NAME: ${{ steps.version.outputs.tag_name }}
         run: |
           make appstore
           cd build/artifacts
-          for f in *.tar.gz *.zip; do
-            if [ -f "$f" ]; then
-              if [[ "$f" == *.tar.gz ]]; then
-                mv "$f" "cad_viewer-$(git describe --tags --abbrev=0).tar.gz"
-              else
-                mv "$f" "cad_viewer-$(git describe --tags --abbrev=0).zip"
-              fi
-            fi
-          done
+          if [ -f "cad_viewer.tar.gz" ]; then
+            mv cad_viewer.tar.gz "cad_viewer-${TAG_NAME}.tar.gz"
+          fi
+          if [ -f "cad_viewer.zip" ]; then
+            mv cad_viewer.zip "cad_viewer-${TAG_NAME}.zip"
+          fi
 
-      - name: Verify app artifacts
-        run: ls -lah build/artifacts/
-
-      - name: Upload App TAR.GZ
+      - name: Upload App artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cad_viewer-app-tar
+          name: ${{ env.APP_NAME }}-${{ steps.version.outputs.tag_name }}
           path: build/artifacts/cad_viewer-*.tar.gz
           retention-days: 90
           compression-level: 6
           overwrite: true
 
-      - name: Upload App ZIP
+      - name: Upload App ZIP artifact
         uses: actions/upload-artifact@v4
         with:
-          name: cad_viewer-app-zip
+          name: ${{ env.APP_NAME }}-${{ steps.version.outputs.tag_name }}-zip
           path: build/artifacts/cad_viewer-*.zip
           retention-days: 90
           compression-level: 6
@@ -149,419 +397,7 @@ jobs:
         with:
           generate_release_notes: true
           files: |
-            build/artifacts/*.tar.gz
-            build/artifacts/*.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish to npm / GitHub Packages
-        run: |
-          echo "Publishing complete. Changesets will handle npm publishing if configured."
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      # Publish to Nextcloud App Store (optional)
-      - name: Publish to Nextcloud App Store
-        if: env.NC_APPCLOUD_TOKEN != ''
-        run: |
-          echo "Publishing to Nextcloud App Store..."
-          # Add your Nextcloud App Store publishing script here
-        env:
-          NC_APPCLOUD_TOKEN: ${{ secrets.NC_APPCLOUD_TOKEN }}
-
-      - name: Create source archives
-        run: |
-          TAG_NAME=$(git describe --tags --abbrev=0)
-          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.tar.gz HEAD
-          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.zip HEAD
-
-      - name: Upload Source TAR.GZ
-        uses: actions/upload-artifact@v4
-        with:
-          name: source-tar
-          path: build/artifacts/nextcloud-cad-viewer-*.tar.gz
-          retention-days: 90
-          compression-level: 6
-          overwrite: true
-
-      - name: Upload Source ZIP
-        uses: actions/upload-artifact@v4
-        with:
-          name: source-zip
-          path: build/artifacts/nextcloud-cad-viewer-*.zip
-          retention-days: 90
-          compression-level: 6
-          overwrite: true
-
-  # Build and create release artifacts (for tag-based releases)
-  create-release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    outputs:
-      tag_name: ${{ steps.get-version.outputs.tag_name }}
-      version: ${{ steps.get-version.outputs.version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-
-      - name: Get version from tag
-        id: get-version
-        env:
-          GITHUB_REF: ${{ github.ref }}
-        run: |
-          VERSION="${GITHUB_REF#refs/tags/v}"
-          TAG_NAME="v${VERSION}"
-          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Using version: $VERSION"
-
-      - name: Update version files
-        run: |
-          # Update package.json and package-lock.json using pnpm
-          pnpm version ${{ steps.get-version.outputs.version }} --no-git-tag-version --no-commit-hooks
-          
-          # Update info.xml
-          sed -i "s|<version>.*</version>|<version>${{ steps.get-version.outputs.version }}</version>|" appinfo/info.xml
-          cat appinfo/info.xml | grep '<version>'
-
-      - name: Update CHANGELOG.md
-        env:
-          TAG_NAME: ${{ steps.get-version.outputs.tag_name }}
-          VERSION: ${{ steps.get-version.outputs.version }}
-        run: |
-          if ! grep -q "^## ${VERSION}" CHANGELOG.md; then
-            DATE=$(date +%Y-%m-%d)
-            {
-              echo ""
-              echo "## ${VERSION} (${DATE})"
-              echo ""
-              echo "### Features"
-              echo ""
-              echo "- TBD: Add feature notes"
-              echo ""
-              echo "### Bug Fixes"
-              echo ""
-              echo "- TBD: Add bug fix notes"
-              echo ""
-              echo "### Maintenance"
-              echo ""
-              echo "- TBD: Add maintenance notes"
-            } > /tmp/changelog_entry.txt
-            sed -i '1r /tmp/changelog_entry.txt' CHANGELOG.md
-            echo "Added ${VERSION} entry to CHANGELOG.md"
-          else
-            echo "Version ${VERSION} already in CHANGELOG.md"
-          fi
-
-      - name: Commit version updates
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json appinfo/info.xml CHANGELOG.md
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore: update version files for ${{ steps.get-version.outputs.tag_name }}"
-            git push
-          fi
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
-
-      - name: Setup node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version: "^24"
-          cache: 'pnpm'
-
-      - name: Setup php 8.3
-        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
-        with:
-          php-version: '8.3'
-          coverage: none
-
-      - name: Install dependencies
-        env:
-          CYPRESS_INSTALL_BINARY: 0
-          PUPPETEER_SKIP_DOWNLOAD: true
-        run: |
-          pnpm install --frozen-lockfile
-          composer install --no-dev --optimize-autoloader
-
-      - name: Build JavaScript
-        run: pnpm run build
-
-      - name: Build projects
-        run: make production-setup
-
-      - name: Package Nextcloud app
-        run: |
-          make appstore
-          cd build/artifacts
-          for f in *.tar.gz *.zip; do
-            if [ -f "$f" ]; then
-              if [[ "$f" == *.tar.gz ]]; then
-                mv "$f" "cad_viewer-${{ steps.get-version.outputs.tag_name }}.tar.gz"
-              else
-                mv "$f" "cad_viewer-${{ steps.get-version.outputs.tag_name }}.zip"
-              fi
-            fi
-          done
-
-      - name: Verify app artifacts
-        run: ls -lah build/artifacts/
-
-      - name: Upload App TAR.GZ
-        uses: actions/upload-artifact@v4
-        with:
-          name: cad_viewer-app-tar-${{ steps.get-version.outputs.tag_name }}
-          path: build/artifacts/cad_viewer-${{ steps.get-version.outputs.tag_name }}.tar.gz
-          retention-days: 90
-          compression-level: 6
-
-      - name: Upload App ZIP
-        uses: actions/upload-artifact@v4
-        with:
-          name: cad_viewer-app-zip-${{ steps.get-version.outputs.tag_name }}
-          path: build/artifacts/cad_viewer-${{ steps.get-version.outputs.tag_name }}.zip
-          retention-days: 90
-          compression-level: 6
-
-      - name: Create source archives
-        run: |
-          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${{ steps.get-version.outputs.tag_name }}.tar.gz HEAD
-          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${{ steps.get-version.outputs.tag_name }}.zip HEAD
-
-      - name: Upload Source TAR.GZ
-        uses: actions/upload-artifact@v4
-        with:
-          name: source-tar-${{ steps.get-version.outputs.tag_name }}
-          path: build/artifacts/nextcloud-cad-viewer-${{ steps.get-version.outputs.tag_name }}.tar.gz
-          retention-days: 90
-          compression-level: 6
-
-      - name: Upload Source ZIP
-        uses: actions/upload-artifact@v4
-        with:
-          name: source-zip-${{ steps.get-version.outputs.tag_name }}
-          path: build/artifacts/nextcloud-cad-viewer-${{ steps.get-version.outputs.tag_name }}.zip
-          retention-days: 90
-          compression-level: 6
-
-      - name: Create and push tag
-        run: |
-          if git rev-parse "${{ steps.get-version.outputs.tag_name }}" 2>/dev/null; then
-            echo "Tag ${{ steps.get-version.outputs.tag_name }} already exists, skipping"
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git tag -a "${{ steps.get-version.outputs.tag_name }}" -m "Release ${{ steps.get-version.outputs.tag_name }}"
-            git push origin "${{ steps.get-version.outputs.tag_name }}"
-          fi
-
-  # Publish to GitHub Releases (for automatic release on push)
-  publish-release:
-    name: Publish Release
-    runs-on: ubuntu-latest
-    needs: create-release
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: build/artifacts/
-          merge-multiple: true
-
-      - name: List downloaded artifacts
-        run: ls -lah build/artifacts/
-
-      - name: Validate artifacts exist
-        run: |
-          if ! ls build/artifacts/cad_viewer-${{ needs.create-release.outputs.tag_name }}.tar.gz 1> /dev/null 2>&1; then
-            echo "ERROR: App TAR.GZ artifact not found!"
-            exit 1
-          fi
-          if ! ls build/artifacts/cad_viewer-${{ needs.create-release.outputs.tag_name }}.zip 1> /dev/null 2>&1; then
-            echo "ERROR: App ZIP artifact not found!"
-            exit 1
-          fi
-          echo "All artifacts validated successfully"
-
-      - name: Create Release
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
-        with:
-          tag_name: ${{ needs.create-release.outputs.tag_name }}
-          name: ${{ needs.create-release.outputs.tag_name }}
-          generate_release_notes: true
-          files: |
-            build/artifacts/*.tar.gz
-            build/artifacts/*.zip
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # Manual release workflow
-  manual-release:
-    name: Manual Release
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
-    outputs:
-      tag_name: ${{ steps.set-tag.outputs.tag_name }}
-      version: ${{ steps.set-tag.outputs.version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-
-      - name: Determine tag name
-        id: set-tag
-        run: |
-          if [[ -n "${{ github.event.inputs.version }}" ]]; then
-            TAG_NAME="v${{ github.event.inputs.version }}"
-            VERSION="${{ github.event.inputs.version }}"
-          else
-            VERSION=$(node -p "require('./package.json').version")
-            TAG_NAME="v${VERSION}"
-          fi
-          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
-
-      - name: Setup node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version: "^24"
-          cache: 'pnpm'
-
-      - name: Setup php 8.3
-        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
-        with:
-          php-version: '8.3'
-          coverage: none
-
-      - name: Install dependencies
-        if: ${{ github.event.inputs.skip_build != 'true' }}
-        env:
-          CYPRESS_INSTALL_BINARY: 0
-          PUPPETEER_SKIP_DOWNLOAD: true
-        run: |
-          pnpm install --frozen-lockfile
-          composer install --no-dev --optimize-autoloader
-
-      - name: Update version files
-        if: ${{ github.event.inputs.version && github.event.inputs.skip_build != 'true' }}
-        run: |
-          pnpm version ${{ github.event.inputs.version }} --no-git-tag-version --no-commit-hooks
-          sed -i "s/<version>.*<\/version>/<version>${{ github.event.inputs.version }}<\/version>/" appinfo/info.xml
-
-      - name: Build
-        if: ${{ github.event.inputs.skip_build != 'true' }}
-        run: |
-          pnpm run build
-          make production-setup
-
-      - name: Package Nextcloud app
-        if: ${{ github.event.inputs.skip_build != 'true' }}
-        run: |
-          make appstore
-          cd build/artifacts
-          for f in *.tar.gz *.zip; do
-            if [ -f "$f" ]; then
-              if [[ "$f" == *.tar.gz ]]; then
-                mv "$f" "cad_viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz"
-              else
-                mv "$f" "cad_viewer-${{ steps.set-tag.outputs.tag_name }}.zip"
-              fi
-            fi
-          done
-
-      - name: Verify app artifacts
-        if: ${{ github.event.inputs.skip_build != 'true' }}
-        run: ls -lah build/artifacts/
-
-      - name: Upload App TAR.GZ
-        if: ${{ github.event.inputs.skip_build != 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: cad_viewer-app-tar-${{ steps.set-tag.outputs.tag_name }}
-          path: build/artifacts/cad_viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz
-          retention-days: 90
-          compression-level: 6
-
-      - name: Upload App ZIP
-        if: ${{ github.event.inputs.skip_build != 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: cad_viewer-app-zip-${{ steps.set-tag.outputs.tag_name }}
-          path: build/artifacts/cad_viewer-${{ steps.set-tag.outputs.tag_name }}.zip
-          retention-days: 90
-          compression-level: 6
-
-      - name: Create source archives
-        run: |
-          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz HEAD
-          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip HEAD
-
-      - name: Upload Source TAR.GZ
-        uses: actions/upload-artifact@v4
-        with:
-          name: source-tar-${{ steps.set-tag.outputs.tag_name }}
-          path: build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.tar.gz
-          retention-days: 90
-          compression-level: 6
-
-      - name: Upload Source ZIP
-        uses: actions/upload-artifact@v4
-        with:
-          name: source-zip-${{ steps.set-tag.outputs.tag_name }}
-          path: build/artifacts/nextcloud-cad-viewer-${{ steps.set-tag.outputs.tag_name }}.zip
-          retention-days: 90
-          compression-level: 6
-
-  # Publish Manual Release
-  manual-release-publish:
-    name: Publish Manual Release
-    runs-on: ubuntu-latest
-    needs: manual-release
-    if: github.event_name == 'workflow_dispatch'
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: build/artifacts/
-          merge-multiple: true
-
-      - name: Validate artifacts exist
-        if: ${{ github.event.inputs.skip_build != 'true' }}
-        run: |
-          if ! ls build/artifacts/cad_viewer-${{ needs.manual-release.outputs.tag_name }}.tar.gz 1> /dev/null 2>&1; then
-            echo "ERROR: App TAR.GZ artifact not found!"
-            exit 1
-          fi
-          if ! ls build/artifacts/cad_viewer-${{ needs.manual-release.outputs.tag_name }}.zip 1> /dev/null 2>&1; then
-            echo "ERROR: App ZIP artifact not found!"
-            exit 1
-          fi
-          echo "All artifacts validated successfully"
-
-      - name: Create Release
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
-        with:
-          tag_name: ${{ needs.manual-release.outputs.tag_name }}
-          name: ${{ needs.manual-release.outputs.tag_name }}
-          generate_release_notes: true
-          files: |
-            build/artifacts/*.tar.gz
-            build/artifacts/*.zip
-          draft: false
-          prerelease: false
-          fail_on_unmatched_files: true
+            build/artifacts/cad_viewer-*.tar.gz
+            build/artifacts/cad_viewer-*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
