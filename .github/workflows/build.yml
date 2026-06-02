@@ -19,13 +19,6 @@ on:
         description: 'Tag name for artifacts'
         required: false
         type: string
-    outputs:
-      tag_name:
-        description: 'The tag name used for artifacts'
-        value: ${{ inputs.tag_name || steps.version.outputs.tag_name }}
-      version:
-        description: 'The version from package.json or input'
-        value: ${{ steps.version.outputs.version }}
 
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
@@ -35,9 +28,6 @@ jobs:
   build:
     name: Build App Package
     runs-on: ubuntu-latest
-    outputs:
-      tag_name: ${{ inputs.tag_name || steps.version.outputs.tag_name }}
-      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
