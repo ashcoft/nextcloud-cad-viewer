@@ -100,8 +100,9 @@ pnpm test
 ### Static Analysis
 ```bash
 composer psalm        # Psalm type checking
-composer phpstan     # PHPStan (if configured)
-pnpm run lint         # ESLint + Stylelint
+composer phpstan      # PHPStan (if configured)
+pnpm run lint         # ESLint
+pnpm run stylelint    # Stylelint
 ```
 
 ---
