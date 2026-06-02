@@ -22,6 +22,10 @@ concurrency:
   group: build-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
+env:
+  NODE_OPTIONS: "--max-old-space-size=4096"
+  APP_NAME: cad_viewer
+
 jobs:
   # Determine build configuration
   setup:
@@ -54,12 +58,109 @@ jobs:
           fi
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
 
-  # Call reusable build workflow
   build:
     name: Build App Package
-    uses: ./.github/workflows/build.yml
-    with:
-      version: ${{ github.event.inputs.version }}
-      is_release: ${{ needs.setup.outputs.is_release }}
-      tag_name: ${{ needs.setup.outputs.tag_name }}
+    runs-on: ubuntu-latest
     needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Read package.json node and pnpm engines version
+        uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
+        id: versions
+        with:
+          fallbackNode: '^24'
+          fallbackNpm: '^10'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        if: ${{ steps.versions.outputs.nodeVersion }}
+
+      - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        if: ${{ steps.versions.outputs.nodeVersion }}
+        with:
+          node-version: ${{ steps.versions.outputs.nodeVersion }}
+          cache: 'pnpm'
+
+      - name: Set up php 8.3
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
+        with:
+          php-version: 8.3
+          coverage: none
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get version from package.json
+        id: version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          if [[ -n "$INPUT_VERSION" ]]; then
+            echo "version=$INPUT_VERSION" >> $GITHUB_OUTPUT
+            echo "tag_name=v$INPUT_VERSION" >> $GITHUB_OUTPUT
+          else
+            VERSION=$(node -p "require('./package.json').version")
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+            echo "tag_name=v${VERSION}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update version files
+        if: ${{ github.event.inputs.version }}
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          pnpm version $VERSION --no-git-tag-version --no-commit-hooks
+          sed -i "s|<version>.*</version>|<version>$VERSION</version>|g" appinfo/info.xml
+
+      - name: Install pnpm dependencies
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+          PUPPETEER_SKIP_DOWNLOAD: true
+        run: pnpm install --frozen-lockfile
+
+      - name: Install composer dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Build JavaScript
+        run: pnpm run build
+
+      - name: Build Nextcloud App
+        run: |
+          git submodule update --init --recursive
+          make production-setup
+          make appstore
+
+      - name: Package Nextcloud app
+        env:
+          TAG_NAME: ${{ needs.setup.outputs.tag_name }}
+        run: |
+          cd build/artifacts
+          if [ -f "cad_viewer.tar.gz" ]; then
+            mv cad_viewer.tar.gz "cad_viewer-${TAG_NAME}.tar.gz"
+          fi
+          if [ -f "cad_viewer.zip" ]; then
+            mv cad_viewer.zip "cad_viewer-${TAG_NAME}.zip"
+          fi
+          ls -la
+
+      - name: Create source archives
+        if: ${{ needs.setup.outputs.is_release == 'true' }}
+        env:
+          TAG_NAME: ${{ needs.setup.outputs.tag_name }}
+        run: |
+          mkdir -p build/artifacts
+          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.tar.gz HEAD
+          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.zip HEAD
+
+      - name: Upload all artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-${{ needs.setup.outputs.tag_name }}
+          path: build/artifacts/
+          retention-days: 90
+          compression-level: 6
+          overwrite: true
