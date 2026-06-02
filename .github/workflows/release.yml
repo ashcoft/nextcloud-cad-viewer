@@ -293,8 +293,11 @@ jobs:
 
       - name: Check if release already exists
         id: check_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if gh release view ${{ env.TAG_NAME }} --repo ${{ github.repository }} 2>/dev/null; then
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ env.TAG_NAME }}")
+          if [ "$HTTP_CODE" = "200" ]; then
             echo "Release already exists, skipping..."
             echo "release_exists=true" >> $GITHUB_OUTPUT
           else
@@ -405,8 +408,11 @@ jobs:
 
       - name: Check if release already exists
         id: check_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if gh release view ${{ steps.version.outputs.tag_name }} --repo ${{ github.repository }} 2>/dev/null; then
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ steps.version.outputs.tag_name }}")
+          if [ "$HTTP_CODE" = "200" ]; then
             echo "Release already exists, skipping..."
             echo "release_exists=true" >> $GITHUB_OUTPUT
           else
