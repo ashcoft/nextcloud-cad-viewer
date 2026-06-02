@@ -77,9 +77,13 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
         run: |
-          pnpm version $VERSION --no-git-tag-version --no-commit-hooks
-          sed -i "s|<version>.*</version>|<version>$VERSION</version>|g" appinfo/info.xml
-
+          CURRENT=$(node -p "require('./package.json').version")
+          if [[ "$CURRENT" == "$VERSION" ]]; then
+            echo "Version already $VERSION, skipping update"
+          else
+            pnpm version $VERSION --no-git-tag-version --no-commit-hooks
+            sed -i "s|<version>.*</version>|<version>$VERSION</version>|g" appinfo/info.xml
+          fi
       - name: Install pnpm dependencies
         env:
           CYPRESS_INSTALL_BINARY: 0
