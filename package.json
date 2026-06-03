@@ -6,6 +6,9 @@
   "license": "MIT",
   "author": "CAD Viewer Contributors",
   "repository": "https://github.com/ashcoft/nextcloud-cad-viewer",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=24",
     "npm": "^10 || ^11",

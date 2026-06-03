@@ -18,6 +18,9 @@ concurrency:
 permissions:
   contents: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   release:
     name: Release
@@ -54,7 +57,7 @@ jobs:
         uses: changesets/action@v1
         with:
           title: 'ci: version bump'
-          commitMessage: 'chore: version bump'
+          commit: 'chore: version bump'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
