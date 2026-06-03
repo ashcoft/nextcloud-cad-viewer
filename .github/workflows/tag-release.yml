@@ -100,8 +100,8 @@ jobs:
           TAG_NAME: ${{ steps.version.outputs.tag_name }}
         run: |
           # Use the current commit which now has updated version files
-          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.tar.gz HEAD
-          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.zip HEAD
+          git archive --format=tar.gz -o build/artifacts/cad_viewer-${TAG_NAME}-source.tar.gz HEAD
+          git archive --format=zip -o build/artifacts/cad_viewer-${TAG_NAME}-source.zip HEAD
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
