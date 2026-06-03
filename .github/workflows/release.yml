@@ -112,7 +112,23 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check for new changesets in this PR
+        id: changeset_check
+        run: |
+          # Check if this PR adds new changesets (not just existing ones)
+          # Look for changesets that were modified in this branch
+          CHANGESET_COUNT=$(git diff --name-only main...HEAD -- '.changeset/*.md' 2>/dev/null | wc -l || echo "0")
+          echo "New changesets in this PR: $CHANGESET_COUNT"
+          if [ "$CHANGESET_COUNT" -gt 0 ]; then
+            echo "changesets_exist=true" >> $GITHUB_OUTPUT
+            echo "New changesets found in this PR"
+          else
+            echo "changesets_exist=false" >> $GITHUB_OUTPUT
+            echo "No new changesets in this PR, skipping version bump"
+          fi
+
       - name: Create Release Pull Request
+        if: steps.changeset_check.outputs.changesets_exist == 'true'
         uses: changesets/action@v1
         with:
           version: pnpm changeset version
@@ -121,6 +137,10 @@ jobs:
           setupGitUser: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: No changesets - skip version bump
+        if: steps.changeset_check.outputs.changesets_exist != 'true'
+        run: echo "No changesets to process - PR does not require version bump"
 
   # Build and package the app (for tag/manual releases)
   build:
