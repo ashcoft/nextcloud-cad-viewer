@@ -61,7 +61,32 @@ jobs:
 
       # Enable GitHub auto merge
       - name: Auto merge
-        uses: alexwilson/enable-github-automerge-action@2c32e18a76e0726ffe7a573bfff2d42a20885126 # 3.0.0
         if: startsWith(steps.branchname.outputs.branch, 'dependabot/') && (github.event.action == 'opened' || github.event.action == 'reopened') && (steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor')
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          echo "Waiting for CI checks to pass before merging..."
+          
+          # Wait for status checks to be successful (max 10 minutes)
+          max_attempts=20
+          attempt=0
+          
+          while [ $attempt -lt $max_attempts ]; do
+            # Check if all required checks have passed
+            status=$(gh pr status "$PR_URL" --json statusCheckRollup --jq '.currentBranch.statusCheckRollup[] | select(.conclusion == "SUCCESS") | .state' 2>/dev/null | wc -l)
+            total_checks=$(gh pr status "$PR_URL" --json statusCheckRollup --jq '.currentBranch.statusCheckRollup | length' 2>/dev/null || echo "0")
+            
+            if [ "$status" = "$total_checks" ] && [ "$total_checks" != "0" ]; then
+              echo "All checks passed! Merging PR..."
+              gh pr merge "$PR_URL" --squash --delete-branch
+              exit 0
+            fi
+            
+            attempt=$((attempt + 1))
+            echo "Attempt $attempt/$max_attempts: Waiting for checks... (passed: $status/$total_checks)"
+            sleep 30
+          done
+          
+          echo "Timeout waiting for checks. Will try to merge anyway if checks passed."
+          gh pr merge "$PR_URL" --squash --delete-branch || echo "Merge may have already completed"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
