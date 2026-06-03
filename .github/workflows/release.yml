@@ -20,9 +20,9 @@ on:
       - 'package.json'
       - 'pnpm-lock.yaml'
 
-  pull_request_target:
-
   workflow_dispatch:
+
+  tag:
 
 concurrency:
   group: release-${{ github.ref }}
@@ -35,7 +35,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    if: github.repository == 'ashcoft/nextcloud-cad-viewer'
+    # Don't run for tag pushes - only for PRs and regular pushes with changeset changes
+    if: github.repository == 'ashcoft/nextcloud-cad-viewer' && !startsWith(github.ref, 'refs/tags/')
     outputs:
       has_changesets: ${{ steps.check.outputs.has_changesets }}
     steps:
