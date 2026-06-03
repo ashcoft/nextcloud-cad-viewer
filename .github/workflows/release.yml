@@ -296,7 +296,7 @@ jobs:
       TAG_NAME: ${{ needs.setup.outputs.tag_name }}
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ env.APP_NAME }}-${{ needs.setup.outputs.tag_name }}
           path: build/artifacts/
