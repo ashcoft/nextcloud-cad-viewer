@@ -24,6 +24,10 @@ on:
 
   tag:
 
+  repository_dispatch:
+    types:
+      - release
+
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
@@ -82,7 +86,6 @@ jobs:
     name: Create Release on Tag
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: release
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
