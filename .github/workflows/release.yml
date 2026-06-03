@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: MIT
 
-name: release
+name: Release
 
 on:
   push:
@@ -9,91 +9,28 @@ on:
       - main
     tags:
       - 'v*'
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       version:
         description: 'Version for manual release (e.g., 0.0.8)'
         required: false
         type: string
-      skip_build:
-        description: 'Skip build (only tag and release)'
-        required: false
-        type: boolean
-        default: false
-
-concurrency:
-  group: release-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: write
   pull-requests: write
 
 env:
-  NODE_OPTIONS: "--max-old-space-size=4096"
   APP_NAME: cad_viewer
 
 jobs:
-  # Determine release type and configuration
-  setup:
-    name: Determine Release Configuration
+  # Auto-versioning and PR management via Changesets
+  changesets:
+    name: Changesets
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     outputs:
-      release_type: ${{ steps.config.outputs.release_type }}
-      version: ${{ steps.config.outputs.version }}
-      tag_name: ${{ steps.config.outputs.tag_name }}
-      should_build: ${{ steps.config.outputs.should_build }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-
-      - name: Determine release configuration
-        id: config
-        env:
-          REF: ${{ github.ref }}
-          EVENT: ${{ github.event_name }}
-          INPUT_VERSION: ${{ github.event.inputs.version }}
-          INPUT_SKIP_BUILD: ${{ github.event.inputs.skip_build }}
-        run: |
-          if [[ "$EVENT" == "workflow_dispatch" ]]; then
-            if [[ -n "$INPUT_VERSION" ]]; then
-              VERSION="$INPUT_VERSION"
-              TAG_NAME="v${VERSION}"
-            else
-              VERSION=$(node -p "require('./package.json').version")
-              TAG_NAME="v${VERSION}"
-            fi
-            if [[ "$INPUT_SKIP_BUILD" == "true" ]]; then
-              SHOULD_BUILD="false"
-            else
-              SHOULD_BUILD="true"
-            fi
-            echo "release_type=manual" >> $GITHUB_OUTPUT
-          elif [[ "$REF" == refs/tags/v* ]]; then
-            VERSION="${REF#refs/tags/v}"
-            TAG_NAME="${REF#refs/tags/}"
-            SHOULD_BUILD="true"
-            echo "release_type=tag" >> $GITHUB_OUTPUT
-          else
-            VERSION=$(node -p "require('./package.json').version")
-            TAG_NAME="v${VERSION}"
-            SHOULD_BUILD="false"
-            echo "release_type=pr" >> $GITHUB_OUTPUT
-          fi
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
-          echo "should_build=${SHOULD_BUILD}" >> $GITHUB_OUTPUT
-
-  # Create version bump PR when changesets exist (PR only)
-  changeset-pr:
-    name: Create Version PR
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+      published: ${{ steps.changesets.outputs.published }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -101,7 +38,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
 
       - name: Setup node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
@@ -112,326 +49,98 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Create Release Pull Request
+      - name: Create Release Pull Request or Publish
+        id: changesets
         uses: changesets/action@v1
         with:
           version: pnpm changeset version
+          publish: pnpm changeset tag
           commit: "chore: version bump"
           title: "chore: version bump"
           setupGitUser: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Build and package the app (for tag/manual releases)
-  build:
-    name: Build App Package
+  # Setup release configuration
+  setup:
+    name: Setup Release Configuration
     runs-on: ubuntu-latest
-    needs: setup
-    if: needs.setup.outputs.should_build == 'true'
+    # Run if it's a tag push OR manual dispatch OR a changeset was just published (tagged)
+    if: |
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+      (github.event_name == 'workflow_dispatch') ||
+      (needs.changesets.outputs.published == 'true')
+    needs: [changesets]
     outputs:
-      tag_name: ${{ needs.setup.outputs.tag_name }}
-      version: ${{ needs.setup.outputs.version }}
-      release_type: ${{ needs.setup.outputs.release_type }}
+      version: ${{ steps.config.outputs.version }}
+      tag_name: ${{ steps.config.outputs.tag_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
-
-      - name: Setup node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version: "^24"
-          cache: 'pnpm'
-
-      - name: Setup php 8.3
-        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
-        with:
-          php-version: '8.3'
-          coverage: none
-
-      - name: Install dependencies
+      - name: Determine release configuration
+        id: config
         env:
-          CYPRESS_INSTALL_BINARY: 0
-          PUPPETEER_SKIP_DOWNLOAD: true
+          REF: ${{ github.ref }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
-          pnpm install --frozen-lockfile
-          composer install --no-dev --optimize-autoloader
-
-      - name: Update version files
-        if: ${{ needs.setup.outputs.release_type != 'tag' }}
-        env:
-          VERSION: ${{ needs.setup.outputs.version }}
-        run: |
-          CURRENT=$(node -p "require('./package.json').version")
-          if [[ "$CURRENT" == "$VERSION" ]]; then
-            echo "Version already $VERSION, skipping update"
+          if [[ -n "$INPUT_VERSION" ]]; then
+            VERSION="$INPUT_VERSION"
+            TAG_NAME="v${VERSION}"
+          elif [[ "$REF" == refs/tags/v* ]]; then
+            VERSION="${REF#refs/tags/v}"
+            TAG_NAME="${REF#refs/tags/}"
           else
-            pnpm version $VERSION --no-git-tag-version --no-commit-hooks
-            sed -i "s|<version>.*</version>|<version>$VERSION</version>|g" appinfo/info.xml
+            VERSION=$(node -p "require('./package.json').version")
+            TAG_NAME="v${VERSION}"
           fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
 
-      - name: Update CHANGELOG.md
-        if: ${{ needs.setup.outputs.release_type == 'tag' }}
-        env:
-          TAG_NAME: ${{ needs.setup.outputs.tag_name }}
-          VERSION: ${{ needs.setup.outputs.version }}
-        run: |
-          if ! grep -q "^## ${VERSION}" CHANGELOG.md; then
-            DATE=$(date +%Y-%m-%d)
-            {
-              echo ""
-              echo "## ${VERSION} (${DATE})"
-              echo ""
-              echo "### Features"
-              echo ""
-              echo "- TBD: Add feature notes"
-              echo ""
-              echo "### Bug Fixes"
-              echo ""
-              echo "- TBD: Add bug fix notes"
-              echo ""
-              echo "### Maintenance"
-              echo ""
-              echo "- TBD: Add maintenance notes"
-            } > /tmp/changelog_entry.txt
-            sed -i '1r /tmp/changelog_entry.txt' CHANGELOG.md
-          fi
+  # Build release artifacts using the reusable workflow
+  build:
+    name: Build Release
+    needs: [setup]
+    uses: ./.github/workflows/artifact.yml
+    with:
+      version: ${{ needs.setup.outputs.version }}
+      tag_name: ${{ needs.setup.outputs.tag_name }}
+      is_release: true
 
-      - name: Commit version updates
-        if: ${{ needs.setup.outputs.release_type == 'tag' }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json appinfo/info.xml CHANGELOG.md 2>/dev/null || true
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore: update version files for ${{ needs.setup.outputs.tag_name }}"
-            git push
-          fi
-
-      - name: Build JavaScript
-        run: pnpm run build
-
-      - name: Build projects
-        run: make production-setup
-
-      - name: Create source archives
-        env:
-          TAG_NAME: ${{ needs.setup.outputs.tag_name }}
-        run: |
-          mkdir -p build/artifacts
-          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.tar.gz HEAD
-          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.zip HEAD
-
-      - name: Package Nextcloud app
-        env:
-          TAG_NAME: ${{ needs.setup.outputs.tag_name }}
-        run: |
-          make appstore
-          cd build/artifacts
-          if [ -f "cad_viewer.tar.gz" ]; then
-            mv cad_viewer.tar.gz "cad_viewer-${TAG_NAME}.tar.gz"
-          fi
-          if [ -f "cad_viewer.zip" ]; then
-            mv cad_viewer.zip "cad_viewer-${TAG_NAME}.zip"
-          fi
-
-      - name: Create and push tag
-        if: ${{ needs.setup.outputs.release_type == 'tag' }}
-        env:
-          TAG_NAME: ${{ needs.setup.outputs.tag_name }}
-        run: |
-          if git rev-parse "$TAG_NAME" 2>/dev/null; then
-            echo "Tag $TAG_NAME already exists"
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
-            git push origin "$TAG_NAME"
-          fi
-
-      - name: Upload all artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.APP_NAME }}-${{ needs.setup.outputs.tag_name }}
-          path: build/artifacts/
-          retention-days: 90
-          compression-level: 6
-          overwrite: true
-
-  # Publish release to GitHub
+  # Publish the release to GitHub
   publish:
     name: Publish Release
     runs-on: ubuntu-latest
     needs: [setup, build]
-    if: |
-      (needs.setup.outputs.release_type == 'tag' || needs.setup.outputs.release_type == 'manual')
-      && needs.setup.outputs.should_build == 'true'
+    permissions:
+      contents: write
     env:
       TAG_NAME: ${{ needs.setup.outputs.tag_name }}
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@fa0b9128d581dd491ac9d854c1ac0972ad51130d # v4.1.8
         with:
-          name: ${{ env.APP_NAME }}-${{ needs.setup.outputs.tag_name }}
-          path: build/artifacts/
+          name: ${{ env.APP_NAME }}-${{ env.TAG_NAME }}
+          path: artifacts/
 
-      - name: List downloaded artifacts
-        run: ls -lah build/artifacts/
+      - name: List artifacts
+        run: ls -R artifacts/
 
-      - name: Validate artifacts exist
-        run: |
-          if ! ls build/artifacts/cad_viewer-${TAG_NAME}.tar.gz 1> /dev/null 2>&1; then
-            echo "ERROR: App TAR.GZ artifact not found!"
-            exit 1
-          fi
-          if ! ls build/artifacts/cad_viewer-${TAG_NAME}.zip 1> /dev/null 2>&1; then
-            echo "ERROR: App ZIP artifact not found!"
-            exit 1
-          fi
-          echo "All artifacts validated successfully"
-
-      - name: Check if release already exists
-        id: check_release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ env.TAG_NAME }}")
-          if [ "$HTTP_CODE" = "200" ]; then
-            echo "Release already exists, skipping..."
-            echo "release_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "release_exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Create Release
-        if: steps.check_release.outputs.release_exists != 'true'
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         with:
           tag_name: ${{ env.TAG_NAME }}
           name: ${{ env.TAG_NAME }}
+          body: |
+            ## Release ${{ env.TAG_NAME }}
+
+            Automated release for ${{ env.TAG_NAME }}.
+            See CHANGELOG.md for details.
           generate_release_notes: true
           files: |
-            build/artifacts/cad_viewer-${TAG_NAME}.tar.gz
-            build/artifacts/cad_viewer-${TAG_NAME}.zip
-            build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.tar.gz
-            build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish to Nextcloud App Store
-        if: env.NC_APPCLOUD_TOKEN != ''
-        env:
-          NC_APPCLOUD_TOKEN: ${{ secrets.NC_APPCLOUD_TOKEN }}
-        run: |
-          echo "Publishing to Nextcloud App Store..."
-          # Add your Nextcloud App Store publishing script here
-
-  # Handle push to main branch (changeset-based release from version bump PR)
-  changeset-release:
-    name: Publish Changeset Release
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
-
-      - name: Setup node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version: "^24"
-          cache: 'pnpm'
-
-      - name: Setup php 8.3
-        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
-        with:
-          php-version: '8.3'
-          coverage: none
-
-      - name: Install dependencies
-        env:
-          CYPRESS_INSTALL_BINARY: 0
-          PUPPETEER_SKIP_DOWNLOAD: true
-        run: |
-          pnpm install --frozen-lockfile
-          composer install --no-dev --optimize-autoloader
-
-      - name: Build JavaScript
-        run: pnpm run build
-
-      - name: Build projects
-        run: make production-setup
-
-      - name: Get version from package.json
-        id: version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          TAG_NAME="v${VERSION}"
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
-
-      - name: Package Nextcloud app
-        env:
-          TAG_NAME: ${{ steps.version.outputs.tag_name }}
-        run: |
-          make appstore
-          cd build/artifacts
-          if [ -f "cad_viewer.tar.gz" ]; then
-            mv cad_viewer.tar.gz "cad_viewer-${TAG_NAME}.tar.gz"
-          fi
-          if [ -f "cad_viewer.zip" ]; then
-            mv cad_viewer.zip "cad_viewer-${TAG_NAME}.zip"
-          fi
-
-      - name: Create source archives
-        env:
-          TAG_NAME: ${{ steps.version.outputs.tag_name }}
-        run: |
-          mkdir -p build/artifacts
-          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.tar.gz HEAD
-          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.zip HEAD
-
-      - name: Upload all artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.APP_NAME }}-${{ steps.version.outputs.tag_name }}
-          path: build/artifacts/
-          retention-days: 90
-          compression-level: 6
-          overwrite: true
-
-      - name: Check if release already exists
-        id: check_release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ steps.version.outputs.tag_name }}")
-          if [ "$HTTP_CODE" = "200" ]; then
-            echo "Release already exists, skipping..."
-            echo "release_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "release_exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Publish to GitHub Releases
-        if: steps.check_release.outputs.release_exists != 'true'
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
-        with:
-          generate_release_notes: true
-          files: |
-            build/artifacts/cad_viewer-*.tar.gz
-            build/artifacts/cad_viewer-*.zip
-            build/artifacts/nextcloud-cad-viewer-*.tar.gz
-            build/artifacts/nextcloud-cad-viewer-*.zip
+            artifacts/cad_viewer-${{ env.TAG_NAME }}.tar.gz
+            artifacts/cad_viewer-${{ env.TAG_NAME }}.zip
+            artifacts/nextcloud-cad-viewer-${{ env.TAG_NAME }}.tar.gz
+            artifacts/nextcloud-cad-viewer-${{ env.TAG_NAME }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
