@@ -56,6 +56,11 @@ module.exports = {
       'fs': path.resolve(__dirname, 'src/polyfills/empty.js'),
       'path': path.resolve(__dirname, 'src/polyfills/empty.js'),
       'crypto': path.resolve(__dirname, 'src/polyfills/empty.js'),
+      // Optional plugins for @mlightcad/cad-viewer 1.5.2+
+      // These are peer dependencies marked as optional
+      '@mlightcad/cad-pdf-plugin': path.resolve(__dirname, 'src/polyfills/empty.js'),
+      '@mlightcad/cad-svg-plugin': path.resolve(__dirname, 'src/polyfills/empty.js'),
+      '@mlightcad/cad-html-plugin': path.resolve(__dirname, 'src/polyfills/empty.js'),
     },
   },
   performance: {
