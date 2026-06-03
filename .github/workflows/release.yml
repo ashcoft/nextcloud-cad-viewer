@@ -55,7 +55,6 @@ jobs:
         with:
           title: 'ci: version bump'
           commitMessage: 'chore: version bump'
-          setupGitHubToken: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
