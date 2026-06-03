@@ -20,6 +20,10 @@ on:
       - 'package.json'
       - 'pnpm-lock.yaml'
 
+  pull_request_target:
+
+  workflow_dispatch:
+
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
@@ -32,25 +36,40 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     if: github.repository == 'ashcoft/nextcloud-cad-viewer'
+    outputs:
+      has_changesets: ${{ steps.check.outputs.has_changesets }}
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
 
+      - name: Check for changeset files
+        id: check
+        run: |
+          if [ -d ".changeset" ] && [ "$(ls -A .changeset/*.md 2>/dev/null | wc -l)" -gt 0 ]; then
+            echo "has_changesets=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changesets=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Setup pnpm
+        if: steps.check.outputs.has_changesets == 'true'
         uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
 
       - name: Set up node >=24
+        if: steps.check.outputs.has_changesets == 'true'
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: '24'
           cache: 'pnpm'
 
       - name: Install dependencies
+        if: steps.check.outputs.has_changesets == 'true'
         run: pnpm install
 
       - name: Create changeset PR or release
+        if: steps.check.outputs.has_changesets == 'true'
         uses: changesets/action@v1
         with:
           title: 'ci: version bump'
