@@ -12,14 +12,6 @@ updates:
     commit-message:
       prefix: "chore(deps)"
     groups:
-      mlightcad-ecosystem:
-        patterns:
-          - "@mlightcad/*"
-          - "three"
-          - "vue"
-          - "element-plus"
-          - "vue-i18n"
-          - "@vueuse/core"
       vue-dependencies:
         patterns:
           - "vue*"
