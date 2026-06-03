@@ -147,15 +147,6 @@ jobs:
           fi
           ls -la
 
-      - name: Create source archives
-        if: ${{ needs.setup.outputs.is_release == 'true' }}
-        env:
-          TAG_NAME: ${{ needs.setup.outputs.tag_name }}
-        run: |
-          mkdir -p build/artifacts
-          git archive --format=tar.gz -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.tar.gz HEAD
-          git archive --format=zip -o build/artifacts/nextcloud-cad-viewer-${TAG_NAME}.zip HEAD
-
       - name: Upload all artifacts
         uses: actions/upload-artifact@v7
         with:
