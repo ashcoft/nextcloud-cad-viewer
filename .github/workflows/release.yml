@@ -18,9 +18,6 @@ concurrency:
 permissions:
   contents: write
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-
 jobs:
   release:
     name: Release
@@ -31,13 +28,6 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
-
-      - name: Read package.json node and pnpm engines version
-        uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
-        id: versions
-        with:
-          fallbackNode: '^24'
-          fallbackNpm: '^10'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
@@ -51,13 +41,25 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Create changeset PR or release
-        uses: changesets/action@v1
+      - name: Check for changesets
+        id: changesets
+        run: |
+          if [ -d ".changeset" ] && [ "$(ls -A .changeset 2>/dev/null | grep -v config.json)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+          echo "Has changesets: $has_changes"
+
+      - name: Create version bump PR
+        if: steps.changesets.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit: 'chore: version bump'
           title: 'ci: version bump'
-          createGithubReleases: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          body: 'Version bump PR created by CI'
+          branch: chore/version-bump
 
   release_on_tag:
     name: Create Release on Tag
