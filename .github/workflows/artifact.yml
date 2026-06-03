@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version for build (optional)'
+        description: 'Version for build (e.g., 0.0.9)'
         required: false
         type: string
   push:
@@ -34,6 +34,7 @@ jobs:
     outputs:
       tag_name: ${{ steps.config.outputs.tag_name }}
       is_release: ${{ steps.config.outputs.is_release }}
+      version: ${{ steps.config.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -50,11 +51,13 @@ jobs:
           if [[ -n "$INPUT_VERSION" ]]; then
             TAG_NAME="v${INPUT_VERSION}"
             echo "is_release=true" >> $GITHUB_OUTPUT
+            echo "version=${INPUT_VERSION}" >> $GITHUB_OUTPUT
           else
             # For PRs and regular pushes, use branch name and short SHA
-            SANITIZED_REF=$(echo "$REF_NAME" | sed 's/[^a-zA-Z0-9._-]/_/g')
-            TAG_NAME="${SANITIZED_REF}-${SHA}"
+            SANITIZED_REF=$(echo "$REF" | sed 's|refs/heads/||' | sed 's/[^a-zA-Z0-9._-]/_/g')
+            TAG_NAME="${SANITIZED_REF}-${SHA:0:8}"
             echo "is_release=false" >> $GITHUB_OUTPUT
+            echo "version=0.0.0" >> $GITHUB_OUTPUT
           fi
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
 
@@ -94,27 +97,48 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get version from package.json
-        id: version
+      - name: Update version files for release
+        if: ${{ needs.setup.outputs.is_release == 'true' }}
         env:
-          INPUT_VERSION: ${{ github.event.inputs.version }}
+          VERSION: ${{ needs.setup.outputs.version }}
         run: |
-          if [[ -n "$INPUT_VERSION" ]]; then
-            echo "version=$INPUT_VERSION" >> $GITHUB_OUTPUT
-            echo "tag_name=v$INPUT_VERSION" >> $GITHUB_OUTPUT
-          else
-            VERSION=$(node -p "require('./package.json').version")
-            echo "version=${VERSION}" >> $GITHUB_OUTPUT
-            echo "tag_name=v${VERSION}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Update version files
-        if: ${{ github.event.inputs.version }}
-        env:
-          VERSION: ${{ github.event.inputs.version }}
-        run: |
+          # Update package.json version
           pnpm version $VERSION --no-git-tag-version --no-commit-hooks
+
+          # Update info.xml version using proper XML-aware replacement
           sed -i "s|<version>.*</version>|<version>$VERSION</version>|g" appinfo/info.xml
+
+          # Increment CHANGELOG.md: move Unreleased section to version entry
+          python3 << 'EOF'
+          import re
+          import datetime
+
+          changelog_path = 'CHANGELOG.md'
+          version = '$VERSION'
+
+          with open(changelog_path, 'r') as f:
+              content = f.read()
+
+          today = datetime.date.today().strftime('%Y-%m-%d')
+
+          # Check if Unreleased section exists
+          unreleased_pattern = r'(## \[Unreleased\]\n(?:.*?\n)*?)(?=## \[|\Z)'
+          match = re.search(unreleased_pattern, content, re.DOTALL)
+
+          if match:
+              unreleased_section = match.group(1)
+
+              # Replace Unreleased with new version
+              new_version_section = f"## [{version}] - {today}\n\n### Changed\n\n- Initial release\n\n---\n\n{unreleased_section}"
+              content = content.replace(unreleased_section, new_version_section, 1)
+
+              with open(changelog_path, 'w') as f:
+                  f.write(content)
+
+              print(f"Updated CHANGELOG.md with version {version}")
+          else:
+              print("No Unreleased section found, skipping changelog update")
+          EOF
 
       - name: Install pnpm dependencies
         env:

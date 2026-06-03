@@ -78,20 +78,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version Increment Process
 
-When a release tag is pushed (e.g., `v0.0.9`), the release workflow automatically:
+When a release build is triggered via `workflow_dispatch` with a version input (e.g., `0.0.9`), the build workflow automatically:
 
-1. **Updates package.json and package-lock.json** via `pnpm version`
+1. **Updates package.json** via `pnpm version`
 2. **Updates appinfo/info.xml** via sed replacement
-3. **Updates CHANGELOG.md** with new version entry template
-4. **Commits all changes** and pushes to main branch
-5. **Creates git tag** for the release
+3. **Updates CHANGELOG.md** by converting the `[Unreleased]` section to a versioned entry
+4. **Builds the Nextcloud app** with updated version files
+5. **Packages artifacts** with versioned filenames (e.g., `cad_viewer-v0.0.9.tar.gz`)
 
-### Manual Version Update
+### Manual Release Build
 
-To update version locally:
+To trigger a release build:
+
+1. Navigate to GitHub Actions → "Build Nextcloud App"
+2. Click "Run workflow"
+3. Enter the version number (e.g., `0.0.9`)
+4. The workflow will:
+   - Update all version files
+   - Increment CHANGELOG.md
+   - Create the release artifact
+
+### Local Version Update
 
 ```bash
-# Update all version files
+# Update all version files locally
 pnpm version 0.0.9 --no-git-tag-version
 sed -i 's|<version>.*</version>|<version>0.0.9</version>|' appinfo/info.xml
 ```
