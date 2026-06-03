@@ -12,8 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored release and artifact workflows for version increments
 - Updated README with streamlined documentation
 
-## [2.0.8] - 2026-05-27
-
 ### Bug Fixes
 
 - Replace broken upload-release-action with softprops/action-gh-release
