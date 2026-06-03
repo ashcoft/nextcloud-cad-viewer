@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: MIT
 
-name: Build Nextcloud App
+name: Build Artifacts
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version for build (optional)'
+        description: 'Version for build (optional, e.g., 0.0.9)'
         required: false
         type: string
   push:
@@ -25,9 +25,9 @@ concurrency:
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
   APP_NAME: cad_viewer
+  APP_ID: cad_viewer
 
 jobs:
-  # Determine build configuration
   setup:
     name: Determine Build Configuration
     runs-on: ubuntu-latest
@@ -44,16 +44,15 @@ jobs:
         id: config
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
-          REF: ${{ github.ref }}
+          REF: ${{ github.ref_name }}
           SHA: ${{ github.sha }}
         run: |
           if [[ -n "$INPUT_VERSION" ]]; then
             TAG_NAME="v${INPUT_VERSION}"
             echo "is_release=true" >> $GITHUB_OUTPUT
           else
-            # For PRs and regular pushes, use branch name and short SHA
-            SANITIZED_REF=$(echo "$REF_NAME" | sed 's/[^a-zA-Z0-9._-]/_/g')
-            TAG_NAME="${SANITIZED_REF}-${SHA}"
+            SANITIZED_REF=$(echo "$REF" | sed 's/[^a-zA-Z0-9._-]/_/g')
+            TAG_NAME="${SANITIZED_REF}-${SHA:0:8}"
             echo "is_release=false" >> $GITHUB_OUTPUT
           fi
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
@@ -94,20 +93,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get version from package.json
-        id: version
-        env:
-          INPUT_VERSION: ${{ github.event.inputs.version }}
-        run: |
-          if [[ -n "$INPUT_VERSION" ]]; then
-            echo "version=$INPUT_VERSION" >> $GITHUB_OUTPUT
-            echo "tag_name=v$INPUT_VERSION" >> $GITHUB_OUTPUT
-          else
-            VERSION=$(node -p "require('./package.json').version")
-            echo "version=${VERSION}" >> $GITHUB_OUTPUT
-            echo "tag_name=v${VERSION}" >> $GITHUB_OUTPUT
-          fi
-
       - name: Update version files
         if: ${{ github.event.inputs.version }}
         env:
@@ -145,7 +130,6 @@ jobs:
           if [ -f "cad_viewer.zip" ]; then
             mv cad_viewer.zip "cad_viewer-${TAG_NAME}.zip"
           fi
-          ls -la
 
       - name: Upload all artifacts
         uses: actions/upload-artifact@v7
