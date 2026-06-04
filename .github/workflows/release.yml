@@ -4,14 +4,6 @@
 name: Release
 
 on:
-  pull_request:
-    branches:
-      - main
-    types:
-      - opened
-      - synchronize
-      - reopened
-
   push:
     branches:
       - main
@@ -56,22 +48,21 @@ jobs:
           fi
 
       - name: Setup pnpm
-        if: steps.check.outputs.has_changesets == 'true'
         uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        if: success() && steps.check.outputs.has_changesets == 'true'
 
       - name: Set up node >=24
-        if: steps.check.outputs.has_changesets == 'true'
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: '24'
           cache: 'pnpm'
+        if: success() && steps.check.outputs.has_changesets == 'true'
 
       - name: Install dependencies
-        if: steps.check.outputs.has_changesets == 'true'
         run: pnpm install
+        if: success() && steps.check.outputs.has_changesets == 'true'
 
       - name: Create changeset PR or release
-        if: steps.check.outputs.has_changesets == 'true'
         uses: changesets/action@v1
         with:
           title: 'ci: version bump'

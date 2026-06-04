@@ -12,8 +12,21 @@ on:
         type: string
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'webpack.config.js'
+      - 'tsconfig.json'
+      - 'babel.config.js'
+      - 'Makefile'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'lib/**'
+      - 'css/**'
+      - 'templates/**'
+      - 'appinfo/**'
+      - 'img/**'
 
 permissions:
   contents: read
@@ -28,44 +41,12 @@ env:
   APP_ID: cad_viewer
 
 jobs:
-  setup:
-    name: Determine Build Configuration
-    runs-on: ubuntu-latest
-    outputs:
-      tag_name: ${{ steps.config.outputs.tag_name }}
-      is_release: ${{ steps.config.outputs.is_release }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          fetch-depth: 0
-
-      - name: Determine build configuration
-        id: config
-        env:
-          INPUT_VERSION: ${{ github.event.inputs.version }}
-          REF: ${{ github.ref_name }}
-          SHA: ${{ github.sha }}
-        run: |
-          if [[ -n "$INPUT_VERSION" ]]; then
-            TAG_NAME="v${INPUT_VERSION}"
-            echo "is_release=true" >> $GITHUB_OUTPUT
-          else
-            SANITIZED_REF=$(echo "$REF" | sed 's/[^a-zA-Z0-9._-]/_/g')
-            TAG_NAME="${SANITIZED_REF}-${SHA:0:8}"
-            echo "is_release=false" >> $GITHUB_OUTPUT
-          fi
-          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-
   build:
     name: Build App Package
     runs-on: ubuntu-latest
-    needs: setup
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
@@ -112,8 +93,16 @@ jobs:
 
       - name: Package Nextcloud app
         env:
-          TAG_NAME: ${{ needs.setup.outputs.tag_name }}
+          REF: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
+          if [[ -n "$INPUT_VERSION" ]]; then
+            TAG_NAME="v${INPUT_VERSION}"
+          else
+            SANITIZED_REF=$(echo "$REF" | sed 's/[^a-zA-Z0-9._-]/_/g')
+            TAG_NAME="${SANITIZED_REF}-${SHA:0:8}"
+          fi
           cd build/artifacts
           if [ -f "cad_viewer.tar.gz" ]; then
             mv cad_viewer.tar.gz "cad_viewer-${TAG_NAME}.tar.gz"
@@ -125,7 +114,7 @@ jobs:
       - name: Upload all artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.APP_NAME }}-${{ needs.setup.outputs.tag_name }}
+          name: ${{ env.APP_NAME }}-${{ github.run_id }}
           path: build/artifacts/
           retention-days: 90
           compression-level: 6
