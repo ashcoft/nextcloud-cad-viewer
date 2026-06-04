@@ -73,25 +73,22 @@ jobs:
           pnpm version $VERSION --no-git-tag-version --no-commit-hooks
           sed -i "s|<version>.*</version>|<version>$VERSION</version>|g" appinfo/info.xml
 
-      - name: Install pnpm dependencies
+      - name: Install dependencies
         env:
           CYPRESS_INSTALL_BINARY: 0
           PUPPETEER_SKIP_DOWNLOAD: true
-        run: pnpm install --frozen-lockfile
-
-      - name: Install composer dependencies
-        run: composer install --no-dev --optimize-autoloader
-
-      - name: Build JavaScript
-        run: pnpm run build
-
-      - name: Build Nextcloud App
         run: |
+          pnpm install --frozen-lockfile
+          composer install --no-dev --optimize-autoloader
+
+      - name: Build
+        run: |
+          pnpm run build
           git submodule update --init --recursive
           make production-setup
           make appstore
 
-      - name: Package Nextcloud app
+      - name: Package artifacts
         env:
           REF: ${{ github.ref_name }}
           SHA: ${{ github.sha }}
@@ -104,14 +101,10 @@ jobs:
             TAG_NAME="${SANITIZED_REF}-${SHA:0:8}"
           fi
           cd build/artifacts
-          if [ -f "cad_viewer.tar.gz" ]; then
-            mv cad_viewer.tar.gz "cad_viewer-${TAG_NAME}.tar.gz"
-          fi
-          if [ -f "cad_viewer.zip" ]; then
-            mv cad_viewer.zip "cad_viewer-${TAG_NAME}.zip"
-          fi
+          [[ -f "cad_viewer.tar.gz" ]] && mv cad_viewer.tar.gz "cad_viewer-${TAG_NAME}.tar.gz"
+          [[ -f "cad_viewer.zip" ]] && mv cad_viewer.zip "cad_viewer-${TAG_NAME}.zip"
 
-      - name: Upload all artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.APP_NAME }}-${{ github.run_id }}
