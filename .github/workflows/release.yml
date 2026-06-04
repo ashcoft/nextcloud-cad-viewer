@@ -4,14 +4,6 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '.changeset/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-
   workflow_dispatch:
 
 concurrency:
@@ -53,7 +45,7 @@ jobs:
       - name: Check for changesets
         id: check_changesets
         run: |
-          CHANGESET_COUNT=$(find .changeset -maxdepth 1 -name "*.md" ! -name "README.md" ! -name "config.json" | wc -l)
+          CHANGESET_COUNT=$(find .changeset -maxdepth 1 -name "*.md" ! -name "README.md" ! -name "config.json" 2>/dev/null | wc -l)
           echo "changeset_count=$CHANGESET_COUNT" >> $GITHUB_OUTPUT
           echo "Changesets found: $CHANGESET_COUNT"
 
@@ -70,8 +62,9 @@ jobs:
           git add .
           git commit -m "chore: version bump
 
-          Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+          Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || exit 0
 
       - name: Push changes
         if: steps.check_changesets.outputs.changeset_count != '0'
-        run: git push origin main
+        run: |
+          git push origin main || exit 0
