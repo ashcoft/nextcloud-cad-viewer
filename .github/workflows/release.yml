@@ -53,13 +53,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Update info.xml version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          sed -i "s|<version>[0-9.]*</version>|<version>${VERSION}</version>|g" appinfo/info.xml
-          echo "Updated info.xml to version $VERSION"
-
-      - name: Create Changeset PR or Release
+      - name: Run changesets
         uses: changesets/action@v1
         with:
           title: 'chore: version bump'
