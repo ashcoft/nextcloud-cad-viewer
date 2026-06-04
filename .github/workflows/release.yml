@@ -82,8 +82,6 @@ jobs:
 
       - name: Create tag and release
         if: steps.check_changesets.outputs.changeset_count != '0'
-        env:
-          VERSION: ${{ steps.version.outputs.new_version }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
           TAG_NAME="v${VERSION}"
@@ -93,22 +91,12 @@ jobs:
             git push origin "$TAG_NAME"
 
             # Create GitHub Release
-            CHANGELOG=$(cat <<'EOF' | head -20
-## What's Changed
-This release includes changes from changesets.
-EOF
-            )
+            CHANGELOG="## What's Changed\nThis release includes changes from changesets."
 
             curl -s -X POST "https://api.github.com/repos/${{ github.repository }}/releases" \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Content-Type: application/json" \
-              -d "{
-                \"tag_name\": \"$TAG_NAME\",
-                \"name\": \"Release $TAG_NAME\",
-                \"body\": \"$CHANGELOG\",
-                \"draft\": false,
-                \"prerelease\": false
-              }"
+              -d "{\"tag_name\": \"$TAG_NAME\", \"name\": \"Release $TAG_NAME\", \"body\": \"$CHANGELOG\", \"draft\": false, \"prerelease\": false}"
           fi
 
       - name: Push changes
