@@ -46,26 +46,61 @@ jobs:
           else
             echo "has_changesets=false" >> $GITHUB_OUTPUT
           fi
+          echo "Files found: $(ls -la .changeset/*.md 2>/dev/null || echo 'none')"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
-        if: success() && steps.check.outputs.has_changesets == 'true'
+        if: steps.check.outputs.has_changesets == 'true'
 
       - name: Set up node >=24
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: '24'
           cache: 'pnpm'
-        if: success() && steps.check.outputs.has_changesets == 'true'
+        if: steps.check.outputs.has_changesets == 'true'
 
       - name: Install dependencies
-        run: pnpm install
-        if: success() && steps.check.outputs.has_changesets == 'true'
+        run: pnpm install --frozen-lockfile
+        if: steps.check.outputs.has_changesets == 'true'
 
-      - name: Create changeset PR or release
-        uses: changesets/action@v1
-        with:
-          title: 'ci: version bump'
-          createGithubReleases: false
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+        if: steps.check.outputs.has_changesets == 'true'
+
+      - name: Version bump
+        run: |
+          pnpm changeset version
+          echo "=== Version bumped ==="
+        if: steps.check.outputs.has_changesets == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update info.xml version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          sed -i "s|<version>[0-9.]*</version>|<version>${VERSION}</version>|g" appinfo/info.xml
+          echo "Updated info.xml to version $VERSION"
+        if: steps.check.outputs.has_changesets == 'true'
+
+      - name: Create Pull Request
+        if: steps.check.outputs.has_changesets == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: version bump'
+          title: 'chore: version bump'
+          body: |
+            ## Summary
+            This PR was created by the Release workflow to bump the version based on changeset changes.
+          branch: version-bump
+          delete-branch: true
+          labels: |
+            release
+
+      - name: Publish Release
+        if: steps.check.outputs.has_changesets == 'true' && github.event_name == 'workflow_dispatch'
+        run: |
+          echo "Release workflow triggered manually - version bump PR created"
+          echo "Please merge the PR to complete the release process"
