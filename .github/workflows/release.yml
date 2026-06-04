@@ -58,7 +58,6 @@ jobs:
         uses: changesets/action@v1
         with:
           title: 'chore: version bump'
-          commit-message: 'chore: version bump'
           version: |
             pnpm changeset version
             VERSION=$(node -p "require('./package.json').version")
