@@ -128,7 +128,8 @@ jobs:
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           echo "Current version: $CURRENT_VERSION"
 
-          # Run changeset version - this updates versions AND generates CHANGELOG.md
+          # Run changeset version - this updates versions, CHANGELOG.md with GitHub links, and prepares release
+          # Since @changesets/changelog-github is installed, changelog will include GitHub PR links and usernames
           pnpm changeset version || exit 1
 
           NEW_VERSION=$(node -p "require('./package.json').version")
@@ -137,16 +138,16 @@ jobs:
           if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
             echo "version_changed=true" >> $GITHUB_OUTPUT
             
-            # Update info.xml with new version
+            # Update info.xml with new version (changesets doesn't update this automatically)
             sed -i "s|<version>[0-9.]*</version>|<version>${NEW_VERSION}</version>|g" appinfo/info.xml
             
-            # Ensure CHANGELOG.md was created/updated
+            # Verify CHANGELOG.md was created/updated
             if [ -f "CHANGELOG.md" ]; then
-              echo "CHANGELOG.md successfully updated"
-              # Preview first few lines of changelog
-              head -20 CHANGELOG.md
+              echo "✅ CHANGELOG.md successfully updated by changesets (with GitHub integration)"
+              echo "First few lines of CHANGELOG.md:"
+              head -15 CHANGELOG.md
             else
-              echo "Warning: CHANGELOG.md was not created"
+              echo "⚠️ Warning: CHANGELOG.md was not created"
             fi
             
             echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
@@ -176,42 +177,37 @@ jobs:
           # Update info.xml
           sed -i "s|<version>[0-9.]*</version>|<version>${NEW_VERSION}</version>|g" appinfo/info.xml
 
-          # Generate/update CHANGELOG.md manually since we're not using changesets
-          # Get previous version tag
+          # Generate CHANGELOG.md manually for manual releases (since changesets won't run)
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           
-          # Generate changelog entries
           if [ -n "$PREVIOUS_TAG" ]; then
-            # Get commits since last tag
-            CHANGELOG_ENTRIES=$(git log "${PREVIOUS_TAG}..HEAD" --pretty=format:"- %s (%an)" --no-merges)
+            # Create changelog entry with GitHub formatting
+            CHANGELOG_ENTRY="## [$NEW_VERSION] - $(date -u +%Y-%m-%d)\n\n"
+            CHANGELOG_ENTRY="${CHANGELOG_ENTRY}### What's Changed\n\n"
             
-            # Create or update CHANGELOG.md
-            if [ -f "CHANGELOG.md" ]; then
-              # Prepend new version to existing changelog
-              TEMP_FILE=$(mktemp)
-              echo "# Changelog" > "$TEMP_FILE"
-              echo "" >> "$TEMP_FILE"
-              echo "## [$NEW_VERSION] - $(date -u +%Y-%m-%d)" >> "$TEMP_FILE"
-              echo "" >> "$TEMP_FILE"
-              echo "$CHANGELOG_ENTRIES" >> "$TEMP_FILE"
-              echo "" >> "$TEMP_FILE"
-              # Append existing changelog content (skip the first line if it's "# Changelog")
-              tail -n +2 "CHANGELOG.md" >> "$TEMP_FILE"
-              mv "$TEMP_FILE" "CHANGELOG.md"
+            # Get commits since last tag and format with GitHub links
+            COMMITS=$(git log "${PREVIOUS_TAG}..HEAD" --pretty=format:"- %s ([%h](https://github.com/${GITHUB_REPOSITORY}/commit/%H)) by @%an" --no-merges)
+            
+            if [ -n "$COMMITS" ]; then
+              CHANGELOG_ENTRY="${CHANGELOG_ENTRY}${COMMITS}\n\n"
             else
-              # Create new changelog
-              cat > "CHANGELOG.md" << EOF
-# Changelog
-
-## [$NEW_VERSION] - $(date -u +%Y-%m-%d)
-
-$CHANGELOG_ENTRIES
-
-EOF
+              CHANGELOG_ENTRY="${CHANGELOG_ENTRY}No changes recorded\n\n"
             fi
-            echo "CHANGELOG.md manually updated"
+            
+            CHANGELOG_ENTRY="${CHANGELOG_ENTRY}**Full Changelog**: [${PREVIOUS_TAG}...v${NEW_VERSION}](https://github.com/${GITHUB_REPOSITORY}/compare/${PREVIOUS_TAG}...v${NEW_VERSION})\n\n"
+            
+            # Update CHANGELOG.md
+            if [ -f "CHANGELOG.md" ]; then
+              # Prepend new entry
+              echo -e "$CHANGELOG_ENTRY\n$(cat CHANGELOG.md)" > CHANGELOG.md
+            else
+              echo -e "# Changelog\n\n$CHANGELOG_ENTRY" > CHANGELOG.md
+            fi
+            
+            echo "✅ CHANGELOG.md manually updated with GitHub links"
           else
-            echo "No previous tag found, skipping changelog generation"
+            echo "No previous tag found, creating initial CHANGELOG.md"
+            echo -e "# Changelog\n\n## [$NEW_VERSION] - $(date -u +%Y-%m-%d)\n\nInitial release\n" > CHANGELOG.md
           fi
 
           if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
@@ -233,127 +229,45 @@ EOF
           echo "Final version: $VERSION"
           echo "final_version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Create version bump commit (with changelog)
+      - name: Create version bump commit (includes CHANGELOG.md and updated files)
         if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
         run: |
           git add .
+          git status
           git commit -m "chore: version bump to ${{ steps.final_version.outputs.final_version }}
 
-          Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || exit 0
+          Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || echo "Nothing to commit"
 
       - name: Build Nextcloud App Package
         if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
         run: |
-          echo "Building Nextcloud app package..."
+          echo "Building Nextcloud app package for version ${{ steps.final_version.outputs.final_version }}..."
           git submodule update --init --recursive
           make production-setup
           make appstore
           
-          echo "Build artifacts:"
+          echo "✅ Build artifacts created successfully:"
           ls -la build/artifacts/
-
-      - name: Generate enhanced changelog for release notes
-        if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
-        id: release_notes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION="${{ steps.final_version.outputs.final_version }}"
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          TAG_NAME="v${VERSION}"
           
-          # Get current date
-          RELEASE_DATE=$(date -u +"%Y-%m-%d")
-          
-          # Initialize changelog sections
-          FEATURES=""
-          FIXES=""
-          DEPS=""
-          DOCS=""
-          NEW_CONTRIBUTORS=""
-          OTHER=""
-          
-          if [ -n "$PREVIOUS_TAG" ]; then
-            # Get all commits since last tag
-            COMMITS=$(git log "${PREVIOUS_TAG}..HEAD" --pretty=format:"%s|||%an|||%ae" --no-merges)
-            
-            # Track new contributors
-            PREVIOUS_CONTRIBUTORS=$(git log "${PREVIOUS_TAG}" --pretty=format:"%ae" | sort -u)
-            
-            # Process each commit
-            while IFS= read -r commit; do
-              if [ -n "$commit" ]; then
-                MSG=$(echo "$commit" | cut -d'|' -f1)
-                AUTHOR_NAME=$(echo "$commit" | cut -d'|' -f2)
-                AUTHOR_EMAIL=$(echo "$commit" | cut -d'|' -f3)
-                
-                # Check if this is a new contributor
-                if ! echo "$PREVIOUS_CONTRIBUTORS" | grep -q "$AUTHOR_EMAIL"; then
-                  if ! echo "$NEW_CONTRIBUTORS" | grep -q "$AUTHOR_NAME"; then
-                    NEW_CONTRIBUTORS="${NEW_CONTRIBUTORS}\n- @${AUTHOR_NAME} (${AUTHOR_EMAIL})"
-                  fi
-                fi
-                
-                # Categorize commits based on conventional commit prefixes
-                if echo "$MSG" | grep -qiE '^(feat|feature|✨|new|add)'; then
-                  FEATURES="${FEATURES}\n- ${MSG}"
-                elif echo "$MSG" | grep -qiE '^(fix|bug|🐛|patch|resolve)'; then
-                  FIXES="${FIXES}\n- ${MSG}"
-                elif echo "$MSG" | grep -qiE '^(docs|📄)'; then
-                  DOCS="${DOCS}\n- ${MSG}"
-                elif echo "$MSG" | grep -qiE '^(chore|depends?|depend|⬆️|deps|update)'; then
-                  DEPS="${DEPS}\n- ${MSG}"
-                else
-                  OTHER="${OTHER}\n- ${MSG}"
-                fi
-              fi
-            done <<< "$COMMITS"
-          fi
-          
-          # Build the final release notes
-          RELEASE_NOTES="## What's Changed\n"
-          
-          if [ -n "$FEATURES" ]; then
-            RELEASE_NOTES="${RELEASE_NOTES}\n### 🚀 New features and other improvements\n${FEATURES}\n"
-          fi
-          
-          if [ -n "$FIXES" ]; then
-            RELEASE_NOTES="${RELEASE_NOTES}\n### 🐞 Fixed bugs\n${FIXES}\n"
-          fi
-          
-          if [ -n "$DEPS" ]; then
-            RELEASE_NOTES="${RELEASE_NOTES}\n### 👒 Updated dependencies\n${DEPS}\n"
-          fi
-          
-          if [ -n "$DOCS" ]; then
-            RELEASE_NOTES="${RELEASE_NOTES}\n### 📄 Improved documentation\n${DOCS}\n"
-          fi
-          
-          if [ -n "$OTHER" ]; then
-            RELEASE_NOTES="${RELEASE_NOTES}\n### 🔧 Other changes\n${OTHER}\n"
-          fi
-          
-          if [ -n "$NEW_CONTRIBUTORS" ]; then
-            RELEASE_NOTES="${RELEASE_NOTES}\n### 👥 New Contributors\n${NEW_CONTRIBUTORS}\n"
-          fi
-          
-          if [ -n "$PREVIOUS_TAG" ]; then
-            RELEASE_NOTES="${RELEASE_NOTES}\n**Full Changelog**: [${PREVIOUS_TAG}...${TAG_NAME}](https://github.com/${GITHUB_REPOSITORY}/compare/${PREVIOUS_TAG}...${TAG_NAME})\n"
+          # Verify the packages are valid
+          if [ -f "build/artifacts/cad_viewer.tar.gz" ] && [ -f "build/artifacts/cad_viewer.zip" ]; then
+            echo "✅ Both tar.gz and zip packages created"
+            echo "Package sizes:"
+            du -h build/artifacts/cad_viewer.tar.gz
+            du -h build/artifacts/cad_viewer.zip
           else
-            RELEASE_NOTES="${RELEASE_NOTES}\n**Full Changelog**: [${TAG_NAME}](https://github.com/${GITHUB_REPOSITORY}/commits/${TAG_NAME})\n"
+            echo "❌ Build artifacts missing!"
+            exit 1
           fi
-          
-          # Save release notes to file
-          echo "$RELEASE_NOTES" > /tmp/release_notes.md
-          echo "release_notes_path=/tmp/release_notes.md" >> $GITHUB_OUTPUT
 
-      - name: Create tag and release
+      - name: Create tag and GitHub Release (with changelog)
         if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ steps.final_version.outputs.final_version }}"
           TAG_NAME="v${VERSION}"
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           
           if ! git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
             # Push tag first
@@ -363,29 +277,61 @@ EOF
             # Wait for tag to be available
             sleep 3
             
-            # Add release header
-            RELEASE_HEADER="## ${TAG_NAME} - $(date -u +"%B %d, %Y")\n\n"
-            
-            # Detect Nextcloud version from info.xml
-            NC_VERSION=$(grep -oP '(?<=<nextcloud-min-version>)[0-9.]+(?=</nextcloud-min-version>)' appinfo/info.xml 2>/dev/null || echo "")
-            if [ -n "$NC_VERSION" ]; then
-              RELEASE_HEADER="${RELEASE_HEADER}> **Requires Nextcloud ${NC_VERSION} or later**\n\n"
+            # Extract the release notes for this version from CHANGELOG.md
+            if [ -f "CHANGELOG.md" ]; then
+              # Extract the section for this version (supports both [version] and version formats)
+              RELEASE_NOTES=$(sed -n "/## \\[${VERSION}\\]/,/## \\[.*\\]/p" CHANGELOG.md | sed '$d')
+              if [ -z "$RELEASE_NOTES" ]; then
+                RELEASE_NOTES=$(sed -n "/## ${VERSION}/,/## /p" CHANGELOG.md | sed '$d')
+              fi
+              if [ -z "$RELEASE_NOTES" ]; then
+                # If still empty, use the whole changelog but limit size
+                RELEASE_NOTES=$(head -500 CHANGELOG.md)
+              fi
+              
+              # Add a header with installation instructions
+              INSTALL_HEADER="## 🚀 Installation\n\n"
+              INSTALL_HEADER="${INSTALL_HEADER}This release provides two package formats for installing the CAD Viewer on your Nextcloud server:\n\n"
+              INSTALL_HEADER="${INSTALL_HEADER}- **cad_viewer.tar.gz** - Standard archive format\n"
+              INSTALL_HEADER="${INSTALL_HEADER}- **cad_viewer.zip** - Windows-compatible archive format\n\n"
+              INSTALL_HEADER="${INSTALL_HEADER}### Manual Installation\n\n"
+              INSTALL_HEADER="${INSTALL_HEADER}1. Download the package (either .tar.gz or .zip)\n"
+              INSTALL_HEADER="${INSTALL_HEADER}2. Extract the contents to your Nextcloud apps directory\n"
+              INSTALL_HEADER="${INSTALL_HEADER}3. Run: \`php occ app:enable cad_viewer\`\n\n"
+              INSTALL_HEADER="${INSTALL_HEADER}---\n\n"
+              
+              RELEASE_NOTES="${INSTALL_HEADER}${RELEASE_NOTES}"
+            else
+              # Fallback release notes
+              RELEASE_NOTES="## Release ${TAG_NAME}\n\n"
+              RELEASE_NOTES="${RELEASE_NOTES}This release includes the CAD Viewer app packages for Nextcloud.\n\n"
+              if [ -n "$PREVIOUS_TAG" ]; then
+                RELEASE_NOTES="${RELEASE_NOTES}**Full Changelog**: https://github.com/${GITHUB_REPOSITORY}/compare/${PREVIOUS_TAG}...${TAG_NAME}\n"
+              fi
             fi
             
-            # Combine header with release notes
-            RELEASE_NOTES="${RELEASE_HEADER}$(cat /tmp/release_notes.md)"
+            # Add Nextcloud version requirement header
+            NC_VERSION=$(grep -oP '(?<=<nextcloud-min-version>)[0-9.]+(?=</nextcloud-min-version>)' appinfo/info.xml 2>/dev/null || echo "")
+            if [ -n "$NC_VERSION" ]; then
+              RELEASE_NOTES="> **📋 Requirements**: Nextcloud ${NC_VERSION} or later\n\n${RELEASE_NOTES}"
+            fi
             
-            # Create GitHub Release with assets
+            # Create GitHub Release with both package formats as assets
             gh release create "$TAG_NAME" \
               --title "Release ${TAG_NAME}" \
               --notes "$RELEASE_NOTES" \
-              "build/artifacts/cad_viewer.tar.gz" \
-              "build/artifacts/cad_viewer.zip"
+              "build/artifacts/cad_viewer.tar.gz#CAD Viewer package (tar.gz)" \
+              "build/artifacts/cad_viewer.zip#CAD Viewer package (zip)"
             
-            echo "Release created with changelog"
+            echo "✅ GitHub Release ${TAG_NAME} created successfully with both package formats"
+            echo "📦 Packages attached:"
+            echo "   - cad_viewer.tar.gz"
+            echo "   - cad_viewer.zip"
+          else
+            echo "⚠️ Tag ${TAG_NAME} already exists, skipping release creation"
           fi
 
-      - name: Push changes (includes CHANGELOG.md)
+      - name: Push changes (includes CHANGELOG.md and version updates)
         if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
         run: |
           git push origin main || exit 0
@@ -399,3 +345,24 @@ EOF
 
           Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || exit 0
           git push origin main || exit 0
+
+      - name: Summary
+        if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
+        run: |
+          echo "## 🎉 Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.final_version.outputs.final_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** v${{ steps.final_version.outputs.final_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ steps.check_version.outputs.trigger_source }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Packages Created" >> $GITHUB_STEP_SUMMARY
+          echo "- cad_viewer.tar.gz" >> $GITHUB_STEP_SUMMARY
+          echo "- cad_viewer.zip" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 Files Updated" >> $GITHUB_STEP_SUMMARY
+          echo "- package.json (version: ${{ steps.final_version.outputs.final_version }})" >> $GITHUB_STEP_SUMMARY
+          echo "- appinfo/info.xml (version: ${{ steps.final_version.outputs.final_version }})" >> $GITHUB_STEP_SUMMARY
+          echo "- CHANGELOG.md (new entries added)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Release URL" >> $GITHUB_STEP_SUMMARY
+          echo "https://github.com/${GITHUB_REPOSITORY}/releases/tag/v${{ steps.final_version.outputs.final_version }}" >> $GITHUB_STEP_SUMMARY
