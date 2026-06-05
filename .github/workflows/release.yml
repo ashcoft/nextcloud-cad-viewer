@@ -60,6 +60,8 @@ jobs:
 
       - name: Version bump
         if: steps.check_changesets.outputs.changeset_count != '0'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Store current version before changeset
           CURRENT_VERSION=$(node -p "require('./package.json').version")
