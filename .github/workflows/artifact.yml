@@ -89,61 +89,26 @@ jobs:
           make appstore
 
       - name: Package artifacts
-        id: package_artifacts
         env:
           REF: ${{ github.ref_name }}
           SHA: ${{ github.sha }}
           INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
-          # Determine version tag for naming artifacts
           if [[ -n "$INPUT_VERSION" ]]; then
             TAG_NAME="v${INPUT_VERSION}"
-            VERSION="${INPUT_VERSION}"
           else
             SANITIZED_REF=$(echo "$REF" | sed 's/[^a-zA-Z0-9._-]/_/g')
             TAG_NAME="${SANITIZED_REF}-${SHA:0:8}"
-            VERSION="$TAG_NAME"
           fi
-          
           cd build/artifacts
-          
-          # Rename artifacts with version
-          if [[ -f "cad_viewer.tar.gz" ]]; then
-            mv cad_viewer.tar.gz "cad_viewer-${VERSION}.tar.gz"
-            echo "tar_gz_path=build/artifacts/cad_viewer-${VERSION}.tar.gz" >> $GITHUB_OUTPUT
-          fi
-          
-          if [[ -f "cad_viewer.zip" ]]; then
-            mv cad_viewer.zip "cad_viewer-${VERSION}.zip"
-            echo "zip_path=build/artifacts/cad_viewer-${VERSION}.zip" >> $GITHUB_OUTPUT
-          fi
-          
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
-          
-          echo "=== Packaged Artifacts ==="
-          ls -la
+          [[ -f "cad_viewer.tar.gz" ]] && mv cad_viewer.tar.gz "cad_viewer-${TAG_NAME}.tar.gz"
+          [[ -f "cad_viewer.zip" ]] && mv cad_viewer.zip "cad_viewer-${TAG_NAME}.zip"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.APP_NAME }}-${{ github.run_id }}
           path: build/artifacts/
           retention-days: 90
           compression-level: 6
           overwrite: true
-
-      - name: Upload release assets (manual dispatch with version)
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.version }}
-        uses: softprops/action-gh-release@c957f62b8d707706b07f2d59b6f5c7d6c9e7a3e7 # v2.0.6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.package_artifacts.outputs.version }}
-          name: v${{ steps.package_artifacts.outputs.version }}
-          draft: false
-          prerelease: false
-          generate_release_notes: false
-          files: |
-            ${{ steps.package_artifacts.outputs.tar_gz_path }}
-            ${{ steps.package_artifacts.outputs.zip_path }}
