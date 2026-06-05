@@ -121,13 +121,14 @@ jobs:
             echo "trigger_source=none" >> $GITHUB_OUTPUT
           fi
 
-      - name: Version bump (changesets)
+      - name: Version bump and changelog generation (changesets)
         if: steps.check_version.outputs.should_release == 'true' && steps.check_version.outputs.manual_version == ''
         id: version_bump_changeset
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           echo "Current version: $CURRENT_VERSION"
 
+          # Run changeset version - this updates versions AND generates CHANGELOG.md
           pnpm changeset version || exit 1
 
           NEW_VERSION=$(node -p "require('./package.json').version")
@@ -135,14 +136,26 @@ jobs:
 
           if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
             echo "version_changed=true" >> $GITHUB_OUTPUT
+            
+            # Update info.xml with new version
             sed -i "s|<version>[0-9.]*</version>|<version>${NEW_VERSION}</version>|g" appinfo/info.xml
+            
+            # Ensure CHANGELOG.md was created/updated
+            if [ -f "CHANGELOG.md" ]; then
+              echo "CHANGELOG.md successfully updated"
+              # Preview first few lines of changelog
+              head -20 CHANGELOG.md
+            else
+              echo "Warning: CHANGELOG.md was not created"
+            fi
+            
             echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           else
             echo "version_changed=false" >> $GITHUB_OUTPUT
             echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           fi
 
-      - name: Version bump (manual)
+      - name: Version bump and changelog generation (manual)
         if: steps.check_version.outputs.should_release == 'true' && steps.check_version.outputs.manual_version != ''
         id: version_bump_manual
         run: |
@@ -163,6 +176,44 @@ jobs:
           # Update info.xml
           sed -i "s|<version>[0-9.]*</version>|<version>${NEW_VERSION}</version>|g" appinfo/info.xml
 
+          # Generate/update CHANGELOG.md manually since we're not using changesets
+          # Get previous version tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          # Generate changelog entries
+          if [ -n "$PREVIOUS_TAG" ]; then
+            # Get commits since last tag
+            CHANGELOG_ENTRIES=$(git log "${PREVIOUS_TAG}..HEAD" --pretty=format:"- %s (%an)" --no-merges)
+            
+            # Create or update CHANGELOG.md
+            if [ -f "CHANGELOG.md" ]; then
+              # Prepend new version to existing changelog
+              TEMP_FILE=$(mktemp)
+              echo "# Changelog" > "$TEMP_FILE"
+              echo "" >> "$TEMP_FILE"
+              echo "## [$NEW_VERSION] - $(date -u +%Y-%m-%d)" >> "$TEMP_FILE"
+              echo "" >> "$TEMP_FILE"
+              echo "$CHANGELOG_ENTRIES" >> "$TEMP_FILE"
+              echo "" >> "$TEMP_FILE"
+              # Append existing changelog content (skip the first line if it's "# Changelog")
+              tail -n +2 "CHANGELOG.md" >> "$TEMP_FILE"
+              mv "$TEMP_FILE" "CHANGELOG.md"
+            else
+              # Create new changelog
+              cat > "CHANGELOG.md" << EOF
+# Changelog
+
+## [$NEW_VERSION] - $(date -u +%Y-%m-%d)
+
+$CHANGELOG_ENTRIES
+
+EOF
+            fi
+            echo "CHANGELOG.md manually updated"
+          else
+            echo "No previous tag found, skipping changelog generation"
+          fi
+
           if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
             echo "version_changed=true" >> $GITHUB_OUTPUT
             echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
@@ -182,11 +233,11 @@ jobs:
           echo "Final version: $VERSION"
           echo "final_version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Create version bump commit
+      - name: Create version bump commit (with changelog)
         if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
         run: |
           git add .
-          git commit -m "chore: version bump
+          git commit -m "chore: version bump to ${{ steps.final_version.outputs.final_version }}
 
           Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || exit 0
 
@@ -201,39 +252,140 @@ jobs:
           echo "Build artifacts:"
           ls -la build/artifacts/
 
+      - name: Generate enhanced changelog for release notes
+        if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
+        id: release_notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.final_version.outputs.final_version }}"
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          TAG_NAME="v${VERSION}"
+          
+          # Get current date
+          RELEASE_DATE=$(date -u +"%Y-%m-%d")
+          
+          # Initialize changelog sections
+          FEATURES=""
+          FIXES=""
+          DEPS=""
+          DOCS=""
+          NEW_CONTRIBUTORS=""
+          OTHER=""
+          
+          if [ -n "$PREVIOUS_TAG" ]; then
+            # Get all commits since last tag
+            COMMITS=$(git log "${PREVIOUS_TAG}..HEAD" --pretty=format:"%s|||%an|||%ae" --no-merges)
+            
+            # Track new contributors
+            PREVIOUS_CONTRIBUTORS=$(git log "${PREVIOUS_TAG}" --pretty=format:"%ae" | sort -u)
+            
+            # Process each commit
+            while IFS= read -r commit; do
+              if [ -n "$commit" ]; then
+                MSG=$(echo "$commit" | cut -d'|' -f1)
+                AUTHOR_NAME=$(echo "$commit" | cut -d'|' -f2)
+                AUTHOR_EMAIL=$(echo "$commit" | cut -d'|' -f3)
+                
+                # Check if this is a new contributor
+                if ! echo "$PREVIOUS_CONTRIBUTORS" | grep -q "$AUTHOR_EMAIL"; then
+                  if ! echo "$NEW_CONTRIBUTORS" | grep -q "$AUTHOR_NAME"; then
+                    NEW_CONTRIBUTORS="${NEW_CONTRIBUTORS}\n- @${AUTHOR_NAME} (${AUTHOR_EMAIL})"
+                  fi
+                fi
+                
+                # Categorize commits based on conventional commit prefixes
+                if echo "$MSG" | grep -qiE '^(feat|feature|✨|new|add)'; then
+                  FEATURES="${FEATURES}\n- ${MSG}"
+                elif echo "$MSG" | grep -qiE '^(fix|bug|🐛|patch|resolve)'; then
+                  FIXES="${FIXES}\n- ${MSG}"
+                elif echo "$MSG" | grep -qiE '^(docs|📄)'; then
+                  DOCS="${DOCS}\n- ${MSG}"
+                elif echo "$MSG" | grep -qiE '^(chore|depends?|depend|⬆️|deps|update)'; then
+                  DEPS="${DEPS}\n- ${MSG}"
+                else
+                  OTHER="${OTHER}\n- ${MSG}"
+                fi
+              fi
+            done <<< "$COMMITS"
+          fi
+          
+          # Build the final release notes
+          RELEASE_NOTES="## What's Changed\n"
+          
+          if [ -n "$FEATURES" ]; then
+            RELEASE_NOTES="${RELEASE_NOTES}\n### 🚀 New features and other improvements\n${FEATURES}\n"
+          fi
+          
+          if [ -n "$FIXES" ]; then
+            RELEASE_NOTES="${RELEASE_NOTES}\n### 🐞 Fixed bugs\n${FIXES}\n"
+          fi
+          
+          if [ -n "$DEPS" ]; then
+            RELEASE_NOTES="${RELEASE_NOTES}\n### 👒 Updated dependencies\n${DEPS}\n"
+          fi
+          
+          if [ -n "$DOCS" ]; then
+            RELEASE_NOTES="${RELEASE_NOTES}\n### 📄 Improved documentation\n${DOCS}\n"
+          fi
+          
+          if [ -n "$OTHER" ]; then
+            RELEASE_NOTES="${RELEASE_NOTES}\n### 🔧 Other changes\n${OTHER}\n"
+          fi
+          
+          if [ -n "$NEW_CONTRIBUTORS" ]; then
+            RELEASE_NOTES="${RELEASE_NOTES}\n### 👥 New Contributors\n${NEW_CONTRIBUTORS}\n"
+          fi
+          
+          if [ -n "$PREVIOUS_TAG" ]; then
+            RELEASE_NOTES="${RELEASE_NOTES}\n**Full Changelog**: [${PREVIOUS_TAG}...${TAG_NAME}](https://github.com/${GITHUB_REPOSITORY}/compare/${PREVIOUS_TAG}...${TAG_NAME})\n"
+          else
+            RELEASE_NOTES="${RELEASE_NOTES}\n**Full Changelog**: [${TAG_NAME}](https://github.com/${GITHUB_REPOSITORY}/commits/${TAG_NAME})\n"
+          fi
+          
+          # Save release notes to file
+          echo "$RELEASE_NOTES" > /tmp/release_notes.md
+          echo "release_notes_path=/tmp/release_notes.md" >> $GITHUB_OUTPUT
+
       - name: Create tag and release
         if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ steps.final_version.outputs.final_version }}"
-          CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
           TAG_NAME="v${VERSION}"
-
+          
           if ! git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
             # Push tag first
             git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
             git push origin "$TAG_NAME"
-
+            
             # Wait for tag to be available
             sleep 3
-
-            # Generate changelog
-            if [ -d ".changeset" ] && [ "$(find .changeset -maxdepth 1 -name '*.md' \( ! -name 'README.md' -a ! -name 'config.json' \) 2>/dev/null | wc -l)" != "0" ]; then
-              CHANGELOG=$(pnpm changeset log --since="v${CURRENT_VERSION}" 2>/dev/null || echo "Release $TAG_NAME")
-            else
-              CHANGELOG="Release $TAG_NAME"
+            
+            # Add release header
+            RELEASE_HEADER="## ${TAG_NAME} - $(date -u +"%B %d, %Y")\n\n"
+            
+            # Detect Nextcloud version from info.xml
+            NC_VERSION=$(grep -oP '(?<=<nextcloud-min-version>)[0-9.]+(?=</nextcloud-min-version>)' appinfo/info.xml 2>/dev/null || echo "")
+            if [ -n "$NC_VERSION" ]; then
+              RELEASE_HEADER="${RELEASE_HEADER}> **Requires Nextcloud ${NC_VERSION} or later**\n\n"
             fi
-
-            # Create GitHub Release with Nextcloud app package assets
+            
+            # Combine header with release notes
+            RELEASE_NOTES="${RELEASE_HEADER}$(cat /tmp/release_notes.md)"
+            
+            # Create GitHub Release with assets
             gh release create "$TAG_NAME" \
-              --title "Release $TAG_NAME" \
-              --notes "$CHANGELOG" \
+              --title "Release ${TAG_NAME}" \
+              --notes "$RELEASE_NOTES" \
               "build/artifacts/cad_viewer.tar.gz" \
               "build/artifacts/cad_viewer.zip"
+            
+            echo "Release created with changelog"
           fi
 
-      - name: Push changes
+      - name: Push changes (includes CHANGELOG.md)
         if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
         run: |
           git push origin main || exit 0
