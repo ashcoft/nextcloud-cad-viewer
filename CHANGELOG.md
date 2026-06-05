@@ -1,3 +1,14 @@
+## [0.0.14] - 2026-06-05
+
+### What's Changed
+
+- Update release.yml ([673008a5](https://github.com/ashcoft/nextcloud-cad-viewer/commit/673008a5c4e6f186f1e8b41aa0767362b0a7e52a)) by @Dony Wibowo
+- Update config.json ([807fe765](https://github.com/ashcoft/nextcloud-cad-viewer/commit/807fe765633d28b2e27dbb10fbac0f1691af4d1a)) by @Dony Wibowo
+- Update release.yml ([31754f39](https://github.com/ashcoft/nextcloud-cad-viewer/commit/31754f39d16a4cb6cc9121466ed7405ac80edcd7)) by @Dony Wibowo
+
+**Full Changelog**: [v0.0.13...v0.0.14](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.0.13...v0.0.14)
+
+
 # Changelog
 
 ## 0.0.9
