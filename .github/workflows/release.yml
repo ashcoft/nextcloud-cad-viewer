@@ -62,6 +62,7 @@ jobs:
         if: steps.check_changesets.outputs.changeset_count != '0'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: version_bump
         run: |
           # Store current version before changeset
           CURRENT_VERSION=$(node -p "require('./package.json').version")
@@ -76,8 +77,15 @@ jobs:
           # Get new version after changeset
           NEW_VERSION=$(node -p "require('./package.json').version")
           echo "New version: $NEW_VERSION"
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "version_changed=$([ "$CURRENT_VERSION" != "$NEW_VERSION" ] && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+
+          # Determine if version changed
+          if [ "$CURRENT_VERSION" = "$NEW_VERSION" ]; then
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+            echo "Version did not change"
+          else
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+            echo "Version changed from $CURRENT_VERSION to $NEW_VERSION"
+          fi
 
           # Update info.xml if version changed
           if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
