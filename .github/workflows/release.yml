@@ -5,6 +5,11 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version for manual release (optional, e.g., 0.0.10). If not provided, uses changesets.'
+        required: false
+        type: string
 
 concurrency:
   group: release-${{ github.ref }}
@@ -22,7 +27,7 @@ jobs:
     if: github.repository == 'ashcoft/nextcloud-cad-viewer'
     outputs:
       version: ${{ steps.get_version.outputs.version }}
-      has_changeset: ${{ steps.check_changesets.outputs.changeset_count != '0' }}
+      release_mode: ${{ steps.release_mode.outputs.mode }}
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -51,47 +56,70 @@ jobs:
           echo "Changeset files found: $CHANGESET_FILES"
           echo "changeset_count=$CHANGESET_FILES" >> $GITHUB_OUTPUT
 
+      - name: Determine release mode
+        id: release_mode
+        run: |
+          INPUT_VERSION="${{ github.event.inputs.version }}"
+          CHANGESET_COUNT="${{ steps.check_changesets.outputs.changeset_count }}"
+
+          if [[ -n "$INPUT_VERSION" ]]; then
+            echo "mode=manual" >> $GITHUB_OUTPUT
+            echo "Release mode: manual (version: $INPUT_VERSION)"
+          elif [[ "$CHANGESET_COUNT" != "0" ]]; then
+            echo "mode=changeset" >> $GITHUB_OUTPUT
+            echo "Release mode: changeset"
+          else
+            echo "mode=none" >> $GITHUB_OUTPUT
+            echo "No release mode: no version input and no changesets"
+          fi
+
       - name: Get version
         id: get_version
         run: |
-          # Always output current version (needed for publish job gating)
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          echo "Current version: $CURRENT_VERSION"
-          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          INPUT_VERSION="${{ github.event.inputs.version }}"
+          CHANGESET_COUNT="${{ steps.check_changesets.outputs.changeset_count }}"
 
-      - name: Version bump
-        if: steps.check_changesets.outputs.changeset_count != '0'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-
-          pnpm changeset version || { echo "Changeset version failed"; exit 1; }
-
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          echo "New version: $NEW_VERSION"
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-
-          if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
-            sed -i "s|<version>[0-9.]*</version>|<version>${NEW_VERSION}</version>|g" appinfo/info.xml
-            echo "Updated info.xml to version $NEW_VERSION"
+          if [[ -n "$INPUT_VERSION" ]]; then
+            # Manual release: use provided version
+            echo "version=$INPUT_VERSION" >> $GITHUB_OUTPUT
+            echo "Version: $INPUT_VERSION"
+          elif [[ "$CHANGESET_COUNT" != "0" ]]; then
+            # Changeset release: run changeset version to get new version
+            pnpm changeset version || { echo "Changeset version failed"; exit 1; }
+            NEW_VERSION=$(node -p "require('./package.json').version")
+            echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            echo "Version: $NEW_VERSION"
+          else
+            # No release: use current version
+            CURRENT_VERSION=$(node -p "require('./package.json').version")
+            echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+            echo "Version: $CURRENT_VERSION"
           fi
+
+      - name: Update version files (manual mode)
+        if: github.event.inputs.version != ''
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          pnpm version $VERSION --no-git-tag-version --no-commit-hooks
+          sed -i "s|<version>[0-9.]*</version>|<version>${VERSION}</version>|g" appinfo/info.xml
+          echo "Updated package.json and info.xml to version $VERSION"
 
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Commit version bump
-        if: steps.check_changesets.outputs.changeset_count != '0'
+      - name: Commit version bump (changeset mode)
+        if: steps.release_mode.outputs.mode == 'changeset'
         run: |
           git add .
           git commit -m "chore: version bump
 
           Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || exit 0
 
-      - name: Push version bump
-        if: steps.check_changesets.outputs.changeset_count != '0'
+      - name: Push version bump (changeset mode)
+        if: steps.release_mode.outputs.mode == 'changeset'
         run: git push origin main || exit 0
 
       - name: Setup PHP
@@ -110,7 +138,7 @@ jobs:
         run: make production-setup
 
       - name: Package app
-        if: steps.check_changesets.outputs.changeset_count != '0'
+        if: steps.release_mode.outputs.mode != 'none'
         env:
           VERSION: ${{ steps.get_version.outputs.version }}
         run: |
@@ -125,7 +153,7 @@ jobs:
           ls -la build/artifacts/
 
       - name: Upload artifacts
-        if: steps.check_changesets.outputs.changeset_count != '0'
+        if: steps.release_mode.outputs.mode != 'none'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: release-artifacts-${{ github.run_id }}
@@ -137,7 +165,7 @@ jobs:
     name: Publish Release
     needs: build
     runs-on: ubuntu-latest
-    if: github.repository == 'ashcoft/nextcloud-cad-viewer' && needs.build.outputs.has_changeset == 'true'
+    if: github.repository == 'ashcoft/nextcloud-cad-viewer' && needs.build.outputs.release_mode != 'none'
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -158,6 +186,7 @@ jobs:
       - name: Create release
         env:
           VERSION: ${{ needs.build.outputs.version }}
+          RELEASE_MODE: ${{ needs.build.outputs.release_mode }}
         run: |
           TAG_NAME="v${VERSION}"
 
@@ -165,7 +194,11 @@ jobs:
             git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
             git push origin "$TAG_NAME"
 
-            CHANGELOG="## What's Changed\nThis release includes changes from changesets."
+            if [[ "$RELEASE_MODE" == "changeset" ]]; then
+              CHANGELOG="## What's Changed\nThis release includes changes from changesets."
+            else
+              CHANGELOG="## What's Changed\nManual release v${VERSION}."
+            fi
 
             UPLOAD_URL=$(curl -s -X POST "https://api.github.com/repos/${{ github.repository }}/releases" \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
@@ -191,7 +224,20 @@ jobs:
             fi
           fi
 
-      - name: Clean up changesets
+      - name: Commit version (manual mode)
+        if: needs.build.outputs.release_mode == 'manual'
+        run: |
+          git add .
+          git commit -m "chore: manual release v${{ needs.build.outputs.version }}
+
+          Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || exit 0
+
+      - name: Push version (manual mode)
+        if: needs.build.outputs.release_mode == 'manual'
+        run: git push origin main || exit 0
+
+      - name: Clean up changesets (changeset mode)
+        if: needs.build.outputs.release_mode == 'changeset'
         run: |
           find .changeset -maxdepth 1 -name "*.md" \( ! -name "README.md" -a ! -name "config.json" \) -exec rm {} \;
           git add .
