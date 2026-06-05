@@ -21,7 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'ashcoft/nextcloud-cad-viewer'
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.get_version.outputs.version }}
+      has_changeset: ${{ steps.check_changesets.outputs.changeset_count != '0' }}
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -50,14 +51,20 @@ jobs:
           echo "Changeset files found: $CHANGESET_FILES"
           echo "changeset_count=$CHANGESET_FILES" >> $GITHUB_OUTPUT
 
+      - name: Get version
+        id: get_version
+        run: |
+          # Always output current version (needed for publish job gating)
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
       - name: Version bump
         if: steps.check_changesets.outputs.changeset_count != '0'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        id: version
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
-          echo "Current version: $CURRENT_VERSION"
 
           pnpm changeset version || { echo "Changeset version failed"; exit 1; }
 
@@ -83,6 +90,10 @@ jobs:
 
           Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || exit 0
 
+      - name: Push version bump
+        if: steps.check_changesets.outputs.changeset_count != '0'
+        run: git push origin main || exit 0
+
       - name: Setup PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
@@ -99,8 +110,9 @@ jobs:
         run: make production-setup
 
       - name: Package app
+        if: steps.check_changesets.outputs.changeset_count != '0'
         env:
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ steps.get_version.outputs.version }}
         run: |
           make appstore
           if [ -f "build/artifacts/cad_viewer.tar.gz" ]; then
@@ -113,7 +125,8 @@ jobs:
           ls -la build/artifacts/
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        if: steps.check_changesets.outputs.changeset_count != '0'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: release-artifacts-${{ github.run_id }}
           path: build/artifacts/
@@ -124,7 +137,7 @@ jobs:
     name: Publish Release
     needs: build
     runs-on: ubuntu-latest
-    if: github.repository == 'ashcoft/nextcloud-cad-viewer'
+    if: github.repository == 'ashcoft/nextcloud-cad-viewer' && needs.build.outputs.has_changeset == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -137,7 +150,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: release-artifacts-${{ github.run_id }}
           path: build/artifacts/
@@ -177,9 +190,6 @@ jobs:
               echo "Attached zip"
             fi
           fi
-
-      - name: Push changes
-        run: git push origin main || exit 0
 
       - name: Clean up changesets
         run: |
