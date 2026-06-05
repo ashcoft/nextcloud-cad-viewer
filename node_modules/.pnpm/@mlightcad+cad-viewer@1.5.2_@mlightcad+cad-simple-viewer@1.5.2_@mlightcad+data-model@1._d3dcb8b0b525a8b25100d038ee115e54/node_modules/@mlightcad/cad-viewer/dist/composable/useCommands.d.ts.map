@@ -1,0 +1,1 @@
+{"version":3,"file":"useCommands.d.ts","sourceRoot":"","sources":["../../src/composable/useCommands.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,YAAY,EAAE,MAAM,8BAA8B,CAAA;AAG3D,MAAM,WAAW,WAAW;IAC1B,UAAU,EAAE,MAAM,CAAA;IAClB,WAAW,EAAE,MAAM,CAAA;IACnB,SAAS,EAAE,MAAM,CAAA;IACjB,IAAI,EAAE,YAAY,CAAA;CACnB;AAED,wBAAgB,WAAW,0CAiB1B"}
