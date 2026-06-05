@@ -4,12 +4,22 @@
 name: Release
 
 on:
+  # Manual trigger (keeps existing functionality)
   workflow_dispatch:
     inputs:
       version:
         description: 'Version to release (e.g., 0.0.11). If not provided, changeset files will be used.'
         required: false
         type: string
+  
+  # Automatic trigger when changes are pushed to main
+  push:
+    branches:
+      - main
+    paths:
+      - '.changeset/**'  # Only trigger when changeset files change
+      - 'package.json'   # Or when package.json changes (version bumps)
+      - 'appinfo/info.xml'
 
 concurrency:
   group: release-${{ github.ref }}
@@ -28,6 +38,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    # Only run on the main repository (not forks)
     if: github.repository == 'ashcoft/nextcloud-cad-viewer'
     steps:
       - name: Checkout
@@ -75,16 +86,18 @@ jobs:
         run: |
           MANUAL_VERSION="${{ github.event.inputs.version }}"
           
-          echo "Checking for changeset files..."
+          # Check for changeset files
           CHANGESET_FILES=$(find .changeset -maxdepth 1 -name "*.md" \( ! -name "README.md" -a ! -name "config.json" \) 2>/dev/null | wc -l)
           echo "changeset_count=$CHANGESET_FILES" >> $GITHUB_OUTPUT
 
-          if [ "$CHANGESET_FILES" != "0" ]; then
-            echo "Found $CHANGESET_FILES changeset file(s)"
-            find .changeset -maxdepth 1 -name "*.md" \( ! -name "README.md" -a ! -name "config.json" \) -exec basename {} \;
-          fi
-
-          if [ -n "$MANUAL_VERSION" ]; then
+          # Check if this commit already has a version tag (avoid duplicate releases)
+          CURRENT_COMMIT=$(git rev-parse HEAD)
+          HAS_TAG=$(git tag --contains $CURRENT_COMMIT | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | wc -l)
+          
+          if [ "$HAS_TAG" -gt 0 ]; then
+            echo "This commit already has a release tag, skipping..."
+            echo "should_release=false" >> $GITHUB_OUTPUT
+          elif [ -n "$MANUAL_VERSION" ]; then
             echo "Using manually provided version: $MANUAL_VERSION"
             echo "manual_version=$MANUAL_VERSION" >> $GITHUB_OUTPUT
             echo "should_release=true" >> $GITHUB_OUTPUT
@@ -96,6 +109,16 @@ jobs:
             echo "No version input and no changeset files found"
             echo "manual_version=" >> $GITHUB_OUTPUT
             echo "should_release=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Output for trigger context
+          echo "is_manual=${MANUAL_VERSION:+true}" >> $GITHUB_OUTPUT
+          if [ -z "$MANUAL_VERSION" ] && [ "$CHANGESET_FILES" != "0" ]; then
+            echo "trigger_source=changesets_auto" >> $GITHUB_OUTPUT
+          elif [ -n "$MANUAL_VERSION" ]; then
+            echo "trigger_source=manual" >> $GITHUB_OUTPUT
+          else
+            echo "trigger_source=none" >> $GITHUB_OUTPUT
           fi
 
       - name: Version bump (changesets)
