@@ -19,6 +19,11 @@ permissions:
   contents: write
   pull-requests: write
 
+env:
+  NODE_OPTIONS: "--max-old-space-size=4096"
+  APP_NAME: cad_viewer
+  APP_ID: cad_viewer
+
 jobs:
   release:
     name: Release
@@ -39,6 +44,12 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
+      - name: Set up PHP 8.3
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
+        with:
+          php-version: '8.3'
+          coverage: none
+
       - name: Install gh CLI
         run: |
           curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
@@ -55,7 +66,9 @@ jobs:
         env:
           CYPRESS_INSTALL_BINARY: 0
           PUPPETEER_SKIP_DOWNLOAD: true
-        run: pnpm install --frozen-lockfile
+        run: |
+          pnpm install --frozen-lockfile
+          composer install --no-dev --optimize-autoloader
 
       - name: Check for changesets and manual version
         id: check_version
@@ -154,6 +167,17 @@ jobs:
 
           Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || exit 0
 
+      - name: Build Nextcloud App Package
+        if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
+        run: |
+          echo "Building Nextcloud app package..."
+          git submodule update --init --recursive
+          make production-setup
+          make appstore
+          
+          echo "Build artifacts:"
+          ls -la build/artifacts/
+
       - name: Create tag and release
         if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
         env:
@@ -168,12 +192,6 @@ jobs:
             git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
             git push origin "$TAG_NAME"
 
-            # Create release archives
-            ARCHIVE_DIR=$(mktemp -d)
-            
-            git archive --format=zip --prefix="cad_viewer-${VERSION}/" -o "${ARCHIVE_DIR}/cad_viewer-v${VERSION}.zip" HEAD
-            git archive --format=tar --prefix="cad_viewer-${VERSION}/" HEAD | gzip -9 > "${ARCHIVE_DIR}/cad_viewer-v${VERSION}.tar.gz"
-
             # Wait for tag to be available
             sleep 3
 
@@ -184,12 +202,12 @@ jobs:
               CHANGELOG="Release $TAG_NAME"
             fi
 
-            # Create GitHub Release with assets
+            # Create GitHub Release with Nextcloud app package assets
             gh release create "$TAG_NAME" \
               --title "Release $TAG_NAME" \
               --notes "$CHANGELOG" \
-              "${ARCHIVE_DIR}/cad_viewer-v${VERSION}.zip" \
-              "${ARCHIVE_DIR}/cad_viewer-v${VERSION}.tar.gz"
+              "build/artifacts/cad_viewer.tar.gz" \
+              "build/artifacts/cad_viewer.zip"
           fi
 
       - name: Push changes
