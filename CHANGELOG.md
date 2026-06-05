@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.9
+
+### Patch Changes
+
+- [#319](https://github.com/ashcoft/nextcloud-cad-viewer/pull/319) [`ca07d90`](https://github.com/ashcoft/nextcloud-cad-viewer/commit/ca07d90230d3f8cbf9c6357ecb89ed320fc0084e) Thanks [@ashcoft](https://github.com/ashcoft)! - Enhance AGENTS.md with comprehensive development guide for AI agents
+
 All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
@@ -33,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Define constants for duplicate error message strings
 - Align cad-viewer version with lockfile
 - Expand single-line function bodies to multi-line format
-- Include lib/** in paths-filter for node workflows
+- Include lib/\*\* in paths-filter for node workflows
 - Always upload Nextcloud app artifacts on release
 - Keep component-prefixed tags for compare continuity
 - Remove duplicate tag-release workflow
