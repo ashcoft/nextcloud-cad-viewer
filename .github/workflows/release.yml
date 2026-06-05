@@ -126,6 +126,17 @@ jobs:
       - name: Verify app artifacts
         run: ls -lah build/artifacts/
 
+      - name: Debug artifacts before upload
+        run: |
+          echo "=== Checking for app artifacts ==="
+          ls -la build/artifacts/
+          echo ""
+          echo "=== Finding cad_viewer-*.tar.gz ==="
+          find build/artifacts -name "cad_viewer-*.tar.gz" -type f
+          echo ""
+          echo "=== Finding cad_viewer-*.zip ==="
+          find build/artifacts -name "cad_viewer-*.zip" -type f
+
       - name: Upload App TAR.GZ
         uses: actions/upload-artifact@v4
         with:
@@ -192,6 +203,19 @@ jobs:
           retention-days: 90
           compression-level: 6
           overwrite: true
+
+      - name: Debug before GitHub release
+        run: |
+          echo "=== Artifacts directory before release ==="
+          ls -la build/artifacts/
+          echo ""
+          echo "=== Checking for app artifacts ==="
+          find build/artifacts -name "cad_viewer-*.tar.gz" -type f 2>/dev/null || echo "No cad_viewer tar.gz found"
+          find build/artifacts -name "cad_viewer-*.zip" -type f 2>/dev/null || echo "No cad_viewer zip found"
+          echo ""
+          echo "=== Checking for source archives ==="
+          find build/artifacts -name "nextcloud-cad-viewer-*.tar.gz" -type f 2>/dev/null || echo "No source tar.gz found"
+          find build/artifacts -name "nextcloud-cad-viewer-*.zip" -type f 2>/dev/null || echo "No source zip found"
 
   # Build and create release artifacts (for tag-based releases)
   create-release:
@@ -390,6 +414,17 @@ jobs:
           fi
           echo "All artifacts validated successfully"
 
+      - name: Debug artifacts
+        run: |
+          echo "=== Build artifacts directory ==="
+          ls -la build/artifacts/
+          echo ""
+          echo "=== Finding all tar.gz files ==="
+          find build/artifacts -name "*.tar.gz" -type f 2>/dev/null || echo "No tar.gz found"
+          echo ""
+          echo "=== Finding all zip files ==="
+          find build/artifacts -name "*.zip" -type f 2>/dev/null || echo "No zip found"
+
       - name: Create Release
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
@@ -550,6 +585,17 @@ jobs:
             exit 1
           fi
           echo "All artifacts validated successfully"
+
+      - name: Debug artifacts
+        run: |
+          echo "=== Build artifacts directory ==="
+          ls -la build/artifacts/
+          echo ""
+          echo "=== Find all tar.gz files ==="
+          find build/artifacts -name "*.tar.gz" -type f
+          echo ""
+          echo "=== Find all zip files ==="
+          find build/artifacts -name "*.zip" -type f
 
       - name: Create Release
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
