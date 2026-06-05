@@ -110,17 +110,26 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Commit version bump (changeset mode)
-        if: steps.release_mode.outputs.mode == 'changeset'
+      - name: Commit version changes
+        if: steps.release_mode.outputs.mode != 'none'
         run: |
-          git add .
-          git commit -m "chore: version bump
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git add .
+            git commit -m "chore: version bump
 
-          Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || exit 0
+            Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+          fi
 
-      - name: Push version bump (changeset mode)
-        if: steps.release_mode.outputs.mode == 'changeset'
-        run: git push origin main || exit 0
+      - name: Push version changes
+        if: steps.release_mode.outputs.mode != 'none'
+        run: |
+          if git log --oneline -1 origin/main..HEAD > /dev/null 2>&1; then
+            git push origin main
+          else
+            echo "No commits to push"
+          fi
 
       - name: Setup PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
@@ -154,7 +163,7 @@ jobs:
 
       - name: Upload artifacts
         if: steps.release_mode.outputs.mode != 'none'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-artifacts-${{ github.run_id }}
           path: build/artifacts/
@@ -178,7 +187,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Download artifacts
-        uses: actions/download-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/download-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-artifacts-${{ github.run_id }}
           path: build/artifacts/
@@ -222,26 +231,20 @@ jobs:
                 --data-binary "@build/artifacts/cad_viewer-${VERSION}.zip"
               echo "Attached zip"
             fi
+          else
+            echo "Tag $TAG_NAME already exists, skipping release creation"
           fi
-
-      - name: Commit version (manual mode)
-        if: needs.build.outputs.release_mode == 'manual'
-        run: |
-          git add .
-          git commit -m "chore: manual release v${{ needs.build.outputs.version }}
-
-          Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || exit 0
-
-      - name: Push version (manual mode)
-        if: needs.build.outputs.release_mode == 'manual'
-        run: git push origin main || exit 0
 
       - name: Clean up changesets (changeset mode)
         if: needs.build.outputs.release_mode == 'changeset'
         run: |
           find .changeset -maxdepth 1 -name "*.md" \( ! -name "README.md" -a ! -name "config.json" \) -exec rm {} \;
-          git add .
-          git commit -m "chore: remove processed changeset files
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changeset files to remove"
+          else
+            git add .
+            git commit -m "chore: remove processed changeset files
 
-          Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || exit 0
-          git push origin main || exit 0
+            Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+            git push origin main
+          fi
