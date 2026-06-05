@@ -5,6 +5,8 @@ name: Release
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
 
 concurrency:
   group: release-${{ github.ref }}
@@ -23,6 +25,7 @@ jobs:
     outputs:
       version: ${{ steps.get_version.outputs.version }}
       has_changeset: ${{ steps.check_changesets.outputs.changeset_count != '0' }}
+      changelog: ${{ steps.generate_changelog.outputs.changelog }}
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -50,6 +53,35 @@ jobs:
           CHANGESET_FILES=$(find .changeset -maxdepth 1 -name "*.md" \( ! -name "README.md" -a ! -name "config.json" \) 2>/dev/null | wc -l)
           echo "Changeset files found: $CHANGESET_FILES"
           echo "changeset_count=$CHANGESET_FILES" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: generate_changelog
+        if: steps.check_changesets.outputs.changeset_count != '0'
+        run: |
+          pnpm changeset status --output changelog_output.json || true
+          if [ -f changelog_output.json ]; then
+            CHANGELOG=$(node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('changelog_output.json', 'utf8'));
+              let changelog = '';
+              if (data.releases && data.releases.length > 0) {
+                data.releases.forEach(release => {
+                  if (release.changes && release.changes.length > 0) {
+                    release.changes.forEach(change => {
+                      changelog += '- ' + change.summary + '\\n';
+                    });
+                  }
+                });
+              }
+              console.log(changelog);
+            ")
+            echo "changelog<<EOF" >> $GITHUB_OUTPUT
+            echo "$CHANGELOG" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            rm -f changelog_output.json
+          else
+            echo "changelog=" >> $GITHUB_OUTPUT
+          fi
 
       - name: Get version
         id: get_version
@@ -158,6 +190,7 @@ jobs:
       - name: Create release
         env:
           VERSION: ${{ needs.build.outputs.version }}
+          CHANGELOG: ${{ needs.build.outputs.changelog }}
         run: |
           TAG_NAME="v${VERSION}"
 
@@ -165,30 +198,46 @@ jobs:
             git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
             git push origin "$TAG_NAME"
 
-            CHANGELOG="## What's Changed\nThis release includes changes from changesets."
+            # Build release body with changelog
+            RELEASE_BODY="## What's Changed\n\n${CHANGELOG:-No detailed changelog available.}"
 
-            UPLOAD_URL=$(curl -s -X POST "https://api.github.com/repos/${{ github.repository }}/releases" \
+            # Create release and get upload URL
+            RESPONSE=$(curl -s -X POST "https://api.github.com/repos/${{ github.repository }}/releases" \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Content-Type: application/json" \
-              -d "{\"tag_name\": \"$TAG_NAME\", \"name\": \"Release $TAG_NAME\", \"body\": \"$CHANGELOG\", \"draft\": false, \"prerelease\": false}" | jq -r '.upload_url' | sed 's/{?name,label}//')
+              -d "{\"tag_name\": \"$TAG_NAME\", \"name\": \"$TAG_NAME\", \"body\": \"$RELEASE_BODY\", \"draft\": false, \"prerelease\": false}")
 
-            echo "Release created at: $UPLOAD_URL"
+            UPLOAD_URL=$(echo "$RESPONSE" | jq -r '.upload_url' | sed 's/{?name,label}//')
+            RELEASE_ID=$(echo "$RESPONSE" | jq -r '.id')
 
+            if [ -z "$UPLOAD_URL" ] || [ "$UPLOAD_URL" = "null" ]; then
+              echo "Failed to create release. Response: $RESPONSE"
+              exit 1
+            fi
+
+            echo "Release created: $RELEASE_ID at: $UPLOAD_URL"
+
+            # Upload tar.gz asset
             if [ -f "build/artifacts/cad_viewer-${VERSION}.tar.gz" ]; then
               curl -s -X POST "${UPLOAD_URL}?name=cad_viewer-${VERSION}.tar.gz" \
                 -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Content-Type: application/x-gzip" \
                 --data-binary "@build/artifacts/cad_viewer-${VERSION}.tar.gz"
-              echo "Attached tar.gz"
+              echo "Attached cad_viewer-${VERSION}.tar.gz"
             fi
 
+            # Upload zip asset
             if [ -f "build/artifacts/cad_viewer-${VERSION}.zip" ]; then
               curl -s -X POST "${UPLOAD_URL}?name=cad_viewer-${VERSION}.zip" \
                 -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Content-Type: application/zip" \
                 --data-binary "@build/artifacts/cad_viewer-${VERSION}.zip"
-              echo "Attached zip"
+              echo "Attached cad_viewer-${VERSION}.zip"
             fi
+
+            echo "Release $TAG_NAME published successfully!"
+          else
+            echo "Tag $TAG_NAME already exists, skipping release creation"
           fi
 
       - name: Clean up changesets
