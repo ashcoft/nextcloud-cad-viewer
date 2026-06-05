@@ -5,6 +5,11 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.0.11). If not provided, changeset files will be used.'
+        required: false
+        type: string
 
 concurrency:
   group: release-${{ github.ref }}
@@ -52,9 +57,11 @@ jobs:
           PUPPETEER_SKIP_DOWNLOAD: true
         run: pnpm install --frozen-lockfile
 
-      - name: Check for changesets
-        id: check_changesets
+      - name: Check for changesets and manual version
+        id: check_version
         run: |
+          MANUAL_VERSION="${{ github.event.inputs.version }}"
+          
           echo "Checking for changeset files..."
           CHANGESET_FILES=$(find .changeset -maxdepth 1 -name "*.md" \( ! -name "README.md" -a ! -name "config.json" \) 2>/dev/null | wc -l)
           echo "changeset_count=$CHANGESET_FILES" >> $GITHUB_OUTPUT
@@ -64,9 +71,23 @@ jobs:
             find .changeset -maxdepth 1 -name "*.md" \( ! -name "README.md" -a ! -name "config.json" \) -exec basename {} \;
           fi
 
-      - name: Version bump
-        if: steps.check_changesets.outputs.changeset_count != '0'
-        id: version_bump
+          if [ -n "$MANUAL_VERSION" ]; then
+            echo "Using manually provided version: $MANUAL_VERSION"
+            echo "manual_version=$MANUAL_VERSION" >> $GITHUB_OUTPUT
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          elif [ "$CHANGESET_FILES" != "0" ]; then
+            echo "Using changeset-based versioning"
+            echo "manual_version=" >> $GITHUB_OUTPUT
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "No version input and no changeset files found"
+            echo "manual_version=" >> $GITHUB_OUTPUT
+            echo "should_release=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Version bump (changesets)
+        if: steps.check_version.outputs.should_release == 'true' && steps.check_version.outputs.manual_version == ''
+        id: version_bump_changeset
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           echo "Current version: $CURRENT_VERSION"
@@ -79,12 +100,54 @@ jobs:
           if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
             echo "version_changed=true" >> $GITHUB_OUTPUT
             sed -i "s|<version>[0-9.]*</version>|<version>${NEW_VERSION}</version>|g" appinfo/info.xml
+            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           else
             echo "version_changed=false" >> $GITHUB_OUTPUT
+            echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           fi
 
+      - name: Version bump (manual)
+        if: steps.check_version.outputs.should_release == 'true' && steps.check_version.outputs.manual_version != ''
+        id: version_bump_manual
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          NEW_VERSION="${{ github.event.inputs.version }}"
+          
+          echo "Current version: $CURRENT_VERSION"
+          echo "New version: $NEW_VERSION"
+
+          # Update package.json
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '$NEW_VERSION';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+          # Update info.xml
+          sed -i "s|<version>[0-9.]*</version>|<version>${NEW_VERSION}</version>|g" appinfo/info.xml
+
+          if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+            echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get final version
+        id: final_version
+        run: |
+          if [ "${{ steps.check_version.outputs.manual_version }}" != "" ]; then
+            VERSION="${{ steps.check_version.outputs.manual_version }}"
+          else
+            VERSION=$(node -p "require('./package.json').version")
+          fi
+          echo "Final version: $VERSION"
+          echo "final_version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Create version bump commit
-        if: steps.check_changesets.outputs.changeset_count != '0' && steps.version_bump.outputs.version_changed == 'true'
+        if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
         run: |
           git add .
           git commit -m "chore: version bump
@@ -92,11 +155,12 @@ jobs:
           Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || exit 0
 
       - name: Create tag and release
-        if: steps.check_changesets.outputs.changeset_count != '0' && steps.version_bump.outputs.version_changed == 'true'
+        if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          VERSION="${{ steps.final_version.outputs.final_version }}"
+          CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
           TAG_NAME="v${VERSION}"
 
           if ! git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
@@ -114,7 +178,11 @@ jobs:
             sleep 3
 
             # Generate changelog
-            CHANGELOG=$(pnpm changeset log --since="v${CURRENT_VERSION}" 2>/dev/null || echo "Changes from changesets")
+            if [ -d ".changeset" ] && [ "$(find .changeset -maxdepth 1 -name '*.md' \( ! -name 'README.md' -a ! -name 'config.json' \) 2>/dev/null | wc -l)" != "0" ]; then
+              CHANGELOG=$(pnpm changeset log --since="v${CURRENT_VERSION}" 2>/dev/null || echo "Release $TAG_NAME")
+            else
+              CHANGELOG="Release $TAG_NAME"
+            fi
 
             # Create GitHub Release with assets
             gh release create "$TAG_NAME" \
@@ -125,12 +193,12 @@ jobs:
           fi
 
       - name: Push changes
-        if: steps.check_changesets.outputs.changeset_count != '0' && steps.version_bump.outputs.version_changed == 'true'
+        if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
         run: |
           git push origin main || exit 0
 
       - name: Clean up changeset files
-        if: steps.check_changesets.outputs.changeset_count != '0' && steps.version_bump.outputs.version_changed == 'true'
+        if: steps.check_version.outputs.should_release == 'true' && steps.check_version.outputs.changeset_count != '0' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
         run: |
           find .changeset -maxdepth 1 -name "*.md" \( ! -name "README.md" -a ! -name "config.json" \) -exec rm {} \;
           git add .
