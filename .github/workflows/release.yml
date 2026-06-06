@@ -60,6 +60,6 @@ jobs:
           version: pnpm changeset version
           commit: 'chore: version bump'
           title: 'chore: version bump'
-          publish: pnpm run release
+          createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
