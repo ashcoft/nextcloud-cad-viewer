@@ -148,12 +148,13 @@ class FileController extends Controller
             }
 
             $response = new StreamResponse($stream);
-            // Use application/octet-stream to prevent browser download attempts
-            // The CAD viewer library fetches and processes this content via JavaScript
+            // Use application/octet-stream to prevent browser handling
+            // Browser won't display or auto-download unknown binary types
+            // JavaScript fetch() can read the response body normally
             $response->addHeader('Content-Type', 'application/octet-stream');
             $response->addHeader('Content-Length', (string) $file->getSize());
-            $response->addHeader('Content-Disposition', 'attachment; filename="' . $file->getName() . '"');
-            // Allow caching for performance but validate on reuse
+            // No Content-Disposition header - browser won't trigger download
+            // Allow caching for performance
             $response->addHeader('Cache-Control', 'private, max-age=3600');
             return $response;
         } catch (NotFoundException $e) {
