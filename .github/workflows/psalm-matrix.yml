@@ -87,4 +87,11 @@ jobs:
 
     steps:
       - name: Summary status
-        run: if ${{ needs.static-analysis.result != 'success' }}; then exit 1; fi
+        run: |
+          result="${{ needs.static-analysis.result }}"
+          # Success or cancelled (superseded by newer run) are acceptable
+          if [ "$result" != "success" ] && [ "$result" != "cancelled" ]; then
+            echo "Static analysis failed with result: $result"
+            exit 1
+          fi
+          echo "Static analysis completed with result: $result"
