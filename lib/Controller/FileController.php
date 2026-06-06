@@ -108,6 +108,9 @@ class FileController extends Controller
 
     /**
      * Stream the raw CAD file content for the viewer to load
+     *
+     * Uses application/octet-stream to prevent browser download attempts.
+     * The CAD viewer library will fetch and process this content via JavaScript.
      */
     #[NoAdminRequired]
     public function getFileContent(int $fileId): DataResponse|StreamResponse
@@ -145,8 +148,13 @@ class FileController extends Controller
             }
 
             $response = new StreamResponse($stream);
-            $response->addHeader('Content-Type', $mimeType);
-            $response->addHeader('Content-Disposition', 'inline; filename="' . $file->getName() . '"');
+            // Use application/octet-stream to prevent browser download attempts
+            // The CAD viewer library fetches and processes this content via JavaScript
+            $response->addHeader('Content-Type', 'application/octet-stream');
+            $response->addHeader('Content-Length', (string) $file->getSize());
+            $response->addHeader('Content-Disposition', 'attachment; filename="' . $file->getName() . '"');
+            // Allow caching for performance but validate on reuse
+            $response->addHeader('Cache-Control', 'private, max-age=3600');
             return $response;
         } catch (NotFoundException $e) {
             return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
