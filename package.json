@@ -21,6 +21,8 @@
   },
   "scripts": {
     "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "changeset publish",
     "build": "webpack --mode production",
     "dev": "webpack --mode development --watch",
     "lint": "eslint src/",
