@@ -33,13 +33,6 @@ interface NextcloudViewer {
     group?: string
     mimes: string[]
     component: unknown
-    fileInfo?: {
-      id: number | string
-      path?: string
-      mime?: string
-      filename?: string
-    }
-    downloadCallback?: (fileInfo: unknown) => Promise<void>
   }) => void
 }
 
