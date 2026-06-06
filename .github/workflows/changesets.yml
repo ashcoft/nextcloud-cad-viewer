@@ -1,0 +1,62 @@
+# This workflow uses changesets to manage versioning and changelog generation
+# https://github.com/changesets/changesets
+
+name: Changesets
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.changeset/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changesets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create Release Pull Request or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          # Run version command to update package.json and generate CHANGELOG
+          version: pnpm version-packages
+          # Build the project before publishing
+          publish: pnpm release
+          # Commit message for version updates
+          commit: "chore: version packages"
+          # Title for the release PR
+          title: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
