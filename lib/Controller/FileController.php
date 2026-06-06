@@ -154,8 +154,7 @@ class FileController extends Controller
             $response->addHeader('Content-Type', 'application/octet-stream');
             $response->addHeader('Content-Length', (string) $file->getSize());
             // No Content-Disposition header - browser won't trigger download
-            // Allow caching for performance
-            $response->addHeader('Cache-Control', 'private, max-age=3600');
+            // No cache headers - Nextcloud handles caching appropriately
             return $response;
         } catch (NotFoundException $e) {
             return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
