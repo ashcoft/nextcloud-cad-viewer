@@ -27,6 +27,8 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     if: github.repository == 'ashcoft/nextcloud-cad-viewer'
+    outputs:
+      has_changesets: ${{ steps.check_changesets.outputs.has_changesets }}
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -54,7 +56,18 @@ jobs:
           pnpm install --frozen-lockfile
           composer install --no-dev --optimize-autoloader
 
+      - name: Check for changesets
+        id: check_changesets
+        run: |
+          CHANGESET_COUNT=$(find .changeset -maxdepth 1 -name "*.md" \( ! -name "README.md" -a ! -name "config.json" \) 2>/dev/null | wc -l)
+          if [ "$CHANGESET_COUNT" -gt 0 ]; then
+            echo "has_changesets=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changesets=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Publish to GitHub Releases
+        if: steps.check_changesets.outputs.has_changesets == 'true'
         uses: changesets/action@v1.9.0
         with:
           version: pnpm changeset version
