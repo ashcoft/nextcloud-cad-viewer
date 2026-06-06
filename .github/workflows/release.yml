@@ -4,22 +4,15 @@
 name: Release
 
 on:
-  # Manual trigger (keeps existing functionality)
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to release (e.g., 0.0.11). If not provided, changeset files will be used.'
-        required: false
-        type: string
-  
-  # Automatic trigger when changes are pushed to main
   push:
     branches:
       - main
-    paths:
-      - '.changeset/**'  # Only trigger when changeset files change
-      - 'package.json'   # Or when package.json changes (version bumps)
-      - 'appinfo/info.xml'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.0.11)'
+        required: false
+        type: string
 
 concurrency:
   group: release-${{ github.ref }}
@@ -29,22 +22,14 @@ permissions:
   contents: write
   pull-requests: write
 
-env:
-  NODE_OPTIONS: "--max-old-space-size=4096"
-  APP_NAME: cad_viewer
-  APP_ID: cad_viewer
-
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    # Only run on the main repository (not forks)
     if: github.repository == 'ashcoft/nextcloud-cad-viewer'
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
@@ -61,18 +46,6 @@ jobs:
           php-version: '8.3'
           coverage: none
 
-      - name: Install gh CLI
-        run: |
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-          sudo apt-get update
-          sudo apt-get install -y gh
-
-      - name: Configure git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
       - name: Install dependencies
         env:
           CYPRESS_INSTALL_BINARY: 0
@@ -81,288 +54,12 @@ jobs:
           pnpm install --frozen-lockfile
           composer install --no-dev --optimize-autoloader
 
-      - name: Check for changesets and manual version
-        id: check_version
-        run: |
-          MANUAL_VERSION="${{ github.event.inputs.version }}"
-          
-          # Check for changeset files
-          CHANGESET_FILES=$(find .changeset -maxdepth 1 -name "*.md" \( ! -name "README.md" -a ! -name "config.json" \) 2>/dev/null | wc -l)
-          echo "changeset_count=$CHANGESET_FILES" >> $GITHUB_OUTPUT
-
-          # Check if this commit already has a version tag (avoid duplicate releases)
-          CURRENT_COMMIT=$(git rev-parse HEAD)
-          HAS_TAG=$(git tag --contains $CURRENT_COMMIT | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | wc -l)
-          
-          if [ "$HAS_TAG" -gt 0 ]; then
-            echo "This commit already has a release tag, skipping..."
-            echo "should_release=false" >> $GITHUB_OUTPUT
-          elif [ -n "$MANUAL_VERSION" ]; then
-            echo "Using manually provided version: $MANUAL_VERSION"
-            echo "manual_version=$MANUAL_VERSION" >> $GITHUB_OUTPUT
-            echo "should_release=true" >> $GITHUB_OUTPUT
-          elif [ "$CHANGESET_FILES" != "0" ]; then
-            echo "Using changeset-based versioning"
-            echo "manual_version=" >> $GITHUB_OUTPUT
-            echo "should_release=true" >> $GITHUB_OUTPUT
-          else
-            echo "No version input and no changeset files found"
-            echo "manual_version=" >> $GITHUB_OUTPUT
-            echo "should_release=false" >> $GITHUB_OUTPUT
-          fi
-          
-          # Output for trigger context
-          echo "is_manual=${MANUAL_VERSION:+true}" >> $GITHUB_OUTPUT
-          if [ -z "$MANUAL_VERSION" ] && [ "$CHANGESET_FILES" != "0" ]; then
-            echo "trigger_source=changesets_auto" >> $GITHUB_OUTPUT
-          elif [ -n "$MANUAL_VERSION" ]; then
-            echo "trigger_source=manual" >> $GITHUB_OUTPUT
-          else
-            echo "trigger_source=none" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Version bump and changelog generation (changesets)
-        if: steps.check_version.outputs.should_release == 'true' && steps.check_version.outputs.manual_version == ''
-        id: version_bump_changeset
-        run: |
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          echo "Current version: $CURRENT_VERSION"
-
-          # Run changeset version - this updates versions, CHANGELOG.md with GitHub links, and prepares release
-          # Since @changesets/changelog-github is installed, changelog will include GitHub PR links and usernames
-          pnpm changeset version || exit 1
-
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          echo "New version: $NEW_VERSION"
-
-          if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
-            echo "version_changed=true" >> $GITHUB_OUTPUT
-            
-            # Update info.xml with new version (changesets doesn't update this automatically)
-            sed -i "s|<version>[0-9.]*</version>|<version>${NEW_VERSION}</version>|g" appinfo/info.xml
-            
-            # Verify CHANGELOG.md was created/updated
-            if [ -f "CHANGELOG.md" ]; then
-              echo "✅ CHANGELOG.md successfully updated by changesets (with GitHub integration)"
-              echo "First few lines of CHANGELOG.md:"
-              head -15 CHANGELOG.md
-            else
-              echo "⚠️ Warning: CHANGELOG.md was not created"
-            fi
-            
-            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          else
-            echo "version_changed=false" >> $GITHUB_OUTPUT
-            echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Version bump and changelog generation (manual)
-        if: steps.check_version.outputs.should_release == 'true' && steps.check_version.outputs.manual_version != ''
-        id: version_bump_manual
-        run: |
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          NEW_VERSION="${{ github.event.inputs.version }}"
-          
-          echo "Current version: $CURRENT_VERSION"
-          echo "New version: $NEW_VERSION"
-
-          # Update package.json
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.version = '$NEW_VERSION';
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-          "
-
-          # Update info.xml
-          sed -i "s|<version>[0-9.]*</version>|<version>${NEW_VERSION}</version>|g" appinfo/info.xml
-
-          # Generate CHANGELOG.md manually for manual releases (since changesets won't run)
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          
-          if [ -n "$PREVIOUS_TAG" ]; then
-            # Create changelog entry with GitHub formatting
-            CHANGELOG_ENTRY="## [$NEW_VERSION] - $(date -u +%Y-%m-%d)\n\n"
-            CHANGELOG_ENTRY="${CHANGELOG_ENTRY}### What's Changed\n\n"
-            
-            # Get commits since last tag and format with GitHub links
-            COMMITS=$(git log "${PREVIOUS_TAG}..HEAD" --pretty=format:"- %s ([%h](https://github.com/${GITHUB_REPOSITORY}/commit/%H)) by @%an" --no-merges)
-            
-            if [ -n "$COMMITS" ]; then
-              CHANGELOG_ENTRY="${CHANGELOG_ENTRY}${COMMITS}\n\n"
-            else
-              CHANGELOG_ENTRY="${CHANGELOG_ENTRY}No changes recorded\n\n"
-            fi
-            
-            CHANGELOG_ENTRY="${CHANGELOG_ENTRY}**Full Changelog**: [${PREVIOUS_TAG}...v${NEW_VERSION}](https://github.com/${GITHUB_REPOSITORY}/compare/${PREVIOUS_TAG}...v${NEW_VERSION})\n\n"
-            
-            # Update CHANGELOG.md
-            if [ -f "CHANGELOG.md" ]; then
-              # Prepend new entry
-              echo -e "$CHANGELOG_ENTRY\n$(cat CHANGELOG.md)" > CHANGELOG.md
-            else
-              echo -e "# Changelog\n\n$CHANGELOG_ENTRY" > CHANGELOG.md
-            fi
-            
-            echo "✅ CHANGELOG.md manually updated with GitHub links"
-          else
-            echo "No previous tag found, creating initial CHANGELOG.md"
-            echo -e "# Changelog\n\n## [$NEW_VERSION] - $(date -u +%Y-%m-%d)\n\nInitial release\n" > CHANGELOG.md
-          fi
-
-          if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
-            echo "version_changed=true" >> $GITHUB_OUTPUT
-            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          else
-            echo "version_changed=false" >> $GITHUB_OUTPUT
-            echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Get final version
-        id: final_version
-        run: |
-          if [ "${{ steps.check_version.outputs.manual_version }}" != "" ]; then
-            VERSION="${{ steps.check_version.outputs.manual_version }}"
-          else
-            VERSION=$(node -p "require('./package.json').version")
-          fi
-          echo "Final version: $VERSION"
-          echo "final_version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Create version bump commit (includes CHANGELOG.md and updated files)
-        if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
-        run: |
-          git add .
-          git status
-          git commit -m "chore: version bump to ${{ steps.final_version.outputs.final_version }}
-
-          Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || echo "Nothing to commit"
-
-      - name: Build Nextcloud App Package
-        if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
-        run: |
-          echo "Building Nextcloud app package for version ${{ steps.final_version.outputs.final_version }}..."
-          git submodule update --init --recursive
-          make production-setup
-          make appstore
-          
-          echo "✅ Build artifacts created successfully:"
-          ls -la build/artifacts/
-          
-          # Verify the packages are valid
-          if [ -f "build/artifacts/cad_viewer.tar.gz" ] && [ -f "build/artifacts/cad_viewer.zip" ]; then
-            echo "✅ Both tar.gz and zip packages created"
-            echo "Package sizes:"
-            du -h build/artifacts/cad_viewer.tar.gz
-            du -h build/artifacts/cad_viewer.zip
-          else
-            echo "❌ Build artifacts missing!"
-            exit 1
-          fi
-
-      - name: Create tag and GitHub Release (with changelog)
-        if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
+      - name: Publish to GitHub Releases
+        uses: changesets/action@v1.9.0
+        with:
+          version: pnpm changeset version
+          commit: 'chore: version bump'
+          title: 'chore: version bump'
+          publish: pnpm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION="${{ steps.final_version.outputs.final_version }}"
-          TAG_NAME="v${VERSION}"
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          
-          if ! git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            # Push tag first
-            git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
-            git push origin "$TAG_NAME"
-            
-            # Wait for tag to be available
-            sleep 3
-            
-            # Extract the release notes for this version from CHANGELOG.md
-            if [ -f "CHANGELOG.md" ]; then
-              # Extract the section for this version (supports both [version] and version formats)
-              RELEASE_NOTES=$(sed -n "/## \\[${VERSION}\\]/,/## \\[.*\\]/p" CHANGELOG.md | sed '$d')
-              if [ -z "$RELEASE_NOTES" ]; then
-                RELEASE_NOTES=$(sed -n "/## ${VERSION}/,/## /p" CHANGELOG.md | sed '$d')
-              fi
-              if [ -z "$RELEASE_NOTES" ]; then
-                # If still empty, use the whole changelog but limit size
-                RELEASE_NOTES=$(head -500 CHANGELOG.md)
-              fi
-              
-              # Add a header with installation instructions
-              INSTALL_HEADER="## 🚀 Installation\n\n"
-              INSTALL_HEADER="${INSTALL_HEADER}This release provides two package formats for installing the CAD Viewer on your Nextcloud server:\n\n"
-              INSTALL_HEADER="${INSTALL_HEADER}- **cad_viewer.tar.gz** - Standard archive format\n"
-              INSTALL_HEADER="${INSTALL_HEADER}- **cad_viewer.zip** - Windows-compatible archive format\n\n"
-              INSTALL_HEADER="${INSTALL_HEADER}### Manual Installation\n\n"
-              INSTALL_HEADER="${INSTALL_HEADER}1. Download the package (either .tar.gz or .zip)\n"
-              INSTALL_HEADER="${INSTALL_HEADER}2. Extract the contents to your Nextcloud apps directory\n"
-              INSTALL_HEADER="${INSTALL_HEADER}3. Run: \`php occ app:enable cad_viewer\`\n\n"
-              INSTALL_HEADER="${INSTALL_HEADER}---\n\n"
-              
-              RELEASE_NOTES="${INSTALL_HEADER}${RELEASE_NOTES}"
-            else
-              # Fallback release notes
-              RELEASE_NOTES="## Release ${TAG_NAME}\n\n"
-              RELEASE_NOTES="${RELEASE_NOTES}This release includes the CAD Viewer app packages for Nextcloud.\n\n"
-              if [ -n "$PREVIOUS_TAG" ]; then
-                RELEASE_NOTES="${RELEASE_NOTES}**Full Changelog**: https://github.com/${GITHUB_REPOSITORY}/compare/${PREVIOUS_TAG}...${TAG_NAME}\n"
-              fi
-            fi
-            
-            # Add Nextcloud version requirement header
-            NC_VERSION=$(grep -oP '(?<=<nextcloud-min-version>)[0-9.]+(?=</nextcloud-min-version>)' appinfo/info.xml 2>/dev/null || echo "")
-            if [ -n "$NC_VERSION" ]; then
-              RELEASE_NOTES="> **📋 Requirements**: Nextcloud ${NC_VERSION} or later\n\n${RELEASE_NOTES}"
-            fi
-            
-            # Create GitHub Release with both package formats as assets
-            gh release create "$TAG_NAME" \
-              --title "Release ${TAG_NAME}" \
-              --notes "$RELEASE_NOTES" \
-              "build/artifacts/cad_viewer.tar.gz#CAD Viewer package (tar.gz)" \
-              "build/artifacts/cad_viewer.zip#CAD Viewer package (zip)"
-            
-            echo "✅ GitHub Release ${TAG_NAME} created successfully with both package formats"
-            echo "📦 Packages attached:"
-            echo "   - cad_viewer.tar.gz"
-            echo "   - cad_viewer.zip"
-          else
-            echo "⚠️ Tag ${TAG_NAME} already exists, skipping release creation"
-          fi
-
-      - name: Push changes (includes CHANGELOG.md and version updates)
-        if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
-        run: |
-          git push origin main || exit 0
-
-      - name: Clean up changeset files
-        if: steps.check_version.outputs.should_release == 'true' && steps.check_version.outputs.changeset_count != '0' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
-        run: |
-          find .changeset -maxdepth 1 -name "*.md" \( ! -name "README.md" -a ! -name "config.json" \) -exec rm {} \;
-          git add .
-          git commit -m "chore: remove processed changeset files
-
-          Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>" || exit 0
-          git push origin main || exit 0
-
-      - name: Summary
-        if: steps.check_version.outputs.should_release == 'true' && (steps.version_bump_changeset.outputs.version_changed == 'true' || steps.version_bump_manual.outputs.version_changed == 'true')
-        run: |
-          echo "## 🎉 Release Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Version:** ${{ steps.final_version.outputs.final_version }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Tag:** v${{ steps.final_version.outputs.final_version }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Trigger:** ${{ steps.check_version.outputs.trigger_source }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📦 Packages Created" >> $GITHUB_STEP_SUMMARY
-          echo "- cad_viewer.tar.gz" >> $GITHUB_STEP_SUMMARY
-          echo "- cad_viewer.zip" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📝 Files Updated" >> $GITHUB_STEP_SUMMARY
-          echo "- package.json (version: ${{ steps.final_version.outputs.final_version }})" >> $GITHUB_STEP_SUMMARY
-          echo "- appinfo/info.xml (version: ${{ steps.final_version.outputs.final_version }})" >> $GITHUB_STEP_SUMMARY
-          echo "- CHANGELOG.md (new entries added)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🔗 Release URL" >> $GITHUB_STEP_SUMMARY
-          echo "https://github.com/${GITHUB_REPOSITORY}/releases/tag/v${{ steps.final_version.outputs.final_version }}" >> $GITHUB_STEP_SUMMARY
