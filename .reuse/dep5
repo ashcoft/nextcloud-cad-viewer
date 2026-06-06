@@ -9,3 +9,5 @@ License: MIT
 Files: .github/workflows/*
 Copyright: 2023-2024 Nextcloud GmbH and Nextcloud contributors
 License: MIT
+
+Files: node_modules/**
