@@ -1,3 +1,17 @@
+## [0.0.15] - 2026-06-06
+
+### What's Changed
+
+- fix: handle cancelled state in psalm-matrix workflow summary ([9422347a](https://github.com/ashcoft/nextcloud-cad-viewer/commit/9422347afa031cfdb2f7fb87a083beacd142f64f)) by @openhands
+- Delete node_modules directory ([102131fb](https://github.com/ashcoft/nextcloud-cad-viewer/commit/102131fbdb37613ed9da9d3353a197e17e70902f)) by @Dony Wibowo
+- fix: exclude node_modules from REUSE compliance check ([b44c105e](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b44c105e45177fb7b46770b77ba08fd0e345aa84)) by @openhands
+- feat: add changeset version and release scripts ([4e827de5](https://github.com/ashcoft/nextcloud-cad-viewer/commit/4e827de5acb208147e653736995d8669729f0169)) by @openhands
+- chore(deps): bump vue-i18n in the vue-dependencies group (#373) ([c8ce6b65](https://github.com/ashcoft/nextcloud-cad-viewer/commit/c8ce6b6578398a4b55a815fd4b6fbdc0c5c65940)) by @dependabot[bot]
+- chore(deps): bump phpstan/phpstan from 2.2.1 to 2.2.2 (#372) ([6c3b02a8](https://github.com/ashcoft/nextcloud-cad-viewer/commit/6c3b02a8dcc6d99370fb320c7855307ad4c6b6ad)) by @dependabot[bot]
+
+**Full Changelog**: [v0.0.14...v0.0.15](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.0.14...v0.0.15)
+
+
 ## [0.0.14] - 2026-06-05
 
 ### What's Changed
