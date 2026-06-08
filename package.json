@@ -50,7 +50,7 @@
     "@changesets/cli": "^2.31.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.60.0",
-    "@types/node": "^25.9.1",
+    "@types/node": "^25.9.2",
     "@vue/compiler-sfc": "^3.5.35",
     "@vue/test-utils": "^2.4.11",
     "@vue/vue3-jest": "^29.2.6",
