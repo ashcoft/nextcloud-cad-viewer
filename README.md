@@ -1,152 +1,245 @@
 # Nextcloud CAD Viewer
 
-A native Nextcloud app providing DWG and DXF file viewing capabilities based on [@mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer).
+[![Latest Release](https://img.shields.io/github/v/release/ashcoft/nextcloud-cad-viewer)](https://github.com/ashcoft/nextcloud-cad-viewer/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Nextcloud Version](https://img.shields.io/badge/Nextcloud-33-blue)](https://nextcloud.com)
+[![PHP Version](https://img.shields.io/badge/PHP-8.2-purple)](https://php.net)
 
-[![Release](https://img.shields.io/github/v/release/ashcoft/nextcloud-cad-viewer)](https://github.com/ashcoft/nextcloud-cad-viewer/releases/latest)
-[![Nextcloud](https://img.shields.io/badge/Nextcloud-33-blue)](https://nextcloud.com)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![PHP](https://img.shields.io/badge/PHP-8.2+-purple)](https://php.net)
-[![Node](https://img.shields.io/badge/Node-24+-green)](https://nodejs.org)
+A native Nextcloud app providing DWG and DXF file viewing capabilities based on [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer). View your CAD drawings directly in Nextcloud without downloading or installing additional software.
 
-## Features
+## ✨ Features
 
-- **View DWG and DXF files** directly in the Nextcloud web interface
-- **Fast browser-based rendering** using WebGL technology
-- **Interactive controls**: Zoom, pan, fit-to-view
-- **Layer management**: Toggle layer visibility
-- **Theme support**: Dark and light mode
-- **Fullscreen mode** for detailed viewing
-- **Responsive design** for desktop and mobile
+- 🎨 **View DWG and DXF files** directly in Nextcloud web interface
+- ⚡ **Fast, browser-based rendering** using WebGL technology
+- 🔍 **Interactive controls**: Zoom, pan, and fit-to-view
+- 📐 **Layer management**: Toggle layer visibility on/off
+- 🌓 **Theme support**: Dark and light mode options
+- 🖥️ **Fullscreen mode** for detailed viewing
+- 📱 **Responsive design** that works on desktop and mobile
+- 🔒 **Secure integration** with Nextcloud's file permissions
+- 🔄 **Easy updates** from upstream cad-viewer
+- 🧪 **Fully tested** and compatible with Nextcloud 33
 
-## Requirements
+## 📋 Requirements
 
-| | |
-|---|---|
-| **Nextcloud** | 33+ |
-| **PHP** | 8.2+ |
-| **Node.js** | 24+ (development only) |
-| **pnpm** | 10+ (development only) |
+| Component | Version |
+|-----------|---------|
+| Nextcloud | 33+     |
+| PHP       | 8.2+    |
+| Node.js   | 24+ (dev. only) |
+| pnpm      | 10+ (dev. only) |
 
-## Installation
+## 📦 Installation
 
 ### From Nextcloud App Store (Recommended)
 
-1. Log in as an administrator
-2. Go to **Settings → Apps**
-3. Search for "CAD Viewer"
-4. Click **Download and enable**
+1. Log in to your Nextcloud instance as an administrator
+2. Go to **Settings** → **Apps**
+3. Search for "**CAD Viewer**"
+4. Click "**Download and enable**"
+5. The app is now ready to use!
 
 ### Manual Installation
 
-```bash
-# Clone to Nextcloud apps directory
-git clone https://github.com/ashcoft/nextcloud-cad-viewer.git /path/to/nextcloud/apps/cad_viewer
+1. Clone this repository to your Nextcloud apps directory:
+   ```bash
+   cd /path/to/nextcloud/apps
+   git clone https://github.com/ashcoft/nextcloud-cad-viewer.git cad_viewer
+   ```
 
-# Build frontend assets
-cd /path/to/nextcloud/apps/cad_viewer
-pnpm install
-pnpm run build
-```
+2. Set proper permissions:
+   ```bash
+   chown -R www-data:www-data cad_viewer
+   ```
 
-## Usage
+3. Enable the app:
+   - Go to **Settings** → **Apps**
+   - Find "CAD Viewer" in the disabled apps section
+   - Click "**Enable**"
 
-1. Navigate to any DWG or DXF file in Nextcloud
-2. Click the file to open it in the CAD Viewer
-3. Use toolbar controls to zoom, pan, toggle layers, or switch themes
+4. Build the frontend assets:
+   ```bash
+   cd cad_viewer
+   pnpm install
+   pnpm run build
+   ```
 
-### Supported Formats
+## 🚀 Usage
+
+Once installed, the CAD Viewer integrates seamlessly with Nextcloud:
+
+1. **Navigate** to any DWG or DXF file in your Nextcloud files
+2. **Click** on the file to open it
+3. The file will automatically open in the CAD Viewer
+4. Use the toolbar controls to:
+   - Zoom in/out
+   - Pan around the drawing
+   - Fit the drawing to view
+   - Toggle layers
+   - Switch between dark/light themes
+   - Enter fullscreen mode
+
+### Supported File Formats
 
 | Format | Extension | MIME Types |
 |--------|-----------|------------|
-| AutoCAD DWG | `.dwg` | `application/acad`, `application/dwg`, `image/vnd.dwg` |
-| AutoCAD DXF | `.dxf` | `image/vnd.dxf`, `application/dxf`, `image/x-dxf` |
+| AutoCAD DWG | `.dwg` | `application/acad`, `application/autocad_dwg`, `application/dwg`, `application/x-autocad`, `application/x-dwg`, `image/vnd.dwg` |
+| AutoCAD DXF | `.dxf` | `image/vnd.dxf`, `application/dxf`, `application/x-dxf`, `image/x-dxf` |
 
-## Development
+## 🛠️ Development
+
+### Prerequisites
+
+- Node.js 24+
+- pnpm 10+
+- Nextcloud 33 development environment
+- PHP 8.2+
+
+### Setup Development Environment
 
 ```bash
+# Clone the repository
+git clone https://github.com/ashcoft/nextcloud-cad-viewer.git
+cd nextcloud-cad-viewer
+
 # Install dependencies
 pnpm install
+```
 
-# Development build with watch
+### Build Commands
+
+```bash
+# Development build with watch mode
 pnpm run dev
 
 # Production build
 pnpm run build
 
-# Lint and fix
-pnpm run lint --fix
+# Run linter
+pnpm run lint
+
+# Fix linting issues
+pnpm run lint -- --fix
 
 # Run tests
 pnpm test
 ```
 
-### Project Structure
+## 🔄 Updating CAD Viewer
 
-```
-nextcloud-cad-viewer/
-├── src/                   # Vue.js frontend
-│   ├── main.js
-│   ├── App.vue
-│   ├── components/
-│   ├── router/
-│   └── utils/
-├── lib/                   # PHP backend
-│   ├── AppInfo/
-│   ├── Controller/
-│   └── Listener/
-├── appinfo/               # App metadata
-├── css/
-├── js/                    # Compiled JavaScript
-├── templates/
-└── docs/
-```
+When new versions of [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer) are released:
 
-## Version Increments
+1. Update the dependency:
+   ```bash
+   pnpm update @mlightcad/cad-viewer
+   ```
 
-The release workflow automatically updates version files when a tag is pushed:
+2. Rebuild the application:
+   ```bash
+   pnpm run build
+   ```
 
-1. **package.json** and **package-lock.json** via `pnpm version`
-2. **appinfo/info.xml** via sed
-3. **CHANGELOG.md** with new version entry
-4. Creates git commit and pushes changes
+3. Test thoroughly with various DWG/DXF files
 
-### Manual Version Update
+4. Commit and push changes:
+   ```bash
+   git add package.json pnpm-lock.yaml
+   git commit -m "Update cad-viewer dependency"
+   git push
+   ```
 
-```bash
-# Update version files locally
-pnpm version 0.0.9 --no-git-tag-version
+See [docs/UPDATING.md](docs/UPDATING.md) for detailed update procedures.
 
-# Or via workflow_dispatch with version input
-```
+## ⚙️ Configuration
 
-## Configuration
+The app works out of the box with no additional configuration required. All settings are managed through Nextcloud's standard file permissions and access controls.
 
-No additional configuration required. File permissions are managed through Nextcloud's standard controls.
+## 🐛 Troubleshooting
 
-## Troubleshooting
+### Files Not Displaying
+
+1. Verify the CAD Viewer app is enabled in Nextcloud
+2. Check that the file is a supported format (DWG or DXF)
+3. Ensure you have read permissions for the file
+4. Check the browser console for JavaScript errors
+5. Review Nextcloud logs at `nextcloud/data/nextcloud.log`
+
+### Performance Issues with Large Files
+
+1. Ensure your server has sufficient RAM and CPU resources
+2. Consider enabling browser hardware acceleration
+3. For very large files, consider optimizing the DWG/DXF in AutoCAD
+4. Check network bandwidth between client and server
+
+### Build Errors
+
+1. Clear node_modules and reinstall:
+   ```bash
+   rm -rf node_modules
+   pnpm install
+   ```
+
+2. Ensure you're using Node.js 24+
+3. Check that all dependencies are properly installed
+
+### Common Issues
 
 | Issue | Solution |
 |-------|----------|
-| Files not displaying | Verify app is enabled, check file format, check permissions |
+| Blank viewer | Check browser console for errors, verify file permissions |
 | Slow loading | Optimize CAD file, check server resources |
-| Missing layers | Ensure layers are not frozen in the source application |
-| Mobile display issues | Use landscape orientation |
+| Missing layers | Ensure CAD file layers are not frozen in source application |
+| Mobile display issues | Use landscape orientation for better viewing |
 
-## Testing
+## 🧪 Testing
+
+Run the test suite:
 
 ```bash
 pnpm test
 ```
 
-## Contributing
+For compatibility testing procedures, see [COMPATIBILITY.md](docs/COMPATIBILITY.md).
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make changes and run linter/tests (`pnpm run lint --fix && pnpm test`)
-4. Build (`pnpm run build`)
-5. Commit and push (`git commit -m 'Add amazing feature' && git push`)
-6. Open a Pull Request
+## 📄 License
 
-## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-MIT License - see [LICENSE](LICENSE) file.
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Make** your changes
+4. **Run** linter and tests (`pnpm run lint --fix && pnpm test`)
+5. **Build** the production assets (`pnpm run build`)
+6. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+7. **Push** to the branch (`git push origin feature/amazing-feature`)
+8. **Open** a Pull Request
+
+Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) for detailed guidelines.
+
+## 📞 Support
+
+- **Issues & Bug Reports**: [GitHub Issues](https://github.com/ashcoft/nextcloud-cad-viewer/issues)
+- **Documentation**: [GitHub Wiki](https://github.com/ashcoft/nextcloud-cad-viewer/wiki)
+- **Discussions**: [GitHub Discussions](https://github.com/ashcoft/nextcloud-cad-viewer/discussions)
+
+## 🙏 Credits
+
+- Built with [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer) by MLightCAD
+- Powered by [Vue.js](https://vuejs.org/)
+- Integrated with [Nextcloud](https://nextcloud.com/)
+- Thanks to all contributors and the Nextcloud community
+
+## 📝 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history and changes.
+
+## 🔗 Links
+
+- **GitHub Repository**: https://github.com/ashcoft/nextcloud-cad-viewer
+- **Nextcloud App Store**: https://apps.nextcloud.com/apps/cad_viewer
+- **CAD Viewer (upstream)**: https://github.com/mlightcad/cad-viewer
+- **MLightCAD**: https://github.com/mlightcad
