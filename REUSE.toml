@@ -1,14 +1,10 @@
 version = 1
 
 [excludes]
-patterns = [
+paths = [
   "node_modules",
-  "node_modules/**",
-  ".pnpm-store/**",
-  ".git/**",
-  "vendor/**",
-  "vendor-bin/**",
-  "build/**",
-  "js/*.js",
-  "*.min.js",
+  "vendor",
+  "build",
+  ".git",
+  "js/*.js"
 ]
