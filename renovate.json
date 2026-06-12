@@ -7,6 +7,13 @@
     "dependencies",
     "renovate"
   ],
+  "description": "Forces Renovate to add createChangeset label for triggering auto-changeset workflow",
+  "customLabels": [
+    {
+      "label": "createChangeset",
+      "description": "Add changeset for version bump"
+    }
+  ],
   "packageRules": [
     {
       "description": "Group mlightcad ecosystem updates",
