@@ -1,5 +1,21 @@
 ## [0.0.15] - 2026-06-06
 
+## 0.0.16
+
+### Patch Changes
+
+- [`4e475b4`](https://github.com/ashcoft/nextcloud-cad-viewer/commit/4e475b4956d9a119e482e36ccd35ec8a02d5a09b) Thanks [@openhands-agent](https://github.com/openhands-agent)! - Release pending dependency updates from Dependabot:
+  - chore(deps): bump @types/node from 25.9.2 to 25.9.3
+  - chore(deps): bump the vue-dependencies group with 2 updates
+  - chore(actions): bump shivammathur/setup-php from 2.37.1 to 2.37.2
+  - chore(actions): bump codecov/codecov-action from 6.0.1 to 7.0.0
+  - chore(deps): bump @mlightcad/data-model from 1.8.3 to 1.8.4
+  - chore(deps): bump stylelint from 17.12.0 to 17.13.0
+  - chore(deps): bump @mlightcad/data-model from 1.8.1 to 1.8.3
+  - chore(deps): bump typescript-eslint from 8.60.1 to 8.61.0
+  - chore(deps): bump @types/node from 25.9.1 to 25.9.2
+  - chore(deps): bump vue-tsc in the vue-dependencies group
+
 ### What's Changed
 
 - fix: handle cancelled state in psalm-matrix workflow summary ([9422347a](https://github.com/ashcoft/nextcloud-cad-viewer/commit/9422347afa031cfdb2f7fb87a083beacd142f64f)) by @openhands
@@ -11,7 +27,6 @@
 
 **Full Changelog**: [v0.0.14...v0.0.15](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.0.14...v0.0.15)
 
-
 ## [0.0.14] - 2026-06-05
 
 ### What's Changed
@@ -21,7 +36,6 @@
 - Update release.yml ([31754f39](https://github.com/ashcoft/nextcloud-cad-viewer/commit/31754f39d16a4cb6cc9121466ed7405ac80edcd7)) by @Dony Wibowo
 
 **Full Changelog**: [v0.0.13...v0.0.14](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.0.13...v0.0.14)
-
 
 # Changelog
 

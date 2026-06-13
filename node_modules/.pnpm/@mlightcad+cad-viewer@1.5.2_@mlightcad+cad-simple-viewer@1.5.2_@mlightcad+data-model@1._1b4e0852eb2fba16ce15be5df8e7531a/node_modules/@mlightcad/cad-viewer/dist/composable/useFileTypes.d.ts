@@ -1,0 +1,2 @@
+export declare function useFileTypes(): import('vue').Ref<Set<string> & Omit<Set<string>, keyof Set<any>>, Set<string> | (Set<string> & Omit<Set<string>, keyof Set<any>>)>;
+//# sourceMappingURL=useFileTypes.d.ts.map
