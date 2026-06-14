@@ -26,18 +26,27 @@ const SUPPORTED_MIMES = [
   'image/x-dxf',
 ]
 
-// Declare global types for Nextcloud Viewer
-interface NextcloudViewer {
-  registerHandler: (handler: {
-    id: string
-    group?: string
-    mimes: string[]
-    component: unknown
-  }) => void
+// CAD Viewer icon as inline SVG
+const CAD_VIEWER_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+  <path d="M7 2a2 2 0 0 0-2 2v1H3a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2V4a2 2 0 0 0-2-2H7zm0 2h10v2H7V4zm0 4h10v2H7V8zm0 4h6v2H7v-2z"/>
+</svg>`
+
+// Declare global types for Nextcloud
+interface NextcloudOC {
+  PERMISSION_READ: number
+  generateUrl: (url: string, params?: Record<string, unknown>) => string
+  imagePath: (app: string, file: string) => string
 }
 
 interface NextcloudOCA {
-  Viewer?: NextcloudViewer
+  Viewer?: {
+    registerHandler: (handler: {
+      id: string
+      group?: string
+      mimes: string[]
+      component: unknown
+    }) => void
+  }
   Files?: {
     registerFileAction: (action: {
       name: string
@@ -50,6 +59,9 @@ interface NextcloudOCA {
   }
 }
 
+declare const OC: NextcloudOC
+declare const OCA: NextcloudOCA
+
 // Track if we've already registered to avoid duplicate registrations
 let isRegistered = false
 
@@ -57,10 +69,8 @@ let isRegistered = false
 function registerViewerHandler(): boolean {
   if (isRegistered) return false
   
-  const nextcloudGlobal = globalThis as unknown as { OCA?: NextcloudOCA }
-  
-  if (nextcloudGlobal.OCA?.Viewer !== undefined) {
-    nextcloudGlobal.OCA.Viewer.registerHandler({
+  if (typeof OCA !== 'undefined' && OCA.Viewer !== undefined) {
+    OCA.Viewer.registerHandler({
       id: 'cad-viewer',
       group: 'cad',
       mimes: SUPPORTED_MIMES,
@@ -124,11 +134,25 @@ function setupViewerObserver(): void {
 // Initialize viewer registration immediately when script loads
 setupViewerObserver()
 
-function registerFileAction(): void {
+/**
+ * Open the CAD viewer for a file
+ */
+function openInViewer(fileId: number | string): void {
+  if (typeof OC !== 'undefined') {
+    window.location.href = OC.generateUrl('/apps/cad_viewer/view') + '?fileIds=' + fileId
+  }
+}
+
+/**
+ * Register file actions for CAD files in the Files sidebar
+ * Uses the Nextcloud Files app API (OCA.Files.registerFileAction)
+ */
+function registerFileActions(): void {
   if (typeof OC === 'undefined' || typeof OCA === 'undefined') {
     return
   }
 
+  // Register a file action for each supported MIME type
   SUPPORTED_MIMES.forEach((mime) => {
     if (OCA.Files && typeof OCA.Files.registerFileAction === 'function') {
       OCA.Files.registerFileAction({
@@ -136,11 +160,11 @@ function registerFileAction(): void {
         displayName: t('cad_viewer', 'Open with CAD Viewer'),
         mime,
         permissions: OC.PERMISSION_READ,
-        icon: () => OC.imagePath('core', 'actions/screen'),
+        icon: () => CAD_VIEWER_ICON,
         actionHandler: (_fileName: string, context: { fileInfo?: { id: number | string } }) => {
           const fileId = context.fileInfo?.id
           if (fileId) {
-            window.location.href = OC.generateUrl('/apps/cad_viewer/view') + '?fileIds=' + fileId
+            openInViewer(fileId)
           }
         },
       })
@@ -148,11 +172,12 @@ function registerFileAction(): void {
   })
 }
 
+// Register file actions when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  // Register file action for sidebar menu (needs DOM to be ready)
-  registerFileAction()
+  // Register file action for sidebar menu
+  registerFileActions()
 
-  // Try registration again at DOMContentLoaded in case it wasn't available earlier
+  // Try viewer handler registration again at DOMContentLoaded
   registerViewerHandler()
 
   const mountEl =
