@@ -1,6 +1,7 @@
 {
   "name": "nextcloud-cad-viewer",
   "version": "0.0.19",
+  "private": true,
   "description": "Nextcloud app for DWG/DXF viewer integration",
   "packageManager": "pnpm@10.34.3",
   "license": "MIT",
