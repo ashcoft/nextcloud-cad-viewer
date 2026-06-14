@@ -1,0 +1,43 @@
+name: Cleanup PR Comments
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run every hour to clean up unwanted comments
+    - cron: '0 * * * *'
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  cleanup-comments:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete unwanted comments from PRs
+        run: |
+          # Get all PR comments
+          COMMENTS=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.number || github.event.issue.number }}/comments" --jq '.[] | "\(.id)|\(.user.login)|\(.body | gsub("\n"; " ") | .[:150])"')
+          
+          for COMMENT in $COMMENTS; do
+            ID=$(echo "$COMMENT" | cut -d'|' -f1)
+            AUTHOR=$(echo "$COMMENT" | cut -d'|' -f2)
+            BODY=$(echo "$COMMENT" | cut -d'|' -f3)
+            
+            # Delete comments from qodo-code-review bot when reviews are paused
+            if [[ "$AUTHOR" == "qodo-code-review[bot]" ]] && [[ "$BODY" == *"reviews are paused"* ]]; then
+              echo "Deleting Qodo paused review comment: $ID"
+              gh api --method DELETE "repos/${{ github.repository }}/issues/comments/$ID"
+            fi
+            
+            # Delete comments from chatgpt-codex-connector when usage limits reached
+            if [[ "$AUTHOR" == "chatgpt-codex-connector[bot]" ]] && [[ "$BODY" == *"usage limits"* ]]; then
+              echo "Deleting Codex usage limit comment: $ID"
+              gh api --method DELETE "repos/${{ github.repository }}/issues/comments/$ID"
+            fi
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
