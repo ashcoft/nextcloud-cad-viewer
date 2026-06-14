@@ -12,18 +12,26 @@
   "packageRules": [
     {
       "description": "Group mlightcad ecosystem updates",
-      "matchPackagePatterns": ["@mlightcad/*"],
-      "groupName": "mlightcad-ecosystem"
+      "groupName": "mlightcad-ecosystem",
+      "matchPackageNames": [
+        "/@mlightcad/*/"
+      ]
     },
     {
       "description": "Group Vue-related dependencies",
-      "matchPackagePatterns": ["@vue/*", "vue*"],
-      "groupName": "vue-dependencies"
+      "groupName": "vue-dependencies",
+      "matchPackageNames": [
+        "/@vue/*/",
+        "/vue*/"
+      ]
     },
     {
       "description": "Group Babel-related dependencies",
-      "matchPackagePatterns": ["@babel/*", "babel-*"],
-      "groupName": "babel-dependencies"
+      "groupName": "babel-dependencies",
+      "matchPackageNames": [
+        "/@babel/*/",
+        "/babel-*/"
+      ]
     },
     {
       "description": "Allow PHPUnit major updates",
@@ -56,7 +64,9 @@
   "github-actions": {
     "enabled": true
   },
-  "vulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "enabled": true
+  },
   "prConcurrentLimit": 10,
   "prHourlyLimit": 5
 }
