@@ -69,7 +69,7 @@ let isRegistered = false
 function registerViewerHandler(): boolean {
   if (isRegistered) return false
   
-  if (typeof OCA !== 'undefined' && OCA.Viewer !== undefined) {
+  if (OCA?.Viewer !== undefined) {
     OCA.Viewer.registerHandler({
       id: 'cad-viewer',
       group: 'cad',
@@ -138,7 +138,7 @@ setupViewerObserver()
  * Open the CAD viewer for a file
  */
 function openInViewer(fileId: number | string): void {
-  if (typeof OC !== 'undefined') {
+  if (OC !== undefined) {
     window.location.href = OC.generateUrl('/apps/cad_viewer/view') + '?fileIds=' + fileId
   }
 }
@@ -148,13 +148,13 @@ function openInViewer(fileId: number | string): void {
  * Uses the Nextcloud Files app API (OCA.Files.registerFileAction)
  */
 function registerFileActions(): void {
-  if (typeof OC === 'undefined' || typeof OCA === 'undefined') {
+  if (OC === undefined || OCA === undefined) {
     return
   }
 
   // Register a file action for each supported MIME type
   SUPPORTED_MIMES.forEach((mime) => {
-    if (OCA.Files && typeof OCA.Files.registerFileAction === 'function') {
+    if (OCA?.Files?.registerFileAction !== undefined) {
       OCA.Files.registerFileAction({
         name: 'cad-viewer-open',
         displayName: t('cad_viewer', 'Open with CAD Viewer'),
