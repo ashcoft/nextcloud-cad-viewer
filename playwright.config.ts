@@ -11,6 +11,12 @@ export default defineConfig({
   reporter: 'html',
   use: {
     trace: 'on-first-retry',
+    baseURL: process.env.BASE_URL || 'http://localhost:8080',
+  },
+  webServer: {
+    command: 'php -S localhost:8080',
+    port: 8080,
+    reuseExistingServer: true,
   },
   projects: [
     {
