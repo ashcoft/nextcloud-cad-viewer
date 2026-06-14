@@ -34,7 +34,7 @@
     "@mlightcad/cad-viewer": "1.5.5",
     "@mlightcad/data-model": "1.8.4",
     "@nextcloud/router": "^3.1.0",
-    "element-plus": "2.14.1",
+    "element-plus": "2.14.2",
     "lodash-es": "4.18.1",
     "three": "0.184.0",
     "vue": "3.5.38",
@@ -85,7 +85,7 @@
     "@mlightcad/mtext-input-box": "0.2.11",
     "@mlightcad/mtext-renderer": "0.10.14",
     "@mlightcad/ribbon": "0.1.9",
-    "element-plus": "2.14.1",
+    "element-plus": "2.14.2",
     "three": "0.184.0",
     "vue": "3.5.38",
     "vue-i18n": "11.4.5"
