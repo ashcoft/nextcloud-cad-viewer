@@ -2,4 +2,4 @@
 "nextcloud-cad-viewer": patch
 ---
 
-Fixed release workflow to handle existing releases and properly upload app packages
+Fixed release workflow to create draft releases for review before publishing
