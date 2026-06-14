@@ -1,14 +1,7 @@
 name: Cleanup PR Comments
 
 on:
-  workflow_dispatch:
-    inputs:
-      issue_number:
-        description: 'Issue or PR number to clean up comments'
-        required: false
-        type: number
   schedule:
-    # Run every hour to clean up unwanted comments
     - cron: '0 * * * *'
   issue_comment:
     types: [created]
@@ -25,64 +18,27 @@ jobs:
       - name: Delete unwanted comments from PRs
         run: |
           # Get the issue/PR number from the event
-          if [[ "${{ github.event_name }}" == "issue_comment" ]]; then
-            NUMBER="${{ github.event.issue.number }}"
-          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            NUMBER="${{ github.event.inputs.issue_number }}"
-          else
-            NUMBER="${{ github.event.number }}"
-          fi
+          NUMBER="${{ github.event.issue.number }}"
 
-          # Skip if no issue number available
-          if [[ -z "$NUMBER" ]]; then
-            echo "No issue/PR number available. Skipping comment cleanup."
-            exit 0
-          fi
-
-          # Get all PR/Issue comments using curl
-          HTTP_CODE=$(curl -s -o /tmp/comments.json -w "%{http_code}" -H "Authorization: Bearer $GH_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/$NUMBER/comments")
-
-          if [[ "$HTTP_CODE" != "200" ]]; then
-            echo "Error: Failed to fetch comments (HTTP $HTTP_CODE)"
-            cat /tmp/comments.json
-            exit 1
-          fi
-
-          # Parse comments - extract id, user.login, and first 150 chars of body
-          jq -r '.[] | "\(.id)|\(.user.login)|\(.body // "" | gsub("\n"; " ") | .[0:150])"' /tmp/comments.json | while IFS='|' read -r ID AUTHOR BODY; do
-            if [[ -z "$ID" ]] || [[ "$ID" == "null" ]]; then
-              continue
+          # Get comments and process them
+          curl -s -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/$NUMBER/comments" | \
+          jq -r '.[] | "\(.id) \(.user.login) \(.body // "")"' | while read -r ID AUTHOR BODY; do
+            # Delete unwanted bot comments
+            if [[ "$AUTHOR" == *"qodo-code-review[bot]"* ]] && [[ "$BODY" == *"reviews are paused"* ]]; then
+              echo "Deleting Qodo comment: $ID"
+              curl -s -X DELETE -H "Authorization: Bearer $GH_TOKEN" \
+                "https://api.github.com/repos/${{ github.repository }}/issues/comments/$ID"
             fi
-
-            # Delete comments from qodo-code-review bot when reviews are paused
-            if [[ "$AUTHOR" == "qodo-code-review[bot]" ]] && [[ "$BODY" == *"reviews are paused"* ]]; then
-              echo "Deleting Qodo paused review comment: $ID"
-              DELETE_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE -H "Authorization: Bearer $GH_TOKEN" \
-                "https://api.github.com/repos/${{ github.repository }}/issues/comments/$ID")
-              if [[ "$DELETE_CODE" != "204" ]]; then
-                echo "Warning: Failed to delete comment $ID (HTTP $DELETE_CODE)"
-              fi
+            if [[ "$AUTHOR" == *"chatgpt-codex-connector[bot]"* ]] && [[ "$BODY" == *"usage limits"* ]]; then
+              echo "Deleting Codex comment: $ID"
+              curl -s -X DELETE -H "Authorization: Bearer $GH_TOKEN" \
+                "https://api.github.com/repos/${{ github.repository }}/issues/comments/$ID"
             fi
-
-            # Delete comments from chatgpt-codex-connector when usage limits reached
-            if [[ "$AUTHOR" == "chatgpt-codex-connector[bot]" ]] && [[ "$BODY" == *"usage limits"* ]]; then
-              echo "Deleting Codex usage limit comment: $ID"
-              DELETE_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE -H "Authorization: Bearer $GH_TOKEN" \
-                "https://api.github.com/repos/${{ github.repository }}/issues/comments/$ID")
-              if [[ "$DELETE_CODE" != "204" ]]; then
-                echo "Warning: Failed to delete comment $ID (HTTP $DELETE_CODE)"
-              fi
-            fi
-
-            # Delete comments from MergeGuard when monthly free review limit reached
-            if [[ "$AUTHOR" == "mergeguard[bot]" ]] && [[ "$BODY" == *"Monthly free review limit reached"* ]]; then
-              echo "Deleting MergeGuard limit reached comment: $ID"
-              DELETE_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE -H "Authorization: Bearer $GH_TOKEN" \
-                "https://api.github.com/repos/${{ github.repository }}/issues/comments/$ID")
-              if [[ "$DELETE_CODE" != "204" ]]; then
-                echo "Warning: Failed to delete comment $ID (HTTP $DELETE_CODE)"
-              fi
+            if [[ "$AUTHOR" == *"mergeguard[bot]"* ]] && [[ "$BODY" == *"Monthly free review limit reached"* ]]; then
+              echo "Deleting MergeGuard comment: $ID"
+              curl -s -X DELETE -H "Authorization: Bearer $GH_TOKEN" \
+                "https://api.github.com/repos/${{ github.repository }}/issues/comments/$ID"
             fi
           done
         env:
