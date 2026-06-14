@@ -1,5 +1,11 @@
 ## [0.0.15] - 2026-06-06
 
+## 0.0.17
+
+### Patch Changes
+
+- [`45e06d5`](https://github.com/ashcoft/nextcloud-cad-viewer/commit/45e06d5e271da070df0fbac869c171abe7d2e012) Thanks [@openhands-agent](https://github.com/openhands-agent)! - Release v0.0.16 - ESLint 9.x downgrade and dependency fixes
+
 ## 0.0.16
 
 ### Patch Changes
