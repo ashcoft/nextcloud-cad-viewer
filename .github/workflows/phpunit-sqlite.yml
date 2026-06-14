@@ -127,9 +127,11 @@ jobs:
       - name: Set up Nextcloud
         env:
           DB_PORT: 4444
+          DB_PASS: ${{ secrets.DB_TEST_PASS || 'rootpassword' }}
+          ADMIN_PASS: ${{ secrets.ADMIN_TEST_PASS || 'admin' }}
         run: |
           mkdir data
-          ./occ maintenance:install --verbose --database=sqlite --database-name=nextcloud --database-host=127.0.0.1 --database-port=$DB_PORT --database-user=root --database-pass=rootpassword --admin-user admin --admin-pass admin
+          ./occ maintenance:install --verbose --database=sqlite --database-name=nextcloud --database-host=127.0.0.1 --database-port=$DB_PORT --database-user=root --database-pass=$DB_PASS --admin-user admin --admin-pass $ADMIN_PASS
           ./occ app:enable --force ${{ env.APP_NAME }}
 
       - name: Check PHPUnit script is defined
