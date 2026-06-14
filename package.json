@@ -31,7 +31,7 @@
     "check-types": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@mlightcad/cad-viewer": "1.5.2",
+    "@mlightcad/cad-viewer": "1.5.5",
     "@mlightcad/data-model": "1.8.4",
     "@nextcloud/router": "^3.1.0",
     "element-plus": "2.14.1",
