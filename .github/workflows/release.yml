@@ -83,17 +83,22 @@ jobs:
           
           echo "Creating release ${TAG_NAME} from ${PREV_TAG}"
           
-          # Generate release notes using GitHub CLI
-          if [ -n "$PREV_TAG" ]; then
-            gh release create "$TAG_NAME" \
-              --title "Release ${TAG_NAME}" \
-              --generate-notes \
-              --repo "${{ github.repository }}"
+          # Check if release already exists
+          if gh release view "$TAG_NAME" --repo "${{ github.repository }}" 2>/dev/null; then
+            echo "Release ${TAG_NAME} already exists, skipping creation"
           else
-            gh release create "$TAG_NAME" \
-              --title "Release ${TAG_NAME}" \
-              --notes "Initial release" \
-              --repo "${{ github.repository }}"
+            # Generate release notes using GitHub CLI
+            if [ -n "$PREV_TAG" ]; then
+              gh release create "$TAG_NAME" \
+                --title "Release ${TAG_NAME}" \
+                --generate-notes \
+                --repo "${{ github.repository }}"
+            else
+              gh release create "$TAG_NAME" \
+                --title "Release ${TAG_NAME}" \
+                --notes "Initial release" \
+                --repo "${{ github.repository }}"
+            fi
           fi
           
           # Upload app package (build output is in build/artifacts/)

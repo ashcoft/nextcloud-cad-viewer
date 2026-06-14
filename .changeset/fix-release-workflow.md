@@ -2,4 +2,4 @@
 "nextcloud-cad-viewer": patch
 ---
 
-Fixed release workflow to properly find build artifacts in build/artifacts/ directory
+Fixed release workflow to handle existing releases and properly upload app packages
