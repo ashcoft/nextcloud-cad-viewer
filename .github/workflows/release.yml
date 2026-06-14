@@ -47,7 +47,7 @@ jobs:
           version: pnpm changeset version
           commit: 'chore: version bump'
           title: 'chore: version bump'
-          createGithubReleases: false
+          createGithubReleases: true
           publish: echo "Skipping npm publish"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
