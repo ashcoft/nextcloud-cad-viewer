@@ -1,5 +1,11 @@
 ## [0.0.15] - 2026-06-06
 
+## 0.0.19
+
+### Patch Changes
+
+- [`bb26f91`](https://github.com/ashcoft/nextcloud-cad-viewer/commit/bb26f915990acfd4d5d5a211ce7f811cf4eb40a9) Thanks [@openhands-agent](https://github.com/openhands-agent)! - Fixed release workflow to sync version to appinfo/info.xml alongside package.json and CHANGELOG.md
+
 ## 0.0.18
 
 ### Patch Changes
