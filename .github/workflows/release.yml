@@ -29,6 +29,7 @@ jobs:
     if: github.repository == 'ashcoft/nextcloud-cad-viewer'
     outputs:
       has_changesets: ${{ steps.check_changesets.outputs.has_changesets }}
+      version_changed: ${{ steps.version_check.outputs.version_changed }}
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -66,7 +67,21 @@ jobs:
             echo "has_changesets=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Publish to GitHub Releases
+      - name: Check if version changed
+        id: version_check
+        run: |
+          # Get current version from package.json
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          # Check if there's a tag for this version
+          if git rev-parse "v${CURRENT_VERSION}" >/dev/null 2>&1; then
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+            echo "Current version ${CURRENT_VERSION} is already tagged"
+          else
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+            echo "Version ${CURRENT_VERSION} has not been released yet"
+          fi
+
+      - name: Publish to GitHub Releases (with changesets)
         if: steps.check_changesets.outputs.has_changesets == 'true'
         uses: changesets/action@v1.9.0
         with:
@@ -76,3 +91,38 @@ jobs:
           createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to GitHub Releases (version bump only)
+        if: steps.check_changesets.outputs.has_changesets == 'false' && steps.version_check.outputs.version_changed == 'true'
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG_NAME="v${VERSION}"
+          
+          echo "Creating release for ${TAG_NAME}"
+          
+          # Create a temporary changelog
+          CHANGELOG=$(cat CHANGELOG.md 2>/dev/null | head -50 || echo "Release ${VERSION}")
+          
+          # Create the release via GitHub API
+          curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            https://api.github.com/repos/${{ github.repository }}/releases \
+            -d "{
+              \"tag_name\": \"${TAG_NAME}\",
+              \"name\": \"Release ${TAG_NAME}\",
+              \"body\": \"## Release ${VERSION}\\n\\n${CHANGELOG}\",
+              \"draft\": false,
+              \"prerelease\": false
+            }"
+          
+          # Create the tag
+          git tag "${TAG_NAME}"
+          git push origin "${TAG_NAME}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: No release needed
+        if: steps.check_changesets.outputs.has_changesets == 'false' && steps.version_check.outputs.version_changed == 'false'
+        run: |
+          echo "No changeset files found and version already released. Skipping release."
