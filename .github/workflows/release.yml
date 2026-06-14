@@ -1,18 +1,11 @@
-# SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
+# SPDX-FileCopyrightText: 2024 ashcoft
 # SPDX-License-Identifier: MIT
 
 name: Release
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to release (e.g., 0.0.11)'
-        required: false
-        type: string
+    branches: [main]
 
 concurrency:
   group: release-${{ github.ref }}
@@ -21,13 +14,16 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
-  actions: write
+  actions: read
 
 jobs:
   release:
-    name: Release
+    name: Create Release PR
     runs-on: ubuntu-latest
     if: github.repository == 'ashcoft/nextcloud-cad-viewer'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -41,111 +37,35 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
-      - name: Set up PHP 8.3
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
-        with:
-          php-version: '8.3'
-          coverage: none
-
       - name: Install dependencies
-        env:
-          CYPRESS_INSTALL_BINARY: 0
-          PUPPETEER_SKIP_DOWNLOAD: true
-        run: |
-          pnpm install --frozen-lockfile
-          composer install --no-dev --optimize-autoloader
+        run: pnpm install --frozen-lockfile
 
-      - name: Create version bump PR
+      - name: Create changeset PR
         id: changeset
         uses: changesets/action@v1.9.0
         with:
           version: pnpm changeset version
           commit: 'chore: version bump'
           title: 'chore: version bump'
-          createGithubReleases: false
+          createGithubReleases: true
           publish: echo "Skipping npm publish"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Sync version to info.xml
+        if: steps.changeset.outputs.published == 'true'
         run: |
-          # Get version from package.json
           VERSION=$(node -p "require('./package.json').version")
-          
-          # Update version in appinfo/info.xml
           sed -i "s/<version>[0-9.]*<\/version>/<version>${VERSION}<\/version>/" appinfo/info.xml
-          
-          echo "Updated info.xml to version ${VERSION}"
-          
-          # Commit the change if info.xml was modified
-          if git diff --quiet appinfo/info.xml; then
-            echo "info.xml already up to date"
-          else
-            git add appinfo/info.xml
-            git commit -m "chore: sync version to info.xml"
-            git push origin HEAD:changeset-release/main
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git add appinfo/info.xml
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -m "chore: sync version to info.xml"
+          git push
 
-      - name: Build Nextcloud App
-        run: |
-          pnpm build
-          make appstore
-        env:
-          CYPRESS_INSTALL_BINARY: 0
-
-      - name: Check for version bump
-        id: version_check
+      - name: Extract version info
+        id: version
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          TAG_NAME="v${VERSION}"
-          
-          # Check if this is a version bump commit (merge commit or version bump commit)
-          IS_VERSION_BUMP=false
-          if git log -1 --format='%s' | grep -q "chore: version bump"; then
-            IS_VERSION_BUMP=true
-          fi
-          
-          echo "Current version: ${VERSION}"
-          echo "Is version bump: ${IS_VERSION_BUMP}"
-          echo "version_bump=${IS_VERSION_BUMP}" >> $GITHUB_OUTPUT
-          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release (PR Review)
-        if: steps.version_check.outputs.version_bump == 'true'
-        run: |
-          TAG_NAME="${{ steps.version_check.outputs.tag_name }}"
-          VERSION="${{ steps.version_check.outputs.version }}"
-          
-          echo "Creating release ${TAG_NAME} for review..."
-          
-          # Generate release notes
-          gh release create "$TAG_NAME" \
-            --title "Release ${TAG_NAME} (Draft)" \
-            --draft \
-            --generate-notes \
-            --repo "${{ github.repository }}"
-          
-          # Upload app package
-          APP_FILE=$(find build/artifacts -name "*.tar.gz" ! -name "*-source.tar.gz" 2>/dev/null | head -1)
-          if [ -n "$APP_FILE" ]; then
-            gh release upload "$TAG_NAME" "$APP_FILE" --repo "${{ github.repository }}"
-          fi
-          
-          APP_ZIP=$(find build/artifacts -name "*.zip" ! -name "*-source.zip" 2>/dev/null | head -1)
-          if [ -n "$APP_ZIP" ]; then
-            gh release upload "$TAG_NAME" "$APP_ZIP" --repo "${{ github.repository }}"
-          fi
-          
-          echo ""
-          echo "✅ Draft release created: https://github.com/ashcoft/nextcloud-cad-viewer/releases/tag/${TAG_NAME}"
-          echo "📝 Please review and publish the release when ready."
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Notify no release needed
-        if: steps.version_check.outputs.version_bump == 'false'
-        run: |
-          echo "No version bump detected. Skipping release creation."
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
