@@ -1,0 +1,31 @@
+{
+  "name": "Nextcloud CAD Viewer Dev",
+  "image": "m浓郁的/nextcloud-dev:latest",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "forwardPorts": [8080, 9000],
+  "portsAttributes": {
+    "8080": {
+      "label": "Nextcloud Web",
+      "onAutoForward": "openPreview"
+    },
+    "9000": {
+      "label": "Nextcloud Database",
+      "onAutoForward": "silent"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Vue.volar",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "mtxr.sqltools-driver-pg"
+      ]
+    }
+  },
+  "onOpenBrowser": "https://github.com/codespaces/new",
+  "onOpenCommand": "bash .devcontainer/wait-and-open.sh"
+}
