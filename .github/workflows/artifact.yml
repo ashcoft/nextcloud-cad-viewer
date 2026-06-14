@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
+# SPDX-FileCopyrightText: 2024 ashcoft
 # SPDX-License-Identifier: MIT
 
 name: Build Artifacts
@@ -30,6 +30,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: build-${{ github.head_ref || github.run_id }}
@@ -38,7 +39,6 @@ concurrency:
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
   APP_NAME: cad_viewer
-  APP_ID: cad_viewer
 
 jobs:
   build:
@@ -57,26 +57,19 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
-      - name: Set up php 8.3
+      - name: Set up PHP 8.3
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: 8.3
           coverage: none
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update version files
         if: ${{ github.event.inputs.version }}
-        env:
-          VERSION: ${{ github.event.inputs.version }}
         run: |
-          pnpm version $VERSION --no-git-tag-version --no-commit-hooks
-          sed -i "s|<version>.*</version>|<version>$VERSION</version>|g" appinfo/info.xml
+          pnpm version ${{ github.event.inputs.version }} --no-git-tag-version --no-commit-hooks
+          sed -i "s|<version>.*</version>|<version>${{ github.event.inputs.version }}</version>|g" appinfo/info.xml
 
       - name: Install dependencies
-        env:
-          CYPRESS_INSTALL_BINARY: 0
-          PUPPETEER_SKIP_DOWNLOAD: true
         run: |
           pnpm install --frozen-lockfile
           composer install --no-dev --optimize-autoloader
@@ -84,30 +77,13 @@ jobs:
       - name: Build
         run: |
           pnpm run build
-          git submodule update --init --recursive
           make production-setup
           make appstore
-
-      - name: Package artifacts
-        env:
-          REF: ${{ github.ref_name }}
-          SHA: ${{ github.sha }}
-          INPUT_VERSION: ${{ github.event.inputs.version }}
-        run: |
-          if [[ -n "$INPUT_VERSION" ]]; then
-            TAG_NAME="v${INPUT_VERSION}"
-          else
-            SANITIZED_REF=$(echo "$REF" | sed 's/[^a-zA-Z0-9._-]/_/g')
-            TAG_NAME="${SANITIZED_REF}-${SHA:0:8}"
-          fi
-          cd build/artifacts
-          [[ -f "cad_viewer.tar.gz" ]] && mv cad_viewer.tar.gz "cad_viewer-${TAG_NAME}.tar.gz"
-          [[ -f "cad_viewer.zip" ]] && mv cad_viewer.zip "cad_viewer-${TAG_NAME}.zip"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.APP_NAME }}-${{ github.run_id }}
+          name: ${{ env.APP_NAME }}-${{ github.run_number }}
           path: build/artifacts/
           retention-days: 90
           compression-level: 6
