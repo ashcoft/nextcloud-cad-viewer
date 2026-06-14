@@ -29,6 +29,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
+      - name: Get PHP version from composer.json
+        id: php-version
+        run: |
+          PHP_VERSION=$(grep -oP '"php": "\K[^"]+' composer.json | head -1)
+          echo "version=$PHP_VERSION" >> $GITHUB_OUTPUT
+
       - name: Setup pnpm
         uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
 
@@ -38,10 +44,10 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
-      - name: Set up PHP 8.3
+      - name: Set up PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
-          php-version: 8.3
+          php-version: ${{ steps.php-version.outputs.version }}
           coverage: none
 
       - name: Install dependencies
