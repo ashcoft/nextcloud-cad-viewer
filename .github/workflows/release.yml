@@ -55,13 +55,6 @@ jobs:
           pnpm install --frozen-lockfile
           composer install --no-dev --optimize-autoloader
 
-      - name: Build Nextcloud App
-        run: |
-          pnpm build
-          make appstore
-        env:
-          CYPRESS_INSTALL_BINARY: 0
-
       - name: Create version bump PR
         id: changeset
         uses: changesets/action@v1.9.0
@@ -73,6 +66,34 @@ jobs:
           publish: echo "Skipping npm publish"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sync version to info.xml
+        run: |
+          # Get version from package.json
+          VERSION=$(node -p "require('./package.json').version")
+          
+          # Update version in appinfo/info.xml
+          sed -i "s/<version>[0-9.]*<\/version>/<version>${VERSION}<\/version>/" appinfo/info.xml
+          
+          echo "Updated info.xml to version ${VERSION}"
+          
+          # Commit the change if info.xml was modified
+          if git diff --quiet appinfo/info.xml; then
+            echo "info.xml already up to date"
+          else
+            git add appinfo/info.xml
+            git commit -m "chore: sync version to info.xml"
+            git push origin HEAD:changeset-release/main
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Nextcloud App
+        run: |
+          pnpm build
+          make appstore
+        env:
+          CYPRESS_INSTALL_BINARY: 0
 
       - name: Check for version bump
         id: version_check
