@@ -1,5 +1,5 @@
 /*!
-  * shared v11.4.4
+  * shared v11.4.5
   * (c) 2026 kazuya kawaguchi
   * Released under the MIT License.
   */
@@ -18,8 +18,6 @@
 */
 
 /*! Element Plus Icons Vue v2.3.2 */
-
-/*! https://mths.be/codepointat v0.2.0 by @mathias */
 
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 
@@ -45,25 +43,25 @@
  */
 
 /**
-* @vue/compiler-dom v3.5.35
+* @vue/compiler-dom v3.5.38
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
 
 /**
-* @vue/runtime-core v3.5.35
+* @vue/runtime-core v3.5.38
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
 
 /**
-* @vue/runtime-dom v3.5.35
+* @vue/runtime-dom v3.5.38
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
 
 /**
-* @vue/shared v3.5.35
+* @vue/shared v3.5.38
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
