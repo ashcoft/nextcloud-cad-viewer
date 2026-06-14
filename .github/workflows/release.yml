@@ -21,15 +21,13 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
     if: github.repository == 'ashcoft/nextcloud-cad-viewer'
-    outputs:
-      has_changesets: ${{ steps.check_changesets.outputs.has_changesets }}
-      version_changed: ${{ steps.version_check.outputs.version_changed }}
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -57,59 +55,57 @@ jobs:
           pnpm install --frozen-lockfile
           composer install --no-dev --optimize-autoloader
 
-      - name: Check for changesets
-        id: check_changesets
+      - name: Build Nextcloud App
         run: |
-          CHANGESET_COUNT=$(find .changeset -maxdepth 1 -name "*.md" \( ! -name "README.md" -a ! -name "config.json" \) 2>/dev/null | wc -l)
-          if [ "$CHANGESET_COUNT" -gt 0 ]; then
-            echo "has_changesets=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_changesets=false" >> $GITHUB_OUTPUT
-          fi
+          pnpm build
+          make appstore
+        env:
+          CYPRESS_INSTALL_BINARY: 0
 
-      - name: Check if version changed
-        id: version_check
-        run: |
-          # Get current version from package.json
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          # Check if there's a tag for this version
-          if git rev-parse "v${CURRENT_VERSION}" >/dev/null 2>&1; then
-            echo "version_changed=false" >> $GITHUB_OUTPUT
-            echo "Current version ${CURRENT_VERSION} is already tagged"
-          else
-            echo "version_changed=true" >> $GITHUB_OUTPUT
-            echo "Version ${CURRENT_VERSION} has not been released yet"
-          fi
-
-      - name: Publish to GitHub Releases (with changesets)
-        if: steps.check_changesets.outputs.has_changesets == 'true'
+      - name: Publish to GitHub Releases
         uses: changesets/action@v1.9.0
         with:
           version: pnpm changeset version
           commit: 'chore: version bump'
           title: 'chore: version bump'
-          createGithubReleases: true
+          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish to GitHub Releases (version bump only)
-        if: steps.check_changesets.outputs.has_changesets == 'false' && steps.version_check.outputs.version_changed == 'true'
+      - name: Create GitHub Release
+        if: success()
         run: |
           VERSION=$(node -p "require('./package.json').version")
           TAG_NAME="v${VERSION}"
           
-          echo "Creating release for ${TAG_NAME}"
+          # Get previous tag for changelog
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           
-          # Create release via GitHub CLI
-          gh release create "${TAG_NAME}" \
-            --title "Release ${TAG_NAME}" \
-            --notes-file CHANGELOG.md \
-            --generate-notes \
-            --repo "${{ github.repository }}"
+          echo "Creating release ${TAG_NAME} from ${PREV_TAG}"
+          
+          # Generate release notes using GitHub CLI
+          if [ -n "$PREV_TAG" ]; then
+            gh release create "$TAG_NAME" \
+              --title "Release ${TAG_NAME}" \
+              --generate-notes \
+              --repo "${{ github.repository }}"
+          else
+            gh release create "$TAG_NAME" \
+              --title "Release ${TAG_NAME}" \
+              --notes "Initial release" \
+              --repo "${{ github.repository }}"
+          fi
+          
+          # Upload app package
+          APP_FILE=$(find .build -name "*.tar.gz" 2>/dev/null | head -1)
+          if [ -n "$APP_FILE" ]; then
+            gh release upload "$TAG_NAME" "$APP_FILE" --repo "${{ github.repository }}"
+          fi
+          
+          # Also upload zip if exists
+          APP_ZIP=$(find .build -name "*.zip" 2>/dev/null | head -1)
+          if [ -n "$APP_ZIP" ]; then
+            gh release upload "$TAG_NAME" "$APP_ZIP" --repo "${{ github.repository }}"
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: No release needed
-        if: steps.check_changesets.outputs.has_changesets == 'false' && steps.version_check.outputs.version_changed == 'false'
-        run: |
-          echo "No changeset files found and version already released. Skipping release."
