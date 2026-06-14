@@ -17,7 +17,7 @@
     "friendsofphp/php-cs-fixer": "^3.95",
     "nextcloud/coding-standard": "^1.1",
     "phpstan/phpstan": "^2.1",
-    "phpunit/phpunit": "^10.4",
+    "phpunit/phpunit": "^13.0",
     "rector/rector": "^2.4",
     "roave/security-advisories": "dev-latest",
     "symfony/event-dispatcher": "^7.0",
