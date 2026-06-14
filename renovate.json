@@ -26,6 +26,12 @@
       "groupName": "babel-dependencies"
     },
     {
+      "description": "Allow PHPUnit major updates",
+      "matchPackageNames": ["phpunit/phpunit"],
+      "separateMajorMinor": false,
+      "groupName": "phpunit"
+    },
+    {
       "description": "Disable updates for locked versions in overrides",
       "matchPackageNames": [
         "@mlightcad/data-model",
