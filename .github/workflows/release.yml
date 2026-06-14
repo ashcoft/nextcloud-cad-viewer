@@ -96,14 +96,14 @@ jobs:
               --repo "${{ github.repository }}"
           fi
           
-          # Upload app package
-          APP_FILE=$(find .build -name "*.tar.gz" 2>/dev/null | head -1)
+          # Upload app package (build output is in build/artifacts/)
+          APP_FILE=$(find build/artifacts -name "*.tar.gz" ! -name "*-source.tar.gz" 2>/dev/null | head -1)
           if [ -n "$APP_FILE" ]; then
             gh release upload "$TAG_NAME" "$APP_FILE" --repo "${{ github.repository }}"
           fi
           
           # Also upload zip if exists
-          APP_ZIP=$(find .build -name "*.zip" 2>/dev/null | head -1)
+          APP_ZIP=$(find build/artifacts -name "*.zip" ! -name "*-source.zip" 2>/dev/null | head -1)
           if [ -n "$APP_ZIP" ]; then
             gh release upload "$TAG_NAME" "$APP_ZIP" --repo "${{ github.repository }}"
           fi
