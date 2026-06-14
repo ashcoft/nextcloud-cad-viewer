@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+  <id>cad_viewer</id>
+  <name>CAD Viewer</name>
+  <summary>DWG/DXF file viewer for Nextcloud</summary>
+  <description><![CDATA[A native Nextcloud app that provides DWG and DXF file viewing capabilities. Integrates [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer) - a fully web-based CAD viewer that runs entirely in the browser without backend server requirements.
+
+**Supported formats:** DWG, DXF
+
+**Features:**
+- Zoom, pan, and fit-to-view controls
+- Layer visibility management
+- Dark/light theme
+- Fullscreen mode
+- Responsive design]]></description>
+  <version>0.0.15</version>
+  <licence>MIT</licence>
+  <author mail="support@example.com">CAD Viewer Contributors</author>
+  <namespace>CadViewer</namespace>
+  <documentation>
+    <user>https://github.com/ashcoft/nextcloud-cad-viewer</user>
+    <admin>https://github.com/ashcoft/nextcloud-cad-viewer</admin>
+    <developer>https://github.com/ashcoft/nextcloud-cad-viewer</developer>
+  </documentation>
+  <category>files</category>
+  <website>https://github.com/ashcoft/nextcloud-cad-viewer</website>
+  <bugs>https://github.com/ashcoft/nextcloud-cad-viewer/issues</bugs>
+  <repository type="git">https://github.com/ashcoft/nextcloud-cad-viewer.git</repository>
+  <screenshot>https://raw.githubusercontent.com/ashcoft/nextcloud-cad-viewer/main/docs/screenshot.png</screenshot>
+  <dependencies>
+    <php min-version="8.2"/>
+    <nextcloud min-version="33" max-version="34"/>
+  </dependencies>
+  <navigations>
+    <navigation>
+      <id>cad_viewer</id>
+      <name>CAD Viewer</name>
+      <route>cad_viewer.view.index</route>
+      <type>link</type>
+    </navigation>
+  </navigations>
+</info>

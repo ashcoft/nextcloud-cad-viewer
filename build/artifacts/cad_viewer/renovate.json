@@ -1,0 +1,61 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "labels": [
+    "dependencies",
+    "renovate"
+  ],
+  "description": "Forces Renovate to add createChangeset label for triggering auto-changeset workflow",
+  "customLabels": [
+    {
+      "label": "createChangeset",
+      "description": "Add changeset for version bump"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Group mlightcad ecosystem updates",
+      "matchPackagePatterns": ["@mlightcad/*"],
+      "groupName": "mlightcad-ecosystem"
+    },
+    {
+      "description": "Group Vue-related dependencies",
+      "matchPackagePatterns": ["@vue/*", "vue*"],
+      "groupName": "vue-dependencies"
+    },
+    {
+      "description": "Group Babel-related dependencies",
+      "matchPackagePatterns": ["@babel/*", "babel-*"],
+      "groupName": "babel-dependencies"
+    },
+    {
+      "description": "Disable updates for locked versions in overrides",
+      "matchPackageNames": [
+        "@mlightcad/data-model",
+        "@mlightcad/libredwg-converter",
+        "@mlightcad/mtext-input-box",
+        "@mlightcad/mtext-renderer",
+        "@mlightcad/ribbon",
+        "element-plus",
+        "three",
+        "vue",
+        "vue-i18n"
+      ],
+      "enabled": false
+    }
+  ],
+  "composer": {
+    "enabled": true
+  },
+  "npm": {
+    "enabled": true
+  },
+  "github-actions": {
+    "enabled": true
+  },
+  "vulnerabilityAlerts": true,
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 5
+}

@@ -1,0 +1,25 @@
+{
+    "mimetypes": [
+        "application/acad",
+        "application/autocad_dwg",
+        "application/dwg",
+        "application/x-autocad",
+        "application/x-dwg",
+        "image/vnd.dwg",
+        "image/vnd.dxf",
+        "application/dxf",
+        "application/x-dxf",
+        "image/x-dxf"
+    ],
+    "aliases": {
+        "dwg": "application/dwg",
+        "dxf": "image/vnd.dxf"
+    },
+    "mimetypealiases": {
+        "application/acad": "application/dwg",
+        "application/autocad_dwg": "application/dwg",
+        "application/x-autocad": "application/dwg",
+        "application/x-dwg": "application/dwg",
+        "image/vnd.dwg": "application/dwg"
+    }
+}
