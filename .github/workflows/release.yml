@@ -52,15 +52,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Update lockfile after version bump
+        if: steps.changeset.outputs.published == 'true'
+        run: |
+          pnpm install --frozen-lockfile
+
       - name: Sync version to info.xml
         if: steps.changeset.outputs.published == 'true'
         run: |
           VERSION=$(node -p "require('./package.json').version")
           sed -i "s/<version>[0-9.]*<\/version>/<version>${VERSION}<\/version>/" appinfo/info.xml
-          git add appinfo/info.xml
+          git add appinfo/info.xml pnpm-lock.yaml
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git commit -m "chore: sync version to info.xml"
+          git commit -m "chore: sync version to info.xml and update lockfile"
           git push
 
       - name: Extract version info
