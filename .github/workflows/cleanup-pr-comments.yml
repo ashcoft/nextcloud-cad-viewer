@@ -2,6 +2,11 @@ name: Cleanup PR Comments
 
 on:
   workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue or PR number to clean up comments'
+        required: false
+        type: number
   schedule:
     # Run every hour to clean up unwanted comments
     - cron: '0 * * * *'
@@ -22,8 +27,16 @@ jobs:
           # Get the issue/PR number from the event
           if [[ "${{ github.event_name }}" == "issue_comment" ]]; then
             NUMBER="${{ github.event.issue.number }}"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            NUMBER="${{ github.event.inputs.issue_number }}"
           else
             NUMBER="${{ github.event.number }}"
+          fi
+
+          # Skip if no issue number available
+          if [[ -z "$NUMBER" ]]; then
+            echo "No issue/PR number available. Skipping comment cleanup."
+            exit 0
           fi
 
           # Get all PR/Issue comments using curl
