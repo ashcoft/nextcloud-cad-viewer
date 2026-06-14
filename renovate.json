@@ -5,15 +5,10 @@
   ],
   "labels": [
     "dependencies",
-    "renovate"
+    "renovate",
+    "createChangeset"
   ],
-  "description": "Forces Renovate to add createChangeset label for triggering auto-changeset workflow",
-  "customLabels": [
-    {
-      "label": "createChangeset",
-      "description": "Add changeset for version bump"
-    }
-  ],
+  "description": "Renovate configuration for nextcloud-cad-viewer",
   "packageRules": [
     {
       "description": "Group mlightcad ecosystem updates",
