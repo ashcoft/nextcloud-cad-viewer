@@ -1,5 +1,11 @@
 ## [0.0.15] - 2026-06-06
 
+## 0.0.20
+
+### Patch Changes
+
+- [#449](https://github.com/ashcoft/nextcloud-cad-viewer/pull/449) [`9c7f3d0`](https://github.com/ashcoft/nextcloud-cad-viewer/commit/9c7f3d053573f35db4c0dbd6cb406cda01669850) Thanks [@ashcoft](https://github.com/ashcoft)! - Refactor artifact and release workflows with changesets configuration
+
 ## 0.0.19
 
 ### Patch Changes
