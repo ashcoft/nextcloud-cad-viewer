@@ -18,14 +18,14 @@ module.exports = {
         loader: 'vue-loader',
       },
       {
-        // Handles .ts, .tsx, .js, .jsx — excluding .vue files (vue-loader handles TypeScript in Vue)
+        // Handles .ts, .tsx, .js, .jsx — including <script lang="ts"> blocks from vue-loader
         test: /\.[jt]sx?$/,
         loader: 'babel-loader',
         // Still apply fullySpecified: false to all JS/TS files to handle mlightcad issues
         resolve: {
           fullySpecified: false,
         },
-        exclude: [/node_modules/, /\.vue$/],
+        exclude: /node_modules/,
       },
       {
         test: /\.m?js$/,
