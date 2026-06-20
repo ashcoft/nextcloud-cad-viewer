@@ -202,5 +202,4 @@ jobs:
 
     steps:
       - name: Summary status
-        run: |
-          if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-mariadb.result != 'success' }}; then exit 1; fi
+        run: if ${{ needs.changes.outputs.src != 'false' && needs.phpunit-mariadb.result != 'success' }}; then exit 1; fi

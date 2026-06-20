@@ -80,13 +80,14 @@
     "webpack-cli": "^7.0.3"
   },
   "overrides": {
-    "@mlightcad/data-model": "1.8.4",
-    "@mlightcad/cad-simple-viewer": {
-      "@mlightcad/data-model": "1.8.4"
-    },
-    "@mlightcad/cad-viewer": {
-      "@mlightcad/data-model": "1.8.4",
-      "@mlightcad/cad-simple-viewer": "1.5.5"
-    }
+    "@mlightcad/data-model": "1.9.6",
+    "@mlightcad/libredwg-converter": "3.5.38",
+    "@mlightcad/mtext-input-box": "0.2.11",
+    "@mlightcad/mtext-renderer": "0.10.14",
+    "@mlightcad/ribbon": "0.1.9",
+    "element-plus": "2.14.2",
+    "three": "0.184.0",
+    "vue": "3.5.38",
+    "vue-i18n": "11.4.6"
   }
 }
