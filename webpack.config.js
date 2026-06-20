@@ -17,28 +17,13 @@ module.exports = {
         test: /\.vue$/,
         loader: 'vue-loader',
       },
-      // Handle TypeScript with ts-loader (not babel, since babel/preset-typescript v8 has issues with Vue)
       {
-        test: /\.ts$/,
-        loader: 'ts-loader',
-        options: {
-          transpileOnly: true,
-          compilerOptions: {
-            module: 'ESNext',
-            moduleResolution: 'node',
-          },
-        },
-        exclude: /node_modules/,
-      },
-      {
-        // Handles .js, .jsx files only — babel-loader for modern JS transpilation
-        test: /\.jsx?$/,
+        test: /\.tsx?$/,
         loader: 'babel-loader',
-        // Still apply fullySpecified: false to all JS/TS files to handle mlightcad issues
         resolve: {
           fullySpecified: false,
         },
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /\.vue$/],
       },
       {
         test: /\.m?js$/,

@@ -43,9 +43,9 @@
     "vue-router": "^5.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^8.0.0",
-    "@babel/preset-env": "^8.0.0",
-    "@babel/preset-typescript": "^8.0.0",
+    "@babel/core": "^7.29.7",
+    "@babel/preset-env": "^7.29.7",
+    "@babel/preset-typescript": "^7.29.7",
     "@changesets/changelog-github": "^0.7.0",
     "@changesets/cli": "^2.31.0",
     "@eslint/js": "^10.0.0",
@@ -78,16 +78,5 @@
     "vue-tsc": "^3.3.4",
     "webpack": "^5.107.2",
     "webpack-cli": "^7.0.3"
-  },
-  "overrides": {
-    "@mlightcad/data-model": "1.9.6",
-    "@mlightcad/libredwg-converter": "3.5.38",
-    "@mlightcad/mtext-input-box": "0.2.11",
-    "@mlightcad/mtext-renderer": "0.10.14",
-    "@mlightcad/ribbon": "0.1.9",
-    "element-plus": "2.14.2",
-    "three": "0.184.0",
-    "vue": "3.5.38",
-    "vue-i18n": "11.4.5"
   }
 }
