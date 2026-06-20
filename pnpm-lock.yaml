@@ -1198,7 +1198,7 @@ packages:
     resolution: {integrity: sha512-BQFBA+DirppJa97WavvXkUdusAqjrndQ3YWvDGWa3sraEtZWPAyZnekbMBmyIMeFnft4zpbKhKBWnAi9J98q2g==}
 
   '@mlightcad/data-model@1.8.4':
-    resolution: {integrity: sha512-OpJqAkhjfIP6T5A4t/L2eAqFFXlVjaPiGQED4SieFj+XPdSY067MOx41oL3NsxHgkPPiZpBL9hTLZAPmG7ROIA==}
+    resolution: {integrity: sha512-ptuPq/ScOLjsv7jItC/yysYhgHcuGlz8Ax6rIWK1Vkxso28iObbNV3I7hd40GHQydpRG+1MO9/t//iexurKo1g==}
 
   '@mlightcad/geometry-engine@3.4.6':
     resolution: {integrity: sha512-FlGu7L1jc8IIr5vhPC7bMGRkbPrI3fvaXJ5iqlScAmJsInRuW+tfD3e++sYo/HfG3eTxGPtMYWaoFD8LIsZAug==}
