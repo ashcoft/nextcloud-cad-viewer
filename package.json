@@ -33,7 +33,8 @@
   },
   "dependencies": {
     "@mlightcad/cad-viewer": "1.5.5",
-    "@mlightcad/data-model": "1.9.8",
+    "@mlightcad/cad-simple-viewer": "1.5.4",
+    "@mlightcad/data-model": "1.8.1",
     "@nextcloud/router": "^3.1.0",
     "element-plus": "2.14.2",
     "lodash-es": "4.18.1",
@@ -80,7 +81,8 @@
     "webpack-cli": "^7.0.3"
   },
   "overrides": {
-    "@mlightcad/data-model": "1.8.4",
+    "@mlightcad/data-model": "1.8.1",
+    "@mlightcad/cad-simple-viewer": "1.5.4",
     "@mlightcad/libredwg-converter": "3.5.38",
     "@mlightcad/mtext-input-box": "0.2.11",
     "@mlightcad/mtext-renderer": "0.10.14",
