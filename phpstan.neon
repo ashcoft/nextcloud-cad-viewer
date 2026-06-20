@@ -1,9 +1,9 @@
-# min: 8.2
+# min: 8.3
 parameters:
     level: 5
     paths:
         - lib
     bootstrapFiles:
         - vendor/autoload.php
-    phpVersion: 80200
+    phpVersion: 80300
     treatPhpDocTypesAsCertain: false

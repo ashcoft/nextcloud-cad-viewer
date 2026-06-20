@@ -3,7 +3,7 @@
 [![Latest Release](https://img.shields.io/github/v/release/ashcoft/nextcloud-cad-viewer)](https://github.com/ashcoft/nextcloud-cad-viewer/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Nextcloud Version](https://img.shields.io/badge/Nextcloud-33-blue)](https://nextcloud.com)
-[![PHP Version](https://img.shields.io/badge/PHP-8.2-purple)](https://php.net)
+[![PHP Version](https://img.shields.io/badge/PHP-8.3-purple)](https://php.net)
 
 A native Nextcloud app providing DWG and DXF file viewing capabilities based on [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer). View your CAD drawings directly in Nextcloud without downloading or installing additional software.
 
@@ -25,7 +25,7 @@ A native Nextcloud app providing DWG and DXF file viewing capabilities based on 
 | Component | Version |
 |-----------|---------|
 | Nextcloud | 33+     |
-| PHP       | 8.2+    |
+| PHP       | 8.3+    |
 | Node.js   | 24+ (dev. only) |
 | pnpm      | 10+ (dev. only) |
 
@@ -93,7 +93,7 @@ Once installed, the CAD Viewer integrates seamlessly with Nextcloud:
 - Node.js 24+
 - pnpm 10+
 - Nextcloud 33 development environment
-- PHP 8.2+
+- PHP 8.3+
 
 ### Setup Development Environment
 
