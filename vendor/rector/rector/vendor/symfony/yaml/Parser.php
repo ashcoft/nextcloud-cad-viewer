@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202605\Symfony\Component\Yaml;
+namespace RectorPrefix202606\Symfony\Component\Yaml;
 
-use RectorPrefix202605\Symfony\Component\Yaml\Exception\ParseException;
-use RectorPrefix202605\Symfony\Component\Yaml\Tag\TaggedValue;
+use RectorPrefix202606\Symfony\Component\Yaml\Exception\ParseException;
+use RectorPrefix202606\Symfony\Component\Yaml\Tag\TaggedValue;
 /**
  * Parser parses YAML strings to convert them to PHP arrays.
  *
@@ -109,7 +109,7 @@ class Parser
     }
     private function getState(): ParserState
     {
-        return $this->state ?? $this->state = new ParserState();
+        return $this->state ??= new ParserState();
     }
     /**
      * @return mixed
@@ -862,7 +862,7 @@ class Parser
             $this->offset += substr_count($value, "\n") - substr_count($trimmedValue, "\n");
             $value = $trimmedValue;
             // remove end of the document marker (...)
-            $value = preg_replace('#\.\.\.[ \t]*+$#', '', $value);
+            $value = preg_replace('#\.\.\.\s*+$#', '', $value);
         }
         return $value;
     }
