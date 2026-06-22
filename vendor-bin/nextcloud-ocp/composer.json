@@ -1,0 +1,10 @@
+{
+    "require": {
+        "nextcloud/ocp": "dev-stable30"
+    },
+    "config": {
+        "platform": {
+            "php": "8.1"
+        }
+    }
+}
