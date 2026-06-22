@@ -46,7 +46,7 @@ namespace OCP\AppFramework\Bootstrap {
     }
 }
 
-namespace OCP\AppFramework\Http {
+namespace OCP\AppFramework\Http\Events {
     class BeforeTemplateRenderedEvent {}
 }
 
@@ -61,6 +61,22 @@ namespace OCP\AppFramework {
     interface IAppContainer extends \OCP\IServerContainer
     {
         public function get(string $id);
+    }
+}
+
+namespace OCP\EventDispatcher {
+    abstract class Event {}
+    interface IEventListener
+    {
+        public function handle(Event $event): void;
+    }
+}
+
+namespace OCP {
+    class Util
+    {
+        public static function addScript(string $appId, string $scriptName): void {}
+        public static function addStyle(string $appId, string $styleName): void {}
     }
 }
 
