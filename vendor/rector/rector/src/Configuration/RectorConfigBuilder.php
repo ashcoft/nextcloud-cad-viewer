@@ -136,6 +136,7 @@ final class RectorConfigBuilder
      */
     private array $setGroups = [];
     private ?bool $reportingRealPath = null;
+    private ?bool $reportUnusedSkips = null;
     /**
      * @var string[]
      */
@@ -278,6 +279,9 @@ final class RectorConfigBuilder
         }
         if ($this->reportingRealPath !== null) {
             $rectorConfig->reportingRealPath($this->reportingRealPath);
+        }
+        if ($this->reportUnusedSkips !== null) {
+            $rectorConfig->reportUnusedSkips($this->reportUnusedSkips);
         }
         if ($this->editorUrl !== null) {
             $rectorConfig->editorUrl($this->editorUrl);
@@ -574,9 +578,9 @@ final class RectorConfigBuilder
         }
         return $this;
     }
-    public function withComposerBased(bool $twig = \false, bool $doctrine = \false, bool $phpunit = \false, bool $symfony = \false, bool $netteUtils = \false, bool $laravel = \false): self
+    public function withComposerBased(bool $twig = \false, bool $doctrine = \false, bool $phpunit = \false, bool $symfony = \false, bool $netteUtils = \false, bool $laravel = \false, bool $drupal = \false): self
     {
-        $setMap = [SetGroup::TWIG => $twig, SetGroup::DOCTRINE => $doctrine, SetGroup::PHPUNIT => $phpunit, SetGroup::SYMFONY => $symfony, SetGroup::NETTE_UTILS => $netteUtils, SetGroup::LARAVEL => $laravel];
+        $setMap = [SetGroup::TWIG => $twig, SetGroup::DOCTRINE => $doctrine, SetGroup::PHPUNIT => $phpunit, SetGroup::SYMFONY => $symfony, SetGroup::NETTE_UTILS => $netteUtils, SetGroup::LARAVEL => $laravel, SetGroup::DRUPAL => $drupal];
         foreach ($setMap as $setPath => $isEnabled) {
             if ($isEnabled) {
                 $this->setGroups[] = $setPath;
@@ -652,7 +656,7 @@ final class RectorConfigBuilder
         $this->parallel = \false;
         return $this;
     }
-    public function withImportNames(bool $importNames = \true, bool $importDocBlockNames = \true, bool $importShortClasses = \true, bool $removeUnusedImports = \false): self
+    public function withImportNames(bool $importNames = \true, bool $importDocBlockNames = \true, bool $importShortClasses = \true, bool $removeUnusedImports = \true): self
     {
         $this->importNames = $importNames;
         $this->importDocBlockNames = $importDocBlockNames;
@@ -898,6 +902,15 @@ final class RectorConfigBuilder
     public function withRealPathReporting(bool $absolutePath = \true): self
     {
         $this->reportingRealPath = $absolutePath;
+        return $this;
+    }
+    /**
+     * Report skips configured via withSkip() that never matched anything during the run,
+     * so they can be safely removed.
+     */
+    public function reportUnusedSkips(bool $report = \true): self
+    {
+        $this->reportUnusedSkips = $report;
         return $this;
     }
     public function withEditorUrl(string $editorUrl): self
