@@ -8,17 +8,17 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202605\Symfony\Component\Process;
+namespace RectorPrefix202606\Symfony\Component\Process;
 
-use RectorPrefix202605\Symfony\Component\Process\Exception\InvalidArgumentException;
-use RectorPrefix202605\Symfony\Component\Process\Exception\LogicException;
-use RectorPrefix202605\Symfony\Component\Process\Exception\ProcessFailedException;
-use RectorPrefix202605\Symfony\Component\Process\Exception\ProcessSignaledException;
-use RectorPrefix202605\Symfony\Component\Process\Exception\ProcessStartFailedException;
-use RectorPrefix202605\Symfony\Component\Process\Exception\ProcessTimedOutException;
-use RectorPrefix202605\Symfony\Component\Process\Exception\RuntimeException;
-use RectorPrefix202605\Symfony\Component\Process\Pipes\UnixPipes;
-use RectorPrefix202605\Symfony\Component\Process\Pipes\WindowsPipes;
+use RectorPrefix202606\Symfony\Component\Process\Exception\InvalidArgumentException;
+use RectorPrefix202606\Symfony\Component\Process\Exception\LogicException;
+use RectorPrefix202606\Symfony\Component\Process\Exception\ProcessFailedException;
+use RectorPrefix202606\Symfony\Component\Process\Exception\ProcessSignaledException;
+use RectorPrefix202606\Symfony\Component\Process\Exception\ProcessStartFailedException;
+use RectorPrefix202606\Symfony\Component\Process\Exception\ProcessTimedOutException;
+use RectorPrefix202606\Symfony\Component\Process\Exception\RuntimeException;
+use RectorPrefix202606\Symfony\Component\Process\Pipes\UnixPipes;
+use RectorPrefix202606\Symfony\Component\Process\Pipes\WindowsPipes;
 /**
  * Process is a thin wrapper around proc_* functions to easily
  * start independent PHP processes.
@@ -154,7 +154,7 @@ class Process implements \IteratorAggregate
      */
     public function __construct(array $command, ?string $cwd = null, ?array $env = null, $input = null, ?float $timeout = 60)
     {
-        if (!\function_exists('proc_open') && !\function_exists('RectorPrefix202605\proc_open')) {
+        if (!\function_exists('proc_open') && !\function_exists('RectorPrefix202606\proc_open')) {
             throw new LogicException('The Process class relies on proc_open, which is not available on your PHP installation.');
         }
         $this->commandline = $command;
@@ -1204,7 +1204,7 @@ class Process implements \IteratorAggregate
         if (null !== self::$sigchild) {
             return self::$sigchild;
         }
-        if (!\function_exists('phpinfo') && !\function_exists('RectorPrefix202605\phpinfo')) {
+        if (!\function_exists('phpinfo') && !\function_exists('RectorPrefix202606\phpinfo')) {
             return self::$sigchild = \false;
         }
         ob_start();
@@ -1473,7 +1473,19 @@ class Process implements \IteratorAggregate
     {
         $env = getenv();
         $env = ('\\' === \DIRECTORY_SEPARATOR ? array_intersect_ukey($env, $_SERVER, 'strcasecmp') : array_intersect_key($env, $_SERVER)) ?: $env;
-        return $_ENV + ('\\' === \DIRECTORY_SEPARATOR ? array_diff_ukey($env, $_ENV, 'strcasecmp') : $env);
+        $env = $_ENV + ('\\' === \DIRECTORY_SEPARATOR ? array_diff_ukey($env, $_ENV, 'strcasecmp') : $env);
+        if (\in_array(\PHP_SAPI, ['cli', 'phpdbg', 'embed'], \true)) {
+            return $env;
+        }
+        // On non-CLI SAPIs (notably PHP-FPM and CGI), CGI/FastCGI request-context
+        // vars are exposed through $_SERVER, $_ENV and getenv(), and must not
+        // propagate to subprocesses.
+        foreach ($env as $k => $v) {
+            if (strncmp($k, 'HTTP_', strlen('HTTP_')) === 0 || strncmp($k, 'ORIG_', strlen('ORIG_')) === 0 || strncmp($k, 'REDIRECT_', strlen('REDIRECT_')) === 0 || \in_array($k, ['AUTH_TYPE', 'CONTENT_LENGTH', 'CONTENT_TYPE', 'DOCUMENT_ROOT', 'DOCUMENT_URI', 'GATEWAY_INTERFACE', 'HTTPS', 'PATH_INFO', 'PATH_TRANSLATED', 'PHP_AUTH_DIGEST', 'PHP_AUTH_PW', 'PHP_AUTH_USER', 'PHP_SELF', 'QUERY_STRING', 'REMOTE_ADDR', 'REMOTE_HOST', 'REMOTE_IDENT', 'REMOTE_PORT', 'REMOTE_USER', 'REQUEST_METHOD', 'REQUEST_SCHEME', 'REQUEST_TIME', 'REQUEST_TIME_FLOAT', 'REQUEST_URI', 'SCRIPT_FILENAME', 'SCRIPT_NAME', 'SCRIPT_URI', 'SCRIPT_URL', 'SERVER_ADDR', 'SERVER_ADMIN', 'SERVER_NAME', 'SERVER_PORT', 'SERVER_PROTOCOL', 'SERVER_SIGNATURE', 'SERVER_SOFTWARE'], \true)) {
+                unset($env[$k]);
+            }
+        }
+        return $env;
     }
     private function validateWindowsEnvBlockSize(array $envPairs): void
     {

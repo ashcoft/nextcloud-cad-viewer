@@ -9,7 +9,7 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202605\Webmozart\Assert;
+namespace RectorPrefix202606\Webmozart\Assert;
 
 use ArrayAccess;
 use Closure;
@@ -2015,18 +2015,25 @@ class Assert
     public static function uuid($value, $message = ''): string
     {
         static::string($value, $message);
-        $originalValue = $value;
-        $value = \str_replace(['urn:', 'uuid:', '{', '}'], '', $value);
-        // The nil UUID is special form of UUID that is specified to have all
-        // 128 bits set to zero.
-        if ('00000000-0000-0000-0000-000000000000' === $value) {
-            return $originalValue;
+        $uuid = '[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}';
+        // URN form as specified by RFC 9562, e.g. "urn:uuid:ff6f8cb0-...".
+        if (strncmp($value, 'urn:uuid:', strlen('urn:uuid:')) === 0 && \preg_match('/^urn:uuid:' . $uuid . '$/D', $value)) {
+            return $value;
         }
-        if (!\preg_match('/^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/D', $value)) {
-            $message = self::resolveMessage($message);
-            static::reportInvalidArgument(\sprintf($message ?: 'Value %s is not a valid UUID.', static::valueToString($value)));
+        // "uuid:" prefix, optionally combined with the curly-braced form.
+        if (strncmp($value, 'uuid:', strlen('uuid:')) === 0 && \preg_match('/^uuid:(?:' . $uuid . '|\{' . $uuid . '\})$/D', $value)) {
+            return $value;
         }
-        return $originalValue;
+        // Curly-braced form; the braces must be a matching pair.
+        if (strncmp($value, '{', strlen('{')) === 0 && substr_compare($value, '}', -strlen('}')) === 0 && \preg_match('/^\{' . $uuid . '\}$/D', $value)) {
+            return $value;
+        }
+        // Plain form, including the nil UUID with all 128 bits set to zero.
+        if (\preg_match('/^' . $uuid . '$/D', $value)) {
+            return $value;
+        }
+        $message = self::resolveMessage($message);
+        static::reportInvalidArgument(\sprintf($message ?: 'Value %s is not a valid UUID.', static::valueToString($value)));
     }
     /**
      * @template T as callable
@@ -2118,7 +2125,7 @@ class Assert
     }
     protected static function strlen(string $value): int
     {
-        if (!\function_exists('mb_detect_encoding') && !\function_exists('RectorPrefix202605\mb_detect_encoding')) {
+        if (!\function_exists('mb_detect_encoding') && !\function_exists('RectorPrefix202606\mb_detect_encoding')) {
             return \strlen($value);
         }
         if (\false === $encoding = \mb_detect_encoding($value)) {
