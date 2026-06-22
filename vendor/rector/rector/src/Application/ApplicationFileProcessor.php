@@ -13,6 +13,7 @@ use Rector\FileSystem\FilesFinder;
 use Rector\Parallel\Application\ParallelFileProcessor;
 use Rector\PhpParser\Parser\ParserErrors;
 use Rector\Reporting\MissConfigurationReporter;
+use Rector\Skipper\Skipper\UsedSkipCollector;
 use Rector\Testing\PHPUnit\StaticPHPUnitEnvironment;
 use Rector\Util\ArrayParametersMerger;
 use Rector\ValueObject\Application\File;
@@ -70,6 +71,10 @@ final class ApplicationFileProcessor
      */
     private MissConfigurationReporter $missConfigurationReporter;
     /**
+     * @readonly
+     */
+    private UsedSkipCollector $usedSkipCollector;
+    /**
      * @var string
      */
     private const ARGV = 'argv';
@@ -77,7 +82,7 @@ final class ApplicationFileProcessor
      * @var SystemError[]
      */
     private array $systemErrors = [];
-    public function __construct(SymfonyStyle $symfonyStyle, FilesFinder $filesFinder, ParallelFileProcessor $parallelFileProcessor, ScheduleFactory $scheduleFactory, CpuCoreCountProvider $cpuCoreCountProvider, ChangedFilesDetector $changedFilesDetector, CurrentFileProvider $currentFileProvider, \Rector\Application\FileProcessor $fileProcessor, ArrayParametersMerger $arrayParametersMerger, MissConfigurationReporter $missConfigurationReporter)
+    public function __construct(SymfonyStyle $symfonyStyle, FilesFinder $filesFinder, ParallelFileProcessor $parallelFileProcessor, ScheduleFactory $scheduleFactory, CpuCoreCountProvider $cpuCoreCountProvider, ChangedFilesDetector $changedFilesDetector, CurrentFileProvider $currentFileProvider, \Rector\Application\FileProcessor $fileProcessor, ArrayParametersMerger $arrayParametersMerger, MissConfigurationReporter $missConfigurationReporter, UsedSkipCollector $usedSkipCollector)
     {
         $this->symfonyStyle = $symfonyStyle;
         $this->filesFinder = $filesFinder;
@@ -89,6 +94,7 @@ final class ApplicationFileProcessor
         $this->fileProcessor = $fileProcessor;
         $this->arrayParametersMerger = $arrayParametersMerger;
         $this->missConfigurationReporter = $missConfigurationReporter;
+        $this->usedSkipCollector = $usedSkipCollector;
     }
     public function run(Configuration $configuration, InputInterface $input): ProcessResult
     {
@@ -128,6 +134,9 @@ final class ApplicationFileProcessor
             $processResult = $this->processFiles($filePaths, $configuration, $preFileCallback, $postFileCallback);
         }
         $processResult->addSystemErrors($this->systemErrors);
+        // path-only skips are matched in the main process while finding files; in parallel runs the
+        // result comes from workers only, so merge those marks back in to avoid false "unused skip"
+        $processResult->addUsedSkips($this->usedSkipCollector->provide());
         $this->restoreErrorHandler();
         return $processResult;
     }
@@ -170,7 +179,7 @@ final class ApplicationFileProcessor
                 $systemErrors[] = $this->resolveSystemError($throwable, $filePath);
             }
         }
-        return new ProcessResult($systemErrors, $fileDiffs, $totalChanged);
+        return new ProcessResult($systemErrors, $fileDiffs, $totalChanged, $this->usedSkipCollector->provide());
     }
     private function processFile(File $file, Configuration $configuration): FileProcessResult
     {
@@ -179,7 +188,11 @@ final class ApplicationFileProcessor
         if ($fileProcessResult->getSystemErrors() !== []) {
             $this->changedFilesDetector->invalidateFile($file->getFilePath());
         } elseif (!$configuration->isDryRun() || !$fileProcessResult->getFileDiff() instanceof FileDiff) {
-            $this->changedFilesDetector->cacheFile($file->getFilePath());
+            // a file clean under a subset of rules is not necessarily clean under all rules,
+            // caching it would hide its pending changes from the next full run
+            if ($configuration->getOnlyRule() === null && $configuration->getOnlySuffix() === null) {
+                $this->changedFilesDetector->cacheFile($file->getFilePath());
+            }
         }
         return $fileProcessResult;
     }
