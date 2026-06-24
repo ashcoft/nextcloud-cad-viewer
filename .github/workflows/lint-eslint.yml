@@ -102,4 +102,9 @@ jobs:
 
     steps:
       - name: Summary status
-        run: if ${{ needs.changes.outputs.src != 'false' && needs.lint.result != 'success' }}; then exit 1; fi
+        run: |
+          if [[ "${{ needs.changes.outputs.src }}" != "false" ]]; then
+            if [[ "${{ needs.lint.result }}" != "success" && "${{ needs.lint.result }}" != "" ]]; then
+              exit 1
+            fi
+          fi
