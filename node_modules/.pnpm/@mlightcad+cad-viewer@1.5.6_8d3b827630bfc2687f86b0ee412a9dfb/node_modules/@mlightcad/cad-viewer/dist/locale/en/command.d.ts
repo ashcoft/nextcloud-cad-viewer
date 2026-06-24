@@ -1,0 +1,31 @@
+declare const _default: {
+    ACAD: {
+        hatch: {
+            description: string;
+        };
+        layer: {
+            description: string;
+        };
+        md: {
+            description: string;
+        };
+        properties: {
+            description: string;
+        };
+        pttype: {
+            description: string;
+        };
+        qselect: {
+            description: string;
+        };
+        units: {
+            description: string;
+        };
+        style: {
+            description: string;
+        };
+    };
+    USER: {};
+};
+export default _default;
+//# sourceMappingURL=command.d.ts.map

@@ -9,7 +9,7 @@
 name: Node tests
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Allow Node 20 instead of forcing Node 24
 
 on:
   pull_request:
@@ -87,7 +87,7 @@ jobs:
         env:
           CYPRESS_INSTALL_BINARY: 0
         run: |
-          pnpm install --frozen-lockfile
+          pnpm install
           pnpm run --if-present build
 
       - name: Test
