@@ -9,7 +9,7 @@
 name: Node tests
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Allow Node 20 instead of forcing Node 24
 
 on:
   pull_request:
