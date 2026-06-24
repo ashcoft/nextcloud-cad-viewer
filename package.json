@@ -3,7 +3,7 @@
   "version": "0.0.20",
   "private": true,
   "description": "Nextcloud app for DWG/DXF viewer integration",
-  "packageManager": "pnpm@10.34.3",
+  "packageManager": "pnpm@10.34.4",
   "license": "MIT",
   "author": "CAD Viewer Contributors",
   "repository": "https://github.com/ashcoft/nextcloud-cad-viewer",
@@ -32,6 +32,10 @@
     "check-types": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@mlightcad/cad-html-plugin": "1.5.6",
+    "@mlightcad/cad-pdf-plugin": "1.5.6",
+    "@mlightcad/cad-simple-viewer": "1.5.6",
+    "@mlightcad/cad-svg-plugin": "1.5.6",
     "@mlightcad/cad-viewer": "1.5.5",
     "@mlightcad/data-model": "1.9.11",
     "@nextcloud/router": "^3.1.0",
