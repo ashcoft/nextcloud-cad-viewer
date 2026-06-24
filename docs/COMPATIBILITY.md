@@ -1,18 +1,18 @@
 # Compatibility Requirements for Nextcloud CAD Viewer
 
 ## Nextcloud Version
-The Nextcloud CAD Viewer is compatible with **Nextcloud 33**.
+The Nextcloud CAD Viewer is compatible with **Nextcloud 33-34**.
 
 ## PHP Requirements
-The application requires **PHP 8.2** or higher to function correctly. Ensure the PHP version meets this requirement to avoid any issues.
+The application requires **PHP 8.3** or higher to function correctly. Ensure the PHP version meets this requirement to avoid any issues.
 
 ## Testing Procedures
 To verify compatibility, follow these testing procedures:
 
-1. **Setup**: Ensure you have Nextcloud 33 and PHP 8.2+ installed in your development or testing environment.
+1. **Setup**: Ensure you have Nextcloud 33 and PHP 8.3+ installed in your development or testing environment.
 2. **Installation**: Download and install the Nextcloud CAD Viewer app.
 3. **Access Logs**: Monitor server logs for any errors or warnings during installation.
-4. **Functionality Testing**: Perform basic functionality tests to ensure all features work as intended in Nextcloud 33 with PHP 8.2+.
+4. **Functionality Testing**: Perform basic functionality tests to ensure all features work as intended in Nextcloud 33 with PHP 8.3+.
 5. **Regression Testing**: If applicable, perform regression testing to ensure that previous functionalities remain operational.
 6. **User Acceptance Testing**: Gather feedback from end-users to further verify compatibility and address any reported issues.
 
