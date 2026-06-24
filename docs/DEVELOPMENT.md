@@ -6,7 +6,7 @@
 - Node.js 24+
 - pnpm 10+
 - Nextcloud 33 installation
-- PHP 8.3
+- PHP 8.3+
 
 ### Installation
 1. Clone the repository

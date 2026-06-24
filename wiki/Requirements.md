@@ -21,9 +21,9 @@ This document outlines the system requirements and dependencies for running Next
 |-------------|---------|
 | **Minimum Version** | Nextcloud 33 |
 | **Maximum Version** | Nextcloud 34 |
-| **Recommended** | Latest stable release of Nextcloud 33 |
+| **Recommended** | Latest stable release of Nextcloud 34 |
 
-> ⚠️ **Note**: The app is specifically tested and optimized for Nextcloud 33. Compatibility with other versions is not guaranteed.
+> ⚠️ **Note**: The app is specifically tested and optimized for Nextcloud 33-34.
 
 ### PHP Requirements
 
