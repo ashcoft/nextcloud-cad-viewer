@@ -38,11 +38,11 @@ use Rector\Symfony\Set\SymfonyInternalSetList;
 use Rector\Symfony\Set\SymfonySetList;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\PhpVersion;
-use RectorPrefix202605\Symfony\Component\Console\Input\ArgvInput;
-use RectorPrefix202605\Symfony\Component\Console\Output\ConsoleOutput;
-use RectorPrefix202605\Symfony\Component\Console\Style\SymfonyStyle;
-use RectorPrefix202605\Symfony\Component\Finder\Finder;
-use RectorPrefix202605\Webmozart\Assert\Assert;
+use RectorPrefix202606\Symfony\Component\Console\Input\ArgvInput;
+use RectorPrefix202606\Symfony\Component\Console\Output\ConsoleOutput;
+use RectorPrefix202606\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202606\Symfony\Component\Finder\Finder;
+use RectorPrefix202606\Webmozart\Assert\Assert;
 /**
  * @api
  */
@@ -136,6 +136,7 @@ final class RectorConfigBuilder
      */
     private array $setGroups = [];
     private ?bool $reportingRealPath = null;
+    private ?bool $reportUnusedSkips = null;
     /**
      * @var string[]
      */
@@ -278,6 +279,9 @@ final class RectorConfigBuilder
         }
         if ($this->reportingRealPath !== null) {
             $rectorConfig->reportingRealPath($this->reportingRealPath);
+        }
+        if ($this->reportUnusedSkips !== null) {
+            $rectorConfig->reportUnusedSkips($this->reportUnusedSkips);
         }
         if ($this->editorUrl !== null) {
             $rectorConfig->editorUrl($this->editorUrl);
@@ -547,6 +551,7 @@ final class RectorConfigBuilder
         bool $typeDeclarationDocblocks = \false,
         bool $privatization = \false,
         bool $naming = \false,
+        bool $namedArgs = \false,
         bool $instanceOf = \false,
         bool $earlyReturn = \false,
         /** @deprecated */
@@ -565,7 +570,7 @@ final class RectorConfigBuilder
             $symfonyStyle = new SymfonyStyle(new ArgvInput(), new ConsoleOutput());
             $symfonyStyle->warning($message);
         }
-        $setMap = [SetList::DEAD_CODE => $deadCode, SetList::CODE_QUALITY => $codeQuality, SetList::CODING_STYLE => $codingStyle, SetList::TYPE_DECLARATION => $typeDeclarations, SetList::TYPE_DECLARATION_DOCBLOCKS => $typeDeclarationDocblocks, SetList::PRIVATIZATION => $privatization, SetList::NAMING => $naming, SetList::INSTANCEOF => $instanceOf, SetList::EARLY_RETURN => $earlyReturn, SetList::CARBON => $carbon, SetList::RECTOR_PRESET => $rectorPreset, PHPUnitSetList::PHPUNIT_CODE_QUALITY => $phpunitCodeQuality, DoctrineSetList::DOCTRINE_CODE_QUALITY => $doctrineCodeQuality, SymfonySetList::SYMFONY_CODE_QUALITY => $symfonyCodeQuality, SymfonySetList::CONFIGS => $symfonyConfigs];
+        $setMap = [SetList::DEAD_CODE => $deadCode, SetList::CODE_QUALITY => $codeQuality, SetList::CODING_STYLE => $codingStyle, SetList::TYPE_DECLARATION => $typeDeclarations, SetList::TYPE_DECLARATION_DOCBLOCKS => $typeDeclarationDocblocks, SetList::PRIVATIZATION => $privatization, SetList::NAMING => $naming, SetList::NAMED_ARGS => $namedArgs, SetList::INSTANCEOF => $instanceOf, SetList::EARLY_RETURN => $earlyReturn, SetList::CARBON => $carbon, SetList::RECTOR_PRESET => $rectorPreset, PHPUnitSetList::PHPUNIT_CODE_QUALITY => $phpunitCodeQuality, DoctrineSetList::DOCTRINE_CODE_QUALITY => $doctrineCodeQuality, SymfonySetList::SYMFONY_CODE_QUALITY => $symfonyCodeQuality, SymfonySetList::CONFIGS => $symfonyConfigs];
         foreach ($setMap as $setPath => $isEnabled) {
             if ($isEnabled) {
                 $this->sets[] = $setPath;
@@ -573,9 +578,9 @@ final class RectorConfigBuilder
         }
         return $this;
     }
-    public function withComposerBased(bool $twig = \false, bool $doctrine = \false, bool $phpunit = \false, bool $symfony = \false, bool $netteUtils = \false, bool $laravel = \false): self
+    public function withComposerBased(bool $twig = \false, bool $doctrine = \false, bool $phpunit = \false, bool $symfony = \false, bool $netteUtils = \false, bool $laravel = \false, bool $drupal = \false): self
     {
-        $setMap = [SetGroup::TWIG => $twig, SetGroup::DOCTRINE => $doctrine, SetGroup::PHPUNIT => $phpunit, SetGroup::SYMFONY => $symfony, SetGroup::NETTE_UTILS => $netteUtils, SetGroup::LARAVEL => $laravel];
+        $setMap = [SetGroup::TWIG => $twig, SetGroup::DOCTRINE => $doctrine, SetGroup::PHPUNIT => $phpunit, SetGroup::SYMFONY => $symfony, SetGroup::NETTE_UTILS => $netteUtils, SetGroup::LARAVEL => $laravel, SetGroup::DRUPAL => $drupal];
         foreach ($setMap as $setPath => $isEnabled) {
             if ($isEnabled) {
                 $this->setGroups[] = $setPath;
@@ -651,7 +656,7 @@ final class RectorConfigBuilder
         $this->parallel = \false;
         return $this;
     }
-    public function withImportNames(bool $importNames = \true, bool $importDocBlockNames = \true, bool $importShortClasses = \true, bool $removeUnusedImports = \false): self
+    public function withImportNames(bool $importNames = \true, bool $importDocBlockNames = \true, bool $importShortClasses = \true, bool $removeUnusedImports = \true): self
     {
         $this->importNames = $importNames;
         $this->importDocBlockNames = $importDocBlockNames;
@@ -897,6 +902,15 @@ final class RectorConfigBuilder
     public function withRealPathReporting(bool $absolutePath = \true): self
     {
         $this->reportingRealPath = $absolutePath;
+        return $this;
+    }
+    /**
+     * Report skips configured via withSkip() that never matched anything during the run,
+     * so they can be safely removed.
+     */
+    public function reportUnusedSkips(bool $report = \true): self
+    {
+        $this->reportUnusedSkips = $report;
         return $this;
     }
     public function withEditorUrl(string $editorUrl): self

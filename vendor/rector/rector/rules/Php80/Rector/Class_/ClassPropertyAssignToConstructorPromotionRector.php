@@ -9,6 +9,8 @@ use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Identifier;
+use PhpParser\Node\IntersectionType;
+use PhpParser\Node\Name;
 use PhpParser\Node\NullableType;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\Class_;
@@ -17,9 +19,12 @@ use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\UnionType;
 use PhpParser\NodeVisitor;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\TypeCombinator;
+use PHPStan\Type\TypeWithClassName;
+use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Naming\PropertyRenamer\PropertyPromotionRenamer;
@@ -212,6 +217,9 @@ CODE_SAMPLE
             if ($this->shouldSkipPropertyOrParam($property, $param)) {
                 continue;
             }
+            if ($this->shouldSkipNarrowingVarDoc($property, $param, $constructorPhpDocInfo, $paramName)) {
+                continue;
+            }
             $hasChanged = \true;
             // remove property from class
             unset($node->stmts[$promotionCandidate->getPropertyStmtPosition()]);
@@ -305,16 +313,21 @@ CODE_SAMPLE
         if (!$type instanceof UnionType) {
             return \false;
         }
+        $found = \false;
         foreach ($type->types as $type) {
             if ($this->isCallableTypeIdentifier($type)) {
-                return \true;
+                $found = \true;
+                break;
             }
         }
-        return \false;
+        return $found;
     }
     private function isCallableTypeIdentifier(?Node $node): bool
     {
-        return $node instanceof Identifier && $this->isName($node, 'callable');
+        if (!$node instanceof Identifier) {
+            return \false;
+        }
+        return $this->isName($node, 'callable');
     }
     private function shouldSkipPropertyOrParam(Property $property, Param $param): bool
     {
@@ -327,6 +340,37 @@ CODE_SAMPLE
             }
         }
         return $property->type instanceof Node && $param->type instanceof Node && $property->hooks !== [] && !$this->nodeComparator->areNodesEqual($property->type, $param->type);
+    }
+    /**
+     * A class-typed property may carry a narrowing @var (e.g. native AdapterInterface, @var CacheProvider) used to
+     * type calls on the property. Promotion would drop that @var (it is not preserved as a @param here), $property so skip to
+     * avoid losing type information.
+     */
+    private function shouldSkipNarrowingVarDoc(Property $property, Param $param, PhpDocInfo $constructorPhpDocInfo, string $paramName): bool
+    {
+        if (!$property->type instanceof Node || !$param->type instanceof Node) {
+            return \false;
+        }
+        // an explicit @param already carries the type onto the promoted property
+        if ($constructorPhpDocInfo->getParamTagValueByName($paramName) instanceof ParamTagValueNode) {
+            return \false;
+        }
+        $propertyPhpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($property);
+        $varTagValueNode = $propertyPhpDocInfo->getVarTagValueNode();
+        if (!$varTagValueNode instanceof VarTagValueNode) {
+            return \false;
+        }
+        // a description keeps the docblock around anyway
+        if ($varTagValueNode->description !== '') {
+            return \false;
+        }
+        $varType = $this->staticTypeMapper->mapPHPStanPhpDocTypeToPHPStanType($varTagValueNode, $property);
+        // only class-typed @var narrowing is lost; generics, arrays and int ranges are preserved on promotion
+        if (!$varType instanceof TypeWithClassName) {
+            return \false;
+        }
+        $paramType = $this->staticTypeMapper->mapPhpParserNodePHPStanType($param->type);
+        return !$this->typeComparator->areTypesEqual($varType, $paramType);
     }
     private function shouldRemoveNullFromForPromotedParamType(Property $property, Param $param): bool
     {

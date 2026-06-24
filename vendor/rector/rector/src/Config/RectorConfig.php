@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Config;
 
-use RectorPrefix202605\Illuminate\Container\Container;
+use RectorPrefix202606\Illuminate\Container\Container;
 use Override;
 use Rector\Caching\Contract\CacheMetaExtensionInterface;
 use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
@@ -22,8 +22,8 @@ use Rector\Validation\RectorConfigValidator;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\PhpVersion;
 use Rector\ValueObject\PolyfillPackage;
-use RectorPrefix202605\Symfony\Component\Console\Command\Command;
-use RectorPrefix202605\Webmozart\Assert\Assert;
+use RectorPrefix202606\Symfony\Component\Console\Command\Command;
+use RectorPrefix202606\Webmozart\Assert\Assert;
 /**
  * @api
  * @see \Rector\Tests\Config\RectorConfigTest
@@ -350,6 +350,10 @@ final class RectorConfig extends Container
     public function reportingRealPath(bool $absolute = \true): void
     {
         SimpleParameterProvider::setParameter(Option::ABSOLUTE_FILE_PATH, $absolute);
+    }
+    public function reportUnusedSkips(bool $report = \true): void
+    {
+        SimpleParameterProvider::setParameter(Option::REPORT_UNUSED_SKIPS, $report);
     }
     public function editorUrl(string $editorUrl): void
     {

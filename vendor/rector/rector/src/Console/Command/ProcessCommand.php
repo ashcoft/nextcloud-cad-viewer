@@ -24,11 +24,11 @@ use Rector\Util\MemoryLimiter;
 use Rector\ValueObject\Configuration;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\ProcessResult;
-use RectorPrefix202605\Symfony\Component\Console\Application;
-use RectorPrefix202605\Symfony\Component\Console\Command\Command;
-use RectorPrefix202605\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202605\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202605\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202606\Symfony\Component\Console\Application;
+use RectorPrefix202606\Symfony\Component\Console\Command\Command;
+use RectorPrefix202606\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202606\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202606\Symfony\Component\Console\Style\SymfonyStyle;
 final class ProcessCommand extends Command
 {
     /**
@@ -192,6 +192,7 @@ EOF
         $this->deprecatedRulesReporter->reportDeprecatedSkippedRules();
         $this->deprecatedRulesReporter->reportDeprecatedRectorUnsupportedMethods();
         $this->missConfigurationReporter->reportSkippedNeverRegisteredRules();
+        $this->missConfigurationReporter->reportUnusedSkips($processResult);
         return $this->resolveReturnCode($processResult, $configuration);
     }
     protected function initialize(InputInterface $input, OutputInterface $output): void
