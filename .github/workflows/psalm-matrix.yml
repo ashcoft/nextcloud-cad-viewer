@@ -67,7 +67,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
-        run: composer i --ignore-platform-reqs
+        run: composer i --ignore-platform-reqs && composer dump-autoload --ignore-platform-reqs
 
       - name: Install nextcloud/ocp
         run: composer bin nextcloud-ocp require --dev 'nextcloud/ocp:${{ matrix.ocp-version }}' --ignore-platform-reqs --with-dependencies
