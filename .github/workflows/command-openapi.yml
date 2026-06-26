@@ -161,7 +161,7 @@ jobs:
 
       - name: Set up dependencies
         run: |
-          rm -f composer.lock
+          rm -rf vendor composer.lock
           composer update -W
 
       - name: Regenerate OpenAPI

@@ -64,7 +64,7 @@ jobs:
       - name: Composer install
         if: steps.checkout.outcome == 'success'
         run: |
-          rm -f composer.lock
+          rm -rf vendor composer.lock
           composer update -W
 
       - name: Check composer bin for nextcloud/ocp exists

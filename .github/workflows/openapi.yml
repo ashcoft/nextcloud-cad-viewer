@@ -87,7 +87,7 @@ jobs:
         env:
           COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
         run: |
-          rm -f composer.lock
+          rm -rf vendor composer.lock
           composer update -W
 
       - name: Regenerate OpenAPI

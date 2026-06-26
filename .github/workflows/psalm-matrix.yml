@@ -68,7 +68,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          rm -f composer.lock
+          rm -rf vendor composer.lock
           composer update -W
 
       - name: Install dependencies # zizmor: ignore[template-injection]
