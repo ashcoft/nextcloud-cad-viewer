@@ -1,6 +1,6 @@
 {
     "require": {
-        "nextcloud/ocp": "dev-stable30"
+        "nextcloud/ocp": "dev-stable33"
     },
     "config": {
         "platform": {
