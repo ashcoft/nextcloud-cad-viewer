@@ -69,7 +69,7 @@ jobs:
       - name: Install dependencies
         run: |
           rm -f composer.lock
-          composer update -W --include-workspace-dependencies
+          composer update -W
 
       - name: Install dependencies # zizmor: ignore[template-injection]
         run: composer require --dev 'nextcloud/ocp:${{ matrix.ocp-version }}' --ignore-platform-reqs --with-dependencies

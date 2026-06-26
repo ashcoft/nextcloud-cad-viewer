@@ -140,7 +140,7 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}
         run: |
           rm -f composer.lock
-          composer update -W --include-workspace-dependencies
+          composer update -W
 
       - name: Set up Nextcloud
         env:

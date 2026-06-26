@@ -53,7 +53,7 @@ jobs:
       - name: Install dependencies
         run: |
           rm -f composer.lock
-          composer update -W --include-workspace-dependencies
+          composer update -W
 
       - name: Install nextcloud/ocp
         run: composer require --dev nextcloud/ocp:dev-${{ steps.versions.outputs.branches-max }} --ignore-platform-reqs --with-dependencies

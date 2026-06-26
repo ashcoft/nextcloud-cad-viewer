@@ -88,7 +88,7 @@ jobs:
           COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
         run: |
           rm -f composer.lock
-          composer update -W --include-workspace-dependencies
+          composer update -W
 
       - name: Regenerate OpenAPI
         if: steps.check_typescript_openapi.outputs.files_exists == 'true'

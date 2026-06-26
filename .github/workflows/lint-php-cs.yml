@@ -49,7 +49,7 @@ jobs:
       - name: Install dependencies
         run: |
           rm -f composer.lock
-          composer update -W --include-workspace-dependencies
+          composer update -W
 
       - name: Lint
         run: composer run cs:check || ( echo 'Please run `composer run cs:fix` to format your code' && exit 1 )
