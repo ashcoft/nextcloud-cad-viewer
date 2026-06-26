@@ -142,7 +142,7 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}
         run: |
           composer remove nextcloud/ocp --dev --no-scripts
-          composer i
+          composer i -W
 
       - name: Set up Nextcloud
         env:
