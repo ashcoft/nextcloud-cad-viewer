@@ -37,7 +37,9 @@
     "psr-4": {
       "OCA\\CadViewer\\Tests\\": "tests/",
       "OCP\\": "vendor-bin/nextcloud-ocp/vendor/nextcloud/ocp/OCP/",
-      "NCU\\": "vendor-bin/nextcloud-ocp/vendor/nextcloud/ocp/NCU/"
+      "NCU\\": "vendor-bin/nextcloud-ocp/vendor/nextcloud/ocp/NCU/",
+      "OC\\": "tests/stubs/OC/",
+      "OC\\Hooks\\": "tests/stubs/OC/Hooks/"
     }
   },
   "extra": {
