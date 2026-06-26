@@ -75,8 +75,18 @@ namespace OCP\EventDispatcher {
 namespace OCP {
     class Util
     {
-        public static function addScript(string $appId, string $scriptName): void {}
-        public static function addStyle(string $appId, string $styleName): void {}
+        /**
+         * @noinspection PhpUnusedParameterInspection
+         */
+        public static function addScript(string $appId, string $scriptName): void {
+            // Intentional no-op stub for testing
+        }
+        /**
+         * @noinspection PhpUnusedParameterInspection
+         */
+        public static function addStyle(string $appId, string $styleName): void {
+            // Intentional no-op stub for testing
+        }
     }
 }
 
