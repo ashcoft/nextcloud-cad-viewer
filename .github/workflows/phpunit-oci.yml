@@ -74,6 +74,9 @@ jobs:
         php-versions: ${{ fromJson(needs.matrix.outputs.php-version) }}
         server-versions: ${{ fromJson(needs.matrix.outputs.server-max) }}
         oci-versions: ['18', '21', '23']
+        exclude:
+          - php-versions: '8.2'
+          - php-versions: '8.3'
 
     name: OCI ${{ matrix.oci-versions }} PHP ${{ matrix.php-versions }} Nextcloud ${{ matrix.server-versions }}
 
