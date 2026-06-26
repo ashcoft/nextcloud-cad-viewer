@@ -18,4 +18,3 @@
 
 # Vendor bin (nextcloud/ocp dependencies)
 /vendor-bin/nextcloud-ocp/vendor/
-```
