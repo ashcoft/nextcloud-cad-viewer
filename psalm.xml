@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- PHP 8.3 required -->
+<!-- PHP 8.4 required -->
 <psalm
         errorLevel="4"
         resolveFromConfigFile="true"
@@ -8,7 +8,7 @@
         xsi:schemaLocation="https://getpsalm.org/schema/config https://getpsalm.org/schema/config"
         findUnusedCode="false"
         findUnusedIssueHandlerSuppression="false"
-        phpVersion="8.3">
+        phpVersion="8.4">
         <plugins>
         </plugins>
         <projectFiles>
