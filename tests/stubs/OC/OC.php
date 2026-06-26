@@ -78,13 +78,15 @@ namespace OCP {
         /**
          * @noinspection PhpUnusedParameterInspection
          */
-        public static function addScript(string $appId, string $scriptName): void {
+        public static function addScript(string $appId, string $scriptName): void
+        {
             // Intentional no-op stub for testing
         }
         /**
          * @noinspection PhpUnusedParameterInspection
          */
-        public static function addStyle(string $appId, string $styleName): void {
+        public static function addStyle(string $appId, string $styleName): void
+        {
             // Intentional no-op stub for testing
         }
     }
