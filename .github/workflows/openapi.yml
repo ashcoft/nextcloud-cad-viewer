@@ -87,7 +87,7 @@ jobs:
         env:
           COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
         run: |
-          composer update phpunit/phpunit vimeo/psalm -W --include-workspace-dependencies
+          rm -f composer.lock
           composer update -W --include-workspace-dependencies
 
       - name: Regenerate OpenAPI

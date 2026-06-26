@@ -124,8 +124,7 @@ jobs:
         if: steps.check_composer.outputs.files_exists == 'true'
         working-directory: apps/${{ env.APP_NAME }}
         run: |
-          composer remove nextcloud/ocp --dev -W
-          composer update phpunit/phpunit vimeo/psalm -W --include-workspace-dependencies
+          rm -f composer.lock
           composer update -W --include-workspace-dependencies
 
       - name: Set up Nextcloud

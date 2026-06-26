@@ -48,8 +48,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer remove nextcloud/ocp --dev -W
-          composer update phpunit/phpunit vimeo/psalm -W --include-workspace-dependencies
+          rm -f composer.lock
           composer update -W --include-workspace-dependencies
 
       - name: Lint
