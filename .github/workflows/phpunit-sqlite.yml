@@ -125,7 +125,7 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}
         run: |
           rm -rf vendor composer.lock
-          composer update -W
+          composer update -W --ignore-platform-reqs
 
       - name: Set up Nextcloud
         env:

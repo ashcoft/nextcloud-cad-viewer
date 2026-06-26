@@ -65,7 +65,7 @@ jobs:
         if: steps.checkout.outcome == 'success'
         run: |
           rm -rf vendor composer.lock
-          composer update -W
+          composer update -W --ignore-platform-reqs
 
       - name: Check composer bin for nextcloud/ocp exists
         id: check_composer_bin

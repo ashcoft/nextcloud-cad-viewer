@@ -162,7 +162,7 @@ jobs:
       - name: Set up dependencies
         run: |
           rm -rf vendor composer.lock
-          composer update -W
+          composer update -W --ignore-platform-reqs
 
       - name: Regenerate OpenAPI
         run: composer run openapi
