@@ -160,7 +160,7 @@ jobs:
           pnpm install --frozen-lockfile
 
       - name: Set up dependencies
-        run: composer i
+        run: composer i -W
 
       - name: Regenerate OpenAPI
         run: composer run openapi

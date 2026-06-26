@@ -69,7 +69,7 @@ jobs:
       - name: Install dependencies
         run: |
           composer remove nextcloud/ocp --dev --no-scripts
-          composer i
+          composer i -W
 
       - name: Install dependencies # zizmor: ignore[template-injection]
         run: composer require --dev 'nextcloud/ocp:${{ matrix.ocp-version }}' --ignore-platform-reqs --with-dependencies
