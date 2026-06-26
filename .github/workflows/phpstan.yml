@@ -56,7 +56,7 @@ jobs:
           composer update -W
 
       - name: Install nextcloud/ocp
-        run: composer require --dev nextcloud/ocp:dev-${{ steps.versions.outputs.branches-max }} --ignore-platform-reqs --with-dependencies
+        run: composer require --dev nextcloud/ocp:dev-${{ steps.versions.outputs.branches-max }} --with-dependencies
 
       - name: Run coding standards check
         run: composer run phpstan -- --no-progress
