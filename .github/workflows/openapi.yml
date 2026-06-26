@@ -86,7 +86,7 @@ jobs:
         if: steps.check_typescript_openapi.outputs.files_exists == 'true'
         env:
           COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
-        run: composer i -W
+        run: composer update -W
 
       - name: Regenerate OpenAPI
         if: steps.check_typescript_openapi.outputs.files_exists == 'true'
