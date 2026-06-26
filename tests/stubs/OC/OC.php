@@ -9,6 +9,10 @@ namespace {
     }
 }
 
+namespace OC\Hooks {
+    interface Emitter {}
+}
+
 namespace OCP {
     interface IConfig
     {
