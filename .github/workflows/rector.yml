@@ -52,7 +52,7 @@ jobs:
       - name: Install dependencies
         run: |
           composer remove nextcloud/ocp --dev --no-scripts
-          composer update -W
+          composer update -W --include-workspace-dependencies
 
       - name: Rector
         run: composer run rector

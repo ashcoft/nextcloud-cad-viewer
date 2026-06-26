@@ -125,7 +125,7 @@ jobs:
         working-directory: apps/${{ env.APP_NAME }}
         run: |
           composer remove nextcloud/ocp --dev --no-scripts
-          composer update -W
+          composer update -W --include-workspace-dependencies
 
       - name: Set up Nextcloud
         env:
