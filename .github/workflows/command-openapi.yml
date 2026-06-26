@@ -160,7 +160,9 @@ jobs:
           pnpm install --frozen-lockfile
 
       - name: Set up dependencies
-        run: composer update -W --include-workspace-dependencies
+        run: |
+          composer update phpunit/phpunit vimeo/psalm -W --include-workspace-dependencies
+          composer update -W --include-workspace-dependencies
 
       - name: Regenerate OpenAPI
         run: composer run openapi

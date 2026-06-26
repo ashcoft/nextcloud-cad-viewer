@@ -86,7 +86,9 @@ jobs:
         if: steps.check_typescript_openapi.outputs.files_exists == 'true'
         env:
           COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
-        run: composer update -W --include-workspace-dependencies
+        run: |
+          composer update phpunit/phpunit vimeo/psalm -W --include-workspace-dependencies
+          composer update -W --include-workspace-dependencies
 
       - name: Regenerate OpenAPI
         if: steps.check_typescript_openapi.outputs.files_exists == 'true'

@@ -52,6 +52,7 @@ jobs:
       - name: Install dependencies
         run: |
           composer remove nextcloud/ocp --dev --no-scripts
+          composer update phpunit/phpunit vimeo/psalm -W --include-workspace-dependencies
           composer update -W --include-workspace-dependencies
 
       - name: Rector

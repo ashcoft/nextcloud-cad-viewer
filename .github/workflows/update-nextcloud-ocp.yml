@@ -63,7 +63,9 @@ jobs:
 
       - name: Composer install
         if: steps.checkout.outcome == 'success'
-        run: composer install -W
+        run: |
+          composer update phpunit/phpunit vimeo/psalm -W
+          composer install -W
 
       - name: Check composer bin for nextcloud/ocp exists
         id: check_composer_bin
