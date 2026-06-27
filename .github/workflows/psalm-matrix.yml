@@ -65,8 +65,8 @@ jobs:
         id: versions
         uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2
 
-      - name: Check enforcement of minimum PHP version 8.3 in psalm.xml
-        run: grep 'phpVersion="8.3"' psalm.xml
+      - name: Check enforcement of minimum PHP version 8.4 in psalm.xml
+        run: grep 'phpVersion="8.4"' psalm.xml
 
   static-analysis:
     runs-on: ubuntu-latest
