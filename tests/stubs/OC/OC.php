@@ -74,6 +74,9 @@ namespace OCP\AppFramework\Http\Events {
      */
     class BeforeTemplateRenderedEvent extends \OCP\EventDispatcher\Event
     {
+        /** @var object|null */
+        private ?object $response = null;
+
         public function __construct(private readonly bool $login = false)
         {
         }
@@ -81,6 +84,18 @@ namespace OCP\AppFramework\Http\Events {
         public function isLoggedIn(): bool
         {
             return $this->login;
+        }
+
+        /**
+         * @internal Test-only method — does not exist in real Nextcloud 33 API.
+         *
+         * @param object $response The response object to set
+         *
+         * @return void
+         */
+        public function setResponse(object $response): void
+        {
+            $this->response = $response;
         }
     }
 }
