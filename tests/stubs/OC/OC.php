@@ -74,6 +74,9 @@ namespace OCP\AppFramework\Http\Events {
      */
     class BeforeTemplateRenderedEvent extends \OCP\EventDispatcher\Event
     {
+        /** @var object|null */
+        private ?object $response = null;
+
         public function __construct(private readonly bool $login = false)
         {
         }
@@ -81,6 +84,33 @@ namespace OCP\AppFramework\Http\Events {
         public function isLoggedIn(): bool
         {
             return $this->login;
+        }
+
+        /**
+         * Returns the TemplateResponse associated with this event.
+         * Stub implementation – returns the injected response object.
+         *
+         * @return object
+         */
+        public function getResponse(): object
+        {
+            if ($this->response === null) {
+                throw new \LogicException(
+                    'No response injected into BeforeTemplateRenderedEvent stub.'
+                );
+            }
+            return $this->response;
+        }
+
+        /**
+         * Inject a response object into the stub (test helper).
+         *
+         * @param object $response
+         * @return void
+         */
+        public function setResponse(object $response): void
+        {
+            $this->response = $response;
         }
     }
 }

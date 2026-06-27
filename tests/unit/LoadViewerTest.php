@@ -65,49 +65,14 @@ class LoadViewerTest extends TestCase
     private function _makeBeforeTemplateRenderedEvent(
         string $appName,
     ): BeforeTemplateRenderedEvent {
-        // Create an anonymous response stub with getApp()
         $response = new class ($appName) {
-            /**
-             * Constructor.
-             *
-             * @param string $app The app name
-             */
-            public function __construct(private readonly string $app)
-            {
-            }
-
-            /**
-             * Get the app name.
-             *
-             * @return string
-             */
-            public function getApp(): string
-            {
-                return $this->app;
-            }
+            public function __construct(private readonly string $app) {}
+            public function getApp(): string { return $this->app; }
         };
 
-        // Extend the stub to provide getResponse()
-        return new class ($response) extends BeforeTemplateRenderedEvent {
-            /**
-             * Constructor.
-             *
-             * @param object $response The response object
-             */
-            public function __construct(private readonly object $response)
-            {
-            }
-
-            /**
-             * Get the response object.
-             *
-             * @return object
-             */
-            public function getResponse(): object
-            {
-                return $this->response;
-            }
-        };
+        $event = new BeforeTemplateRenderedEvent();
+        $event->setResponse($response);
+        return $event;
     }
 
     /**

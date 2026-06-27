@@ -18,3 +18,8 @@
 
 # Vendor bin (nextcloud/ocp dependencies)
 /vendor-bin/nextcloud-ocp/vendor/
+
+
+.nx/cache
+.nx/workspace-data
+.nx/migrate-runs

@@ -18,7 +18,18 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "unrs-resolver"
-    ]
+    ],
+    "overrides": {
+      "@mlightcad/data-model": "1.9.12",
+      "@mlightcad/libredwg-converter": "3.5.38",
+      "@mlightcad/mtext-input-box": "0.2.11",
+      "@mlightcad/mtext-renderer": "0.10.14",
+      "@mlightcad/ribbon": "0.1.9",
+      "element-plus": "2.14.2",
+      "three": "0.184.0",
+      "vue": "3.5.38",
+      "vue-i18n": "11.4.6"
+    }
   },
   "scripts": {
     "changeset": "changeset",
@@ -80,17 +91,8 @@
     "vue-loader": "^17.4.2",
     "vue-tsc": "^3.3.4",
     "webpack": "^5.107.2",
-    "webpack-cli": "^7.0.3"
+    "webpack-cli": "^7.0.3",
+    "nx": "23.0.1"
   },
-  "overrides": {
-    "@mlightcad/data-model": "1.9.12",
-    "@mlightcad/libredwg-converter": "3.5.38",
-    "@mlightcad/mtext-input-box": "0.2.11",
-    "@mlightcad/mtext-renderer": "0.10.14",
-    "@mlightcad/ribbon": "0.1.9",
-    "element-plus": "2.14.2",
-    "three": "0.184.0",
-    "vue": "3.5.38",
-    "vue-i18n": "11.4.6"
-  }
+  "nx": {}
 }
