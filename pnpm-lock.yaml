@@ -105,9 +105,6 @@ importers:
       jest-environment-jsdom:
         specifier: ^30.0.0
         version: 30.4.1
-      jest-serializer-vue:
-        specifier: ^3.1.0
-        version: 3.1.0
       jest-transform-stub:
         specifier: ^2.0.0
         version: 2.0.0
@@ -2908,8 +2905,6 @@ packages:
     resolution: {integrity: sha512-3/5e8iPz2k/VLqlr8DgTftYyLUv8Su3FkCAO2/Od81UsUTpSxOrS6O5x5KkoQwyUjmpYyDJKeyAvg2T2nvpNkQ==}
     engines: {node: ^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0}
 
-  jest-serializer-vue@3.1.0:
-    resolution: {integrity: sha512-vXz9/3IgBbLhsaVANYLG4ROCQd+Wg3qbB6ICofzFL+fbhSFPlqb0/MMGXcueVsjaovdWlYiRaLQLpdi1PTcoRQ==}
 
   jest-snapshot@30.4.1:
     resolution: {integrity: sha512-tEOkkfOMppUyeiHwjZswOQ3lcnoTnws/q5FnGIaeIh/jmoU0ZlgMYRR8sTlTj+nNGCoJ0RDq6SfxGxCsyMTPmw==}
@@ -7522,9 +7517,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  jest-serializer-vue@3.1.0:
-    dependencies:
-      pretty: 2.0.0
 
   jest-snapshot@30.4.1:
     dependencies:
