@@ -7,7 +7,7 @@ module.exports = {
     '^.+\\.[jt]sx?$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(element-plus|@element-plus|@mlightcad|lodash-es)/)',
+    'node_modules/(?!(element-plus|@element-plus|@mlightcad|@nextcloud|lodash-es)/)',
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
@@ -16,6 +16,7 @@ module.exports = {
     '^@mlightcad/cad-simple-viewer$': '<rootDir>/tests/__mocks__/@mlightcad/cad-simple-viewer.js',
     '^element-plus$': '<rootDir>/tests/__mocks__/element-plus.js',
     '^element-plus/dist/index.css$': 'jest-transform-stub',
+    '^@nextcloud/files$': '<rootDir>/tests/__mocks__/@nextcloud/files.js',
   },
   snapshotSerializers: ['jest-serializer-vue'],
   testMatch: [

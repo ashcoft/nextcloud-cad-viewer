@@ -7,6 +7,20 @@ namespace {
     {
         public static $server;
     }
+
+    class OC_App
+    {
+        public static function loadApp(string $appId, bool $checkUpgrade = true): void
+        {
+        }
+    }
+
+    class OC_Hook
+    {
+        public static function clear(): void
+        {
+        }
+    }
 }
 
 namespace OCP {

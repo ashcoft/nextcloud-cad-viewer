@@ -1,6 +1,5 @@
 import { createApp } from 'vue'
-import { registerFileAction } from '@nextcloud/files'
-import type { IFileAction } from '@nextcloud/files'
+import { registerFileAction, FileAction } from '@nextcloud/files'
 import CadViewerApp from './App.vue'
 import router from './router'
 import CadViewerHandler from './components/ViewerHandler.vue'
@@ -140,26 +139,21 @@ function openInViewer(fileId: number | string): void {
  * Uses the Nextcloud Files app API (@nextcloud/files registerFileAction)
  */
 function registerFileActions(): void {
-  if (typeof OC === 'undefined') {
-    return
-  }
-
-  const cadViewerAction: IFileAction = {
+  registerFileAction(new FileAction({
     id: 'cad-viewer-open',
     displayName: () => t('cad_viewer', 'Open with CAD Viewer'),
     iconSvgInline: () => CAD_VIEWER_ICON,
-    permissions: OC.PERMISSION_READ,
-    inline: () => true,
-    mimeMatcher: (mime) => SUPPORTED_MIMES.includes(mime),
-    actionHandler: (node) => {
-      const fileId = node.id
-      if (fileId) {
+    enabled: (nodes) =>
+      nodes.length === 1 && SUPPORTED_MIMES.includes(nodes[0].mime ?? ''),
+    exec: async (node) => {
+      const fileId = node.fileid
+      if (fileId !== undefined) {
         openInViewer(fileId)
       }
+      return null
     },
-  }
-
-  registerFileAction(cadViewerAction)
+    order: 0,
+  }))
 }
 
 // Register file actions when DOM is ready
