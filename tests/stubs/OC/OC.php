@@ -105,8 +105,14 @@ namespace OCP\AppFramework\Http\Events {
         }
 
         /**
-         * Test-helper: inject the response stub before passing this event to
-         * the listener under test.
+         * Test-only method: inject the response stub before passing this event
+         * to the listener under test.
+         *
+         * Note: This method does NOT exist in the real Nextcloud 33 API.
+         * Production code must never call this method.
+         *
+         * @param object $response Stub response object that implements getApp()
+         *                        and optionally getRenderAs() and getTemplateName()
          */
         public function setResponse(object $response): void
         {
