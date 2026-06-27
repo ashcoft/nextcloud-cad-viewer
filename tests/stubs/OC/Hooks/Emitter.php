@@ -6,3 +6,4 @@ namespace OC\Hooks;
 
 interface Emitter
 {
+}
