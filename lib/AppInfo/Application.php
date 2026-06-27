@@ -36,11 +36,22 @@ class Application extends App implements IBootstrap
         'image/vnd.dwg' => self::CANONICAL_DWG_MIME,
     ];
 
+    /**
+     * Initializes the Cad Viewer app.
+     */
     public function __construct()
     {
         parent::__construct(self::APP_ID);
     }
 
+    /**
+     * Registers the viewer listener for template rendering events.
+     *
+     * @param IRegistrationContext $context The app registration context.
+     *
+     * @return void
+     */
+    #[\Override]
     public function register(IRegistrationContext $context): void
     {
         // Register event listener to inject scripts/styles when files app loads
@@ -50,5 +61,19 @@ class Application extends App implements IBootstrap
         );
     }
 
-    public function boot(IBootContext $context): void {}
+    /**
+     * Provides the app bootstrap hook without performing boot-time work.
+     *
+     * This app has no boot-time registrations; the method is intentionally a no-op
+     * required by the IBootstrap interface contract.
+     *
+     * @param IBootContext $context Unused boot context.
+     *
+     * @return void
+     */
+    #[\Override]
+    public function boot(IBootContext $context): void
+    {
+        // Intentional no-op: this app performs all setup in register().
+    }
 }
