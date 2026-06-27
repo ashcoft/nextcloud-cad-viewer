@@ -36,7 +36,9 @@ jobs:
         uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2
 
       - name: Check enforcement of minimum PHP version 8.4 in phpstan.neon
-        run: "grep 'min: 8.4' phpstan.neon"
+        run: |
+          grep '^# min: 8.4' phpstan.neon
+          grep '^    phpVersion: 80400$' phpstan.neon
 
       - name: Set up php${{ steps.versions.outputs.php-available }}
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
