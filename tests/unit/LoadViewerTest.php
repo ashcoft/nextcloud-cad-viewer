@@ -117,7 +117,7 @@ class LoadViewerTest extends TestCase
      */
     public function testHandleIgnoresNonBeforeTemplateRenderedEvent(): void
     {
-        $genericEvent = new class extends Event {
+        $genericEvent = new class () extends Event {
         };
         // Should return early without any error or exception
         $this->_listener->handle($genericEvent);

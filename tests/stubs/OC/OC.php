@@ -56,6 +56,7 @@ namespace OCP\AppFramework\Bootstrap {
 
 // OCP\EventDispatcher MUST come before OCP\AppFramework\Http\Events
 // because BeforeTemplateRenderedEvent extends the Event class.
+
 namespace OCP\EventDispatcher {
     abstract class Event
     {
