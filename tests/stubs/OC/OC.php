@@ -63,7 +63,8 @@ namespace OCP\AppFramework\Http\Events {
      * @extends \OCP\EventDispatcher\Event
      */
     class BeforeTemplateRenderedEvent extends \OCP\EventDispatcher\Event {
-        public function __construct(private readonly bool $login = false) {
+                public function __construct(private readonly bool $login = false) 
+        {
         }
 
         public function isLoggedIn(): bool {
@@ -74,7 +75,8 @@ namespace OCP\AppFramework\Http\Events {
 
 namespace OCP\AppFramework {
     class App {
-        public function __construct(string $appName, array $urlParams = []) {
+                public function __construct(string $appName, array $urlParams = []) 
+        {
         }
     }
 
@@ -84,28 +86,32 @@ namespace OCP\AppFramework {
 
 namespace OCP {
     class Util {
-        public static function addScript(string $appId, string $scriptName): void {
+                public static function addScript(string $appId, string $scriptName): void 
+        {
         }
 
-        public static function addStyle(string $appId, string $styleName): void {
+                public static function addStyle(string $appId, string $styleName): void 
+        {
         }
     }
 }
 
 namespace OC\AppFramework\DependencyInjection {
     class DIContainer implements \OCP\AppFramework\IAppContainer {
-        public function __construct(string $appName, array $urlParams = []) {
+                public function __construct(string $appName, array $urlParams = []) 
+        {
         }
 
         /** @return mixed */
-        public function query(string $name, bool $autoload = true) {
+                public function query(string $name, bool $autoload = true) 
+        {
             return null;
         }
 
         /** @return mixed */
-        public function get(string $id) {
+                public function get(string $id) 
+        {
             return null;
         }
     }
 }
-

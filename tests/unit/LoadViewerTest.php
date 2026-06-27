@@ -48,7 +48,8 @@ class LoadViewerTest extends TestCase {
      *
      * @return void
      */
-    protected function setUp(): void {
+        protected function setUp(): void 
+    {
         parent::setUp();
         $this->_listener = new LoadViewer();
     }
@@ -64,13 +65,15 @@ class LoadViewerTest extends TestCase {
         string $appName,
     ): BeforeTemplateRenderedEvent {
         // Create an anonymous response stub with getApp()
-        $response = new class ($appName) {
+                $response = new class ($appName) 
+        {
             /**
              * Constructor.
              *
              * @param string $app The app name
              */
-            public function __construct(private readonly string $app) {
+                        public function __construct(private readonly string $app) 
+            {
             }
 
             /**
@@ -90,7 +93,8 @@ class LoadViewerTest extends TestCase {
              *
              * @param object $response The response object
              */
-            public function __construct(private readonly object $response) {
+                        public function __construct(private readonly object $response) 
+            {
             }
 
             /**
@@ -109,7 +113,8 @@ class LoadViewerTest extends TestCase {
      *
      * @return void
      */
-    public function testHandleIgnoresNonBeforeTemplateRenderedEvent(): void {
+        public function testHandleIgnoresNonBeforeTemplateRenderedEvent(): void 
+    {
         $genericEvent = new class extends Event {
         };
         // Should return early without any error or exception
@@ -122,7 +127,8 @@ class LoadViewerTest extends TestCase {
      *
      * @return void
      */
-    public function testHandleIgnoresUnsupportedApp(): void {
+        public function testHandleIgnoresUnsupportedApp(): void 
+    {
         $event = $this->_makeBeforeTemplateRenderedEvent('dashboard');
         // Should return early - no scripts/styles injected, no exception
         $this->_listener->handle($event);
@@ -134,7 +140,8 @@ class LoadViewerTest extends TestCase {
      *
      * @return void
      */
-    public function testHandleAddsAssetsForFilesApp(): void {
+        public function testHandleAddsAssetsForFilesApp(): void 
+    {
         $event = $this->_makeBeforeTemplateRenderedEvent('files');
         // Must reach Util::addScript / Util::addStyle without throwing
         $this->_listener->handle($event);
@@ -146,7 +153,8 @@ class LoadViewerTest extends TestCase {
      *
      * @return void
      */
-    public function testHandleAddsAssetsForFilesSharingApp(): void {
+        public function testHandleAddsAssetsForFilesSharingApp(): void 
+    {
         $event = $this->_makeBeforeTemplateRenderedEvent('files_sharing');
         $this->_listener->handle($event);
         $this->addToAssertionCount(1);
@@ -157,7 +165,8 @@ class LoadViewerTest extends TestCase {
      *
      * @return void
      */
-    public function testHandleAddsAssetsForCadViewerApp(): void {
+        public function testHandleAddsAssetsForCadViewerApp(): void 
+    {
         $event = $this->_makeBeforeTemplateRenderedEvent(Application::APP_ID);
         $this->_listener->handle($event);
         $this->addToAssertionCount(1);
@@ -168,7 +177,8 @@ class LoadViewerTest extends TestCase {
      *
      * @return void
      */
-    public function testHandleIgnoresEmptyAppName(): void {
+        public function testHandleIgnoresEmptyAppName(): void 
+    {
         $event = $this->_makeBeforeTemplateRenderedEvent('');
         $this->_listener->handle($event);
         $this->addToAssertionCount(1);
@@ -179,7 +189,8 @@ class LoadViewerTest extends TestCase {
      *
      * @return void
      */
-    public function testImplementsIEventListener(): void {
+        public function testImplementsIEventListener(): void 
+    {
         $this->assertInstanceOf(
             \OCP\EventDispatcher\IEventListener::class,
             $this->_listener,
@@ -191,8 +202,10 @@ class LoadViewerTest extends TestCase {
      *
      * @return void
      */
-    public function testHandleIgnoresPartiallyMatchingAppName(): void {
-        foreach (['file', 'Files', 'FILES', 'files_', 'cad_viewer_extra'] as $app) {
+        public function testHandleIgnoresPartiallyMatchingAppName(): void 
+    {
+                foreach (['file', 'Files', 'FILES', 'files_', 'cad_viewer_extra'] as $app) 
+        {
             $event = $this->_makeBeforeTemplateRenderedEvent($app);
             // Should return early without exception
             $this->_listener->handle($event);
@@ -200,4 +213,3 @@ class LoadViewerTest extends TestCase {
         $this->addToAssertionCount(1);
     }
 }
-
