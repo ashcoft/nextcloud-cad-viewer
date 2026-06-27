@@ -41,7 +41,6 @@ class Application extends App implements IBootstrap
         parent::__construct(self::APP_ID);
     }
 
-    #[\Override]
     public function register(IRegistrationContext $context): void
     {
         // Register event listener to inject scripts/styles when files app loads
@@ -51,6 +50,5 @@ class Application extends App implements IBootstrap
         );
     }
 
-    #[\Override]
     public function boot(IBootContext $context): void {}
 }

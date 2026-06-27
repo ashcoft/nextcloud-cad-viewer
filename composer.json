@@ -17,7 +17,7 @@
     "friendsofphp/php-cs-fixer": "^3.95",
     "nextcloud/coding-standard": "^1.1",
     "phpstan/phpstan": "^2.1",
-    "phpunit/phpunit": "^12.0",
+    "phpunit/phpunit": "^10.4",
     "rector/rector": "^2.4",
     "roave/security-advisories": "dev-latest",
     "symfony/event-dispatcher": "^7.0",
@@ -26,7 +26,7 @@
     "symfony/process": "^7.0",
     "symfony/stopwatch": "^7.0",
     "symfony/string": "^7.0",
-    "vimeo/psalm": "^6.0"
+    "vimeo/psalm": "^5.0"
   },
   "autoload": {
     "psr-4": {
@@ -61,7 +61,7 @@
     "psalm": "psalm --threads=1 --no-cache",
     "phpstan": "phpstan analyze --no-progress",
     "rector": "rector process",
-    "test:unit": "phpunit tests -c tests/phpunit.xml --colors=always",
+    "test:unit": "phpunit tests -c tests/phpunit.xml --colors=always --fail-on-warning --fail-on-risky",
     "openapi": "php -r 'echo \"No OpenAPI generation required - this app uses the external CAD viewer library\\n\";' && exit 0"
   },
   "config": {
