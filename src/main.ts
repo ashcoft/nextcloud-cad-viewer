@@ -140,7 +140,7 @@ function openInViewer(fileId: number | string): void {
  * Uses the Nextcloud Files app API (@nextcloud/files registerFileAction)
  */
 function registerFileActions(): void {
-  if (OC === undefined) {
+  if (typeof OC === 'undefined') {
     return
   }
 
