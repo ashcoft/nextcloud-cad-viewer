@@ -67,14 +67,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
-        run: |
-          composer remove nextcloud/ocp --dev --no-scripts
-          composer i
+        run: composer i --ignore-platform-reqs && composer dump-autoload --ignore-platform-reqs
 
-      - name: Install dependencies # zizmor: ignore[template-injection]
-        run: composer require --dev 'nextcloud/ocp:${{ matrix.ocp-version }}' --ignore-platform-reqs --with-dependencies
+      - name: Install nextcloud/ocp # zizmor: ignore[template-injection]
+        run: composer bin nextcloud-ocp require --dev 'nextcloud/ocp:${{ matrix.ocp-version }}' --ignore-platform-reqs --with-dependencies
 
       - name: Run coding standards check
+        env:
+          COMPOSER_IGNORE_PLATFORM_REQS: "1"
         run: composer run psalm -- --threads=1 --monochrome --no-progress --output-format=github
 
   summary:

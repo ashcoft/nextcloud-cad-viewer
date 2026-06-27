@@ -15,4 +15,6 @@
 
 # Original rules preserved
 *.log
-```
+
+# Vendor bin (nextcloud/ocp dependencies)
+/vendor-bin/nextcloud-ocp/vendor/

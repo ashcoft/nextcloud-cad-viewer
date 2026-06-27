@@ -35,10 +35,11 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "OCA\\CadViewer\\Tests\\Unit\\": "tests/unit/",
-      "OCP\\": "vendor/nextcloud/ocp/OCP/",
-      "NCU\\": "vendor/nextcloud/ocp/NCU/",
-      "OC\\": "tests/stubs/OC/"
+      "OCA\\CadViewer\\Tests\\": "tests/",
+      "OCP\\": "vendor-bin/nextcloud-ocp/vendor/nextcloud/ocp/OCP/",
+      "NCU\\": "vendor-bin/nextcloud-ocp/vendor/nextcloud/ocp/NCU/",
+      "OC\\": "tests/stubs/OC/",
+      "OC\\Hooks\\": "tests/stubs/OC/Hooks/"
     }
   },
   "extra": {
@@ -70,7 +71,7 @@
     "optimize-autoloader": true,
     "sort-packages": true,
     "platform": {
-      "php": "8.3"
+      "php": "8.2"
     }
   }
 }

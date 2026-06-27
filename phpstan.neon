@@ -1,4 +1,4 @@
-# min: 8.3 (PHP 8.3 required)
+# min: 8.3
 parameters:
     level: 5
     paths:

@@ -69,13 +69,14 @@ class ApplicationTest extends TestCase
         $this->assertSame('application/dwg', Application::MIME_TYPE_ALIASES['application/acad']);
     }
 
+    /**
+     * @doesNotPerformAssertions
+     * @return void
+     */
     public function testBoot(): void
     {
         $app = new Application();
         $mockContext = $this->createMock(IBootContext::class);
-
-        // boot method should do nothing but not throw
         $app->boot($mockContext);
-        $this->assertTrue(true);
     }
 }
