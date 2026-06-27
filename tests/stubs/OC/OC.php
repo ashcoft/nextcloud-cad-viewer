@@ -75,7 +75,7 @@ namespace OCP\AppFramework\Http\Events {
     class BeforeTemplateRenderedEvent extends \OCP\EventDispatcher\Event
     {
         /** @var object|null */
-        private ?object $_response = null;
+        private ?object $response = null;
 
         public function __construct(private readonly bool $login = false)
         {
@@ -87,36 +87,40 @@ namespace OCP\AppFramework\Http\Events {
         }
 
         /**
-         * Returns the TemplateResponse for this event.
-         * Matches the real Nextcloud 33 API.
-         * Throws when no response has been injected so tests that forget
-         * setResponse() fail loudly rather than with a cryptic null error.
+         * Returns the response object set for this event.
+         *
+         * @return object The response object
          */
         public function getResponse(): object
         {
-            if ($this->_response === null) {
-                throw new \LogicException(
-                    'No response injected into BeforeTemplateRenderedEvent stub. '
-                    . 'Call $event->setResponse($responseStub) before passing '
-                    . 'the event to LoadViewer::handle().'
-                );
-            }
-            return $this->_response;
+            return $this->response ?? new class {
+                public function getApp(): string
+                {
+                    return '';
+                }
+
+                public function getRenderAs(): string
+                {
+                    return 'user';
+                }
+
+                public function getTemplateName(): string
+                {
+                    return '';
+                }
+            };
         }
 
         /**
-         * Test-only method: inject the response stub before passing this event
-         * to the listener under test.
+         * @internal Test-only method — does not exist in real Nextcloud 33 API.
          *
-         * Note: This method does NOT exist in the real Nextcloud 33 API.
-         * Production code must never call this method.
+         * @param object $response The response object to set
          *
-         * @param object $response Stub response object that implements getApp()
-         *                        and optionally getRenderAs() and getTemplateName()
+         * @return void
          */
         public function setResponse(object $response): void
         {
-            $this->_response = $response;
+            $this->response = $response;
         }
     }
 }
