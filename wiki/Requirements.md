@@ -29,7 +29,7 @@ This document outlines the system requirements and dependencies for running Next
 
 | Component | Version | Notes |
 |-----------|---------|-------|
-| **PHP Version** | 8.3+ | Required |
+| **PHP Version** | 8.4+ | Required |
 | **Memory Limit** | 512MB minimum, 1GB recommended | For large files |
 | **Max Execution Time** | 120 seconds minimum | For file processing |
 | **Upload Max Filesize** | 100MB minimum, 500MB+ recommended | For CAD file uploads |
@@ -107,7 +107,7 @@ Tested on:
 - ✅ Debian 11/12
 - ✅ CentOS 8/Rocky Linux 8
 - ✅ RHEL 8/9
-- ✅ Other Linux distributions with PHP 8.3+
+- ✅ Other Linux distributions with PHP 8.4+
 
 ---
 
@@ -292,8 +292,8 @@ The app uses the following major libraries:
 
 | Nextcloud | PHP | CAD Viewer Version | Status |
 |-----------|-----|-------------------|--------|
-| 33 | 8.3+ | 1.0.0 | ✅ Fully Supported |
-| 32 | 8.3 | - | ❌ Not Supported |
+| 33 | 8.4+ | 1.0.0 | ✅ Fully Supported |
+| 32 | 8.4 | - | ❌ Not Supported |
 | 31 | 8.2 | - | ❌ Not Supported |
 
 ---
@@ -304,7 +304,7 @@ When upgrading from previous versions:
 
 1. Backup your Nextcloud installation
 2. Update to Nextcloud 33 (if not already)
-3. Update PHP to 8.3+
+3. Update PHP to 8.4+
 4. Install/update CAD Viewer app
 5. Clear caches
 6. Test with sample CAD files
