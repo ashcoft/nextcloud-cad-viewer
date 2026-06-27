@@ -1,4 +1,6 @@
 import { createApp } from 'vue'
+import { registerFileAction } from '@nextcloud/files'
+import type { IFileAction } from '@nextcloud/files'
 import CadViewerApp from './App.vue'
 import router from './router'
 import CadViewerHandler from './components/ViewerHandler.vue'
@@ -45,16 +47,6 @@ interface NextcloudOCA {
       group?: string
       mimes: string[]
       component: unknown
-    }) => void
-  }
-  Files?: {
-    registerFileAction: (action: {
-      name: string
-      displayName: string
-      mime: string
-      permissions: number
-      icon: () => string
-      actionHandler: (fileName: string, context: { fileInfo?: { id: number | string; path?: string } }) => void
     }) => void
   }
 }
@@ -145,31 +137,29 @@ function openInViewer(fileId: number | string): void {
 
 /**
  * Register file actions for CAD files in the Files sidebar
- * Uses the Nextcloud Files app API (OCA.Files.registerFileAction)
+ * Uses the Nextcloud Files app API (@nextcloud/files registerFileAction)
  */
 function registerFileActions(): void {
-  if (OC === undefined || OCA === undefined) {
+  if (OC === undefined) {
     return
   }
 
-  // Register a file action for each supported MIME type
-  SUPPORTED_MIMES.forEach((mime) => {
-    if (OCA?.Files?.registerFileAction !== undefined) {
-      OCA.Files.registerFileAction({
-        name: 'cad-viewer-open',
-        displayName: t('cad_viewer', 'Open with CAD Viewer'),
-        mime,
-        permissions: OC.PERMISSION_READ,
-        icon: () => CAD_VIEWER_ICON,
-        actionHandler: (_fileName: string, context: { fileInfo?: { id: number | string } }) => {
-          const fileId = context.fileInfo?.id
-          if (fileId) {
-            openInViewer(fileId)
-          }
-        },
-      })
-    }
-  })
+  const cadViewerAction: IFileAction = {
+    id: 'cad-viewer-open',
+    displayName: () => t('cad_viewer', 'Open with CAD Viewer'),
+    iconSvgInline: () => CAD_VIEWER_ICON,
+    permissions: OC.PERMISSION_READ,
+    inline: () => true,
+    mimeMatcher: (mime) => SUPPORTED_MIMES.includes(mime),
+    actionHandler: (node) => {
+      const fileId = node.id
+      if (fileId) {
+        openInViewer(fileId)
+      }
+    },
+  }
+
+  registerFileAction(cadViewerAction)
 }
 
 // Register file actions when DOM is ready
