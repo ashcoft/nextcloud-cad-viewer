@@ -8,7 +8,7 @@ use PhpCsFixer\Finder;
 return (new Config())
     ->setRiskyAllowed(false)
     ->setRules([
-        '@auto' => true
+        '@PSR12' => true,
     ])
     ->setFinder(
         (new Finder())

@@ -37,138 +37,139 @@ use PHPUnit\Framework\TestCase;
  * @link     https://github.com/ashcoft/nextcloud-cad-viewer
  */
 class ApplicationTest extends TestCase {
-	/**
-	 * Set up test fixtures.
-	 *
-	 * @return void
-	 */
-	protected function setUp(): void {
-		parent::setUp();
-		\OC::$server = $this->createMock(IServerContainerExtended::class);
-		$config = $this->createMock(IConfig::class);
-		\OC::$server->method('get')->with(IConfig::class)->willReturn($config);
-	}
+    /**
+     * Set up test fixtures.
+     *
+     * @return void
+     */
+    protected function setUp(): void {
+        parent::setUp();
+        \OC::$server = $this->createMock(IServerContainerExtended::class);
+        $config = $this->createMock(IConfig::class);
+        \OC::$server->method('get')->with(IConfig::class)->willReturn($config);
+    }
 
-	/**
-	 * Test that APP_ID constant is set correctly.
-	 *
-	 * @return void
-	 */
-	public function testAppId(): void {
-		$this->assertSame('cad_viewer', Application::APP_ID);
-	}
+    /**
+     * Test that APP_ID constant is set correctly.
+     *
+     * @return void
+     */
+    public function testAppId(): void {
+        $this->assertSame('cad_viewer', Application::APP_ID);
+    }
 
-	/**
-	 * Test that Application can be instantiated.
-	 *
-	 * @return void
-	 */
-	public function testConstructor(): void {
-		$app = new Application();
-		$this->assertInstanceOf(Application::class, $app);
-	}
+    /**
+     * Test that Application can be instantiated.
+     *
+     * @return void
+     */
+    public function testConstructor(): void {
+        $app = new Application();
+        $this->assertInstanceOf(Application::class, $app);
+    }
 
-	/**
-	 * Test that register() calls registerEventListener exactly once.
-	 *
-	 * @return void
-	 */
-	public function testRegister(): void {
-		$app = new Application();
-		$mockContext = $this->createMock(IRegistrationContext::class);
+    /**
+     * Test that register() calls registerEventListener exactly once.
+     *
+     * @return void
+     */
+    public function testRegister(): void {
+        $app = new Application();
+        $mockContext = $this->createMock(IRegistrationContext::class);
 
-		$mockContext->expects($this->exactly(1))
-			->method('registerEventListener')
-			->with(
-				\OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
-				\OCA\CadViewer\Listener\LoadViewer::class,
-			);
+        $mockContext->expects($this->exactly(1))
+            ->method('registerEventListener')
+            ->with(
+                \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
+                \OCA\CadViewer\Listener\LoadViewer::class,
+            );
 
-		$app->register($mockContext);
-	}
+        $app->register($mockContext);
+    }
 
-	/**
-	 * Test that MIME_TYPES constant contains expected entries.
-	 *
-	 * @return void
-	 */
-	public function testMimeTypesConstant(): void {
-		$this->assertNotEmpty(Application::MIME_TYPES);
-		$this->assertArrayHasKey('application/dwg', Application::MIME_TYPES);
-		$this->assertSame('dwg', Application::MIME_TYPES['application/dwg']);
-	}
+    /**
+     * Test that MIME_TYPES constant contains expected entries.
+     *
+     * @return void
+     */
+    public function testMimeTypesConstant(): void {
+        $this->assertNotEmpty(Application::MIME_TYPES);
+        $this->assertArrayHasKey('application/dwg', Application::MIME_TYPES);
+        $this->assertSame('dwg', Application::MIME_TYPES['application/dwg']);
+    }
 
-	/**
-	 * Test that MIME_TYPE_ALIASES constant contains expected entries.
-	 *
-	 * @return void
-	 */
-	public function testMimeTypeAliasesConstant(): void {
-		$this->assertNotEmpty(Application::MIME_TYPE_ALIASES);
-		$this->assertArrayHasKey('application/acad', Application::MIME_TYPE_ALIASES);
-		$this->assertSame('application/dwg', Application::MIME_TYPE_ALIASES['application/acad']);
-	}
+    /**
+     * Test that MIME_TYPE_ALIASES constant contains expected entries.
+     *
+     * @return void
+     */
+    public function testMimeTypeAliasesConstant(): void {
+        $this->assertNotEmpty(Application::MIME_TYPE_ALIASES);
+        $this->assertArrayHasKey('application/acad', Application::MIME_TYPE_ALIASES);
+        $this->assertSame('application/dwg', Application::MIME_TYPE_ALIASES['application/acad']);
+    }
 
-	/**
-	 * Test that boot() does not perform any operations.
-	 *
-	 * @return void
-	 */
-	public function testBoot(): void {
-		$app = new Application();
-		$mockContext = $this->createMock(IBootContext::class);
-		$app->boot($mockContext);
-		$this->addToAssertionCount(1);
-	}
+    /**
+     * Test that boot() does not perform any operations.
+     *
+     * @return void
+     */
+    public function testBoot(): void {
+        $app = new Application();
+        $mockContext = $this->createMock(IBootContext::class);
+        $app->boot($mockContext);
+        $this->addToAssertionCount(1);
+    }
 
-	/**
-	 * Test that Application implements IBootstrap interface.
-	 *
-	 * This validates that the #[\Override] attributes on register() and boot()
-	 * are correct, as they implement IBootstrap interface methods.
-	 *
-	 * @return void
-	 */
-	public function testApplicationImplementsIBootstrap(): void {
-		$app = new Application();
-		$this->assertInstanceOf(
-			\OCP\AppFramework\Bootstrap\IBootstrap::class,
-			$app,
-		);
-	}
+    /**
+     * Test that Application implements IBootstrap interface.
+     *
+     * This validates that the #[\Override] attributes on register() and boot()
+     * are correct, as they implement IBootstrap interface methods.
+     *
+     * @return void
+     */
+    public function testApplicationImplementsIBootstrap(): void {
+        $app = new Application();
+        $this->assertInstanceOf(
+            \OCP\AppFramework\Bootstrap\IBootstrap::class,
+            $app,
+        );
+    }
 
-	/**
-	 * Test that boot() does not interact with the IBootContext at all.
-	 *
-	 * The boot() method is intentionally a no-op because this app performs
-	 * all setup in register().
-	 *
-	 * @return void
-	 */
-	public function testBootDoesNotInteractWithContext(): void {
-		$app = new Application();
-		$mockContext = $this->createMock(IBootContext::class);
+    /**
+     * Test that boot() does not interact with the IBootContext at all.
+     *
+     * The boot() method is intentionally a no-op because this app performs
+     * all setup in register().
+     *
+     * @return void
+     */
+    public function testBootDoesNotInteractWithContext(): void {
+        $app = new Application();
+        $mockContext = $this->createMock(IBootContext::class);
 
-		$mockContext->expects($this->never())->method($this->anything());
+        $mockContext->expects($this->never())->method($this->anything());
 
-		$app->boot($mockContext);
-	}
+        $app->boot($mockContext);
+    }
 
-	/**
-	 * Test that register() interacts with the context exactly once.
-	 *
-	 * The method must only register the LoadViewer listener, confirming the
-	 * #[\Override] method fulfils the IBootstrap contract.
-	 *
-	 * @return void
-	 */
-	public function testRegisterCallsContextExactlyOnce(): void {
-		$app = new Application();
-		$mockContext = $this->createMock(IRegistrationContext::class);
+    /**
+     * Test that register() interacts with the context exactly once.
+     *
+     * The method must only register the LoadViewer listener, confirming the
+     * #[\Override] method fulfils the IBootstrap contract.
+     *
+     * @return void
+     */
+    public function testRegisterCallsContextExactlyOnce(): void {
+        $app = new Application();
+        $mockContext = $this->createMock(IRegistrationContext::class);
 
-		$mockContext->expects($this->once())
-			->method('registerEventListener');
+        $mockContext->expects($this->once())
+            ->method('registerEventListener');
 
-		$app->register($mockContext);
-	}
+        $app->register($mockContext);
+    }
 }
+

@@ -36,167 +36,168 @@ use PHPUnit\Framework\TestCase;
  * @link     https://github.com/ashcoft/nextcloud-cad-viewer
  */
 class LoadViewerTest extends TestCase {
-	/**
-	 * The LoadViewer listener instance.
-	 *
-	 * @var LoadViewer
-	 */
-	private LoadViewer $_listener;
+    /**
+     * The LoadViewer listener instance.
+     *
+     * @var LoadViewer
+     */
+    private LoadViewer $_listener;
 
-	/**
-	 * Set up test fixtures.
-	 *
-	 * @return void
-	 */
-	protected function setUp(): void {
-		parent::setUp();
-		$this->_listener = new LoadViewer();
-	}
+    /**
+     * Set up test fixtures.
+     *
+     * @return void
+     */
+    protected function setUp(): void {
+        parent::setUp();
+        $this->_listener = new LoadViewer();
+    }
 
-	/**
-	 * Helper to create a BeforeTemplateRenderedEvent stub.
-	 *
-	 * @param string $appName The app name to set on the response
-	 *
-	 * @return BeforeTemplateRenderedEvent The event stub
-	 */
-	private function _makeBeforeTemplateRenderedEvent(
-		string $appName,
-	): BeforeTemplateRenderedEvent {
-		// Create an anonymous response stub with getApp()
-		$response = new class ($appName) {
-			/**
-			 * Constructor.
-			 *
-			 * @param string $app The app name
-			 */
-			public function __construct(private readonly string $app) {
-			}
+    /**
+     * Helper to create a BeforeTemplateRenderedEvent stub.
+     *
+     * @param string $appName The app name to set on the response
+     *
+     * @return BeforeTemplateRenderedEvent The event stub
+     */
+    private function _makeBeforeTemplateRenderedEvent(
+        string $appName,
+    ): BeforeTemplateRenderedEvent {
+        // Create an anonymous response stub with getApp()
+        $response = new class ($appName) {
+            /**
+             * Constructor.
+             *
+             * @param string $app The app name
+             */
+            public function __construct(private readonly string $app) {
+            }
 
-			/**
-			 * Get the app name.
-			 *
-			 * @return string
-			 */
-			public function getApp(): string {
-				return $this->app;
-			}
-		};
+            /**
+             * Get the app name.
+             *
+             * @return string
+             */
+            public function getApp(): string {
+                return $this->app;
+            }
+        };
 
-		// Extend the stub to provide getResponse()
-		return new class ($response) extends BeforeTemplateRenderedEvent {
-			/**
-			 * Constructor.
-			 *
-			 * @param object $response The response object
-			 */
-			public function __construct(private readonly object $response) {
-			}
+        // Extend the stub to provide getResponse()
+        return new class ($response) extends BeforeTemplateRenderedEvent {
+            /**
+             * Constructor.
+             *
+             * @param object $response The response object
+             */
+            public function __construct(private readonly object $response) {
+            }
 
-			/**
-			 * Get the response object.
-			 *
-			 * @return object
-			 */
-			public function getResponse(): object {
-				return $this->response;
-			}
-		};
-	}
+            /**
+             * Get the response object.
+             *
+             * @return object
+             */
+            public function getResponse(): object {
+                return $this->response;
+            }
+        };
+    }
 
-	/**
-	 * Test that a non-BeforeTemplateRenderedEvent is silently ignored.
-	 *
-	 * @return void
-	 */
-	public function testHandleIgnoresNonBeforeTemplateRenderedEvent(): void {
-		$genericEvent = new class extends Event {
-		};
-		// Should return early without any error or exception
-		$this->_listener->handle($genericEvent);
-		$this->addToAssertionCount(1);
-	}
+    /**
+     * Test that a non-BeforeTemplateRenderedEvent is silently ignored.
+     *
+     * @return void
+     */
+    public function testHandleIgnoresNonBeforeTemplateRenderedEvent(): void {
+        $genericEvent = new class extends Event {
+        };
+        // Should return early without any error or exception
+        $this->_listener->handle($genericEvent);
+        $this->addToAssertionCount(1);
+    }
 
-	/**
-	 * Test that handle() does nothing for an unsupported app name.
-	 *
-	 * @return void
-	 */
-	public function testHandleIgnoresUnsupportedApp(): void {
-		$event = $this->_makeBeforeTemplateRenderedEvent('dashboard');
-		// Should return early - no scripts/styles injected, no exception
-		$this->_listener->handle($event);
-		$this->addToAssertionCount(1);
-	}
+    /**
+     * Test that handle() does nothing for an unsupported app name.
+     *
+     * @return void
+     */
+    public function testHandleIgnoresUnsupportedApp(): void {
+        $event = $this->_makeBeforeTemplateRenderedEvent('dashboard');
+        // Should return early - no scripts/styles injected, no exception
+        $this->_listener->handle($event);
+        $this->addToAssertionCount(1);
+    }
 
-	/**
-	 * Test that handle() injects scripts and styles for the 'files' app.
-	 *
-	 * @return void
-	 */
-	public function testHandleAddsAssetsForFilesApp(): void {
-		$event = $this->_makeBeforeTemplateRenderedEvent('files');
-		// Must reach Util::addScript / Util::addStyle without throwing
-		$this->_listener->handle($event);
-		$this->addToAssertionCount(1);
-	}
+    /**
+     * Test that handle() injects scripts and styles for the 'files' app.
+     *
+     * @return void
+     */
+    public function testHandleAddsAssetsForFilesApp(): void {
+        $event = $this->_makeBeforeTemplateRenderedEvent('files');
+        // Must reach Util::addScript / Util::addStyle without throwing
+        $this->_listener->handle($event);
+        $this->addToAssertionCount(1);
+    }
 
-	/**
-	 * Test that handle() injects scripts and styles for the 'files_sharing' app.
-	 *
-	 * @return void
-	 */
-	public function testHandleAddsAssetsForFilesSharingApp(): void {
-		$event = $this->_makeBeforeTemplateRenderedEvent('files_sharing');
-		$this->_listener->handle($event);
-		$this->addToAssertionCount(1);
-	}
+    /**
+     * Test that handle() injects scripts and styles for the 'files_sharing' app.
+     *
+     * @return void
+     */
+    public function testHandleAddsAssetsForFilesSharingApp(): void {
+        $event = $this->_makeBeforeTemplateRenderedEvent('files_sharing');
+        $this->_listener->handle($event);
+        $this->addToAssertionCount(1);
+    }
 
-	/**
-	 * Test that handle() injects scripts and styles for the CAD viewer app.
-	 *
-	 * @return void
-	 */
-	public function testHandleAddsAssetsForCadViewerApp(): void {
-		$event = $this->_makeBeforeTemplateRenderedEvent(Application::APP_ID);
-		$this->_listener->handle($event);
-		$this->addToAssertionCount(1);
-	}
+    /**
+     * Test that handle() injects scripts and styles for the CAD viewer app.
+     *
+     * @return void
+     */
+    public function testHandleAddsAssetsForCadViewerApp(): void {
+        $event = $this->_makeBeforeTemplateRenderedEvent(Application::APP_ID);
+        $this->_listener->handle($event);
+        $this->addToAssertionCount(1);
+    }
 
-	/**
-	 * Test that handle() silently ignores an empty app name (boundary case).
-	 *
-	 * @return void
-	 */
-	public function testHandleIgnoresEmptyAppName(): void {
-		$event = $this->_makeBeforeTemplateRenderedEvent('');
-		$this->_listener->handle($event);
-		$this->addToAssertionCount(1);
-	}
+    /**
+     * Test that handle() silently ignores an empty app name (boundary case).
+     *
+     * @return void
+     */
+    public function testHandleIgnoresEmptyAppName(): void {
+        $event = $this->_makeBeforeTemplateRenderedEvent('');
+        $this->_listener->handle($event);
+        $this->addToAssertionCount(1);
+    }
 
-	/**
-	 * Test that LoadViewer implements IEventListener.
-	 *
-	 * @return void
-	 */
-	public function testImplementsIEventListener(): void {
-		$this->assertInstanceOf(
-			\OCP\EventDispatcher\IEventListener::class,
-			$this->_listener,
-		);
-	}
+    /**
+     * Test that LoadViewer implements IEventListener.
+     *
+     * @return void
+     */
+    public function testImplementsIEventListener(): void {
+        $this->assertInstanceOf(
+            \OCP\EventDispatcher\IEventListener::class,
+            $this->_listener,
+        );
+    }
 
-	/**
-	 * Regression: only the three whitelisted apps trigger asset injection.
-	 *
-	 * @return void
-	 */
-	public function testHandleIgnoresPartiallyMatchingAppName(): void {
-		foreach (['file', 'Files', 'FILES', 'files_', 'cad_viewer_extra'] as $app) {
-			$event = $this->_makeBeforeTemplateRenderedEvent($app);
-			// Should return early without exception
-			$this->_listener->handle($event);
-		}
-		$this->addToAssertionCount(1);
-	}
+    /**
+     * Regression: only the three whitelisted apps trigger asset injection.
+     *
+     * @return void
+     */
+    public function testHandleIgnoresPartiallyMatchingAppName(): void {
+        foreach (['file', 'Files', 'FILES', 'files_', 'cad_viewer_extra'] as $app) {
+            $event = $this->_makeBeforeTemplateRenderedEvent($app);
+            // Should return early without exception
+            $this->_listener->handle($event);
+        }
+        $this->addToAssertionCount(1);
+    }
 }
+
