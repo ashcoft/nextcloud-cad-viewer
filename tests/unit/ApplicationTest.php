@@ -69,7 +69,10 @@ class ApplicationTest extends TestCase
         $this->assertSame('application/dwg', Application::MIME_TYPE_ALIASES['application/acad']);
     }
 
-    /** @doesNotPerformAssertions */
+    /**
+     * @doesNotPerformAssertions
+     * @return void
+     */
     public function testBoot(): void
     {
         $app = new Application();
