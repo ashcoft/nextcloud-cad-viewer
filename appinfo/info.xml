@@ -15,7 +15,7 @@
 - Responsive design]]></description>
   <version>0.0.20</version>
   <licence>MIT</licence>
-  <author mail="support@example.com">CAD Viewer Contributors</author>
+  <author mail="dony@dony.me">CAD Viewer Contributors</author>
   <namespace>CadViewer</namespace>
   <documentation>
     <user>https://github.com/ashcoft/nextcloud-cad-viewer</user>
