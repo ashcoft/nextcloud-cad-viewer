@@ -74,6 +74,9 @@ namespace OCP\AppFramework\Http\Events {
      */
     class BeforeTemplateRenderedEvent extends \OCP\EventDispatcher\Event
     {
+        /** @var object|null */
+        private ?object $_response = null;
+
         public function __construct(private readonly bool $login = false)
         {
         }
@@ -81,6 +84,33 @@ namespace OCP\AppFramework\Http\Events {
         public function isLoggedIn(): bool
         {
             return $this->login;
+        }
+
+        /**
+         * Returns the TemplateResponse for this event.
+         * Matches the real Nextcloud 33 API.
+         * Throws when no response has been injected so tests that forget
+         * setResponse() fail loudly rather than with a cryptic null error.
+         */
+        public function getResponse(): object
+        {
+            if ($this->_response === null) {
+                throw new \LogicException(
+                    'No response injected into BeforeTemplateRenderedEvent stub. '
+                    . 'Call $event->setResponse($responseStub) before passing '
+                    . 'the event to LoadViewer::handle().'
+                );
+            }
+            return $this->_response;
+        }
+
+        /**
+         * Test-helper: inject the response stub before passing this event to
+         * the listener under test.
+         */
+        public function setResponse(object $response): void
+        {
+            $this->_response = $response;
         }
     }
 }

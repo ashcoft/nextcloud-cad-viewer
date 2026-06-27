@@ -56,58 +56,33 @@ class LoadViewerTest extends TestCase
     }
 
     /**
-     * Helper to create a BeforeTemplateRenderedEvent stub.
+     * Helper: build a BeforeTemplateRenderedEvent stub whose response returns
+     * the given app name from getApp().
      *
-     * @param string $appName The app name to set on the response
+     * Uses the real stub constructor (so $login is correctly initialised) and
+     * injects the response via setResponse() added in BUG 5.
      *
-     * @return BeforeTemplateRenderedEvent The event stub
+     * @param string $appName The app name the response stub will return.
+     *
+     * @return BeforeTemplateRenderedEvent
      */
     private function _makeBeforeTemplateRenderedEvent(
         string $appName,
     ): BeforeTemplateRenderedEvent {
-        // Create an anonymous response stub with getApp()
         $response = new class ($appName) {
-            /**
-             * Constructor.
-             *
-             * @param string $app The app name
-             */
             public function __construct(private readonly string $app)
             {
             }
 
-            /**
-             * Get the app name.
-             *
-             * @return string
-             */
             public function getApp(): string
             {
                 return $this->app;
             }
         };
 
-        // Extend the stub to provide getResponse()
-        return new class ($response) extends BeforeTemplateRenderedEvent {
-            /**
-             * Constructor.
-             *
-             * @param object $response The response object
-             */
-            public function __construct(private readonly object $response)
-            {
-            }
-
-            /**
-             * Get the response object.
-             *
-             * @return object
-             */
-            public function getResponse(): object
-            {
-                return $this->response;
-            }
-        };
+        $event = new BeforeTemplateRenderedEvent(); // $login defaults to false ✓
+        $event->setResponse($response);
+        return $event;
     }
 
     /**
