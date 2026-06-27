@@ -5,5 +5,5 @@ parameters:
         - lib
     bootstrapFiles:
         - vendor/autoload.php
-    phpVersion: 80300
+    phpVersion: 80400
     treatPhpDocTypesAsCertain: false
