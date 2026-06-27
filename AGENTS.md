@@ -8,7 +8,7 @@ This is a Nextcloud app called `cad_viewer` that integrates the `@mlightcad/cad-
 
 ## Technical Stack
 
-- **Backend:** PHP ^8.3
+- **Backend:** PHP ^8.4
 - **Nextcloud Compatibility:** Target Nextcloud 33 (uses `nextcloud/ocp:dev-stable33`).
 - **Frontend:** Vue 3 with Element Plus
 - **Build Tool:** Webpack for bundling

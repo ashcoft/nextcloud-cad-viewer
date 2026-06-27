@@ -1,4 +1,5 @@
 import { createApp } from 'vue'
+import { registerFileAction, FileAction, Permission } from '@nextcloud/files'
 import CadViewerApp from './App.vue'
 import router from './router'
 import CadViewerHandler from './components/ViewerHandler.vue'
@@ -146,6 +147,7 @@ function openInViewer(fileId: number | string): void {
 /**
  * Register file actions for CAD files in the Files sidebar
  * Uses the Nextcloud Files app API (OCA.Files.registerFileAction)
+ * Also registers using @nextcloud/files package API for NC33+ compatibility
  */
 function registerFileActions(): void {
   if (OC === undefined || OCA === undefined) {
@@ -154,6 +156,25 @@ function registerFileActions(): void {
 
   // Register a file action for each supported MIME type
   SUPPORTED_MIMES.forEach((mime) => {
+    // NC33+ package API
+    try {
+      registerFileAction(
+        new FileAction({
+          id: 'cad-viewer-open',
+          displayName: t('cad_viewer', 'Open with CAD Viewer'),
+          icon: () => CAD_VIEWER_ICON,
+          enabled: (files: { mime: string }) => files.mime === mime,
+          exec: (file: { id: number | string }) => {
+            openInViewer(file.id)
+            return null
+          },
+        }),
+      )
+    } catch {
+      // Fall back to OCA global if package API fails
+    }
+
+    // Legacy OCA global fallback
     if (OCA?.Files?.registerFileAction !== undefined) {
       OCA.Files.registerFileAction({
         name: 'cad-viewer-open',
