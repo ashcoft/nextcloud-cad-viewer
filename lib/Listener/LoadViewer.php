@@ -15,6 +15,14 @@ use OCP\Util;
  */
 class LoadViewer implements IEventListener
 {
+    /**
+     * Loads the CAD viewer assets for supported template renders.
+     *
+     * @param Event $event The event fired before a template is rendered.
+     *
+     * @return void
+     */
+    #[\Override]
     public function handle(Event $event): void
     {
         if (!$event instanceof BeforeTemplateRenderedEvent) {
