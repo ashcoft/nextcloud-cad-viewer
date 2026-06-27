@@ -42,7 +42,7 @@ class ApplicationTest extends TestCase {
      *
      * @return void
      */
-        protected function setUp(): void 
+    protected function setUp(): void 
     {
         parent::setUp();
         \OC::$server = $this->createMock(IServerContainerExtended::class);
@@ -55,7 +55,7 @@ class ApplicationTest extends TestCase {
      *
      * @return void
      */
-        public function testAppId(): void 
+    public function testAppId(): void 
     {
         $this->assertSame('cad_viewer', Application::APP_ID);
     }
@@ -65,7 +65,7 @@ class ApplicationTest extends TestCase {
      *
      * @return void
      */
-        public function testConstructor(): void 
+    public function testConstructor(): void 
     {
         $app = new Application();
         $this->assertInstanceOf(Application::class, $app);
@@ -76,7 +76,7 @@ class ApplicationTest extends TestCase {
      *
      * @return void
      */
-        public function testRegister(): void 
+    public function testRegister(): void 
     {
         $app = new Application();
         $mockContext = $this->createMock(IRegistrationContext::class);
@@ -96,7 +96,7 @@ class ApplicationTest extends TestCase {
      *
      * @return void
      */
-        public function testMimeTypesConstant(): void 
+    public function testMimeTypesConstant(): void 
     {
         $this->assertNotEmpty(Application::MIME_TYPES);
         $this->assertArrayHasKey('application/dwg', Application::MIME_TYPES);
@@ -108,7 +108,7 @@ class ApplicationTest extends TestCase {
      *
      * @return void
      */
-        public function testMimeTypeAliasesConstant(): void 
+    public function testMimeTypeAliasesConstant(): void 
     {
         $this->assertNotEmpty(Application::MIME_TYPE_ALIASES);
         $this->assertArrayHasKey('application/acad', Application::MIME_TYPE_ALIASES);
@@ -120,7 +120,7 @@ class ApplicationTest extends TestCase {
      *
      * @return void
      */
-        public function testBoot(): void 
+    public function testBoot(): void 
     {
         $app = new Application();
         $mockContext = $this->createMock(IBootContext::class);
@@ -136,7 +136,7 @@ class ApplicationTest extends TestCase {
      *
      * @return void
      */
-        public function testApplicationImplementsIBootstrap(): void 
+    public function testApplicationImplementsIBootstrap(): void 
     {
         $app = new Application();
         $this->assertInstanceOf(
@@ -153,7 +153,7 @@ class ApplicationTest extends TestCase {
      *
      * @return void
      */
-        public function testBootDoesNotInteractWithContext(): void 
+    public function testBootDoesNotInteractWithContext(): void 
     {
         $app = new Application();
         $mockContext = $this->createMock(IBootContext::class);
@@ -171,7 +171,7 @@ class ApplicationTest extends TestCase {
      *
      * @return void
      */
-        public function testRegisterCallsContextExactlyOnce(): void 
+    public function testRegisterCallsContextExactlyOnce(): void 
     {
         $app = new Application();
         $mockContext = $this->createMock(IRegistrationContext::class);
