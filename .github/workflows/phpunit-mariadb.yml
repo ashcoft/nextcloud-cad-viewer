@@ -62,6 +62,8 @@ jobs:
               - '.php-cs-fixer.dist.php'
               - 'composer.json'
               - 'composer.lock'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
 
   phpunit-mariadb:
     runs-on: ubuntu-latest
