@@ -17,7 +17,7 @@ module.exports = {
     '^element-plus$': '<rootDir>/tests/__mocks__/element-plus.js',
     '^element-plus/dist/index.css$': 'jest-transform-stub',
   },
-  snapshotSerializers: ['jest-serializer-vue'],
+  // snapshotSerializers removed - jest-serializer-vue is incompatible with Jest 30
   testMatch: [
     '**/tests/unit/**/*.spec.(js|jsx|ts|tsx)',
     '**/__tests__/*.(js|jsx|ts|tsx)',
