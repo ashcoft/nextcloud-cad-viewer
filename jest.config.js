@@ -13,7 +13,6 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^.+\\.css$': 'jest-transform-stub',
     '^@mlightcad/cad-viewer$': '<rootDir>/tests/__mocks__/@mlightcad/cad-viewer.js',
-    '^@mlightcad/cad-simple-viewer$': '<rootDir>/tests/__mocks__/@mlightcad/cad-simple-viewer.js',
     '^element-plus$': '<rootDir>/tests/__mocks__/element-plus.js',
     '^element-plus/dist/index.css$': 'jest-transform-stub',
   },
