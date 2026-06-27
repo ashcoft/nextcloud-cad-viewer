@@ -141,7 +141,7 @@ jobs:
         if: steps.check_composer.outputs.files_exists == 'true'
         working-directory: apps/${{ env.APP_NAME }}
         run: |
-          composer i
+          composer i --ignore-platform-reqs
           composer bin nextcloud-ocp require --dev nextcloud/ocp:dev-${{ matrix.server-versions }} \
             --ignore-platform-reqs --with-dependencies
 
