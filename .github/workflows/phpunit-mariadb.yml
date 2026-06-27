@@ -42,8 +42,8 @@ jobs:
           php_versions='${{ steps.versions.outputs.php-available-list }}'
           # Convert to array and filter to >= 8.4
           filtered=$(echo "$php_versions" | tr ',' '\n' | awk -F. '$1*100+$2 >= 804' | paste -sd, -)
-          echo "php-version=$filtered" >> $GITHUB_OUTPUT
-          echo "Filtered PHP versions from $php_versions to $filtered"
+          echo "php-version=${filtered:-8.4}" >> $GITHUB_OUTPUT
+          echo "Filtered PHP versions from $php_versions to ${filtered:-8.4}"
 
   changes:
     runs-on: ubuntu-latest
