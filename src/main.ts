@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import { registerFileAction, FileAction, Permission } from '@nextcloud/files'
+import { registerFileAction, FileAction } from '@nextcloud/files'
 import CadViewerApp from './App.vue'
 import router from './router'
 import CadViewerHandler from './components/ViewerHandler.vue'
@@ -161,11 +161,14 @@ function registerFileActions(): void {
       registerFileAction(
         new FileAction({
           id: 'cad-viewer-open',
-          displayName: t('cad_viewer', 'Open with CAD Viewer'),
-          icon: () => CAD_VIEWER_ICON,
-          enabled: (files: { mime: string }) => files.mime === mime,
-          exec: (file: { id: number | string }) => {
-            openInViewer(file.id)
+          displayName: () => t('cad_viewer', 'Open with CAD Viewer'),
+          iconSvgInline: () => CAD_VIEWER_ICON,
+          enabled: (files) => files.some((f) => f.mime === mime),
+          exec: async (file) => {
+            const fileId = file.attributes.id
+            if (fileId !== undefined) {
+              openInViewer(fileId)
+            }
             return null
           },
         }),
