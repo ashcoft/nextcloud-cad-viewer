@@ -183,4 +183,3 @@ class ApplicationTest extends TestCase
         $app->register($mockContext);
     }
 }
-
