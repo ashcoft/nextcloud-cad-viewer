@@ -24,6 +24,8 @@ This is a Nextcloud app called `cad_viewer` that integrates the `@mlightcad/cad-
 
 The PHP backend follows Nextcloud app conventions with a layered architecture.
 
+- **PHP**: ^8.4
+
 ### Layers
 
 | Layer          | Lives in                   | Responsibility                                                      |
