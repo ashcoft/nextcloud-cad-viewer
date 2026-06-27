@@ -52,5 +52,8 @@ class Application extends App implements IBootstrap
     }
 
     #[\Override]
-    public function boot(IBootContext $context): void {}
+    public function boot(IBootContext $context): void
+    {
+        // No boot actions needed - all initialization done in register()
+    }
 }
