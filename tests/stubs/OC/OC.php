@@ -3,58 +3,67 @@
 declare(strict_types=1);
 
 namespace {
-    class OC {
+    class OC
+    {
         /** @var mixed */
         public static $server;
     }
 }
 
 namespace OCP {
-    interface IConfig {
+    interface IConfig
+    {
         /** @return mixed */
-    public function getSystemValue(string $key, $default = null);
+        public function getSystemValue(string $key, $default = null);
 
-    public function getAppValue(string $appName, string $key, string $default = ''): string;
+        public function getAppValue(string $appName, string $key, string $default = ''): string;
     }
 
-    interface IServerContainer {
+    interface IServerContainer
+    {
         /** @return mixed */
-    public function query(string $name, bool $autoload = true);
+        public function query(string $name, bool $autoload = true);
 
         /** @return mixed */
-    public function get(string $id);
+        public function get(string $id);
     }
 
-    interface IServerContainerExtended extends IServerContainer {
+    interface IServerContainerExtended extends IServerContainer
+    {
         /** @return mixed */
-    public function getRegisteredAppContainer(string $appName);
+        public function getRegisteredAppContainer(string $appName);
     }
 }
 
 namespace OCP\AppFramework\Bootstrap {
-    interface IRegistrationContext {
-    public function registerEventListener(string $eventClass, string $listenerClass): void;
+    interface IRegistrationContext
+    {
+        public function registerEventListener(string $eventClass, string $listenerClass): void;
     }
 
-    interface IBootContext {
-    public function getServer(): \OCP\IServerContainer;
+    interface IBootContext
+    {
+        public function getServer(): \OCP\IServerContainer;
     }
 
-    interface IBootstrap {
-    public function register(\OCP\AppFramework\Bootstrap\IRegistrationContext $context): void;
+    interface IBootstrap
+    {
+        public function register(\OCP\AppFramework\Bootstrap\IRegistrationContext $context): void;
 
-    public function boot(\OCP\AppFramework\Bootstrap\IBootContext $context): void;
+        public function boot(\OCP\AppFramework\Bootstrap\IBootContext $context): void;
     }
 }
 
 // OCP\EventDispatcher MUST come before OCP\AppFramework\Http\Events
 // because BeforeTemplateRenderedEvent extends the Event class.
 namespace OCP\EventDispatcher {
-    abstract class Event {
+    abstract class Event
+    {
     }
 
-    interface IEventListener {
-    public function handle(Event $event): void;
+    interface IEventListener
+    {
+        public function handle(Event $event): void;
     }
 }
 
@@ -62,54 +71,60 @@ namespace OCP\AppFramework\Http\Events {
     /**
      * @extends \OCP\EventDispatcher\Event
      */
-    class BeforeTemplateRenderedEvent extends \OCP\EventDispatcher\Event {
-            public function __construct(private readonly bool $login = false) 
+    class BeforeTemplateRenderedEvent extends \OCP\EventDispatcher\Event
+    {
+        public function __construct(private readonly bool $login = false)
         {
         }
 
-    public function isLoggedIn(): bool {
+        public function isLoggedIn(): bool
+        {
             return $this->login;
         }
     }
 }
 
 namespace OCP\AppFramework {
-    class App {
-            public function __construct(string $appName, array $urlParams = []) 
+    class App
+    {
+        public function __construct(string $appName, array $urlParams = [])
         {
         }
     }
 
-    interface IAppContainer extends \OCP\IServerContainer {
+    interface IAppContainer extends \OCP\IServerContainer
+    {
     }
 }
 
 namespace OCP {
-    class Util {
-            public static function addScript(string $appId, string $scriptName): void 
+    class Util
+    {
+        public static function addScript(string $appId, string $scriptName): void
         {
         }
 
-            public static function addStyle(string $appId, string $styleName): void 
+        public static function addStyle(string $appId, string $styleName): void
         {
         }
     }
 }
 
 namespace OC\AppFramework\DependencyInjection {
-    class DIContainer implements \OCP\AppFramework\IAppContainer {
-            public function __construct(string $appName, array $urlParams = []) 
+    class DIContainer implements \OCP\AppFramework\IAppContainer
+    {
+        public function __construct(string $appName, array $urlParams = [])
         {
         }
 
         /** @return mixed */
-            public function query(string $name, bool $autoload = true) 
+        public function query(string $name, bool $autoload = true)
         {
             return null;
         }
 
         /** @return mixed */
-            public function get(string $id) 
+        public function get(string $id)
         {
             return null;
         }

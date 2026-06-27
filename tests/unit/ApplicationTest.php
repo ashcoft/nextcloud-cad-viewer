@@ -36,7 +36,8 @@ use PHPUnit\Framework\TestCase;
  * @license  https://opensource.org/licenses/MIT MIT
  * @link     https://github.com/ashcoft/nextcloud-cad-viewer
  */
-class ApplicationTest extends TestCase {
+class ApplicationTest extends TestCase
+{
     /**
      * Set up test fixtures.
      *
@@ -182,3 +183,4 @@ class ApplicationTest extends TestCase {
         $app->register($mockContext);
     }
 }
+
