@@ -7,6 +7,17 @@ namespace {
     {
         public static $server;
     }
+
+    // Stubs for bootstrap compatibility
+    class OC_App
+    {
+        public static function loadApp(string $appName): void {}
+    }
+
+    class OC_Hook
+    {
+        public static function clear(string $scope = ''): void {}
+    }
 }
 
 namespace OCP {

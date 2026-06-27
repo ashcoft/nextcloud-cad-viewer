@@ -21,10 +21,17 @@ class LoadViewer implements IEventListener
             return;
         }
 
-        $response = $event->getResponse();
+        // NC33+ compatible: BeforeTemplateRenderedEvent::getResponse() may not exist
+        // Use reflection or interface check for compatibility across NC25-34
+        $app = null;
+        if (method_exists($event, 'getResponse')) {
+            $response = $event->getResponse();
+            if (method_exists($response, 'getApp')) {
+                $app = $response->getApp();
+            }
+        }
 
-        $app = $response->getApp();
-        if ($app !== 'files' && $app !== 'files_sharing' && $app !== Application::APP_ID) {
+        if ($app !== null && $app !== 'files' && $app !== 'files_sharing' && $app !== Application::APP_ID) {
             return;
         }
 

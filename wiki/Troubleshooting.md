@@ -101,7 +101,7 @@ This guide helps you diagnose and resolve common issues with Nextcloud CAD Viewe
    ```bash
    php --version
    ```
-   Must be PHP 8.3 or higher
+   Must be PHP 8.4 or higher
 
 3. **Check Nextcloud version:**
    The app requires Nextcloud 33

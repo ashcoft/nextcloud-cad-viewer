@@ -12,14 +12,12 @@ declare const OC: {
 }
 
 declare const OCA: {
-  Files?: {
-    registerFileAction?: (action: {
-      name: string
-      displayName: string
-      mime: string
-      permissions: number
-      icon: () => string
-      actionHandler: (fileName: string, context: { fileInfo?: { id: number | string } }) => void
+  Viewer?: {
+    registerHandler?: (handler: {
+      id: string
+      group?: string
+      mimes: string[]
+      component: unknown
     }) => void
   }
 }

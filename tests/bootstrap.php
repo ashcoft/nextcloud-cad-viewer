@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../../tests/bootstrap.php';
-require_once __DIR__ . '/../vendor/autoload.php';
+$serverBootstrap = __DIR__ . '/../../../tests/bootstrap.php';
+if (file_exists($serverBootstrap)) {
+    require_once $serverBootstrap;
+}
 
-\OC_App::loadApp(OCA\CadViewer\AppInfo\Application::APP_ID);
-OC_Hook::clear();
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/stubs/OC/OC.php';
