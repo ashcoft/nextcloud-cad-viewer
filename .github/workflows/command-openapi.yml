@@ -115,13 +115,13 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'openapi.yml',
-              ref: '${{ steps.pr-info.outputs.head_ref }}',
+              ref: ${{ toJSON(steps.pr-info.outputs.head_ref) }},
               inputs: {
-                path: '${{ steps.git-path.outputs.path }}',
-                command: '${{ steps.command.outputs.arg1 }}',
-                pr_number: '${{ steps.pr-info.outputs.pr_number }}',
-                base_ref: '${{ steps.pr-info.outputs.base_ref }}',
-                comment_id: '${{ github.event.comment.id }}'
+                path: ${{ toJSON(steps.git-path.outputs.path) }},
+                command: ${{ toJSON(steps.command.outputs.arg1) }},
+                pr_number: ${{ toJSON(steps.pr-info.outputs.pr_number) }},
+                base_ref: ${{ toJSON(steps.pr-info.outputs.base_ref) }},
+                comment_id: ${{ toJSON(github.event.comment.id) }}
               }
             });
             console.log('Triggered openapi.yml workflow');
