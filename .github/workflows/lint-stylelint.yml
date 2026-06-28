@@ -10,7 +10,6 @@ name: Lint stylelint
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  PNPM_AUDIT_SETTINGS: supply-chain=false
 
 on: pull_request
 
