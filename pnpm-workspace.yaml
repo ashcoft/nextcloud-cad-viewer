@@ -1,11 +1,11 @@
 # pnpm v11 configuration
-# In pnpm v11, settings like overrides and onlyBuiltDependencies must be in pnpm-workspace.yaml
+# In pnpm v11, settings like overrides and allowBuilds must be in pnpm-workspace.yaml
 # (the "pnpm" field in package.json is no longer read)
 packages:
   - '.'
 
-# Dependencies that require building from source
-onlyBuiltDependencies:
+# Dependencies that require running build scripts (native bindings)
+allowBuilds:
   - unrs-resolver
 
 # Disable supply-chain policy check for CI
