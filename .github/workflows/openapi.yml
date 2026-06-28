@@ -139,16 +139,7 @@ jobs:
           git config --local user.email 'nextcloud-command@users.noreply.github.com'
           git config --local user.name 'nextcloud-command'
           
-          GIT_PATH='${{ inputs.path }}' || '/'
-          git add "${GITHUB_WORKSPACE}${GIT_PATH}"
-          
-          if echo '${{ inputs.command }}' | grep -q 'fixup'; then
-            git commit --fixup=HEAD --signoff
-          elif echo '${{ inputs.command }}' | grep -q 'amend'; then
-            git commit --amend --no-edit --signoff
-          else
-            git commit --signoff -m 'fix(openapi): Regenerate OpenAPI assets'
-          fi
+          git add ".${{ inputs.path }}"
 
       - name: Push changes if triggered by command
         if: steps.check-changes.outputs.changed == 'true' && inputs.command != ''
