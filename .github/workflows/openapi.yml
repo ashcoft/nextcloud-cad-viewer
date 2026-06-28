@@ -150,7 +150,7 @@ jobs:
         run: |
           # Configure push URL with token
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          git push origin "$HEAD_REF" || echo "Push may fail for PRs without write access"
+          git push origin "$HEAD_REF"
 
       - name: Check openapi*.json and typescript changes
         if: inputs.command == ''
