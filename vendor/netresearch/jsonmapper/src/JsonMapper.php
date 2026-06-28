@@ -1,24 +1,11 @@
 <?php
 /**
- * Part of JsonMapper
- *
- * PHP version 5
- *
- * @category Netresearch
- * @package  JsonMapper
- * @author   Christian Weiske <cweiske@cweiske.de>
- * @license  OSL-3.0 http://opensource.org/licenses/osl-3.0
- * @link     http://cweiske.de/
- */
-
-/**
  * Automatically map JSON structures into objects.
  *
- * @category Netresearch
- * @package  JsonMapper
- * @author   Christian Weiske <cweiske@cweiske.de>
- * @license  OSL-3.0 http://opensource.org/licenses/osl-3.0
- * @link     http://cweiske.de/
+ * @package JsonMapper
+ * @author  Christian Weiske <cweiske@cweiske.de>
+ * @license OSL-3.0 http://opensource.org/licenses/osl-3.0
+ * @link    http://cweiske.de/
  */
 class JsonMapper
 {
@@ -64,15 +51,23 @@ class JsonMapper
      *
      * @var boolean
      */
-    public $bStrictObjectTypeChecking = false;
+    public $bStrictObjectTypeChecking = true;
 
     /**
      * Throw an exception, if null value is found
      * but the type of attribute does not allow nulls.
      *
-     * @var bool
+     * @var boolean
      */
     public $bStrictNullTypes = true;
+
+    /**
+     * Throw an exception if null value is found in an array
+     * but the type of attribute does not allow nulls.
+     *
+     * @var boolean
+     */
+    public $bStrictNullTypesInArrays = true;
 
     /**
      * Allow mapping of private and protected properties.
@@ -277,7 +272,8 @@ class JsonMapper
                     'Empty type at property "'
                     . $strClassName . '::$' . $key . '"'
                 );
-            } else if (strpos($type, '|')) {
+
+            } else if (strpos(str_replace('|null', '', $type), '|')) {
                 throw new JsonMapper_Exception(
                     'Cannot decide which of the union types shall be used: '
                     . $type
@@ -301,7 +297,9 @@ class JsonMapper
                 $array = array();
                 $subtype = $type;
             } else {
-                if (is_a($type, 'ArrayAccess', true)) {
+                if (is_a($type, 'ArrayAccess', true)
+                    && is_a($type, 'Traversable', true)
+                ) {
                     $array = $this->createInstance($type, false, $jvalue);
                 }
             }
@@ -314,9 +312,14 @@ class JsonMapper
                     );
                 }
 
+                $subtypeNullable = $this->isNullable($subtype);
                 $cleanSubtype = $this->removeNullable($subtype);
                 $subtype = $this->getFullNamespace($cleanSubtype, $strNs);
+                if ($subtypeNullable) {
+                    $subtype = '?' . $subtype;
+                }
                 $child = $this->mapArray($jvalue, $array, $subtype, $key);
+
             } else if ($this->isFlatType(gettype($jvalue))) {
                 //use constructor parameter if we have a class
                 // but only a flat type (i.e. string, int)
@@ -348,7 +351,9 @@ class JsonMapper
             $refDeserializePostMethod = $rc->getMethod(
                 $this->postMappingMethod
             );
-            $refDeserializePostMethod->setAccessible(true);
+            if (\PHP_VERSION_ID < 80100) {
+                $refDeserializePostMethod->setAccessible(true);
+            }
             $refDeserializePostMethod->invoke(
                 $object, ...$this->postMappingMethodArguments
             );
@@ -445,8 +450,19 @@ class JsonMapper
      */
     public function mapArray($json, $array, $class = null, $parent_key = '')
     {
+        $isNullable = $this->isNullable($class);
+        $class = $this->removeNullable($class);
         $originalClass = $class;
+
         foreach ($json as $key => $jvalue) {
+            if ($jvalue === null && !$isNullable && $this->bStrictNullTypesInArrays) {
+                throw new JsonMapper_Exception(
+                    'JSON property'
+                    . ' "' . ($parent_key ? $parent_key : '?') . '[' . $key . ']"'
+                    . ' must not be NULL'
+                );
+            }
+
             $class = $this->getMappedType($originalClass, $jvalue);
             if ($class === null) {
                 $array[$key] = $jvalue;
@@ -465,6 +481,12 @@ class JsonMapper
                     if ($this->isSimpleType($class)) {
                         settype($jvalue, $class);
                         $array[$key] = $jvalue;
+                    } else if ($this->bStrictObjectTypeChecking) {
+                        throw new JsonMapper_Exception(
+                            'JSON property'
+                            . ' "' . ($parent_key ? $parent_key : '?') . '[' . $key . ']"'
+                            . ' must be an object, ' . gettype($jvalue) . ' given'
+                        );
                     } else {
                         $array[$key] = $this->createInstance(
                             $class, true, $jvalue
@@ -674,7 +696,9 @@ class JsonMapper
         $object, $accessor, $value
     ) {
         if (!$accessor->isPublic() && $this->bIgnoreVisibility) {
-            $accessor->setAccessible(true);
+            if (\PHP_VERSION_ID < 80100) {
+                $accessor->setAccessible(true);
+            }
         }
         if ($accessor instanceof ReflectionProperty) {
             $accessor->setValue($object, $value);
@@ -734,7 +758,7 @@ class JsonMapper
      */
     protected function getMappedType($type, $jvalue = null)
     {
-        if (isset($this->classMap[$type])) {
+        if (isset($this->classMap[$type ?? ''])) {
             $target = $this->classMap[$type];
         } else if (is_string($type) && $type !== '' && $type[0] == '\\'
             && isset($this->classMap[substr($type, 1)])
