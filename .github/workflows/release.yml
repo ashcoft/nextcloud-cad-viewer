@@ -6,6 +6,8 @@ name: Release
 on:
   push:
     branches: [main]
+    paths:
+      - '.changeset/**'
 
 concurrency:
   group: release-${{ github.ref }}
@@ -22,9 +24,9 @@ env:
 
 jobs:
   release:
-    name: Create Release PR
+    name: Create Release
     runs-on: ubuntu-latest
-    if: github.repository == 'ashcoft/nextcloud-cad-viewer'
+    if: github.repository_owner == 'ashcoft'
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -64,35 +66,20 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=v$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Create changeset PR
+      - name: Version bump with Changesets
         id: changeset
-        uses: changesets/action@v1.9.0
-        with:
-          version: pnpm changeset version
-          commit: 'chore: version bump'
-          title: 'chore: version bump'
-          createGithubReleases: true
-          publish: echo "Skipping npm publish"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update lockfile after version bump
-        if: github.event.head_commit.message == 'chore: version bump'
-        run: pnpm install --frozen-lockfile
+        run: |
+          pnpm changeset version
 
       - name: Sync version to info.xml
-        if: github.event.head_commit.message == 'chore: version bump'
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          sed -i "s/<version>[0-9.]*<\/version>/<version>${VERSION}<\/version>/" appinfo/info.xml
-          git add appinfo/info.xml pnpm-lock.yaml
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git commit -m "chore: sync version to info.xml and update lockfile"
-          git push
+          sed -i "s|<version>[0-9.]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
+
+      - name: Install dependencies after version bump
+        run: pnpm install --frozen-lockfile
 
       - name: Build Nextcloud App
-        if: github.event.head_commit.message == 'chore: version bump'
         env:
           CYPRESS_INSTALL_BINARY: 0
         run: |
@@ -100,21 +87,52 @@ jobs:
           make production-setup
           make appstore
 
-      - name: Upload release assets
-        if: github.event.head_commit.message == 'chore: version bump'
+      - name: Create Release on GitHub
+        id: create_release
         run: |
           VERSION=$(node -p "require('./package.json').version")
           
+          # Get changelog for this release
+          CHANGELOG=$(pnpm changeset status --verbose 2>/dev/null | tail -n +4 | head -n -1 || echo "Release v${VERSION}")
+          
+          # Create release with tag
+          gh release create "v${VERSION}" \
+            --title "Release v${VERSION}" \
+            --notes "$CHANGELOG" \
+            --draft false \
+            --latest true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release assets
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          APP_NAME="cad_viewer"
+          
           # Upload tar.gz
-          TARBALL=$(find build/artifacts -name "*.tar.gz" ! -name "*-source.tar.gz" | head -1)
-          if [ -n "$TARBALL" ]; then
-            gh release upload "v${VERSION}" "$TARBALL" --repo "${{ github.repository }}"
+          TARBALL="build/artifacts/${APP_NAME}.tar.gz"
+          if [ -f "$TARBALL" ]; then
+            gh release upload "v${VERSION}" "$TARBALL" --clobber
           fi
           
           # Upload zip
-          ZIPFILE=$(find build/artifacts -name "*.zip" ! -name "*-source.zip" | head -1)
-          if [ -n "$ZIPFILE" ]; then
-            gh release upload "v${VERSION}" "$ZIPFILE" --repo "${{ github.repository }}"
+          ZIPFILE="build/artifacts/${APP_NAME}.zip"
+          if [ -f "$ZIPFILE" ]; then
+            gh release upload "v${VERSION}" "$ZIPFILE" --clobber
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push version bump
+        run: |
+          git add -A
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            git commit -m "chore: version bump"
+            git push
+          fi
