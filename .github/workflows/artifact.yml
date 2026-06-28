@@ -38,6 +38,7 @@ concurrency:
 
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
+  PNPM_AUDIT_SETTINGS: supply-chain=false
   APP_NAME: cad_viewer
 
 jobs:

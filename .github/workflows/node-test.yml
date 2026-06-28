@@ -86,6 +86,7 @@ jobs:
       - name: Install dependencies & build
         env:
           CYPRESS_INSTALL_BINARY: 0
+          PNPM_AUDIT_SETTINGS: supply-chain=false
         run: |
           pnpm install --frozen-lockfile
           pnpm run --if-present build
