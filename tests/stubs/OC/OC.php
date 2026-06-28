@@ -93,7 +93,7 @@ namespace OCP\AppFramework\Http\Events {
          */
         public function getResponse(): object
         {
-            return $this->response ?? new class {
+            return $this->response ?? new class () {
                 public function getApp(): string
                 {
                     return '';
