@@ -3,15 +3,19 @@ name: Generate composer.lock
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@v7
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@9b3a5bbd9ed3de3b76268f6a5c5a0f3aa8eea6d6 # v2.37.0
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib
@@ -20,7 +24,7 @@ jobs:
         run: composer update --no-interaction --ignore-platform-reqs
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@6a5ead5dee2f3fd20c60bed9c47a0777b1aad2a3 # v7.0.0
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: 'chore: regenerate composer.lock'

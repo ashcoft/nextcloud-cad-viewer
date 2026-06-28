@@ -49,7 +49,7 @@ final class ObjectHasProperty extends Constraint
             return false;
         }
 
-        return (new ReflectionObject($other))->hasProperty($this->propertyName);
+        return new ReflectionObject($other)->hasProperty($this->propertyName);
     }
 
     /**
@@ -66,7 +66,7 @@ final class ObjectHasProperty extends Constraint
             return sprintf(
                 'object of class "%s" %s',
                 $other::class,
-                $this->toString(true),
+                $this->toString(),
             );
         }
 
@@ -74,7 +74,7 @@ final class ObjectHasProperty extends Constraint
             '"%s" (%s) %s',
             $other,
             gettype($other),
-            $this->toString(true),
+            $this->toString(),
         );
     }
 }

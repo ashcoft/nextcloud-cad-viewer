@@ -11,9 +11,11 @@ namespace SebastianBergmann\Diff;
 
 use function array_reverse;
 use function count;
-use function max;
 use SplFixedArray;
 
+/**
+ * @deprecated https://github.com/sebastianbergmann/diff/pull/138
+ */
 final class TimeEfficientLongestCommonSubsequenceCalculator implements LongestCommonSubsequenceCalculator
 {
     /**

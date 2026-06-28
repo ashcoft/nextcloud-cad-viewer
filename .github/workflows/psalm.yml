@@ -67,14 +67,14 @@ jobs:
       - name: Check enforcement of minimum PHP version 8.4 in psalm.xml
         run: grep 'phpVersion="8.4' psalm.xml
 
-      - name: Set up php${{ steps.versions.outputs.php-available }}
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+      - name: Set up php 8.4
+        uses: shivammathur/setup-php@v2 # v2.37.2
         with:
-          php-version: ${{ steps.versions.outputs.php-available }}
+          php-version: '8.4'
           extensions: bz2, ctype, curl, dom, fileinfo, gd, iconv, intl, json, libxml, mbstring, openssl, pcntl, posix, session, simplexml, xmlreader, xmlwriter, zip, zlib, sqlite, pdo_sqlite
           coverage: none
           ini-file: development
-          # Temporary workaround for missing pcntl_* in PHP 8.3
+          # Temporary workaround for missing pcntl_* functions
           ini-values: disable_functions=
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

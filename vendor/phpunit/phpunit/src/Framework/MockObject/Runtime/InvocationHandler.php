@@ -9,10 +9,16 @@
  */
 namespace PHPUnit\Framework\MockObject;
 
+use function array_any;
+use function array_unique;
+use function array_values;
+use function in_array;
 use function strtolower;
 use Exception;
-use PHPUnit\Framework\MockObject\Builder\InvocationMocker;
+use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\MockObject\Rule\InvocationOrder;
+use PHPUnit\Framework\MockObject\Rule\InvokedCount;
+use PHPUnit\Framework\MockObject\Rule\MethodName;
 use Throwable;
 
 /**
@@ -23,43 +29,66 @@ use Throwable;
 final class InvocationHandler
 {
     /**
-     * @psalm-var list<Matcher>
+     * @var list<Matcher>
      */
     private array $matchers = [];
 
     /**
-     * @psalm-var array<string,Matcher>
+     * @var array<non-empty-string, Matcher>
      */
     private array $matcherMap = [];
 
     /**
-     * @psalm-var list<ConfigurableMethod>
+     * @var list<ConfigurableMethod>
      */
     private readonly array $configurableMethods;
-    private readonly bool $returnValueGeneration;
 
     /**
-     * @psalm-param list<ConfigurableMethod> $configurableMethods
+     * @var class-string
      */
-    public function __construct(array $configurableMethods, bool $returnValueGeneration)
+    private readonly string $className;
+    private readonly bool $returnValueGeneration;
+    private readonly bool $isMockObject;
+    private bool $sealed                            = false;
+    private ?AssertionFailedError $assertionFailure = null;
+
+    /**
+     * @param list<ConfigurableMethod> $configurableMethods
+     * @param class-string             $className
+     */
+    public function __construct(array $configurableMethods, string $className, bool $returnValueGeneration, bool $isMockObject = false)
     {
         $this->configurableMethods   = $configurableMethods;
+        $this->className             = $className;
         $this->returnValueGeneration = $returnValueGeneration;
+        $this->isMockObject          = $isMockObject;
     }
 
-    public function hasMatchers(): bool
+    public function isMockObject(): bool
     {
-        foreach ($this->matchers as $matcher) {
-            if ($matcher->hasMatchers()) {
-                return true;
-            }
-        }
+        return $this->isMockObject;
+    }
 
-        return false;
+    public function hasInvocationCountRule(): bool
+    {
+        return array_any(
+            $this->matchers,
+            static fn (Matcher $matcher) => $matcher->hasInvocationCountRule(),
+        );
+    }
+
+    public function hasParametersRule(): bool
+    {
+        return array_any(
+            $this->matchers,
+            static fn (Matcher $matcher) => $matcher->hasParametersRule(),
+        );
     }
 
     /**
      * Looks up the match builder with identification $id and returns it.
+     *
+     * @param non-empty-string $id
      */
     public function lookupMatcher(string $id): ?Matcher
     {
@@ -69,6 +98,8 @@ final class InvocationHandler
     /**
      * Registers a matcher with the identification $id. The matcher can later be
      * looked up using lookupMatcher() to figure out if it has been invoked.
+     *
+     * @param non-empty-string $id
      *
      * @throws MatcherAlreadyRegisteredException
      */
@@ -81,12 +112,27 @@ final class InvocationHandler
         $this->matcherMap[$id] = $matcher;
     }
 
-    public function expects(InvocationOrder $rule): InvocationMocker
+    /**
+     * @throws TestDoubleSealedException
+     */
+    public function expects(InvocationOrder $rule): InvocationMocker|InvocationStubber
     {
-        $matcher = new Matcher($rule);
+        if ($this->sealed) {
+            throw new TestDoubleSealedException;
+        }
+
+        $matcher = new Matcher($rule, $this->className);
         $this->addMatcher($matcher);
 
-        return new InvocationMocker(
+        if ($this->isMockObject) {
+            return new InvocationMockerImplementation(
+                $this,
+                $matcher,
+                ...$this->configurableMethods,
+            );
+        }
+
+        return new InvocationStubberImplementation(
             $this,
             $matcher,
             ...$this->configurableMethods,
@@ -115,6 +161,10 @@ final class InvocationHandler
                 }
             } catch (Exception $e) {
                 $exception = $e;
+
+                if ($this->assertionFailure === null && $e instanceof AssertionFailedError) {
+                    $this->assertionFailure = $e;
+                }
             }
         }
 
@@ -145,10 +195,70 @@ final class InvocationHandler
         foreach ($this->matchers as $matcher) {
             $matcher->verify();
         }
+
+        if ($this->assertionFailure !== null) {
+            throw $this->assertionFailure;
+        }
+    }
+
+    public function seal(bool $isMockObject): void
+    {
+        if ($this->sealed) {
+            return;
+        }
+
+        $this->sealed = true;
+
+        if (!$isMockObject) {
+            return;
+        }
+
+        $configuredMethods = $this->configuredMethodNames();
+
+        foreach ($this->configurableMethods as $method) {
+            if (!in_array($method->name(), $configuredMethods, true)) {
+                $matcher = new Matcher(new InvokedCount(0), $this->className);
+
+                $matcher->setMethodNameRule(new MethodName($method->name()));
+
+                $this->addMatcher($matcher);
+            }
+        }
+    }
+
+    public function isSealed(): bool
+    {
+        return $this->sealed;
     }
 
     private function addMatcher(Matcher $matcher): void
     {
         $this->matchers[] = $matcher;
+    }
+
+    /**
+     * Returns the list of method names that have been configured with expectations.
+     * Only considers exact string matches for method names.
+     * Methods with any() expectation are considered configured.
+     *
+     * @return list<non-empty-string>
+     */
+    private function configuredMethodNames(): array
+    {
+        $names = [];
+
+        foreach ($this->matchers as $matcher) {
+            if (!$matcher->hasMethodNameRule()) {
+                continue;
+            }
+
+            foreach ($this->configurableMethods as $method) {
+                if ($matcher->methodNameRule()->matchesName($method->name())) {
+                    $names[] = $method->name();
+                }
+            }
+        }
+
+        return array_values(array_unique($names));
     }
 }

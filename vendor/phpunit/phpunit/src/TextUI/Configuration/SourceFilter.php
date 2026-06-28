@@ -19,7 +19,7 @@ final class SourceFilter
     private static ?self $instance = null;
 
     /**
-     * @psalm-var array<non-empty-string, true>
+     * @var array<non-empty-string, true>
      */
     private readonly array $map;
 
@@ -37,13 +37,16 @@ final class SourceFilter
     }
 
     /**
-     * @psalm-param array<non-empty-string, true> $map
+     * @param array<non-empty-string, true> $map
      */
     public function __construct(array $map)
     {
         $this->map = $map;
     }
 
+    /**
+     * @param non-empty-string $path
+     */
     public function includes(string $path): bool
     {
         return isset($this->map[$path]);

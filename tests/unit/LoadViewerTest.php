@@ -78,6 +78,16 @@ class LoadViewerTest extends TestCase
             {
                 return $this->app;
             }
+
+            public function getRenderAs(): string
+            {
+                return 'user';
+            }
+
+            public function getTemplateName(): string
+            {
+                return 'main';
+            }
         };
 
         $event = new BeforeTemplateRenderedEvent(); // $login defaults to false ✓

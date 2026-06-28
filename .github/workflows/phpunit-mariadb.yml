@@ -24,7 +24,7 @@ jobs:
   matrix:
     runs-on: ubuntu-latest
     outputs:
-      php-version: ${{ steps.versions.outputs.php-available-list }}
+      php-version: ${{ steps.filter-php.outputs.php-version }}
       server-max: ${{ steps.versions.outputs.branches-max-list }}
     steps:
       - name: Checkout app
@@ -35,6 +35,20 @@ jobs:
       - name: Get version matrix
         id: versions
         uses: icewind1991/nextcloud-version-matrix@8a7bac6300b2f0f3100088b297995a229558ddba # v1.3.2
+
+      - name: Filter PHP versions to minimum 8.4
+        id: filter-php
+        run: |
+          php_versions='${{ steps.versions.outputs.php-available-list }}'
+          # Convert to array and filter to >= 8.4
+          filtered=$(echo "$php_versions" | tr ',' '\n' | awk -F. '$1*100+$2 >= 804' | paste -sd, -)
+          # Output as JSON array for matrix parsing
+          if [ -z "$filtered" ]; then
+            echo "php-version=[\"8.4\"]" >> $GITHUB_OUTPUT
+          else
+            echo "php-version=[\"$filtered\"]" >> $GITHUB_OUTPUT
+          fi
+          echo "Filtered PHP versions from $php_versions to $filtered"
 
   changes:
     runs-on: ubuntu-latest
@@ -110,7 +124,7 @@ jobs:
           path: apps/${{ env.APP_NAME }}
 
       - name: Set up php ${{ matrix.php-versions }}
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        uses: shivammathur/setup-php@v2 # 2.37.2
         with:
           php-version: ${{ matrix.php-versions }}
           # https://docs.nextcloud.com/server/stable/admin_manual/installation/source_installation.html#prerequisites-for-manual-installation

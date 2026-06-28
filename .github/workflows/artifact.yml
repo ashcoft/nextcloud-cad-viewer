@@ -57,10 +57,10 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
-      - name: Set up PHP 8.3
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2 # v2.37.2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
 
       - name: Update version files
@@ -81,7 +81,7 @@ jobs:
           make appstore
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ${{ env.APP_NAME }}-${{ github.run_number }}
           path: build/artifacts/
