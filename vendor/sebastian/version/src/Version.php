@@ -9,6 +9,8 @@
  */
 namespace SebastianBergmann;
 
+use const DIRECTORY_SEPARATOR;
+use function assert;
 use function end;
 use function explode;
 use function fclose;
@@ -20,20 +22,36 @@ use function stream_get_contents;
 use function substr_count;
 use function trim;
 
-final class Version
+final readonly class Version
 {
-    private readonly string $version;
+    /**
+     * @var non-empty-string
+     */
+    private string $version;
 
+    /**
+     * @param non-empty-string $release
+     * @param non-empty-string $path
+     */
     public function __construct(string $release, string $path)
     {
         $this->version = $this->generate($release, $path);
     }
 
+    /**
+     * @return non-empty-string
+     */
     public function asString(): string
     {
         return $this->version;
     }
 
+    /**
+     * @param non-empty-string $release
+     * @param non-empty-string $path
+     *
+     * @return non-empty-string
+     */
     private function generate(string $release, string $path): string
     {
         if (substr_count($release, '.') + 1 === 3) {
@@ -44,7 +62,7 @@ final class Version
 
         $git = $this->getGitInformation($path);
 
-        if (!$git) {
+        if ($git === false) {
             return $version;
         }
 
@@ -57,27 +75,35 @@ final class Version
         return $release . '-' . end($git);
     }
 
-    private function getGitInformation(string $path): bool|string
+    /**
+     * @param non-empty-string $path
+     *
+     * @return false|non-empty-string
+     */
+    private function getGitInformation(string $path): false|string
     {
         if (!is_dir($path . DIRECTORY_SEPARATOR . '.git')) {
             return false;
         }
 
-        $process = proc_open(
-            'git describe --tags',
+        $process = @proc_open(
+            ['git', 'describe', '--tags'],
             [
                 1 => ['pipe', 'w'],
                 2 => ['pipe', 'w'],
             ],
             $pipes,
-            $path
+            $path,
         );
 
         if (!is_resource($process)) {
             return false;
         }
 
-        $result = trim(stream_get_contents($pipes[1]));
+        assert(isset($pipes[1]) && is_resource($pipes[1]));
+        assert(isset($pipes[2]) && is_resource($pipes[2]));
+
+        $result = trim((string) stream_get_contents($pipes[1]));
 
         fclose($pipes[1]);
         fclose($pipes[2]);
@@ -87,6 +113,8 @@ final class Version
         if ($returnCode !== 0) {
             return false;
         }
+
+        assert($result !== '');
 
         return $result;
     }

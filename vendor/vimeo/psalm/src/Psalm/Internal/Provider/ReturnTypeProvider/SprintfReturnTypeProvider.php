@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Psalm\Internal\Provider\ReturnTypeProvider;
 
 use ArgumentCountError;
+use Override;
 use Psalm\Issue\InvalidArgument;
 use Psalm\Issue\RedundantFunctionCall;
 use Psalm\Issue\TooFewArguments;
@@ -15,6 +18,7 @@ use Psalm\Type\Atomic\TClassString;
 use Psalm\Type\Atomic\TFloat;
 use Psalm\Type\Atomic\TInt;
 use Psalm\Type\Atomic\TLiteralString;
+use Psalm\Type\Atomic\TNonEmptyNonspecificLiteralString;
 use Psalm\Type\Atomic\TNonEmptyString;
 use Psalm\Type\Atomic\TNumeric;
 use Psalm\Type\Union;
@@ -36,6 +40,7 @@ final class SprintfReturnTypeProvider implements FunctionReturnTypeProviderInter
     /**
      * @return array<lowercase-string>
      */
+    #[Override]
     public static function getFunctionIds(): array
     {
         return [
@@ -44,6 +49,7 @@ final class SprintfReturnTypeProvider implements FunctionReturnTypeProviderInter
         ];
     }
 
+    #[Override]
     public static function getFunctionReturnType(FunctionReturnTypeProviderEvent $event): ?Union
     {
         $statements_source = $event->getStatementsSource();
@@ -155,17 +161,20 @@ final class SprintfReturnTypeProvider implements FunctionReturnTypeProviderInter
                     return Type::getString('');
                 }
 
-                // these placeholders are too complex to handle for now
-                if (preg_match(
-                    '/%(?:\d+\$)?[-+]?(?:\d+|\*)(?:\.(?:\d+|\*))?[bcdouxXeEfFgGhHs]/',
+                // these placeholders still fall back to a generic return type,
+                // but we validate their format and argument count first
+                $has_complex_placeholder = preg_match(
+                    '/%(?:\d+\$)?[-+]?(?:'
+                    . '(?:\d+|\*(?:\d+\$)?)(?:\.(?:\d+|\*(?:\d+\$)?))?'
+                    . '|\.\*(?:\d+\$)?'
+                    . ')[bcdouxXeEfFgGhHs]/',
                     $type->getSingleStringLiteral()->value,
-                ) === 1) {
-                    return null;
-                }
+                ) === 1;
 
                 // assume a random, high number for tests
                 $provided_placeholders_count = $has_splat_args === true ? 100 : count($call_args) - 1;
-                $dummy = array_fill(0, $provided_placeholders_count, '');
+                // Use integer dummies for * width/precision so PHP validates arity without raising a false ValueError.
+                $dummy = array_fill(0, $provided_placeholders_count, $has_complex_placeholder ? 0 : '');
 
                 // check if we have enough/too many arguments and a valid format
                 $initial_result = null;
@@ -237,7 +246,7 @@ final class SprintfReturnTypeProvider implements FunctionReturnTypeProviderInter
                         );
 
                         break 2;
-                    } catch (ArgumentCountError $error) {
+                    } catch (ArgumentCountError) {
                         // PHP 8
                         if (count($dummy) === $provided_placeholders_count) {
                             IssueBuffer::maybeAdd(
@@ -251,35 +260,6 @@ final class SprintfReturnTypeProvider implements FunctionReturnTypeProviderInter
 
                             break 2;
                         }
-                    }
-
-                    if ($result === false && count($dummy) === $provided_placeholders_count) {
-                        // could be invalid format or too few arguments
-                        // we cannot distinguish this in PHP 7 without additional checks
-                        $max_dummy = array_fill(0, 100, '');
-                        $result = @sprintf($type->getSingleStringLiteral()->value, ...$max_dummy);
-                        if ($result === false) {
-                            // the format is invalid
-                            IssueBuffer::maybeAdd(
-                                new InvalidArgument(
-                                    'Argument 1 of ' . $event->getFunctionId() . ' is invalid',
-                                    $event->getCodeLocation(),
-                                    $event->getFunctionId(),
-                                ),
-                                $statements_source->getSuppressedIssues(),
-                            );
-                        } else {
-                            IssueBuffer::maybeAdd(
-                                new TooFewArguments(
-                                    'Too few arguments for ' . $event->getFunctionId(),
-                                    $event->getCodeLocation(),
-                                    $event->getFunctionId(),
-                                ),
-                                $statements_source->getSuppressedIssues(),
-                            );
-                        }
-
-                        return Type::getFalse();
                     }
 
                     // we can only validate the format and arg 1 when using splat
@@ -310,19 +290,23 @@ final class SprintfReturnTypeProvider implements FunctionReturnTypeProviderInter
                     }
                 }
 
+                if ($has_complex_placeholder) {
+                    return null;
+                }
+
                 if ($event->getFunctionId() === 'printf') {
                     // printf only has the format validated above
                     // don't change the return type
                     return null;
                 }
 
-                if ($initial_result !== null && $initial_result !== false && $initial_result !== '') {
+                if ($initial_result !== null && $initial_result !== '') {
                     return Type::getNonEmptyString();
                 }
 
                 // if we didn't have any valid result
                 // the pattern is invalid or not yet supported by the return type provider
-                if ($initial_result === null || $initial_result === false) {
+                if ($initial_result === null) {
                     return null;
                 }
 
@@ -355,6 +339,7 @@ final class SprintfReturnTypeProvider implements FunctionReturnTypeProviderInter
 
             foreach ($atomic_types as $atomic_type) {
                 if ($atomic_type instanceof TNonEmptyString
+                    || $atomic_type instanceof TNonEmptyNonspecificLiteralString
                     || $atomic_type instanceof TClassString
                     || ($atomic_type instanceof TLiteralString && $atomic_type->value !== '')
                     || $atomic_type instanceof TInt

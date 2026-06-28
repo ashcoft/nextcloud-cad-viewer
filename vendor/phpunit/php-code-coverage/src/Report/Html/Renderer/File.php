@@ -12,73 +12,6 @@ namespace SebastianBergmann\CodeCoverage\Report\Html;
 use const ENT_COMPAT;
 use const ENT_HTML401;
 use const ENT_SUBSTITUTE;
-use const T_ABSTRACT;
-use const T_ARRAY;
-use const T_AS;
-use const T_BREAK;
-use const T_CALLABLE;
-use const T_CASE;
-use const T_CATCH;
-use const T_CLASS;
-use const T_CLONE;
-use const T_COMMENT;
-use const T_CONST;
-use const T_CONTINUE;
-use const T_DECLARE;
-use const T_DEFAULT;
-use const T_DO;
-use const T_DOC_COMMENT;
-use const T_ECHO;
-use const T_ELSE;
-use const T_ELSEIF;
-use const T_EMPTY;
-use const T_ENDDECLARE;
-use const T_ENDFOR;
-use const T_ENDFOREACH;
-use const T_ENDIF;
-use const T_ENDSWITCH;
-use const T_ENDWHILE;
-use const T_EVAL;
-use const T_EXIT;
-use const T_EXTENDS;
-use const T_FINAL;
-use const T_FINALLY;
-use const T_FOR;
-use const T_FOREACH;
-use const T_FUNCTION;
-use const T_GLOBAL;
-use const T_GOTO;
-use const T_HALT_COMPILER;
-use const T_IF;
-use const T_IMPLEMENTS;
-use const T_INCLUDE;
-use const T_INCLUDE_ONCE;
-use const T_INLINE_HTML;
-use const T_INSTANCEOF;
-use const T_INSTEADOF;
-use const T_INTERFACE;
-use const T_ISSET;
-use const T_LIST;
-use const T_NAMESPACE;
-use const T_NEW;
-use const T_PRINT;
-use const T_PRIVATE;
-use const T_PROTECTED;
-use const T_PUBLIC;
-use const T_REQUIRE;
-use const T_REQUIRE_ONCE;
-use const T_RETURN;
-use const T_STATIC;
-use const T_SWITCH;
-use const T_THROW;
-use const T_TRAIT;
-use const T_TRY;
-use const T_UNSET;
-use const T_USE;
-use const T_VAR;
-use const T_WHILE;
-use const T_YIELD;
-use const T_YIELD_FROM;
 use function array_key_exists;
 use function array_keys;
 use function array_merge;
@@ -86,108 +19,47 @@ use function array_pop;
 use function array_unique;
 use function count;
 use function explode;
-use function file_get_contents;
 use function htmlspecialchars;
-use function is_string;
 use function ksort;
 use function range;
 use function sort;
 use function sprintf;
-use function str_ends_with;
-use function str_replace;
-use function token_get_all;
-use function trim;
+use SebastianBergmann\CodeCoverage\Data\ProcessedBranchCoverageData;
+use SebastianBergmann\CodeCoverage\Data\ProcessedClassType;
+use SebastianBergmann\CodeCoverage\Data\ProcessedFunctionCoverageData;
+use SebastianBergmann\CodeCoverage\Data\ProcessedFunctionType;
+use SebastianBergmann\CodeCoverage\Data\ProcessedMethodType;
+use SebastianBergmann\CodeCoverage\Data\ProcessedPathCoverageData;
+use SebastianBergmann\CodeCoverage\Data\ProcessedTraitType;
 use SebastianBergmann\CodeCoverage\FileCouldNotBeWrittenException;
 use SebastianBergmann\CodeCoverage\Node\File as FileNode;
+use SebastianBergmann\CodeCoverage\Report\Thresholds;
 use SebastianBergmann\CodeCoverage\Util\Percentage;
 use SebastianBergmann\Template\Exception;
 use SebastianBergmann\Template\Template;
 
 /**
  * @internal This class is not covered by the backward compatibility promise for phpunit/php-code-coverage
+ *
+ * @no-named-arguments Parameter names are not covered by the backward compatibility promise for phpunit/php-code-coverage
+ *
+ * @phpstan-import-type TestType from \SebastianBergmann\CodeCoverage\CodeCoverage
  */
 final class File extends Renderer
 {
-    /**
-     * @psalm-var array<int,true>
-     */
-    private const KEYWORD_TOKENS = [
-        T_ABSTRACT      => true,
-        T_ARRAY         => true,
-        T_AS            => true,
-        T_BREAK         => true,
-        T_CALLABLE      => true,
-        T_CASE          => true,
-        T_CATCH         => true,
-        T_CLASS         => true,
-        T_CLONE         => true,
-        T_CONST         => true,
-        T_CONTINUE      => true,
-        T_DECLARE       => true,
-        T_DEFAULT       => true,
-        T_DO            => true,
-        T_ECHO          => true,
-        T_ELSE          => true,
-        T_ELSEIF        => true,
-        T_EMPTY         => true,
-        T_ENDDECLARE    => true,
-        T_ENDFOR        => true,
-        T_ENDFOREACH    => true,
-        T_ENDIF         => true,
-        T_ENDSWITCH     => true,
-        T_ENDWHILE      => true,
-        T_ENUM          => true,
-        T_EVAL          => true,
-        T_EXIT          => true,
-        T_EXTENDS       => true,
-        T_FINAL         => true,
-        T_FINALLY       => true,
-        T_FN            => true,
-        T_FOR           => true,
-        T_FOREACH       => true,
-        T_FUNCTION      => true,
-        T_GLOBAL        => true,
-        T_GOTO          => true,
-        T_HALT_COMPILER => true,
-        T_IF            => true,
-        T_IMPLEMENTS    => true,
-        T_INCLUDE       => true,
-        T_INCLUDE_ONCE  => true,
-        T_INSTANCEOF    => true,
-        T_INSTEADOF     => true,
-        T_INTERFACE     => true,
-        T_ISSET         => true,
-        T_LIST          => true,
-        T_MATCH         => true,
-        T_NAMESPACE     => true,
-        T_NEW           => true,
-        T_PRINT         => true,
-        T_PRIVATE       => true,
-        T_PROTECTED     => true,
-        T_PUBLIC        => true,
-        T_READONLY      => true,
-        T_REQUIRE       => true,
-        T_REQUIRE_ONCE  => true,
-        T_RETURN        => true,
-        T_STATIC        => true,
-        T_SWITCH        => true,
-        T_THROW         => true,
-        T_TRAIT         => true,
-        T_TRY           => true,
-        T_UNSET         => true,
-        T_USE           => true,
-        T_VAR           => true,
-        T_WHILE         => true,
-        T_YIELD         => true,
-        T_YIELD_FROM    => true,
-    ];
-    private static array $formattedSourceCache = [];
-    private int $htmlSpecialCharsFlags         = ENT_COMPAT | ENT_HTML401 | ENT_SUBSTITUTE;
+    private const int HTML_SPECIAL_CHARS_FLAGS = ENT_COMPAT | ENT_HTML401 | ENT_SUBSTITUTE;
+    private readonly SyntaxHighlighter $syntaxHighlighter;
+
+    public function __construct(string $templatePath, string $generator, string $date, Thresholds $thresholds, bool $hasBranchCoverage, bool $hasPathCoverage)
+    {
+        parent::__construct($templatePath, $generator, $date, $thresholds, $hasBranchCoverage, $hasPathCoverage);
+
+        $this->syntaxHighlighter = new SyntaxHighlighter;
+    }
 
     public function render(FileNode $node, string $file): void
     {
-        $templateName = $this->templatePath . ($this->hasBranchCoverage ? 'file_branch.html' : 'file.html');
-        $template     = new Template($templateName, '{{', '}}');
+        $template = new Template($this->templateNameForTier('file'), '{{', '}}');
         $this->setCommonTemplateVariables($template, $node);
 
         $template->setVar(
@@ -228,7 +100,9 @@ final class File extends Renderer
                     $e,
                 );
             }
+        }
 
+        if ($this->hasPathCoverage) {
             $template->setVar(
                 [
                     'items'     => $this->renderItems($node),
@@ -252,12 +126,10 @@ final class File extends Renderer
 
     private function renderItems(FileNode $node): string
     {
-        $templateName = $this->templatePath . ($this->hasBranchCoverage ? 'file_item_branch.html' : 'file_item.html');
-        $template     = new Template($templateName, '{{', '}}');
+        $template = new Template($this->templateNameForTier('file_item'), '{{', '}}');
 
-        $methodTemplateName = $this->templatePath . ($this->hasBranchCoverage ? 'method_item_branch.html' : 'method_item.html');
         $methodItemTemplate = new Template(
-            $methodTemplateName,
+            $this->templateNameForTier('method_item'),
             '{{',
             '}}',
         );
@@ -310,11 +182,14 @@ final class File extends Renderer
         return $items;
     }
 
+    /**
+     * @param array<string, ProcessedClassType|ProcessedTraitType> $items
+     */
     private function renderTraitOrClassItems(array $items, Template $template, Template $methodItemTemplate): string
     {
         $buffer = '';
 
-        if (empty($items)) {
+        if ($items === []) {
             return $buffer;
         }
 
@@ -322,30 +197,30 @@ final class File extends Renderer
             $numMethods       = 0;
             $numTestedMethods = 0;
 
-            foreach ($item['methods'] as $method) {
-                if ($method['executableLines'] > 0) {
+            foreach ($item->methods as $method) {
+                if ($method->executableLines > 0) {
                     $numMethods++;
 
-                    if ($method['executedLines'] === $method['executableLines']) {
+                    if ($method->executedLines === $method->executableLines) {
                         $numTestedMethods++;
                     }
                 }
             }
 
-            if ($item['executableLines'] > 0) {
+            if ($item->executableLines > 0) {
                 $numClasses                   = 1;
                 $numTestedClasses             = $numTestedMethods === $numMethods ? 1 : 0;
                 $linesExecutedPercentAsString = Percentage::fromFractionAndTotal(
-                    $item['executedLines'],
-                    $item['executableLines'],
+                    $item->executedLines,
+                    $item->executableLines,
                 )->asString();
                 $branchesExecutedPercentAsString = Percentage::fromFractionAndTotal(
-                    $item['executedBranches'],
-                    $item['executableBranches'],
+                    $item->executedBranches,
+                    $item->executableBranches,
                 )->asString();
                 $pathsExecutedPercentAsString = Percentage::fromFractionAndTotal(
-                    $item['executedPaths'],
-                    $item['executablePaths'],
+                    $item->executedPaths,
+                    $item->executablePaths,
                 )->asString();
             } else {
                 $numClasses                      = 0;
@@ -374,35 +249,35 @@ final class File extends Renderer
                     'numMethods'           => $numMethods,
                     'numTestedMethods'     => $numTestedMethods,
                     'linesExecutedPercent' => Percentage::fromFractionAndTotal(
-                        $item['executedLines'],
-                        $item['executableLines'],
+                        $item->executedLines,
+                        $item->executableLines,
                     )->asFloat(),
                     'linesExecutedPercentAsString' => $linesExecutedPercentAsString,
-                    'numExecutedLines'             => $item['executedLines'],
-                    'numExecutableLines'           => $item['executableLines'],
+                    'numExecutedLines'             => $item->executedLines,
+                    'numExecutableLines'           => $item->executableLines,
                     'branchesExecutedPercent'      => Percentage::fromFractionAndTotal(
-                        $item['executedBranches'],
-                        $item['executableBranches'],
+                        $item->executedBranches,
+                        $item->executableBranches,
                     )->asFloat(),
                     'branchesExecutedPercentAsString' => $branchesExecutedPercentAsString,
-                    'numExecutedBranches'             => $item['executedBranches'],
-                    'numExecutableBranches'           => $item['executableBranches'],
+                    'numExecutedBranches'             => $item->executedBranches,
+                    'numExecutableBranches'           => $item->executableBranches,
                     'pathsExecutedPercent'            => Percentage::fromFractionAndTotal(
-                        $item['executedPaths'],
-                        $item['executablePaths'],
+                        $item->executedPaths,
+                        $item->executablePaths,
                     )->asFloat(),
                     'pathsExecutedPercentAsString' => $pathsExecutedPercentAsString,
-                    'numExecutedPaths'             => $item['executedPaths'],
-                    'numExecutablePaths'           => $item['executablePaths'],
+                    'numExecutedPaths'             => $item->executedPaths,
+                    'numExecutablePaths'           => $item->executablePaths,
                     'testedMethodsPercent'         => $testedMethodsPercentage->asFloat(),
                     'testedMethodsPercentAsString' => $testedMethodsPercentage->asString(),
                     'testedClassesPercent'         => $testedClassesPercentage->asFloat(),
                     'testedClassesPercentAsString' => $testedClassesPercentage->asString(),
-                    'crap'                         => $item['crap'],
+                    'crap'                         => $item->crap,
                 ],
             );
 
-            foreach ($item['methods'] as $method) {
+            foreach ($item->methods as $method) {
                 $buffer .= $this->renderFunctionOrMethodItem(
                     $methodItemTemplate,
                     $method,
@@ -414,9 +289,12 @@ final class File extends Renderer
         return $buffer;
     }
 
+    /**
+     * @param array<string, ProcessedFunctionType> $functions
+     */
     private function renderFunctionItems(array $functions, Template $template): string
     {
-        if (empty($functions)) {
+        if ($functions === []) {
             return '';
         }
 
@@ -432,32 +310,32 @@ final class File extends Renderer
         return $buffer;
     }
 
-    private function renderFunctionOrMethodItem(Template $template, array $item, string $indent = ''): string
+    private function renderFunctionOrMethodItem(Template $template, ProcessedFunctionType|ProcessedMethodType $item, string $indent = ''): string
     {
         $numMethods       = 0;
         $numTestedMethods = 0;
 
-        if ($item['executableLines'] > 0) {
+        if ($item->executableLines > 0) {
             $numMethods = 1;
 
-            if ($item['executedLines'] === $item['executableLines']) {
+            if ($item->executedLines === $item->executableLines) {
                 $numTestedMethods = 1;
             }
         }
 
         $executedLinesPercentage = Percentage::fromFractionAndTotal(
-            $item['executedLines'],
-            $item['executableLines'],
+            $item->executedLines,
+            $item->executableLines,
         );
 
         $executedBranchesPercentage = Percentage::fromFractionAndTotal(
-            $item['executedBranches'],
-            $item['executableBranches'],
+            $item->executedBranches,
+            $item->executableBranches,
         );
 
         $executedPathsPercentage = Percentage::fromFractionAndTotal(
-            $item['executedPaths'],
-            $item['executablePaths'],
+            $item->executedPaths,
+            $item->executablePaths,
         );
 
         $testedMethodsPercentage = Percentage::fromFractionAndTotal(
@@ -465,35 +343,57 @@ final class File extends Renderer
             1,
         );
 
+        if ($item instanceof ProcessedFunctionType) {
+            $name = $item->functionName;
+        } else {
+            $name = $item->methodName;
+        }
+
         return $this->renderItemTemplate(
             $template,
             [
                 'name' => sprintf(
                     '%s<a href="#%d"><abbr title="%s">%s</abbr></a>',
                     $indent,
-                    $item['startLine'],
-                    htmlspecialchars($item['signature'], $this->htmlSpecialCharsFlags),
-                    $item['functionName'] ?? $item['methodName'],
+                    $item->startLine,
+                    htmlspecialchars($item->signature, self::HTML_SPECIAL_CHARS_FLAGS),
+                    $this->escapeHtml($name),
                 ),
                 'numMethods'                      => $numMethods,
                 'numTestedMethods'                => $numTestedMethods,
                 'linesExecutedPercent'            => $executedLinesPercentage->asFloat(),
                 'linesExecutedPercentAsString'    => $executedLinesPercentage->asString(),
-                'numExecutedLines'                => $item['executedLines'],
-                'numExecutableLines'              => $item['executableLines'],
+                'numExecutedLines'                => $item->executedLines,
+                'numExecutableLines'              => $item->executableLines,
                 'branchesExecutedPercent'         => $executedBranchesPercentage->asFloat(),
                 'branchesExecutedPercentAsString' => $executedBranchesPercentage->asString(),
-                'numExecutedBranches'             => $item['executedBranches'],
-                'numExecutableBranches'           => $item['executableBranches'],
+                'numExecutedBranches'             => $item->executedBranches,
+                'numExecutableBranches'           => $item->executableBranches,
                 'pathsExecutedPercent'            => $executedPathsPercentage->asFloat(),
                 'pathsExecutedPercentAsString'    => $executedPathsPercentage->asString(),
-                'numExecutedPaths'                => $item['executedPaths'],
-                'numExecutablePaths'              => $item['executablePaths'],
+                'numExecutedPaths'                => $item->executedPaths,
+                'numExecutablePaths'              => $item->executablePaths,
                 'testedMethodsPercent'            => $testedMethodsPercentage->asFloat(),
                 'testedMethodsPercentAsString'    => $testedMethodsPercentage->asString(),
-                'crap'                            => $item['crap'],
+                'crap'                            => $item->crap,
             ],
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function highlightedSourceFor(FileNode $node): array
+    {
+        $path = $node->pathAsString();
+
+        if ($path === '') {
+            // @codeCoverageIgnoreStart
+            return [];
+            // @codeCoverageIgnoreEnd
+        }
+
+        return $this->syntaxHighlighter->highlight($path);
     }
 
     private function renderSourceWithLineCoverage(FileNode $node): string
@@ -503,7 +403,7 @@ final class File extends Renderer
 
         $coverageData = $node->lineCoverageData();
         $testData     = $node->testData();
-        $codeLines    = $this->loadFile($node->pathAsString());
+        $codeLines    = $this->highlightedSourceFor($node);
         $lines        = '';
         $i            = 1;
 
@@ -513,7 +413,7 @@ final class File extends Renderer
             $popoverTitle   = '';
 
             if (array_key_exists($i, $coverageData)) {
-                $numTests = ($coverageData[$i] ? count($coverageData[$i]) : 0);
+                $numTests = ($coverageData[$i] !== null ? count($coverageData[$i]) : 0);
 
                 if ($coverageData[$i] === null) {
                     $trClass = 'warning';
@@ -530,6 +430,12 @@ final class File extends Renderer
                     $popoverContent = '<ul>';
 
                     foreach ($coverageData[$i] as $test) {
+                        if (!isset($testData[$test])) {
+                            // @codeCoverageIgnoreStart
+                            continue;
+                            // @codeCoverageIgnoreEnd
+                        }
+
                         if ($lineCss === 'covered-by-large-tests' && $testData[$test]['size'] === 'medium') {
                             $lineCss = 'covered-by-medium-tests';
                         } elseif ($testData[$test]['size'] === 'small') {
@@ -546,11 +452,11 @@ final class File extends Renderer
 
             $popover = '';
 
-            if (!empty($popoverTitle)) {
+            if ($popoverTitle !== '') {
                 $popover = sprintf(
-                    ' data-title="%s" data-content="%s" data-placement="top" data-html="true"',
+                    ' data-bs-title="%s" data-bs-content="%s" data-bs-placement="top" data-bs-html="true"',
                     $popoverTitle,
-                    htmlspecialchars($popoverContent, $this->htmlSpecialCharsFlags),
+                    htmlspecialchars($popoverContent, self::HTML_SPECIAL_CHARS_FLAGS),
                 );
             }
 
@@ -571,11 +477,10 @@ final class File extends Renderer
 
         $functionCoverageData = $node->functionCoverageData();
         $testData             = $node->testData();
-        $codeLines            = $this->loadFile($node->pathAsString());
+        $codeLines            = $this->highlightedSourceFor($node);
 
         $lineData = [];
 
-        /** @var int $line */
         foreach (array_keys($codeLines) as $line) {
             $lineData[$line + 1] = [
                 'includedInBranches'    => 0,
@@ -584,50 +489,64 @@ final class File extends Renderer
             ];
         }
 
+        /** @var ProcessedFunctionCoverageData $method */
         foreach ($functionCoverageData as $method) {
-            foreach ($method['branches'] as $branch) {
-                foreach (range($branch['line_start'], $branch['line_end']) as $line) {
+            /** @var ProcessedBranchCoverageData $branch */
+            foreach ($method->branches as $branch) {
+                foreach (range($branch->line_start, $branch->line_end) as $line) {
                     if (!isset($lineData[$line])) { // blank line at end of file is sometimes included here
                         continue;
                     }
 
                     $lineData[$line]['includedInBranches']++;
 
-                    if ($branch['hit']) {
+                    if ($branch->hit !== []) {
                         $lineData[$line]['includedInHitBranches']++;
-                        $lineData[$line]['tests'] = array_unique(array_merge($lineData[$line]['tests'], $branch['hit']));
+                        $lineData[$line]['tests'] = array_unique(array_merge($lineData[$line]['tests'], $branch->hit));
                     }
                 }
             }
         }
 
         $lines = '';
-        $i     = 1;
 
         /** @var string $line */
-        foreach ($codeLines as $line) {
+        foreach ($codeLines as $index => $line) {
+            $i       = $index + 1;
             $trClass = '';
             $popover = '';
 
-            if ($lineData[$i]['includedInBranches'] > 0) {
+            $currentLineData = $lineData[$i] ?? [
+                'includedInBranches'    => 0,
+                'includedInHitBranches' => 0,
+                'tests'                 => [],
+            ];
+
+            if ($currentLineData['includedInBranches'] > 0) {
                 $lineCss = 'success';
 
-                if ($lineData[$i]['includedInHitBranches'] === 0) {
+                if ($currentLineData['includedInHitBranches'] === 0) {
                     $lineCss = 'danger';
-                } elseif ($lineData[$i]['includedInHitBranches'] !== $lineData[$i]['includedInBranches']) {
+                } elseif ($currentLineData['includedInHitBranches'] !== $currentLineData['includedInBranches']) {
                     $lineCss = 'warning';
                 }
 
                 $popoverContent = '<ul>';
 
-                if (count($lineData[$i]['tests']) === 1) {
+                if (count($currentLineData['tests']) === 1) {
                     $popoverTitle = '1 test covers line ' . $i;
                 } else {
-                    $popoverTitle = count($lineData[$i]['tests']) . ' tests cover line ' . $i;
+                    $popoverTitle = count($currentLineData['tests']) . ' tests cover line ' . $i;
                 }
-                $popoverTitle .= '. These are covering ' . $lineData[$i]['includedInHitBranches'] . ' out of the ' . $lineData[$i]['includedInBranches'] . ' code branches.';
+                $popoverTitle .= '. These are covering ' . $currentLineData['includedInHitBranches'] . ' out of the ' . $currentLineData['includedInBranches'] . ' code branches.';
 
-                foreach ($lineData[$i]['tests'] as $test) {
+                foreach ($currentLineData['tests'] as $test) {
+                    if (!isset($testData[$test])) {
+                        // @codeCoverageIgnoreStart
+                        continue;
+                        // @codeCoverageIgnoreEnd
+                    }
+
                     $popoverContent .= $this->createPopoverContentForTest($test, $testData[$test]);
                 }
 
@@ -635,15 +554,13 @@ final class File extends Renderer
                 $trClass = $lineCss . ' popin';
 
                 $popover = sprintf(
-                    ' data-title="%s" data-content="%s" data-placement="top" data-html="true"',
+                    ' data-bs-title="%s" data-bs-content="%s" data-bs-placement="top" data-bs-html="true"',
                     $popoverTitle,
-                    htmlspecialchars($popoverContent, $this->htmlSpecialCharsFlags),
+                    htmlspecialchars($popoverContent, self::HTML_SPECIAL_CHARS_FLAGS),
                 );
             }
 
             $lines .= $this->renderLine($singleLineTemplate, $i, $line, $trClass, $popover);
-
-            $i++;
         }
 
         $linesTemplate->setVar(['lines' => $lines]);
@@ -658,11 +575,10 @@ final class File extends Renderer
 
         $functionCoverageData = $node->functionCoverageData();
         $testData             = $node->testData();
-        $codeLines            = $this->loadFile($node->pathAsString());
+        $codeLines            = $this->highlightedSourceFor($node);
 
         $lineData = [];
 
-        /** @var int $line */
         foreach (array_keys($codeLines) as $line) {
             $lineData[$line + 1] = [
                 'includedInPaths'    => [],
@@ -671,18 +587,26 @@ final class File extends Renderer
             ];
         }
 
+        /** @var ProcessedFunctionCoverageData $method */
         foreach ($functionCoverageData as $method) {
-            foreach ($method['paths'] as $pathId => $path) {
-                foreach ($path['path'] as $branchTaken) {
-                    foreach (range($method['branches'][$branchTaken]['line_start'], $method['branches'][$branchTaken]['line_end']) as $line) {
+            /** @var ProcessedPathCoverageData $path */
+            foreach ($method->paths as $pathId => $path) {
+                foreach ($path->path as $branchTaken) {
+                    if (!isset($method->branches[$branchTaken])) {
+                        // @codeCoverageIgnoreStart
+                        continue;
+                        // @codeCoverageIgnoreEnd
+                    }
+
+                    foreach (range($method->branches[$branchTaken]->line_start, $method->branches[$branchTaken]->line_end) as $line) {
                         if (!isset($lineData[$line])) {
                             continue;
                         }
                         $lineData[$line]['includedInPaths'][] = $pathId;
 
-                        if ($path['hit']) {
+                        if ($path->hit !== []) {
                             $lineData[$line]['includedInHitPaths'][] = $pathId;
-                            $lineData[$line]['tests']                = array_unique(array_merge($lineData[$line]['tests'], $path['hit']));
+                            $lineData[$line]['tests']                = array_unique(array_merge($lineData[$line]['tests'], $path->hit));
                         }
                     }
                 }
@@ -690,14 +614,21 @@ final class File extends Renderer
         }
 
         $lines = '';
-        $i     = 1;
 
         /** @var string $line */
-        foreach ($codeLines as $line) {
-            $trClass                 = '';
-            $popover                 = '';
-            $includedInPathsCount    = count(array_unique($lineData[$i]['includedInPaths']));
-            $includedInHitPathsCount = count(array_unique($lineData[$i]['includedInHitPaths']));
+        foreach ($codeLines as $index => $line) {
+            $i       = $index + 1;
+            $trClass = '';
+            $popover = '';
+
+            $currentLineData = $lineData[$i] ?? [
+                'includedInPaths'    => [],
+                'includedInHitPaths' => [],
+                'tests'              => [],
+            ];
+
+            $includedInPathsCount    = count(array_unique($currentLineData['includedInPaths']));
+            $includedInHitPathsCount = count(array_unique($currentLineData['includedInHitPaths']));
 
             if ($includedInPathsCount > 0) {
                 $lineCss = 'success';
@@ -710,14 +641,20 @@ final class File extends Renderer
 
                 $popoverContent = '<ul>';
 
-                if (count($lineData[$i]['tests']) === 1) {
+                if (count($currentLineData['tests']) === 1) {
                     $popoverTitle = '1 test covers line ' . $i;
                 } else {
-                    $popoverTitle = count($lineData[$i]['tests']) . ' tests cover line ' . $i;
+                    $popoverTitle = count($currentLineData['tests']) . ' tests cover line ' . $i;
                 }
                 $popoverTitle .= '. These are covering ' . $includedInHitPathsCount . ' out of the ' . $includedInPathsCount . ' code paths.';
 
-                foreach ($lineData[$i]['tests'] as $test) {
+                foreach ($currentLineData['tests'] as $test) {
+                    if (!isset($testData[$test])) {
+                        // @codeCoverageIgnoreStart
+                        continue;
+                        // @codeCoverageIgnoreEnd
+                    }
+
                     $popoverContent .= $this->createPopoverContentForTest($test, $testData[$test]);
                 }
 
@@ -725,15 +662,13 @@ final class File extends Renderer
                 $trClass = $lineCss . ' popin';
 
                 $popover = sprintf(
-                    ' data-title="%s" data-content="%s" data-placement="top" data-html="true"',
+                    ' data-bs-title="%s" data-bs-content="%s" data-bs-placement="top" data-bs-html="true"',
                     $popoverTitle,
-                    htmlspecialchars($popoverContent, $this->htmlSpecialCharsFlags),
+                    htmlspecialchars($popoverContent, self::HTML_SPECIAL_CHARS_FLAGS),
                 );
             }
 
             $lines .= $this->renderLine($singleLineTemplate, $i, $line, $trClass, $popover);
-
-            $i++;
         }
 
         $linesTemplate->setVar(['lines' => $lines]);
@@ -747,24 +682,22 @@ final class File extends Renderer
 
         $coverageData = $node->functionCoverageData();
         $testData     = $node->testData();
-        $codeLines    = $this->loadFile($node->pathAsString());
+        $codeLines    = $this->highlightedSourceFor($node);
         $branches     = '';
 
         ksort($coverageData);
 
+        /** @var ProcessedFunctionCoverageData $methodData */
         foreach ($coverageData as $methodName => $methodData) {
-            if (!$methodData['branches']) {
-                continue;
-            }
-
             $branchStructure = '';
 
-            foreach ($methodData['branches'] as $branch) {
+            /** @var ProcessedBranchCoverageData $branch */
+            foreach ($methodData->branches as $branch) {
                 $branchStructure .= $this->renderBranchLines($branch, $codeLines, $testData);
             }
 
             if ($branchStructure !== '') { // don't show empty branches
-                $branches .= '<h5 class="structure-heading"><a name="' . htmlspecialchars($methodName, $this->htmlSpecialCharsFlags) . '">' . $this->abbreviateMethodName($methodName) . '</a></h5>' . "\n";
+                $branches .= '<h5 class="structure-heading"><a name="' . htmlspecialchars($methodName, self::HTML_SPECIAL_CHARS_FLAGS) . '">' . $this->abbreviateMethodName($methodName) . '</a></h5>' . "\n";
                 $branches .= $branchStructure;
             }
         }
@@ -774,14 +707,18 @@ final class File extends Renderer
         return $branchesTemplate->render();
     }
 
-    private function renderBranchLines(array $branch, array $codeLines, array $testData): string
+    /**
+     * @param list<string>                      $codeLines
+     * @param array<non-empty-string, TestType> $testData
+     */
+    private function renderBranchLines(ProcessedBranchCoverageData $branch, array $codeLines, array $testData): string
     {
         $linesTemplate      = new Template($this->templatePath . 'lines.html.dist', '{{', '}}');
         $singleLineTemplate = new Template($this->templatePath . 'line.html.dist', '{{', '}}');
 
         $lines = '';
 
-        $branchLines = range($branch['line_start'], $branch['line_end']);
+        $branchLines = range($branch->line_start, $branch->line_end);
         sort($branchLines); // sometimes end_line < start_line
 
         /** @var int $line */
@@ -793,7 +730,7 @@ final class File extends Renderer
             $popoverContent = '';
             $popoverTitle   = '';
 
-            $numTests = count($branch['hit']);
+            $numTests = count($branch->hit);
 
             if ($numTests === 0) {
                 $trClass = 'danger';
@@ -807,7 +744,13 @@ final class File extends Renderer
                     $popoverTitle = '1 test covers this branch';
                 }
 
-                foreach ($branch['hit'] as $test) {
+                foreach ($branch->hit as $test) {
+                    if (!isset($testData[$test])) {
+                        // @codeCoverageIgnoreStart
+                        continue;
+                        // @codeCoverageIgnoreEnd
+                    }
+
                     if ($lineCss === 'covered-by-large-tests' && $testData[$test]['size'] === 'medium') {
                         $lineCss = 'covered-by-medium-tests';
                     } elseif ($testData[$test]['size'] === 'small') {
@@ -821,15 +764,15 @@ final class File extends Renderer
 
             $popover = '';
 
-            if (!empty($popoverTitle)) {
+            if ($popoverTitle !== '') {
                 $popover = sprintf(
-                    ' data-title="%s" data-content="%s" data-placement="top" data-html="true"',
+                    ' data-bs-title="%s" data-bs-content="%s" data-bs-placement="top" data-bs-html="true"',
                     $popoverTitle,
-                    htmlspecialchars($popoverContent, $this->htmlSpecialCharsFlags),
+                    htmlspecialchars($popoverContent, self::HTML_SPECIAL_CHARS_FLAGS),
                 );
             }
 
-            $lines .= $this->renderLine($singleLineTemplate, $line, $codeLines[$line - 1], $trClass, $popover);
+            $lines .= $this->renderLine($singleLineTemplate, $line, $codeLines[$line - 1] ?? '', $trClass, $popover);
         }
 
         if ($lines === '') {
@@ -847,30 +790,27 @@ final class File extends Renderer
 
         $coverageData = $node->functionCoverageData();
         $testData     = $node->testData();
-        $codeLines    = $this->loadFile($node->pathAsString());
+        $codeLines    = $this->highlightedSourceFor($node);
         $paths        = '';
 
         ksort($coverageData);
 
+        /** @var ProcessedFunctionCoverageData $methodData */
         foreach ($coverageData as $methodName => $methodData) {
-            if (!$methodData['paths']) {
-                continue;
-            }
-
             $pathStructure = '';
 
-            if (count($methodData['paths']) > 100) {
-                $pathStructure .= '<p>' . count($methodData['paths']) . ' is too many paths to sensibly render, consider refactoring your code to bring this number down.</p>';
+            if (count($methodData->paths) > 100) {
+                $pathStructure .= '<p>' . count($methodData->paths) . ' is too many paths to sensibly render, consider refactoring your code to bring this number down.</p>';
 
                 continue;
             }
 
-            foreach ($methodData['paths'] as $path) {
-                $pathStructure .= $this->renderPathLines($path, $methodData['branches'], $codeLines, $testData);
+            foreach ($methodData->paths as $path) {
+                $pathStructure .= $this->renderPathLines($path, $methodData->branches, $codeLines, $testData);
             }
 
             if ($pathStructure !== '') {
-                $paths .= '<h5 class="structure-heading"><a name="' . htmlspecialchars($methodName, $this->htmlSpecialCharsFlags) . '">' . $this->abbreviateMethodName($methodName) . '</a></h5>' . "\n";
+                $paths .= '<h5 class="structure-heading"><a name="' . htmlspecialchars($methodName, self::HTML_SPECIAL_CHARS_FLAGS) . '">' . $this->abbreviateMethodName($methodName) . '</a></h5>' . "\n";
                 $paths .= $pathStructure;
             }
         }
@@ -880,7 +820,12 @@ final class File extends Renderer
         return $pathsTemplate->render();
     }
 
-    private function renderPathLines(array $path, array $branches, array $codeLines, array $testData): string
+    /**
+     * @param array<int, ProcessedBranchCoverageData> $branches
+     * @param list<string>                            $codeLines
+     * @param array<non-empty-string, TestType>       $testData
+     */
+    private function renderPathLines(ProcessedPathCoverageData $path, array $branches, array $codeLines, array $testData): string
     {
         $linesTemplate      = new Template($this->templatePath . 'lines.html.dist', '{{', '}}');
         $singleLineTemplate = new Template($this->templatePath . 'line.html.dist', '{{', '}}');
@@ -888,14 +833,20 @@ final class File extends Renderer
         $lines = '';
         $first = true;
 
-        foreach ($path['path'] as $branchId) {
+        foreach ($path->path as $branchId) {
+            if (!isset($branches[$branchId])) {
+                // @codeCoverageIgnoreStart
+                continue;
+                // @codeCoverageIgnoreEnd
+            }
+
             if ($first) {
                 $first = false;
             } else {
                 $lines .= '    <tr><td colspan="2">&nbsp;</td></tr>' . "\n";
             }
 
-            $branchLines = range($branches[$branchId]['line_start'], $branches[$branchId]['line_end']);
+            $branchLines = range($branches[$branchId]->line_start, $branches[$branchId]->line_end);
             sort($branchLines); // sometimes end_line < start_line
 
             /** @var int $line */
@@ -907,7 +858,7 @@ final class File extends Renderer
                 $popoverContent = '';
                 $popoverTitle   = '';
 
-                $numTests = count($path['hit']);
+                $numTests = count($path->hit);
 
                 if ($numTests === 0) {
                     $trClass = 'danger';
@@ -921,7 +872,13 @@ final class File extends Renderer
                         $popoverTitle = '1 test covers this path';
                     }
 
-                    foreach ($path['hit'] as $test) {
+                    foreach ($path->hit as $test) {
+                        if (!isset($testData[$test])) {
+                            // @codeCoverageIgnoreStart
+                            continue;
+                            // @codeCoverageIgnoreEnd
+                        }
+
                         if ($lineCss === 'covered-by-large-tests' && $testData[$test]['size'] === 'medium') {
                             $lineCss = 'covered-by-medium-tests';
                         } elseif ($testData[$test]['size'] === 'small') {
@@ -936,15 +893,15 @@ final class File extends Renderer
 
                 $popover = '';
 
-                if (!empty($popoverTitle)) {
+                if ($popoverTitle !== '') {
                     $popover = sprintf(
-                        ' data-title="%s" data-content="%s" data-placement="top" data-html="true"',
+                        ' data-bs-title="%s" data-bs-content="%s" data-bs-placement="top" data-bs-html="true"',
                         $popoverTitle,
-                        htmlspecialchars($popoverContent, $this->htmlSpecialCharsFlags),
+                        htmlspecialchars($popoverContent, self::HTML_SPECIAL_CHARS_FLAGS),
                     );
                 }
 
-                $lines .= $this->renderLine($singleLineTemplate, $line, $codeLines[$line - 1], $trClass, $popover);
+                $lines .= $this->renderLine($singleLineTemplate, $line, $codeLines[$line - 1] ?? '', $trClass, $popover);
             }
         }
 
@@ -961,7 +918,7 @@ final class File extends Renderer
     {
         $template->setVar(
             [
-                'lineNumber'  => $lineNumber,
+                'lineNumber'  => (string) $lineNumber,
                 'lineContent' => $lineContent,
                 'class'       => $class,
                 'popover'     => $popover,
@@ -971,107 +928,19 @@ final class File extends Renderer
         return $template->render();
     }
 
-    private function loadFile(string $file): array
-    {
-        if (isset(self::$formattedSourceCache[$file])) {
-            return self::$formattedSourceCache[$file];
-        }
-
-        $buffer              = file_get_contents($file);
-        $tokens              = token_get_all($buffer);
-        $result              = [''];
-        $i                   = 0;
-        $stringFlag          = false;
-        $fileEndsWithNewLine = str_ends_with($buffer, "\n");
-
-        unset($buffer);
-
-        foreach ($tokens as $j => $token) {
-            if (is_string($token)) {
-                if ($token === '"' && $tokens[$j - 1] !== '\\') {
-                    $result[$i] .= sprintf(
-                        '<span class="string">%s</span>',
-                        htmlspecialchars($token, $this->htmlSpecialCharsFlags),
-                    );
-
-                    $stringFlag = !$stringFlag;
-                } else {
-                    $result[$i] .= sprintf(
-                        '<span class="keyword">%s</span>',
-                        htmlspecialchars($token, $this->htmlSpecialCharsFlags),
-                    );
-                }
-
-                continue;
-            }
-
-            [$token, $value] = $token;
-
-            $value = str_replace(
-                ["\t", ' '],
-                ['&nbsp;&nbsp;&nbsp;&nbsp;', '&nbsp;'],
-                htmlspecialchars($value, $this->htmlSpecialCharsFlags),
-            );
-
-            if ($value === "\n") {
-                $result[++$i] = '';
-            } else {
-                $lines = explode("\n", $value);
-
-                foreach ($lines as $jj => $line) {
-                    $line = trim($line);
-
-                    if ($line !== '') {
-                        if ($stringFlag) {
-                            $colour = 'string';
-                        } else {
-                            $colour = 'default';
-
-                            if ($this->isInlineHtml($token)) {
-                                $colour = 'html';
-                            } elseif ($this->isComment($token)) {
-                                $colour = 'comment';
-                            } elseif ($this->isKeyword($token)) {
-                                $colour = 'keyword';
-                            }
-                        }
-
-                        $result[$i] .= sprintf(
-                            '<span class="%s">%s</span>',
-                            $colour,
-                            $line,
-                        );
-                    }
-
-                    if (isset($lines[$jj + 1])) {
-                        $result[++$i] = '';
-                    }
-                }
-            }
-        }
-
-        if ($fileEndsWithNewLine) {
-            unset($result[count($result) - 1]);
-        }
-
-        self::$formattedSourceCache[$file] = $result;
-
-        return $result;
-    }
-
     private function abbreviateClassName(string $className): string
     {
         $tmp = explode('\\', $className);
 
         if (count($tmp) > 1) {
-            $className = sprintf(
+            return sprintf(
                 '<abbr title="%s">%s</abbr>',
-                $className,
-                array_pop($tmp),
+                $this->escapeHtml($className),
+                $this->escapeHtml(array_pop($tmp)),
             );
         }
 
-        return $className;
+        return $this->escapeHtml($className);
     }
 
     private function abbreviateMethodName(string $methodName): string
@@ -1079,12 +948,15 @@ final class File extends Renderer
         $parts = explode('->', $methodName);
 
         if (count($parts) === 2) {
-            return $this->abbreviateClassName($parts[0]) . '->' . $parts[1];
+            return $this->abbreviateClassName($parts[0]) . '->' . $this->escapeHtml($parts[1]);
         }
 
-        return $methodName;
+        return $this->escapeHtml($methodName);
     }
 
+    /**
+     * @param TestType $testData
+     */
     private function createPopoverContentForTest(string $test, array $testData): string
     {
         $testCSS = '';
@@ -1109,22 +981,7 @@ final class File extends Renderer
         return sprintf(
             '<li%s>%s</li>',
             $testCSS,
-            htmlspecialchars($test, $this->htmlSpecialCharsFlags),
+            htmlspecialchars($test, self::HTML_SPECIAL_CHARS_FLAGS),
         );
-    }
-
-    private function isComment(int $token): bool
-    {
-        return $token === T_COMMENT || $token === T_DOC_COMMENT;
-    }
-
-    private function isInlineHtml(int $token): bool
-    {
-        return $token === T_INLINE_HTML;
-    }
-
-    private function isKeyword(int $token): bool
-    {
-        return isset(self::KEYWORD_TOKENS[$token]);
     }
 }
