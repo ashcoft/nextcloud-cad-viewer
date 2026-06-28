@@ -35,8 +35,8 @@ importers:
         specifier: 1.9.12
         version: 1.9.12
       '@nextcloud/files':
-        specifier: ^3.10.0
-        version: 3.12.2
+        specifier: ^4.0.0
+        version: 4.0.0
       '@nextcloud/router':
         specifier: ^3.1.0
         version: 3.1.0
@@ -1363,6 +1363,10 @@ packages:
   '@nextcloud/files@3.12.2':
     resolution: {integrity: sha512-vBo8tf3Xh6efiF8CrEo3pKj9AtvAF6RdDGO1XKL65IxV8+UUd9Uxl2lUExHlzoDRRczCqfGfaWfRRaFhYqce5Q==}
     engines: {node: ^20.0.0 || ^22.0.0 || ^24.0.0}
+
+  '@nextcloud/files@4.0.0':
+    resolution: {integrity: sha512-TmecnZIS+PGWGtRh7RpGEboCT4K6iTbHULUcfR6hs3eEzjDVsCc1Ldf8popGY/70lbpdlfYle8xbXnPIo3qaXA==}
+    engines: {node: ^24.0.0}
 
   '@nextcloud/initial-state@3.0.0':
     resolution: {integrity: sha512-cV+HBdkQJGm8FxkBI5rFT/FbMNWNBvpbj6OPrg4Ae4YOOsQ15CL8InPOAw1t4XkOkQK2NEdUGQLVUz/19wXbdQ==}
@@ -5955,6 +5959,20 @@ snapshots:
       is-svg: 6.1.0
       typescript-event-target: 1.1.2
       webdav: 5.10.0
+    optional: true
+
+  '@nextcloud/files@4.0.0':
+    dependencies:
+      '@nextcloud/auth': 2.6.0
+      '@nextcloud/capabilities': 1.2.1
+      '@nextcloud/l10n': 3.4.1
+      '@nextcloud/logger': 3.0.3
+      '@nextcloud/paths': 3.1.0
+      '@nextcloud/router': 3.1.0
+      '@nextcloud/sharing': 0.3.0
+      is-svg: 6.1.0
+      typescript-event-target: 1.1.2
+      webdav: 5.10.0
 
   '@nextcloud/initial-state@3.0.0': {}
 
@@ -6801,7 +6819,8 @@ snapshots:
 
   camelcase@6.3.0: {}
 
-  cancelable-promise@4.3.1: {}
+  cancelable-promise@4.3.1:
+    optional: true
 
   caniuse-lite@1.0.30001799: {}
 
