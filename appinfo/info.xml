@@ -12,8 +12,9 @@
 - Layer visibility management
 - Dark/light theme
 - Fullscreen mode
-- Responsive design]]></description>
-  <version>0.0.20</version>
+- Responsive design
+- Opens CAD files directly in Nextcloud Files without downloading]]></description>
+  <version>0.0.21</version>
   <licence>MIT</licence>
   <author mail="dony@dony.me">CAD Viewer Contributors</author>
   <namespace>CadViewer</namespace>
@@ -29,7 +30,7 @@
   <screenshot>https://raw.githubusercontent.com/ashcoft/nextcloud-cad-viewer/main/docs/screenshot.png</screenshot>
   <dependencies>
     <php min-version="8.4"/>
-    <nextcloud min-version="33" max-version="34"/>
+    <nextcloud min-version="33" max-version="35"/>
   </dependencies>
   <navigations>
     <navigation>

@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Cad Viewer LoadViewer listener test suite.
  *
- * PHP version 8.3
+ * PHP version 8.4
  *
  * @category Tests
  * @package  OCA\CadViewer\Tests\Unit

@@ -2,12 +2,12 @@
   <div id="cad-viewer-wrapper" class="cad-viewer-wrapper">
     <div v-if="loading" class="cad-viewer-loading">
       <div class="spinner"></div>
-      <p>{{ appTranslation('Loading CAD Viewer...') }}</p>
+      <p>{{ t('cad_viewer', 'Loading CAD Viewer...') }}</p>
     </div>
     <div v-else-if="error" class="cad-viewer-error">
       <p>{{ error }}</p>
       <button v-if="fileUrl" class="button primary" @click="retryLoad">
-        {{ appTranslation('Retry') }}
+        {{ t('cad_viewer', 'Retry') }}
       </button>
     </div>
     <div v-else ref="viewerContainer" class="cad-viewer-canvas"></div>
@@ -19,20 +19,10 @@ import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
 
-// Global translation function from Nextcloud
-declare global {
-  interface Window {
-    t: (app: string, text: string) => string
-  }
+const t = (app: string, text: string): string => {
+  const translate = (globalThis as { t?: (app: string, text: string) => string }).t
+  return translate ? translate(app, text) : text
 }
-
-const t = (app: string, text: string) => {
-  const nextcloudTranslate = (window as unknown as { t?: (app: string, text: string) => string }).t
-  return nextcloudTranslate ? nextcloudTranslate(app, text) : text
-}
-
-// Use the new app ID for translations
-const appTranslation = (text: string) => t('cad_viewer', text)
 
 export default defineComponent({
   name: 'CadViewerApp',
@@ -65,12 +55,12 @@ export default defineComponent({
       }
 
       if (!fid) {
-        error.value = appTranslation('No file selected. Please open a DWG or DXF file from Nextcloud.')
+        error.value = t('cad_viewer', 'No file selected. Please open a DWG or DXF file from Nextcloud.')
         loading.value = false
         return
       }
 
-      fileUrl.value = generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: fid as string })
+      fileUrl.value = generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fid) })
 
       if (viewerContainer.value) {
         viewerInstance.value = await loadCADViewer(viewerContainer.value, {
@@ -84,8 +74,7 @@ export default defineComponent({
       try {
         await initViewer()
       } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err)
-        error.value = appTranslation('Failed to load CAD viewer: ') + msg
+        error.value = t('cad_viewer', 'Failed to load CAD viewer: ') + (err instanceof Error ? err.message : String(err))
       } finally {
         loading.value = false
       }
@@ -108,8 +97,7 @@ export default defineComponent({
             theme: 'dark',
           })
         } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err)
-          error.value = appTranslation('Failed to load CAD viewer: ') + msg
+          error.value = t('cad_viewer', 'Failed to load CAD viewer: ') + (err instanceof Error ? err.message : String(err))
         }
       }
       loading.value = false
@@ -121,7 +109,7 @@ export default defineComponent({
       viewerContainer,
       fileUrl,
       retryLoad,
-      appTranslation,
+      t,
     }
   },
 })

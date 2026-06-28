@@ -6,10 +6,11 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'js'),
     filename: 'cad-viewer.js',
-    library: 'CadViewer',
-    libraryTarget: 'window',
+    library: {
+      name: 'CadViewer',
+      type: 'window',
+    },
     clean: true,
-    publicPath: '',
   },
   module: {
     rules: [
@@ -18,14 +19,19 @@ module.exports = {
         loader: 'vue-loader',
       },
       {
-        // Handles .ts, .tsx, .js, .jsx — including <script lang="ts"> blocks from vue-loader
-        test: /\.[jt]sx?$/,
-        loader: 'babel-loader',
-        // Still apply fullySpecified: false to all JS/TS files to handle mlightcad issues
-        resolve: {
-          fullySpecified: false,
-        },
+        test: /\.tsx?$/,
         exclude: /node_modules/,
+        use: {
+          loader: 'ts-loader',
+          options: {
+            transpileOnly: true,
+            compilerOptions: {
+              target: 'es2020',
+              module: 'esnext',
+              moduleResolution: 'bundler',
+            },
+          },
+        },
       },
       {
         test: /\.m?js$/,
@@ -49,18 +55,13 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.vue', '.json'],
     alias: {
-      'vue$': 'vue/dist/vue.esm-bundler.js',
+      vue$: 'vue/dist/vue.esm-bundler.js',
       '@': path.resolve(__dirname, 'src'),
       'three/examples/jsm/controls/OrbitControls$': 'three/examples/jsm/controls/OrbitControls.js',
       'three/examples/jsm/libs/stats.module$': 'three/examples/jsm/libs/stats.module.js',
-      'fs': path.resolve(__dirname, 'src/polyfills/empty.js'),
-      'path': path.resolve(__dirname, 'src/polyfills/empty.js'),
-      'crypto': path.resolve(__dirname, 'src/polyfills/empty.js'),
-      // Optional plugins for @mlightcad/cad-viewer 1.5.2+
-      // These are peer dependencies marked as optional
-      '@mlightcad/cad-pdf-plugin': path.resolve(__dirname, 'src/polyfills/empty.js'),
-      '@mlightcad/cad-svg-plugin': path.resolve(__dirname, 'src/polyfills/empty.js'),
-      '@mlightcad/cad-html-plugin': path.resolve(__dirname, 'src/polyfills/empty.js'),
+    },
+    fallback: {
+      stream: false,
     },
   },
   performance: {

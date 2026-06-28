@@ -3,12 +3,12 @@
     <div ref="viewerContainer" class="cad-viewer-canvas">
       <div v-if="loading" class="cad-viewer-loading">
         <div class="spinner"></div>
-        <p>{{ appTranslation('Loading CAD Viewer...') }}</p>
+        <p>{{ t('cad_viewer', 'Loading CAD Viewer...') }}</p>
       </div>
       <div v-else-if="error" class="cad-viewer-error">
         <p>{{ error }}</p>
         <button v-if="retryUrl" class="button primary" @click="retryLoad">
-          {{ appTranslation('Retry') }}
+          {{ t('cad_viewer', 'Retry') }}
         </button>
       </div>
     </div>
@@ -20,7 +20,6 @@ import { defineComponent, ref, onMounted, onBeforeUnmount, type PropType } from 
 import { generateUrl } from '@nextcloud/router'
 import { loadCADViewer, type ViewerInstance } from '../utils/cadLoader'
 
-// Define file info type
 interface FileInfoType {
   id?: number | string
   path?: string
@@ -29,58 +28,46 @@ interface FileInfoType {
   filename?: string
 }
 
-// Global translation function from Nextcloud
-function t(app: string, text: string): string {
-  const nextcloudGlobal = globalThis as unknown as { t?: (app: string, text: string) => string }
-  const nextcloudTranslate = nextcloudGlobal.t
-  return nextcloudTranslate ? nextcloudTranslate(app, text) : text
+const t = (app: string, text: string): string => {
+  const translate = (globalThis as { t?: (app: string, text: string) => string }).t
+  return translate ? translate(app, text) : text
 }
 
-// Browser animation frame function type
 const raf = globalThis.requestAnimationFrame.bind(globalThis)
-
-const appTranslation = (text: string) => t('cad_viewer', text)
 
 export default defineComponent({
   name: 'CadViewerHandler',
   props: {
     path: {
       type: String,
-      required: false,
       default: '',
     },
     fileid: {
       type: [Number, String],
-      required: false,
       default: null,
     },
     mime: {
       type: String,
-      required: false,
       default: '',
     },
     filename: {
       type: Object as PropType<FileInfoType | null>,
-      required: false,
       default: null,
     },
     source: {
       type: String,
-      required: false,
       default: '',
     },
     davPath: {
       type: String,
-      required: false,
       default: '',
     },
     fileInfo: {
       type: Object as PropType<FileInfoType | null>,
-      required: false,
       default: null,
     },
   },
-  setup(props: { path?: string; fileid?: number | string; mime?: string; filename?: FileInfoType | null; source?: string; davPath?: string; fileInfo?: FileInfoType | null }) {
+  setup(props) {
     const loading = ref<boolean>(true)
     const error = ref<string | null>(null)
     const viewerContainer = ref<HTMLElement | null>(null)
@@ -88,12 +75,10 @@ export default defineComponent({
     const retryUrl = ref<string | null>(null)
 
     async function initViewer(): Promise<void> {
-      // Determine the file URL to use
       let fileUrl: string | null = null
-      
-      // Priority 1: Use fileid prop with the app's API endpoint
+
+      // Priority 1: Use fileid prop
       let fileId = props.fileid
-      // Priority 1b: Fallback to fileInfo.id (how Nextcloud Viewer API passes it)
       if (!fileId && props.fileInfo?.id) {
         fileId = props.fileInfo.id
       }
@@ -101,22 +86,22 @@ export default defineComponent({
         fileUrl = generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileId) })
         retryUrl.value = fileUrl
       }
-      
-      // Priority 2: Fallback to source if provided
+
+      // Priority 2: Use source
       if (!fileUrl && props.source) {
         fileUrl = props.source
         retryUrl.value = fileUrl
       }
-      
-      // Priority 3: Fallback to davPath with WebDAV
+
+      // Priority 3: Use davPath
       if (!fileUrl && props.davPath) {
         const pathSegments = props.davPath.split('/').filter(Boolean)
         const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
         fileUrl = generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
         retryUrl.value = fileUrl
       }
-      
-      // Priority 4: Fallback to path with WebDAV
+
+      // Priority 4: Use path
       if (!fileUrl && props.path) {
         const pathSegments = props.path.split('/').filter(Boolean)
         const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
@@ -125,7 +110,7 @@ export default defineComponent({
       }
 
       if (!fileUrl) {
-        error.value = appTranslation('No file selected. Please open a DWG or DXF file from Nextcloud.')
+        error.value = t('cad_viewer', 'No file selected. Please open a DWG or DXF file from Nextcloud.')
         loading.value = false
         return
       }
@@ -145,15 +130,12 @@ export default defineComponent({
 
       if (viewerContainer.value) {
         try {
-          // Load the CAD viewer with the file URL
-          // The axios request will include session cookies automatically
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
             url: fileUrl,
             theme: 'dark',
           })
         } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err)
-          error.value = appTranslation('Failed to load CAD viewer: ') + msg
+          error.value = t('cad_viewer', 'Failed to load CAD viewer: ') + (err instanceof Error ? err.message : String(err))
         }
       }
       loading.value = false
@@ -163,8 +145,7 @@ export default defineComponent({
       try {
         await initViewer()
       } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err)
-        error.value = appTranslation('Failed to load CAD viewer: ') + msg
+        error.value = t('cad_viewer', 'Failed to load CAD viewer: ') + (err instanceof Error ? err.message : String(err))
         loading.value = false
       }
     })
@@ -186,8 +167,7 @@ export default defineComponent({
             theme: 'dark',
           })
         } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err)
-          error.value = appTranslation('Failed to load CAD viewer: ') + msg
+          error.value = t('cad_viewer', 'Failed to load CAD viewer: ') + (err instanceof Error ? err.message : String(err))
         }
       }
       loading.value = false
@@ -199,7 +179,7 @@ export default defineComponent({
       viewerContainer,
       retryUrl,
       retryLoad,
-      appTranslation,
+      t,
     }
   },
 })

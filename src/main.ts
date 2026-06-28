@@ -2,19 +2,18 @@ import { createApp } from 'vue'
 import { registerFileAction } from '@nextcloud/files'
 import type { IFileAction } from '@nextcloud/files'
 import CadViewerApp from './App.vue'
-import router from './router'
 import CadViewerHandler from './components/ViewerHandler.vue'
 
-// Global translation function from Nextcloud - must be declared before use
+// Nextcloud translation function
 const t = (app: string, text: string): string => {
-  const nextcloudGlobal = globalThis as unknown as { t?: (app: string, text: string) => string }
-  const nextcloudTranslate = nextcloudGlobal.t
-  return nextcloudTranslate ? nextcloudTranslate(app, text) : text
+  const translate = (globalThis as { t?: (app: string, text: string) => string }).t
+  return translate ? translate(app, text) : text
 }
 
+// Create Vue app instance
 const app = createApp(CadViewerApp)
-app.use(router)
 
+// Supported MIME types for CAD files
 const SUPPORTED_MIMES = [
   'application/acad',
   'application/autocad_dwg',
@@ -33,7 +32,7 @@ const CAD_VIEWER_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
   <path d="M7 2a2 2 0 0 0-2 2v1H3a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2V4a2 2 0 0 0-2-2H7zm0 2h10v2H7V4zm0 4h10v2H7V8zm0 4h6v2H7v-2z"/>
 </svg>`
 
-// Declare global types for Nextcloud
+// Global Nextcloud types
 interface NextcloudOC {
   PERMISSION_READ: number
   generateUrl: (url: string, params?: Record<string, unknown>) => string
@@ -64,77 +63,28 @@ interface NextcloudOCA {
 declare const OC: NextcloudOC
 declare const OCA: NextcloudOCA
 
-// Track if we've already registered to avoid duplicate registrations
-let isRegistered = false
+// Track registration state
+let isViewerHandlerRegistered = false
+let isFileActionsRegistered = false
 
-// Register the CAD viewer handler with Nextcloud Viewer
+/**
+ * Register the CAD viewer handler with Nextcloud Viewer
+ */
 function registerViewerHandler(): boolean {
-  if (isRegistered) return false
-  
-  if (OCA?.Viewer !== undefined) {
-    OCA.Viewer.registerHandler({
-      id: 'cad-viewer',
-      group: 'cad',
-      mimes: SUPPORTED_MIMES,
-      component: CadViewerHandler,
-    })
-    isRegistered = true
-    console.log('CAD Viewer handler registered successfully')
-    return true
+  if (isViewerHandlerRegistered || OCA?.Viewer === undefined) {
+    return isViewerHandlerRegistered
   }
-  return false
+
+  OCA.Viewer.registerHandler({
+    id: 'cad-viewer',
+    group: 'cad',
+    mimes: SUPPORTED_MIMES,
+    component: CadViewerHandler,
+  })
+  isViewerHandlerRegistered = true
+  console.log('CAD Viewer handler registered successfully')
+  return true
 }
-
-// Set up polling to ensure registration happens when OCA.Viewer becomes available
-function setupViewerPolling(): void {
-  // If already registered, nothing to do
-  if (registerViewerHandler()) return
-  
-  // Poll every 100ms for up to 10 seconds
-  let pollCount = 0
-  const maxPolls = 100
-  
-  const pollInterval = setInterval(() => {
-    if (registerViewerHandler()) {
-      clearInterval(pollInterval)
-      return
-    }
-    
-    pollCount++
-    if (pollCount >= maxPolls) {
-      clearInterval(pollInterval)
-      console.warn('OCA.Viewer not available after 10 seconds, CAD viewer handler not registered')
-    }
-  }, 100)
-}
-
-// Also use MutationObserver to detect when OCA.Viewer becomes available
-function setupViewerObserver(): void {
-  if (isRegistered) return
-
-  // Try immediately first
-  if (registerViewerHandler()) return
-
-  // Set up MutationObserver to watch for OCA object changes
-  if (typeof MutationObserver !== 'undefined') {
-    const observer = new MutationObserver(() => {
-      if (registerViewerHandler()) {
-        observer.disconnect()
-      }
-    })
-    
-    observer.observe(document.documentElement, {
-      childList: true,
-      subtree: true,
-    })
-  }
-  
-  // Also set up polling as backup
-  setupViewerPolling()
-}
-
-// Initialize viewer registration immediately when script loads
-setupViewerObserver()
 
 /**
  * Open the CAD viewer for a file
@@ -147,63 +97,72 @@ function openInViewer(fileId: number | string): void {
 
 /**
  * Register file actions for CAD files in the Files sidebar
- * Uses the Nextcloud Files app API (OCA.Files.registerFileAction)
- * Also registers using @nextcloud/files package API for NC33+ compatibility
  */
 function registerFileActions(): void {
-  if (OC === undefined || OCA === undefined) {
+  if (isFileActionsRegistered || OC === undefined || OCA === undefined) {
     return
   }
 
-  // Register a file action for each supported MIME type
-  SUPPORTED_MIMES.forEach((mime) => {
-    // NC33+ package API
-    try {
-      const action: IFileAction = {
-        id: 'cad-viewer-open',
-        displayName: () => t('cad_viewer', 'Open with CAD Viewer'),
-        iconSvgInline: () => CAD_VIEWER_ICON,
-        enabled: ({ nodes }) => nodes.some((node) => node.mime === mime),
-        exec: async ({ nodes }) => {
-          const fileId = nodes[0].id
-          if (fileId !== undefined) {
-            openInViewer(fileId)
-          }
-          return null
-        },
-      }
-      registerFileAction(action)
-    } catch {
-      // Fall back to OCA global if package API fails
+  // Register using @nextcloud/files package API for NC33+ compatibility
+  try {
+    const action: IFileAction = {
+      id: 'cad-viewer-open',
+      displayName: () => t('cad_viewer', 'Open with CAD Viewer'),
+      iconSvgInline: () => CAD_VIEWER_ICON,
+      enabled: ({ nodes }) => nodes.some((node) => SUPPORTED_MIMES.includes(node.mime)),
+      exec: async ({ nodes }) => {
+        const fileId = nodes[0].id
+        if (fileId !== undefined) {
+          openInViewer(fileId)
+        }
+        return null
+      },
     }
-
-    // Legacy OCA global fallback
-    if (OCA?.Files?.registerFileAction !== undefined) {
-      OCA.Files.registerFileAction({
-        name: 'cad-viewer-open',
-        displayName: t('cad_viewer', 'Open with CAD Viewer'),
-        mime,
-        permissions: OC.PERMISSION_READ,
-        icon: () => CAD_VIEWER_ICON,
-        actionHandler: (_fileName: string, context: { fileInfo?: { id: number | string } }) => {
-          const fileId = context.fileInfo?.id
-          if (fileId) {
-            openInViewer(fileId)
-          }
-        },
-      })
-    }
-  })
+    registerFileAction(action)
+    isFileActionsRegistered = true
+  } catch {
+    // Fall back to legacy OCA global
+    registerLegacyFileActions()
+  }
 }
 
-// Register file actions when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  // Register file action for sidebar menu
+/**
+ * Legacy file action registration using OCA global
+ */
+function registerLegacyFileActions(): void {
+  if (OCA?.Files?.registerFileAction === undefined) {
+    return
+  }
+
+  SUPPORTED_MIMES.forEach((mime) => {
+    OCA.Files.registerFileAction({
+      name: 'cad-viewer-open',
+      displayName: t('cad_viewer', 'Open with CAD Viewer'),
+      mime,
+      permissions: OC.PERMISSION_READ,
+      icon: () => CAD_VIEWER_ICON,
+      actionHandler: (_fileName: string, context: { fileInfo?: { id: number | string } }) => {
+        const fileId = context.fileInfo?.id
+        if (fileId) {
+          openInViewer(fileId)
+        }
+      },
+    })
+  })
+  isFileActionsRegistered = true
+}
+
+/**
+ * Initialize CAD viewer when DOM is ready
+ */
+function initializeViewer(): void {
+  // Register file actions
   registerFileActions()
 
-  // Try viewer handler registration again at DOMContentLoaded
+  // Try viewer handler registration
   registerViewerHandler()
 
+  // Mount Vue app if container exists
   const mountEl =
     document.getElementById('cad-viewer-app') ??
     document.getElementById('cad-viewer-container')
@@ -211,6 +170,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (mountEl) {
     app.mount(mountEl)
   }
-})
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeViewer)
+} else {
+  initializeViewer()
+}
 
 export default app
