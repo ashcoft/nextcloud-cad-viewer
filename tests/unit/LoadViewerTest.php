@@ -112,7 +112,7 @@ class LoadViewerTest extends TestCase
             }
         };
 
-        $event = new BeforeTemplateRenderedEvent(); // $login defaults to false ✓
+        $event = new BeforeTemplateRenderedEvent(); // $login defaults to false
         $event->setResponse($response);
         return $event;
     }
