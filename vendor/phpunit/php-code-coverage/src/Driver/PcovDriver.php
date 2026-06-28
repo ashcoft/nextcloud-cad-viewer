@@ -23,6 +23,8 @@ use SebastianBergmann\CodeCoverage\Filter;
 
 /**
  * @internal This class is not covered by the backward compatibility promise for phpunit/php-code-coverage
+ *
+ * @no-named-arguments Parameter names are not covered by the backward compatibility promise for phpunit/php-code-coverage
  */
 final class PcovDriver extends Driver
 {
@@ -38,6 +40,9 @@ final class PcovDriver extends Driver
         $this->filter = $filter;
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function start(): void
     {
         start();
@@ -47,10 +52,11 @@ final class PcovDriver extends Driver
     {
         stop();
 
+        // @codeCoverageIgnoreStart
         $filesToCollectCoverageFor = waiting();
         $collected                 = [];
 
-        if ($filesToCollectCoverageFor) {
+        if ($filesToCollectCoverageFor !== []) {
             if (!$this->filter->isEmpty()) {
                 $filesToCollectCoverageFor = array_intersect($filesToCollectCoverageFor, $this->filter->files());
             }
@@ -61,11 +67,25 @@ final class PcovDriver extends Driver
         }
 
         return RawCodeCoverageData::fromXdebugWithoutPathCoverage($collected);
+        // @codeCoverageIgnoreEnd
     }
 
-    public function nameAndVersion(): string
+    public function name(): string
     {
-        return 'PCOV ' . phpversion('pcov');
+        return 'PCOV';
+    }
+
+    public function version(): string
+    {
+        $version = phpversion('pcov');
+
+        if ($version === false || $version === '') {
+            // @codeCoverageIgnoreStart
+            throw new PcovNotAvailableException;
+            // @codeCoverageIgnoreEnd
+        }
+
+        return $version;
     }
 
     /**

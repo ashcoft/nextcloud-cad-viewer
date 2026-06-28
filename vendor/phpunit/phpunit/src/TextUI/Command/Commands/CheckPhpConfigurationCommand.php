@@ -11,6 +11,7 @@ namespace PHPUnit\TextUI\Command;
 
 use const E_ALL;
 use const PHP_EOL;
+use function assert;
 use function extension_loaded;
 use function in_array;
 use function ini_get;
@@ -26,9 +27,9 @@ use SebastianBergmann\Environment\Console;
  *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
-final class CheckPhpConfigurationCommand implements Command
+final readonly class CheckPhpConfigurationCommand implements Command
 {
-    private readonly bool $colorize;
+    private bool $colorize;
 
     public function __construct()
     {
@@ -100,7 +101,11 @@ final class CheckPhpConfigurationCommand implements Command
         }
 
         // @codeCoverageIgnoreStart
-        return Color::colorizeTextBox('fg-green, bold', 'ok');
+        $result = Color::colorizeTextBox('fg-green, bold', 'ok');
+
+        assert($result !== '');
+
+        return $result;
         // @codeCoverageIgnoreEnd
     }
 
@@ -116,7 +121,11 @@ final class CheckPhpConfigurationCommand implements Command
         }
 
         // @codeCoverageIgnoreStart
-        return Color::colorizeTextBox('fg-red, bold', $message);
+        $result = Color::colorizeTextBox('fg-red, bold', $message);
+
+        assert($result !== '');
+
+        return $result;
         // @codeCoverageIgnoreEnd
     }
 

@@ -1,7 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Psalm\Internal\Analyzer;
 
+use Attribute;
+use Override;
 use PhpParser\Node\Stmt\Trait_;
 use Psalm\Aliases;
 use Psalm\Context;
@@ -14,31 +18,29 @@ use function assert;
  */
 final class TraitAnalyzer extends ClassLikeAnalyzer
 {
-    private Aliases $aliases;
-
     public function __construct(
         Trait_ $class,
         SourceAnalyzer $source,
         string $fq_class_name,
-        Aliases $aliases
+        private readonly Aliases $aliases,
     ) {
         $this->source = $source;
         $this->file_analyzer = $source->getFileAnalyzer();
-        $this->aliases = $source->getAliases();
         $this->class = $class;
         $this->fq_class_name = $fq_class_name;
         $codebase = $source->getCodebase();
         $this->storage = $codebase->classlike_storage_provider->get($fq_class_name);
-        $this->aliases = $aliases;
     }
 
     /** @psalm-mutation-free */
+    #[Override]
     public function getNamespace(): ?string
     {
         return $this->aliases->namespace;
     }
 
     /** @psalm-mutation-free */
+    #[Override]
     public function getAliases(): Aliases
     {
         return $this->aliases;
@@ -48,6 +50,7 @@ final class TraitAnalyzer extends ClassLikeAnalyzer
      * @psalm-mutation-free
      * @return array<lowercase-string, string>
      */
+    #[Override]
     public function getAliasedClassesFlipped(): array
     {
         return [];
@@ -57,6 +60,7 @@ final class TraitAnalyzer extends ClassLikeAnalyzer
      * @psalm-mutation-free
      * @return array<string, string>
      */
+    #[Override]
     public function getAliasedClassesFlippedReplaceable(): array
     {
         return [];
@@ -78,7 +82,7 @@ final class TraitAnalyzer extends ClassLikeAnalyzer
             $context,
             $storage,
             $stmt->attrGroups,
-            AttributesAnalyzer::TARGET_CLASS,
+            Attribute::TARGET_CLASS,
             $storage->suppressed_issues + $statements_analyzer->getSuppressedIssues(),
         );
 

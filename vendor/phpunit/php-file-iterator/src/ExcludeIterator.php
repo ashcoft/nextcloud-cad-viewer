@@ -9,6 +9,7 @@
  */
 namespace SebastianBergmann\FileIterator;
 
+use function array_all;
 use function assert;
 use function str_starts_with;
 use RecursiveDirectoryIterator;
@@ -21,12 +22,12 @@ use SplFileInfo;
 final class ExcludeIterator extends RecursiveFilterIterator
 {
     /**
-     * @psalm-var list<string>
+     * @var list<string>
      */
     private array $exclude;
 
     /**
-     * @psalm-param list<string> $exclude
+     * @param list<string> $exclude
      */
     public function __construct(RecursiveDirectoryIterator $iterator, array $exclude)
     {
@@ -47,13 +48,7 @@ final class ExcludeIterator extends RecursiveFilterIterator
             return false;
         }
 
-        foreach ($this->exclude as $exclude) {
-            if (str_starts_with($path, $exclude)) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all($this->exclude, static fn (string $exclude) => !str_starts_with($path, $exclude));
     }
 
     public function hasChildren(): bool
@@ -65,7 +60,7 @@ final class ExcludeIterator extends RecursiveFilterIterator
     {
         return new self(
             $this->getInnerIterator()->getChildren(),
-            $this->exclude
+            $this->exclude,
         );
     }
 

@@ -9,9 +9,12 @@
  */
 namespace PHPUnit\TestRunner\TestResult;
 
-use PHPUnit\Event\EventFacadeIsSealedException;
+use function array_any;
+use function str_contains;
 use PHPUnit\Event\Facade as EventFacade;
-use PHPUnit\Event\UnknownSubscriberTypeException;
+use PHPUnit\Runner\DeprecationCollector\Facade as DeprecationCollectorFacade;
+use PHPUnit\TestRunner\IssueFilter;
+use PHPUnit\TextUI\Configuration\Configuration;
 use PHPUnit\TextUI\Configuration\Registry as ConfigurationRegistry;
 
 /**
@@ -23,28 +26,16 @@ final class Facade
 {
     private static ?Collector $collector = null;
 
-    /**
-     * @throws EventFacadeIsSealedException
-     * @throws UnknownSubscriberTypeException
-     */
     public static function init(): void
     {
         self::collector();
     }
 
-    /**
-     * @throws EventFacadeIsSealedException
-     * @throws UnknownSubscriberTypeException
-     */
     public static function result(): TestResult
     {
         return self::collector()->result();
     }
 
-    /**
-     * @throws EventFacadeIsSealedException
-     * @throws UnknownSubscriberTypeException
-     */
     public static function shouldStop(): bool
     {
         $configuration = ConfigurationRegistry::get();
@@ -66,7 +57,7 @@ final class Facade
             return true;
         }
 
-        if ($configuration->stopOnDeprecation() && $collector->hasDeprecations()) {
+        if (self::stopOnDeprecation($configuration)) {
             return true;
         }
 
@@ -85,10 +76,6 @@ final class Facade
         return false;
     }
 
-    /**
-     * @throws EventFacadeIsSealedException
-     * @throws UnknownSubscriberTypeException
-     */
     private static function collector(): Collector
     {
         if (self::$collector === null) {
@@ -96,10 +83,31 @@ final class Facade
 
             self::$collector = new Collector(
                 EventFacade::instance(),
-                $configuration->source(),
+                new IssueFilter($configuration->source()),
             );
         }
 
         return self::$collector;
+    }
+
+    private static function stopOnDeprecation(Configuration $configuration): bool
+    {
+        if (!$configuration->stopOnDeprecation()) {
+            return false;
+        }
+
+        $deprecations = DeprecationCollectorFacade::filteredDeprecations();
+
+        if (!$configuration->hasSpecificDeprecationToStopOn()) {
+            return $deprecations !== [];
+        }
+
+        return array_any(
+            $deprecations,
+            static fn (string $deprecation) => str_contains(
+                $deprecation,
+                $configuration->specificDeprecationToStopOn(),
+            ),
+        );
     }
 }

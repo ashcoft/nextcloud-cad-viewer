@@ -11,9 +11,7 @@ namespace PHPUnit\TextUI\Output;
 
 use const PHP_EOL;
 use function assert;
-use PHPUnit\Event\EventFacadeIsSealedException;
 use PHPUnit\Event\Facade as EventFacade;
-use PHPUnit\Event\UnknownSubscriberTypeException;
 use PHPUnit\Logging\TeamCity\TeamCityLogger;
 use PHPUnit\Logging\TestDox\TestResultCollection;
 use PHPUnit\Runner\DirectoryDoesNotExistException;
@@ -41,10 +39,6 @@ final class Facade
     private static ?SummaryPrinter $summaryPrinter             = null;
     private static bool $defaultProgressPrinter                = false;
 
-    /**
-     * @throws EventFacadeIsSealedException
-     * @throws UnknownSubscriberTypeException
-     */
     public static function init(Configuration $configuration, bool $extensionReplacesProgressOutput, bool $extensionReplacesResultOutput): Printer
     {
         self::createPrinter($configuration);
@@ -73,13 +67,15 @@ final class Facade
             );
         }
 
+        assert(self::$printer !== null);
+
         return self::$printer;
     }
 
     /**
-     * @psalm-param ?array<string, TestResultCollection> $testDoxResult
+     * @param ?array<string, TestResultCollection> $testDoxResult
      */
-    public static function printResult(TestResult $result, ?array $testDoxResult, Duration $duration): void
+    public static function printResult(TestResult $result, ?array $testDoxResult, Duration $duration, bool $stackTraceForDeprecations): void
     {
         assert(self::$printer !== null);
 
@@ -92,11 +88,11 @@ final class Facade
         }
 
         if (self::$testDoxResultPrinter !== null && $testDoxResult !== null) {
-            self::$testDoxResultPrinter->print($testDoxResult);
+            self::$testDoxResultPrinter->print($result, $testDoxResult);
         }
 
         if (self::$defaultResultPrinter !== null) {
-            self::$defaultResultPrinter->print($result);
+            self::$defaultResultPrinter->print($result, $stackTraceForDeprecations);
         }
 
         if (self::$summaryPrinter !== null) {
@@ -112,7 +108,7 @@ final class Facade
     public static function printerFor(string $target): Printer
     {
         if ($target === 'php://stdout') {
-            if (!self::$printer instanceof NullPrinter) {
+            if (self::$printer !== null && !self::$printer instanceof NullPrinter) {
                 return self::$printer;
             }
 
@@ -204,9 +200,10 @@ final class Facade
         if ($configuration->outputIsTestDox()) {
             self::$defaultResultPrinter = new DefaultResultPrinter(
                 self::$printer,
-                true,
-                true,
                 $configuration->displayDetailsOnPhpunitDeprecations() || $configuration->displayDetailsOnAllIssues(),
+                true,
+                $configuration->displayDetailsOnPhpunitNotices() || $configuration->displayDetailsOnAllIssues(),
+                true,
                 false,
                 false,
                 true,
@@ -224,6 +221,8 @@ final class Facade
             self::$testDoxResultPrinter = new TestDoxResultPrinter(
                 self::$printer,
                 $configuration->colors(),
+                $configuration->columns(),
+                $configuration->testDoxOutputWithSummary(),
             );
         }
 
@@ -237,9 +236,10 @@ final class Facade
 
         self::$defaultResultPrinter = new DefaultResultPrinter(
             self::$printer,
-            true,
-            true,
             $configuration->displayDetailsOnPhpunitDeprecations() || $configuration->displayDetailsOnAllIssues(),
+            true,
+            $configuration->displayDetailsOnPhpunitNotices() || $configuration->displayDetailsOnAllIssues(),
+            true,
             true,
             true,
             true,
@@ -268,10 +268,6 @@ final class Facade
         );
     }
 
-    /**
-     * @throws EventFacadeIsSealedException
-     * @throws UnknownSubscriberTypeException
-     */
     private static function createUnexpectedOutputPrinter(): void
     {
         assert(self::$printer !== null);

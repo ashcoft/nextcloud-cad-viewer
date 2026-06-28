@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Psalm\Internal\Analyzer;
 
+use Attribute;
 use InvalidArgumentException;
 use LogicException;
 use PhpParser;
@@ -30,7 +33,7 @@ final class InterfaceAnalyzer extends ClassLikeAnalyzer
     public function __construct(
         PhpParser\Node\Stmt\Interface_ $interface,
         SourceAnalyzer $source,
-        string $fq_interface_name
+        string $fq_interface_name,
     ) {
         parent::__construct($interface, $source, $fq_interface_name);
     }
@@ -72,7 +75,7 @@ final class InterfaceAnalyzer extends ClassLikeAnalyzer
 
                 try {
                     $extended_interface_storage = $codebase->classlike_storage_provider->get($extended_interface_name);
-                } catch (InvalidArgumentException $e) {
+                } catch (InvalidArgumentException) {
                     continue;
                 }
 
@@ -144,7 +147,7 @@ final class InterfaceAnalyzer extends ClassLikeAnalyzer
             $interface_context,
             $class_storage,
             $this->class->attrGroups,
-            AttributesAnalyzer::TARGET_CLASS,
+            Attribute::TARGET_CLASS,
             $class_storage->suppressed_issues + $this->getSuppressedIssues(),
         );
 
@@ -181,6 +184,11 @@ final class InterfaceAnalyzer extends ClassLikeAnalyzer
                     );
                 }
             } elseif ($stmt instanceof PhpParser\Node\Stmt\Property) {
+                // PHP 8.4+ allows interface properties with hooks
+                if ($codebase->analysis_php_version_id >= 8_04_00 && !empty($stmt->hooks)) {
+                    continue;
+                }
+
                 IssueBuffer::maybeAdd(
                     new ParseError(
                         'Interfaces cannot have properties',
@@ -214,6 +222,10 @@ final class InterfaceAnalyzer extends ClassLikeAnalyzer
                 }
             }
         }
+
+        $pseudo_methods = $class_storage->pseudo_methods + $class_storage->pseudo_static_methods;
+
+        MethodComparator::comparePseudoMethods($pseudo_methods, $this->fq_class_name, $codebase, $class_storage);
 
         $statements_analyzer = new StatementsAnalyzer($this, new NodeDataProvider());
         $statements_analyzer->analyze($member_stmts, $interface_context, null, true);
