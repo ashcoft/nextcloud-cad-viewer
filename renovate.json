@@ -34,10 +34,9 @@
       ]
     },
     {
-      "description": "Allow PHPUnit major updates",
+      "description": "Skip phpunit update - v13.2.1 requires sebastian/diff ^9.0 but vimeo/psalm only supports ^8.0",
       "matchPackageNames": ["phpunit/phpunit"],
-      "separateMajorMinor": false,
-      "groupName": "phpunit"
+      "enabled": false
     },
     {
       "description": "Disable updates for locked versions in overrides",
