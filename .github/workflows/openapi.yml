@@ -3,6 +3,11 @@
 # https://github.com/nextcloud/.github
 # https://docs.github.com/en/actions/learn-github-actions/sharing-workflows-with-your-organization
 #
+# SECURITY: This workflow uses the 'pull_request' trigger (unprivileged) for processing PR code.
+# This is part of the "Split Workflow Pattern" to avoid untrusted checkout vulnerabilities.
+#
+# See: https://securitylab.github.com/resources/github-actions-untrusted-input
+#
 # SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
 # SPDX-FileCopyrightText: 2024 Arthur Schiwon <blizzz@arthur-schiwon.de>
 # SPDX-License-Identifier: MIT
@@ -12,10 +17,36 @@ name: OpenAPI
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-on: pull_request
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      path:
+        description: 'Path for OpenAPI files'
+        required: false
+        type: string
+        default: '/'
+      command:
+        description: 'Command to execute (for /openapi command)'
+        required: false
+        type: string
+      pr_number:
+        description: 'PR number for comments'
+        required: false
+        type: string
+      base_ref:
+        description: 'Base branch reference'
+        required: false
+        type: string
+      comment_id:
+        description: 'Comment ID for reactions'
+        required: false
+        type: string
 
 permissions:
   contents: read
+  contents: write
+  pull-requests: write
 
 concurrency:
   group: openapi-${{ github.head_ref || github.run_id }}
@@ -93,6 +124,36 @@ jobs:
         run: composer run openapi
 
       - name: Check openapi*.json and typescript changes
+        id: check-changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No OpenAPI changes detected"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "OpenAPI changes detected"
+          fi
+
+      - name: Commit changes if triggered by command
+        if: steps.check-changes.outputs.changed == 'true' && inputs.command != ''
+        run: |
+          git config --local user.email 'nextcloud-command@users.noreply.github.com'
+          git config --local user.name 'nextcloud-command'
+          
+          git add ".${{ inputs.path }}"
+
+      - name: Push changes if triggered by command
+        if: steps.check-changes.outputs.changed == 'true' && inputs.command != ''
+        env:
+          # Use GITHUB_TOKEN for push - this is unprivileged for PRs
+          HEAD_REF: ${{ github.head_ref || github.ref_name }}
+        run: |
+          # Configure push URL with token
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git push origin "$HEAD_REF"
+
+      - name: Check openapi*.json and typescript changes
+        if: inputs.command == ''
         run: |
           bash -c "[[ ! \"`git status --porcelain `\" ]] || (echo 'Please run \"composer run openapi\" and commit the openapi*.json files and (if applicable) src/types/openapi/openapi*.ts, see the section \"Show changes on failure\" for details' && exit 1)"
 
@@ -102,3 +163,16 @@ jobs:
           git status
           git --no-pager diff
           exit 1 # make it red to grab attention
+
+      - name: Add success comment if triggered by command
+        if: steps.check-changes.outputs.changed == 'true' && inputs.command != '' && inputs.pr_number != ''
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: parseInt('${{ inputs.pr_number }}'),
+              body: 'OpenAPI types have been regenerated and committed.'
+            });
