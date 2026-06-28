@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
-import { registerFileAction, FileAction } from '@nextcloud/files'
+import { registerFileAction } from '@nextcloud/files'
+import type { IFileAction } from '@nextcloud/files'
 import CadViewerApp from './App.vue'
 import router from './router'
 import CadViewerHandler from './components/ViewerHandler.vue'
@@ -158,21 +159,20 @@ function registerFileActions(): void {
   SUPPORTED_MIMES.forEach((mime) => {
     // NC33+ package API
     try {
-      registerFileAction(
-        new FileAction({
-          id: 'cad-viewer-open',
-          displayName: () => t('cad_viewer', 'Open with CAD Viewer'),
-          iconSvgInline: () => CAD_VIEWER_ICON,
-          enabled: (files) => files.some((f) => f.mime === mime),
-          exec: async (file) => {
-            const fileId = file.attributes.id
-            if (fileId !== undefined) {
-              openInViewer(fileId)
-            }
-            return null
-          },
-        }),
-      )
+      const action: IFileAction = {
+        id: 'cad-viewer-open',
+        displayName: () => t('cad_viewer', 'Open with CAD Viewer'),
+        iconSvgInline: () => CAD_VIEWER_ICON,
+        enabled: ({ nodes }) => nodes.some((node) => node.mime === mime),
+        exec: async ({ nodes }) => {
+          const fileId = nodes[0].id
+          if (fileId !== undefined) {
+            openInViewer(fileId)
+          }
+          return null
+        },
+      }
+      registerFileAction(action)
     } catch {
       // Fall back to OCA global if package API fails
     }
