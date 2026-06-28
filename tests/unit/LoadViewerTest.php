@@ -69,6 +69,7 @@ class LoadViewerTest extends TestCase
     private function _makeBeforeTemplateRenderedEvent(
         string $appName,
     ): BeforeTemplateRenderedEvent {
+        // Create an anonymous response stub
         $response = new class ($appName) {
             public function __construct(private readonly string $app)
             {
@@ -79,18 +80,28 @@ class LoadViewerTest extends TestCase
                 return $this->app;
             }
 
+            /**
+             * Get the render context.
+             *
+             * @return string
+             */
             public function getRenderAs(): string
             {
                 return 'user';
             }
 
+            /**
+             * Get the template name.
+             *
+             * @return string
+             */
             public function getTemplateName(): string
             {
                 return 'main';
             }
         };
 
-        $event = new BeforeTemplateRenderedEvent(); // $login defaults to false ✓
+        $event = new BeforeTemplateRenderedEvent(); // $login defaults to false
         $event->setResponse($response);
         return $event;
     }
