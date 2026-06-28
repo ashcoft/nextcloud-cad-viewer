@@ -12,7 +12,6 @@ jobs:
   create-changeset:
     name: Create Changeset
     runs-on: ubuntu-latest
-    # Only run when a Dependabot PR is merged
     if: |
       github.event.pull_request.merged == true &&
       github.event.pull_request.user.login == 'dependabot[bot]'
@@ -20,8 +19,11 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: Checkout
+      - name: Checkout main branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
@@ -32,8 +34,8 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
-      - name: Install changeset CLI
-        run: pnpm add -D @changesets/cli
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Get PR info
         id: pr_info
@@ -46,7 +48,6 @@ jobs:
         run: |
           TITLE="${{ github.event.pull_request.title }}"
           
-          # Determine bump type based on PR title
           if echo "$TITLE" | grep -qi "major\|breaking"; then
             echo "type=major" >> $GITHUB_OUTPUT
           elif echo "$TITLE" | grep -qi "minor\|feat\|feature"; then
@@ -64,34 +65,25 @@ jobs:
           FILENAME=".changeset/dependabot-${PR_NUMBER}-${TIMESTAMP}.md"
           
           # Get package name from package.json
-          PACKAGE_NAME=$(grep '"name"' package.json | head -1 | sed 's/.*"name": *"\([^"]*\)".*/\1/')
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
           
-          cat > "$FILENAME" << 'EOF'
+          cat > "$FILENAME" << EOF
 ---
-"${PACKAGE_NAME}": ${BUMP_TYPE}
+"$PACKAGE_NAME": $BUMP_TYPE
 ---
 
-Automated dependency update via Dependabot
+Automated dependency update via Dependabot PR #$PR_NUMBER
 EOF
-          
-          # Use env var expansion properly
-          sed -i "s/\${PACKAGE_NAME}/$PACKAGE_NAME/g" "$FILENAME"
-          sed -i "s/\${BUMP_TYPE}/$BUMP_TYPE/g" "$FILENAME"
           
           echo "file=$FILENAME" >> $GITHUB_OUTPUT
           echo "Created changeset file: $FILENAME"
           echo "Bump type: $BUMP_TYPE"
           echo "Package: $PACKAGE_NAME"
 
-      - name: Commit changeset
+      - name: Commit and push changeset
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .changeset/
           git commit -m "chore: add changeset for Dependabot #${{ github.event.pull_request.number }}"
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+          git push origin main
