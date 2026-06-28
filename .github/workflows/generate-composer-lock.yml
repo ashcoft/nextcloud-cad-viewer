@@ -20,7 +20,7 @@ jobs:
         run: composer update --no-interaction --ignore-platform-reqs
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@6a5ead5dee2f3fd20c60bed9c47a0777b1aad2a3 # v7.0.0
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: 'chore: regenerate composer.lock'
