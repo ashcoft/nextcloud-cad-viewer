@@ -154,7 +154,7 @@ jobs:
         if: steps.check-changes.outputs.changed == 'true' && inputs.command != ''
         env:
           # Use GITHUB_TOKEN for push - this is unprivileged for PRs
-          HEAD_REF: ${{ github.head_ref || inputs.pr_number }}
+          HEAD_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           # Configure push URL with token
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
