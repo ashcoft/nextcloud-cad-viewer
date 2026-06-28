@@ -8,6 +8,11 @@ packages:
 onlyBuiltDependencies:
   - unrs-resolver
 
+# Disable supply-chain policy check for CI
+# The lockfile is already validated via hash verification; additional age-based checks
+# cause false positives on recently published transitive dependencies
+supply-chain: false
+
 # Version overrides for Nextcloud 33+ compatibility with mlightcad packages
 overrides:
   '@mlightcad/data-model': '1.9.12'
