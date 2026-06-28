@@ -5586,7 +5586,7 @@ snapshots:
       camelcase: 5.3.1
       find-up: 4.1.0
       get-package-type: 0.1.0
-      js-yaml: 3.15.0
+      js-yaml: 4.3.0
       resolve-from: 5.0.0
 
   '@istanbuljs/schema@0.1.6': {}
@@ -8389,7 +8389,7 @@ snapshots:
   read-yaml-file@1.1.0:
     dependencies:
       graceful-fs: 4.2.11
-      js-yaml: 3.15.0
+      js-yaml: 4.3.0
       pify: 4.0.1
       strip-bom: 3.0.0
 
