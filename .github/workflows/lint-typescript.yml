@@ -95,7 +95,7 @@ jobs:
       - name: Summary status
         run: |
           if [[ "${{ needs.changes.outputs.src }}" != "false" ]]; then
-            result="${{ needs.lint.result }}"
+            result="${{ needs.test.result }}"
             if [[ "$result" != "success" && "$result" != "skipped" && -n "$result" ]]; then
               exit 1
             fi
