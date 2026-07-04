@@ -67,7 +67,7 @@ jobs:
         env:
           CYPRESS_INSTALL_BINARY: 0
         run: |
-          pnpm install --frozen-lockfile
+          pnpm install
           composer install --no-dev --optimize-autoloader
 
       - name: Get current version
@@ -86,7 +86,7 @@ jobs:
         run: |
           pnpm version ${{ github.event.inputs.version }} --no-git-tag-version --no-commit-hooks || true
           sed -i "s|<version>[^<]*</version>|<version>${{ github.event.inputs.version }}</version>|" appinfo/info.xml
-          pnpm install --frozen-lockfile
+          pnpm install
 
       - name: Build Nextcloud App
         if: ${{ !github.event.inputs.skip_build }}

@@ -87,7 +87,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pnpm install --frozen-lockfile
+          pnpm install
           composer install --no-dev --optimize-autoloader
 
       - name: Build
