@@ -47,7 +47,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@c60d18e86d6a3b2e1ad16f0c1a6a6c7f3c9b8f6 # v2.37.2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: ${{ steps.php-version.outputs.version }}
           coverage: none
