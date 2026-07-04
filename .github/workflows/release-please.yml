@@ -7,9 +7,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 concurrency:
   group: release-please-${{ github.ref }}
@@ -46,21 +43,7 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
-      - name: Release Please (PR Mode)
-        if: github.event_name == 'pull_request'
-        id: release-please
-        uses: google-github-actions/release-please-action@a791c45a14f1a7e99c5934e5fc76c2ff70c6e2f5 # v7.0.2
-        with:
-          release-type: node
-          package-name: nextcloud-cad-viewer
-          monorepo-tags: false
-          default-branch: main
-          target-branch: main
-          changelog-types: |
-            [{"type":"feat","section":"Features","hidden":false},{"type":"fix","section":"Bug Fixes","hidden":false},{"type":"chore","section":"Maintenance","hidden":false},{"type":"docs","section":"Documentation","hidden":false},{"type":"refactor","section":"Refactoring","hidden":false},{"type":"perf","section":"Performance","hidden":false},{"type":"test","section":"Testing","hidden":false},{"type":"ci","section":"CI/CD","hidden":false},{"type":"build","section":"Build System","hidden":false},{"type":"deps","section":"Dependencies","hidden":false},{"type":"security","section":"Security","hidden":true}]
-
-      - name: Release Please (Release Mode)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Release Please
         id: release-please
         uses: google-github-actions/release-please-action@a791c45a14f1a7e99c5934e5fc76c2ff70c6e2f5 # v7.0.2
         with:
