@@ -42,52 +42,25 @@ clean:
 
 $(app_dir):
 	mkdir -p $(app_dir)
-	rsync -a \
-		--exclude=.git \
-		--exclude=.github \
-		--exclude=.gitignore \
-		--exclude=.editorconfig \
-		--exclude=.php-cs-fixer.dist.php \
-		--exclude=.php-cs-fixer.cache \
-		--exclude=.reuse \
-		--exclude=LICENSES \
-		--exclude=node_modules \
-		--exclude=src \
-		--exclude=tests \
-		--exclude=vendor-bin \
-		--exclude=docs \
-		--exclude=wiki \
-		--exclude=Makefile \
-		--exclude=composer.json \
-		--exclude=composer.lock \
-		--exclude=package.json \
-		--exclude=pnpm-lock.yaml \
-		--exclude=tsconfig.json \
-		--exclude=webpack.config.js \
-		--exclude=babel.config.js \
-		--exclude=eslint.config.js \
-		--exclude=jest.config.js \
-		--exclude=phpstan.neon \
-		--exclude=psalm.xml \
-		--exclude=rector.php \
-		--exclude=stylelint.config.js \
-		--exclude=sonar-project.properties \
-		--exclude=commitlint.config.js \
-		--exclude=AGENTS.md \
-		--exclude=playwright.config.ts \
-		--exclude=playwright-report \
-		--exclude=test-results \
-		--exclude=build \
-		--exclude=openapi.json \
-		--exclude='*.tar.gz' \
-		--exclude='*.zip' \
-		./ $(app_dir)/
+	# Use tar to copy files (excludes built-in tar exclusions for .* files)
+	tar --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='src' \
+		--exclude='tests' --exclude='vendor-bin' --exclude='docs' --exclude='wiki' \
+		--exclude='build' \
+		--exclude='*.tar.gz' --exclude='*.zip' \
+		-cf - . | tar -xf - -C $(app_dir)
+	# Copy specific files that are needed (not excluded above)
+	cp composer.json composer.lock package.json pnpm-lock.yaml tsconfig.json $(app_dir)/ 2>/dev/null || true
+	# Ensure proper permissions
 	find $(app_dir) -type d -exec chmod 755 {} +
 	find $(app_dir) -type f -exec chmod 644 {} +
 
 appstore: $(app_dir)
 	cd $(build_dir) && tar -czf $(app_id).tar.gz --owner=www-data --group=www-data $(app_id)
-	cd $(build_dir) && zip -r $(app_id).zip $(app_id)
+	@if command -v zip >/dev/null 2>&1; then \
+		cd $(build_dir) && zip -r $(app_id).zip $(app_id); \
+	else \
+		echo "Warning: zip not installed, skipping zip archive"; \
+	fi
 
 source:
 	mkdir -p $(build_dir)
