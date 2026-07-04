@@ -65,7 +65,7 @@ jobs:
           persist-credentials: false
 
       - name: Read package.json node and npm engines version
-        uses: skjnldsv/read-package-engines-version-actions@4d14dc255cc4ac6d7237ad1f6af2614b4428e6fe # v3
+        uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
         id: versions
         with:
           fallbackNode: '^24'
