@@ -45,7 +45,7 @@ $(app_dir):
 	# Use tar to copy files (excludes built-in tar exclusions for .* files)
 	tar --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='src' \
 		--exclude='tests' --exclude='vendor-bin' --exclude='docs' --exclude='wiki' \
-		--exclude='build' --exclude='vendor' \
+		--exclude='build' \
 		--exclude='*.tar.gz' --exclude='*.zip' \
 		-cf - . | tar -xf - -C $(app_dir)
 	# Copy specific files that are needed (not excluded above)
