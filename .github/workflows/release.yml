@@ -1,16 +1,25 @@
 # SPDX-FileCopyrightText: 2024 ashcoft
 # SPDX-License-Identifier: MIT
 
-name: Release
+name: Release (Manual)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.changeset/**'
+  # DISABLED on push - use release-please.yml for automatic releases
+  # This workflow is for manual/on-demand releases only to avoid race conditions
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version for release (optional, e.g., 1.0.0)'
+        required: false
+        type: string
+      skip_build:
+        description: 'Skip build step'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-manual-${{ github.run_id }}
   cancel-in-progress: true
 
 permissions:
@@ -47,7 +56,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        uses: shivammathur/setup-php@v2 # v2.37.2
         with:
           php-version: ${{ steps.php-version.outputs.version }}
           coverage: none
@@ -62,24 +71,23 @@ jobs:
       - name: Get current version
         id: version
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=$(node -p "require('./package.json').version")
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=v$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Version bump with Changesets
-        id: changeset
+      - name: Update version files if specified
+        if: ${{ github.event.inputs.version }}
         run: |
-          pnpm changeset version
-
-      - name: Sync version to info.xml
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
-
-      - name: Install dependencies after version bump
-        run: pnpm install --frozen-lockfile
+          pnpm version ${{ github.event.inputs.version }} --no-git-tag-version --no-commit-hooks || true
+          sed -i "s|<version>[^<]*</version>|<version>${{ github.event.inputs.version }}</version>|" appinfo/info.xml
+          pnpm install --frozen-lockfile
 
       - name: Build Nextcloud App
+        if: ${{ !github.event.inputs.skip_build }}
         env:
           CYPRESS_INSTALL_BINARY: 0
         run: |
@@ -88,9 +96,8 @@ jobs:
           make appstore
 
       - name: Create Release on GitHub
-        id: create_release
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          VERSION="${{ steps.version.outputs.version }}"
           gh release create "v${VERSION}" \
             --title "Release v${VERSION}" \
             --notes "Release v${VERSION}" \
@@ -101,7 +108,7 @@ jobs:
 
       - name: Upload release assets
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          VERSION="${{ steps.version.outputs.version }}"
           APP_NAME="cad_viewer"
           
           # Upload tar.gz
@@ -121,17 +128,3 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Commit and push version bump
-        run: |
-          git add -A
-          
-          # Check if there are changes to commit
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git config --local user.email "github-actions[bot]@users.noreply.github.com"
-            git config --local user.name "github-actions[bot]"
-            git commit -m "chore: version bump"
-            git push
-          fi
