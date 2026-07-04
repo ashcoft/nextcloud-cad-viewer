@@ -89,7 +89,7 @@ jobs:
         run: |
           VERSION=${{ steps.version.outputs.version }}
           echo "Updating appinfo/info.xml to version $VERSION"
-          sed -i "s|<version>[0-9.]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
+          sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
           cat appinfo/info.xml | grep -E '<version>|<id>'
           git diff appinfo/info.xml
 
