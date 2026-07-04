@@ -141,4 +141,4 @@ jobs:
           sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
           git add appinfo/info.xml
           git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" commit -m "chore: sync version to info.xml" || true
-          git push || true
+          git push
