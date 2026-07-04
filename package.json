@@ -13,6 +13,11 @@
     "node": ">=24",
     "pnpm": ">=9"
   },
+  "pnpm": {
+    "overrides": {
+      "@mlightcad/data-model": "1.10.2"
+    }
+  },
   "scripts": {
     "changeset": "changeset",
     "version-packages": "changeset version",
@@ -41,6 +46,7 @@
   },
   "devDependencies": {
     "@babel/core": "^8.0.0",
+    "@babel/plugin-syntax-typescript": "^8.0.3",
     "@babel/preset-env": "^8.0.0",
     "@babel/preset-typescript": "^8.0.0",
     "@changesets/changelog-github": "^0.7.0",

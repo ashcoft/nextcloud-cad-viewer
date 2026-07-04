@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const { VueLoaderPlugin } = require('vue-loader');
 
 module.exports = {
@@ -16,16 +17,29 @@ module.exports = {
       {
         test: /\.vue$/,
         loader: 'vue-loader',
+        options: {
+          esModule: true,
+        },
       },
       {
-        // Handles .ts, .tsx, .js, .jsx — including <script lang="ts"> blocks from vue-loader
+        // Use ts-loader for TypeScript transpilation
+        test: /\.ts$/,
+        loader: 'ts-loader',
+        options: {
+          transpileOnly: true,
+          appendTsSuffixTo: [/\.vue$/],
+          happyPackMode: true,
+        },
+        exclude: /node_modules/,
+      },
+      {
+        // Handles .js, .jsx (excluding .ts and .vue)
         test: /\.[jt]sx?$/,
         loader: 'babel-loader',
-        // Still apply fullySpecified: false to all JS/TS files to handle mlightcad issues
         resolve: {
           fullySpecified: false,
         },
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /\.vue$/, /\.ts$/],
       },
       {
         test: /\.m?js$/,
@@ -45,8 +59,23 @@ module.exports = {
   },
   plugins: [
     new VueLoaderPlugin(),
+    // Redirect mlightcad plugin register paths to empty polyfill
+    new webpack.NormalModuleReplacementPlugin(
+      /@mlightcad\/cad-html-plugin\/register/,
+      path.resolve(__dirname, 'src/polyfills/empty.js')
+    ),
+    new webpack.NormalModuleReplacementPlugin(
+      /@mlightcad\/cad-svg-plugin\/register/,
+      path.resolve(__dirname, 'src/polyfills/empty.js')
+    ),
+    new webpack.NormalModuleReplacementPlugin(
+      /@mlightcad\/cad-pdf-plugin\/register/,
+      path.resolve(__dirname, 'src/polyfills/empty.js')
+    ),
   ],
   resolve: {
+    // Allow resolving modules from root node_modules even when in nested paths
+    modules: ['node_modules', path.resolve(__dirname, 'node_modules')],
     extensions: ['.ts', '.tsx', '.js', '.vue', '.json'],
     alias: {
       'vue$': 'vue/dist/vue.esm-bundler.js',
@@ -59,8 +88,11 @@ module.exports = {
       // Optional plugins for @mlightcad/cad-viewer 1.5.2+
       // These are peer dependencies marked as optional
       '@mlightcad/cad-pdf-plugin': path.resolve(__dirname, 'src/polyfills/empty.js'),
+      '@mlightcad/cad-pdf-plugin/register': path.resolve(__dirname, 'src/polyfills/empty.js'),
       '@mlightcad/cad-svg-plugin': path.resolve(__dirname, 'src/polyfills/empty.js'),
+      '@mlightcad/cad-svg-plugin/register': path.resolve(__dirname, 'src/polyfills/empty.js'),
       '@mlightcad/cad-html-plugin': path.resolve(__dirname, 'src/polyfills/empty.js'),
+      '@mlightcad/cad-html-plugin/register': path.resolve(__dirname, 'src/polyfills/empty.js'),
     },
   },
   performance: {
