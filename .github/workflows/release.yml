@@ -47,7 +47,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@v2 # v2.37.2
+        uses: shivammathur/setup-php@c60d18e86d6a3b2e1ad16f0c1a6a6c7f3c9b8f6 # v2.37.2
         with:
           php-version: ${{ steps.php-version.outputs.version }}
           coverage: none
@@ -74,7 +74,7 @@ jobs:
       - name: Sync version to info.xml
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          sed -i "s|<version>[0-9.]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
+          sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
 
       - name: Install dependencies after version bump
         run: pnpm install --frozen-lockfile
@@ -91,14 +91,9 @@ jobs:
         id: create_release
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          
-          # Get changelog for this release
-          CHANGELOG=$(pnpm changeset status --verbose 2>/dev/null | tail -n +4 | head -n -1 || echo "Release v${VERSION}")
-          
-          # Create release with tag
           gh release create "v${VERSION}" \
             --title "Release v${VERSION}" \
-            --notes "$CHANGELOG" \
+            --notes "Release v${VERSION}" \
             --draft false \
             --latest true
         env:
@@ -113,12 +108,16 @@ jobs:
           TARBALL="build/artifacts/${APP_NAME}.tar.gz"
           if [ -f "$TARBALL" ]; then
             gh release upload "v${VERSION}" "$TARBALL" --clobber
+          else
+            echo "Warning: $TARBALL not found"
           fi
           
           # Upload zip
           ZIPFILE="build/artifacts/${APP_NAME}.zip"
           if [ -f "$ZIPFILE" ]; then
             gh release upload "v${VERSION}" "$ZIPFILE" --clobber
+          else
+            echo "Warning: $ZIPFILE not found"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

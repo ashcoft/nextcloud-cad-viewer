@@ -12,7 +12,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  actions: read
 
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
@@ -46,7 +45,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@v2 # v2.37.2
+        uses: shivammathur/setup-php@c60d18e86d6a3b2e1ad16f0c1a6a6c7f3c9b8f6 # v2.37.2
         with:
           php-version: ${{ steps.php-version.outputs.version }}
           coverage: none
@@ -98,7 +97,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Set up PHP 8.4
-        uses: shivammathur/setup-php@v2 # v2.37.2
+        uses: shivammathur/setup-php@c60d18e86d6a3b2e1ad16f0c1a6a6c7f3c9b8f6 # v2.37.2
         with:
           php-version: 8.4
           coverage: none
@@ -125,13 +124,7 @@ jobs:
         run: |
           VERSION="${{ needs.release-please.outputs.version }}"
           TARBALL="build/artifacts/${APP_NAME}.tar.gz"
-          
-          if [ -f "$TARBALL" ]; then
-            gh release upload "v${VERSION}" "$TARBALL" --clobber
-            echo "Uploaded: $TARBALL"
-          else
-            echo "Warning: $TARBALL not found"
-          fi
+          gh release upload "v${VERSION}" "$TARBALL" --clobber || echo "Warning: $TARBALL upload failed"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -139,20 +132,14 @@ jobs:
         run: |
           VERSION="${{ needs.release-please.outputs.version }}"
           ZIPFILE="build/artifacts/${APP_NAME}.zip"
-          
-          if [ -f "$ZIPFILE" ]; then
-            gh release upload "v${VERSION}" "$ZIPFILE" --clobber
-            echo "Uploaded: $ZIPFILE"
-          else
-            echo "Warning: $ZIPFILE not found"
-          fi
+          gh release upload "v${VERSION}" "$ZIPFILE" --clobber || echo "Warning: $ZIPFILE upload failed"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Sync version to info.xml
         run: |
           VERSION="${{ needs.release-please.outputs.version }}"
-          sed -i "s|<version>[0-9.]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
+          sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
           git add appinfo/info.xml
           git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" commit -m "chore: sync version to info.xml" || true
           git push || true
