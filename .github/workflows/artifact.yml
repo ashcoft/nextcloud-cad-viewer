@@ -32,11 +32,6 @@ on:
       - 'appinfo/**'
       - 'img/**'
 
-permissions:
-  contents: read
-  pull-requests: read
-  actions: write
-
 concurrency:
   group: build-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
@@ -49,6 +44,9 @@ jobs:
   build:
     name: Build App Package
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -63,7 +61,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Set up PHP 8.4
-        uses: shivammathur/setup-php@v2 # v2.37.2
+        uses: shivammathur/setup-php@c60d18e86d6a3b2e1ad16f0c1a6a6c7f3c9b8f6 # v2.37.2
         with:
           php-version: 8.4
           coverage: none
@@ -82,7 +80,7 @@ jobs:
         if: ${{ github.event.inputs.version }}
         run: |
           pnpm version ${{ github.event.inputs.version }} --no-git-tag-version --no-commit-hooks
-          sed -i "s|<version>.*</version>|<version>${{ github.event.inputs.version }}</version>|g" appinfo/info.xml
+          sed -i "s|<version>[^<]*</version>|<version>${{ github.event.inputs.version }}</version>|g" appinfo/info.xml
 
       - name: Install dependencies
         run: |
@@ -113,20 +111,22 @@ jobs:
 
       - name: Upload to GitHub Release
         if: ${{ github.event.inputs.upload_release }}
+        permissions:
+          contents: write
         run: |
-          TAG="${{ github.event.inputs.upload_release }}"
+          echo "Uploading artifacts to release ${{ github.event.inputs.upload_release }}"
           APP_NAME="cad_viewer"
           
           # Upload tar.gz
           TARBALL="build/artifacts/${APP_NAME}.tar.gz"
           if [ -f "$TARBALL" ]; then
-            gh release upload "$TAG" "$TARBALL" --clobber
+            gh release upload "${{ github.event.inputs.upload_release }}" "$TARBALL" --clobber
           fi
           
           # Upload zip
           ZIPFILE="build/artifacts/${APP_NAME}.zip"
           if [ -f "$ZIPFILE" ]; then
-            gh release upload "$TAG" "$ZIPFILE" --clobber
+            gh release upload "${{ github.event.inputs.upload_release }}" "$ZIPFILE" --clobber
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
