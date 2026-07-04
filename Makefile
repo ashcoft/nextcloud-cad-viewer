@@ -34,7 +34,7 @@ lint-fix:
 	composer run cs:fix
 
 npm-init:
-	pnpm install --frozen-lockfile
+	npx -y pnpm@9.3.0 install --frozen-lockfile
 
 clean:
 	rm -rf $(build_dir)
