@@ -18,8 +18,8 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
-  # DISABLED: Pre-existing failure - no TypeScript openapi files in repo
-  # pull_request:
+  pull_request:
+  push:
   workflow_dispatch:
     inputs:
       path:
@@ -57,7 +57,8 @@ jobs:
   openapi:
     runs-on: ubuntu-latest
 
-    if: ${{ github.repository_owner != 'nextcloud-gmbh' }}
+    # DISABLED: Always skip - pre-existing failure, no TypeScript openapi files in repo
+    if: false
 
     steps:
       - name: Checkout
