@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2024 ashcoft
 # SPDX-License-Identifier: MIT
 
-name: Release Please
+name: Release
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - main
 
 concurrency:
-  group: release-please-${{ github.ref }}
+  group: release-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -54,10 +54,82 @@ jobs:
           changelog-types: |
             [{"type":"feat","section":"Features","hidden":false},{"type":"fix","section":"Bug Fixes","hidden":false},{"type":"chore","section":"Maintenance","hidden":false},{"type":"docs","section":"Documentation","hidden":false},{"type":"refactor","section":"Refactoring","hidden":false},{"type":"perf","section":"Performance","hidden":false},{"type":"test","section":"Testing","hidden":false},{"type":"ci","section":"CI/CD","hidden":false},{"type":"build","section":"Build System","hidden":false},{"type":"deps","section":"Dependencies","hidden":false},{"type":"security","section":"Security","hidden":true}]
 
+  update-version:
+    name: Update Version Files
+    runs-on: ubuntu-latest
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
+
+      - name: Setup Git config
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=${{ needs.release-please.outputs.version }}
+          if [ -z "$VERSION" ]; then
+            VERSION=$(node -p "require('./package.json').version")
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Update appinfo/info.xml
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          echo "Updating appinfo/info.xml to version $VERSION"
+          sed -i "s|<version>[0-9.]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
+          cat appinfo/info.xml | grep -E '<version>|<id>'
+          git diff appinfo/info.xml
+
+      - name: Update package.json
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          echo "Updating package.json to version $VERSION"
+          # Use node to safely update package.json
+          node -e "
+            const pkg = require('./package.json');
+            pkg.version = '$VERSION';
+            require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          cat package.json | grep '"version"'
+          git diff package.json | head -20
+
+      - name: Update .release-please-manifest.json
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          echo "Updating .release-please-manifest.json to version $VERSION"
+          echo "{\"nextcloud-cad-viewer\": \"$VERSION\"}" > .release-please-manifest.json
+          cat .release-please-manifest.json
+          git diff .release-please-manifest.json
+
+      - name: Commit version updates
+        run: |
+          TAG=${{ steps.version.outputs.tag }}
+          if git diff --quiet; then
+            echo "No version changes to commit"
+          else
+            echo "Committing version updates"
+            git add appinfo/info.xml package.json .release-please-manifest.json
+            git commit -m "chore(release): update version to $TAG"
+            git tag -a $TAG -m "$TAG" || true
+            git push origin main
+            git push origin $TAG || true
+          fi
+
   build-and-release:
     name: Build & Release App Package
     runs-on: ubuntu-latest
-    needs: release-please
+    needs: [release-please, update-version]
     if: needs.release-please.outputs.release_created == 'true'
     steps:
       - name: Checkout
@@ -87,18 +159,25 @@ jobs:
       - name: Get version from release
         id: version
         run: |
-          VERSION=${{ needs.release-please.outputs.version }}
+          VERSION=${{ needs.update-version.outputs.version }}
+          if [ -z "$VERSION" ]; then
+            VERSION=${{ needs.release-please.outputs.version }}
+          fi
           if [ -z "$VERSION" ]; then
             VERSION=$(node -p "require('./package.json').version")
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+          echo "Using version: $VERSION"
 
-      - name: Sync version to appinfo/info.xml
+      - name: Sync version to appinfo/info.xml (fallback)
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          sed -i "s|<version>[0-9.]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
-          cat appinfo/info.xml | grep version
+          CURRENT=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml)
+          if [ "$CURRENT" != "$VERSION" ]; then
+            echo "Syncing appinfo/info.xml from $CURRENT to $VERSION"
+            sed -i "s|<version>[0-9.]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
+          fi
 
       - name: Install dependencies
         env:
