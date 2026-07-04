@@ -84,29 +84,19 @@ jobs:
         with:
           files: "src/types/openapi/openapi*.ts"
 
-      - name: Read package.json node and npm engines version
-        if: steps.check_typescript_openapi.outputs.files_exists == 'true'
-        uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
-        id: node_versions
-        # Continue if no package.json
-        continue-on-error: true
-        with:
-          fallbackNode: '^24'
-          fallbackNpm: '^11.3'
-
       - name: Setup pnpm
-        if: ${{ steps.node_versions.outputs.nodeVersion }}
+        if: steps.check_typescript_openapi.outputs.files_exists == 'true'
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
 
-      - name: Set up node ${{ steps.node_versions.outputs.nodeVersion }}
-        if: ${{ steps.node_versions.outputs.nodeVersion }}
+      - name: Set up Node.js
+        if: steps.check_typescript_openapi.outputs.files_exists == 'true'
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: ${{ steps.node_versions.outputs.nodeVersion }}
+          node-version: '24'
           cache: pnpm
 
       - name: Install dependencies
-        if: ${{ steps.node_versions.outputs.nodeVersion }}
+        if: steps.check_typescript_openapi.outputs.files_exists == 'true'
         env:
           CYPRESS_INSTALL_BINARY: 0
           PUPPETEER_SKIP_DOWNLOAD: true
