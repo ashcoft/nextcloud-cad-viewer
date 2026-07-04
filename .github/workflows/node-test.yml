@@ -8,9 +8,6 @@
 
 name: Node tests
 
-env:
-  # Allow Node 20 instead of forcing Node 24
-
 on:
   pull_request:
   push:
