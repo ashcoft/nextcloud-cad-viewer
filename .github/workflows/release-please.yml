@@ -45,7 +45,7 @@ jobs:
 
       - name: Release Please
         id: release-please
-        uses: google-github-actions/release-please-action@v4.1.1
+        uses: googleapis/release-please-action@v4.1.1
         with:
           release-type: node
           package-name: nextcloud-cad-viewer
