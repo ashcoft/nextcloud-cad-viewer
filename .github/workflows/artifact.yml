@@ -11,13 +11,18 @@ on:
         required: false
         type: string
       upload_release:
-        description: 'Upload to GitHub Release (provide tag)'
+        description: 'Upload to GitHub Release (provide tag, e.g., v0.0.9)'
         required: false
         type: string
   push:
     branches: [main]
     paths:
       - 'src/**'
+      - 'lib/**'
+      - 'css/**'
+      - 'templates/**'
+      - 'appinfo/**'
+      - 'img/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'webpack.config.js'
@@ -26,11 +31,6 @@ on:
       - 'Makefile'
       - 'composer.json'
       - 'composer.lock'
-      - 'lib/**'
-      - 'css/**'
-      - 'templates/**'
-      - 'appinfo/**'
-      - 'img/**'
 
 permissions:
   contents: read
@@ -62,7 +62,7 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
-      - name: Set up PHP 8.4
+      - name: Set up PHP
         uses: shivammathur/setup-php@v2 # v2.37.2
         with:
           php-version: 8.4
@@ -116,13 +116,13 @@ jobs:
         run: |
           TAG="${{ github.event.inputs.upload_release }}"
           APP_NAME="cad_viewer"
-          
+
           # Upload tar.gz
           TARBALL="build/artifacts/${APP_NAME}.tar.gz"
           if [ -f "$TARBALL" ]; then
             gh release upload "$TAG" "$TARBALL" --clobber
           fi
-          
+
           # Upload zip
           ZIPFILE="build/artifacts/${APP_NAME}.zip"
           if [ -f "$ZIPFILE" ]; then

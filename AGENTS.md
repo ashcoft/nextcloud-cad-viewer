@@ -119,11 +119,29 @@ pnpm run stylelint    # Stylelint
 
 | Workflow                          | Purpose                              |
 | --------------------------------- | ------------------------------------ |
+| `release-please.yml`             | Auto-release via conventional commits |
+| `artifact.yml`                   | Build Nextcloud app package          |
 | `dependabot-approve-merge.yml`   | Auto-approve and merge Dependabot PRs|
 | `lint-*.yml`                      | Code quality checks                  |
 | `phpunit-*.yml`                   | PHP unit tests                       |
 | `node-test.yml`                   | Frontend tests                       |
 | `openapi.yml`                     | API documentation generation         |
+
+### Release Process
+
+Releases use [release-please-action](https://github.com/google-github-actions/release-please-action) with conventional commits:
+
+1. **PR titles** determine release type (feat=minor, fix=patch, feat! or BREAKING CHANGE=major)
+2. When PR is merged to `main`, release-please creates a release PR
+3. When release PR is merged, GitHub Release is created and `artifact.yml` builds and uploads app package
+
+Example commit messages:
+```
+feat: add new viewer feature
+fix: resolve rendering issue
+chore: update dependencies
+docs: update README
+```
 
 ---
 
