@@ -1,23 +1,16 @@
-# pnpm v11 configuration
-# In pnpm v11, settings like overrides and allowBuilds must be in pnpm-workspace.yaml
-# (the "pnpm" field in package.json is no longer read)
+# pnpm workspace configuration
 packages:
   - '.'
 
 # Allow build scripts for native dependencies (unrs-resolver)
 # pnpm v11 defaults strictDepBuilds=true which blocks all postinstall scripts
 # until explicitly approved per-package
-allowBuilds:
-  unrs-resolver: true
-
-# Fallback: allow all builds if per-package allowBuilds isn't recognized
-# The lockfile is hash-verified via --frozen-lockfile, so this is safe
-dangerouslyAllowAllBuilds: true
+onlyBuiltDependencies:
+  - unrs-resolver
 
 # Disable supply-chain policy check for CI
 # The lockfile is already validated via hash verification; additional age-based checks
 # cause false positives on recently published transitive dependencies
-# minimumReleaseAge: 0 opts out of the default 1440-minute (1-day) release age check
 minimumReleaseAge: 0
 
 # Version overrides for Nextcloud 33+ compatibility with mlightcad packages
