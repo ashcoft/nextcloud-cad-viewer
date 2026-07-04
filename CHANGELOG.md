@@ -21,6 +21,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Bug Fixes
 
+* address SonarCloud security and permission issues ([6c2d5b4](https://github.com/ashcoft/nextcloud-cad-viewer/commit/6c2d5b47745e2667fdfe3a4cbc0dbce5cea2ff6f))
+* **build:** improve Makefile and release workflow for app archive generation ([10e0747](https://github.com/ashcoft/nextcloud-cad-viewer/commit/10e074750cfc1cece8c92d5f8e801ab0a31dbf0c))
+* **build:** resolve mlightcad optional plugin imports and dxf-json-converter version mismatch ([8c62480](https://github.com/ashcoft/nextcloud-cad-viewer/commit/8c62480104591d87d222ad6743dac09ae81ba95e))
+* **ci:** remove duplicate 'contents' permission in openapi.yml ([f03d457](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f03d457a0ca23edfcf1ebeeee0700989be749db5))
+* dedupe corrupted pnpm-lock.yaml ([a99d21e](https://github.com/ashcoft/nextcloud-cad-viewer/commit/a99d21e33422a2cf9b8a0084c54adb4b75863afa))
+* pin release-please-action to commit SHA for security ([0c97c34](https://github.com/ashcoft/nextcloud-cad-viewer/commit/0c97c34fc2e84a8c5ec5923ac079c22b9b07439b))
+* **security:** use explicit path mapping to avoid path traversal false positive ([8abdad2](https://github.com/ashcoft/nextcloud-cad-viewer/commit/8abdad26e621feb3a989fd277dd6ecd3b4192d5f))
+* update babel preset-typescript options for compatibility ([e5dc991](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e5dc99152e6321ba880f59dcf9f2e09852e3f71e))
+* update read-package-engines-version-actions to latest SHA to fix Node.js 20 deprecation warning ([d5ad953](https://github.com/ashcoft/nextcloud-cad-viewer/commit/d5ad953e5ead0b76dcd2cd93e13d53b7e5ecb38c))
+
+## [0.1.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.1.0...v0.1.1) (2026-07-04)
+
+
+### Bug Fixes
+
 * **build:** resolve mlightcad optional plugin imports and dxf-json-converter version mismatch ([8c62480](https://github.com/ashcoft/nextcloud-cad-viewer/commit/8c62480104591d87d222ad6743dac09ae81ba95e))
 * **ci:** remove duplicate 'contents' permission in openapi.yml ([f03d457](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f03d457a0ca23edfcf1ebeeee0700989be749db5))
 * dedupe corrupted pnpm-lock.yaml ([a99d21e](https://github.com/ashcoft/nextcloud-cad-viewer/commit/a99d21e33422a2cf9b8a0084c54adb4b75863afa))
