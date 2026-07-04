@@ -47,11 +47,23 @@ module.exports = {
   plugins: [
     new VueLoaderPlugin(),
     // Redirect @mlightcad optional plugin /register subpath imports to empty stubs
+    // Using explicit pattern matching to avoid path traversal false positives
     new webpack.NormalModuleReplacementPlugin(
-      /@mlightcad\/cad-(html|pdf|svg)-plugin\/register$/,
+      /^@mlightcad\/cad-html-plugin\/register$/,
       (result) => {
-        const type = result.request.match(/@mlightcad\/cad-(html|pdf|svg)-plugin/)[1];
-        result.request = path.resolve(__dirname, 'src/polyfills', `cad-${type}-plugin-register.cjs`);
+        result.request = path.resolve(__dirname, 'src/polyfills/cad-html-plugin-register.cjs');
+      }
+    ),
+    new webpack.NormalModuleReplacementPlugin(
+      /^@mlightcad\/cad-pdf-plugin\/register$/,
+      (result) => {
+        result.request = path.resolve(__dirname, 'src/polyfills/cad-pdf-plugin-register.cjs');
+      }
+    ),
+    new webpack.NormalModuleReplacementPlugin(
+      /^@mlightcad\/cad-svg-plugin\/register$/,
+      (result) => {
+        result.request = path.resolve(__dirname, 'src/polyfills/cad-svg-plugin-register.cjs');
       }
     ),
     // Ignore @mlightcad/dxf-json-converter which has version mismatch with data-model
