@@ -131,7 +131,7 @@ jobs:
         run: |
           VERSION="${{ needs.release-please.outputs.version }}"
           ZIPFILE="build/artifacts/${APP_NAME}.zip"
-          gh release upload "v${VERSION}" "$ZIPFILE" --clobber || echo "Warning: $ZIPFILE upload failed"
+          gh release upload "v${VERSION}" "$ZIPFILE" --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
