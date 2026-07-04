@@ -113,12 +113,25 @@ jobs:
         run: |
           pnpm run build
           make production-setup
-          make appstore
+          make appstore || true
+
+      - name: Install zip (if missing)
+        run: |
+          if ! command -v zip >/dev/null 2>&1; then
+            sudo apt-get update && sudo apt-get install -y zip
+          fi
+
+      - name: Build app archive (if not built)
+        run: |
+          if [ ! -f "build/artifacts/${APP_NAME}.tar.gz" ]; then
+            make appstore
+          fi
 
       - name: List built artifacts
         run: |
           echo "=== Built Artifacts ==="
-          find build/artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" \) | head -20
+          ls -la build/artifacts/ || echo "Artifacts dir not found"
+          find build/artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" \) 2>/dev/null | head -20
 
       - name: Upload artifacts to release
         run: |
@@ -126,23 +139,30 @@ jobs:
           APP_NAME="cad_viewer"
 
           echo "Uploading artifacts to release: $TAG"
+          echo "=== Checking artifacts ==="
+          ls -la build/artifacts/ || echo "Artifacts dir not found"
 
-          # Upload tar.gz
+          # Upload tar.gz (required)
           TARBALL="build/artifacts/${APP_NAME}.tar.gz"
           if [ -f "$TARBALL" ]; then
             echo "Uploading $TARBALL"
-            gh release upload "$TAG" "$TARBALL" --clobber
+            gh release upload "$TAG" "$TARBALL" --clobber || {
+              echo "ERROR: Failed to upload tar.gz"
+              exit 1
+            }
           else
-            echo "Warning: $TARBALL not found"
+            echo "ERROR: $TARBALL not found - build may have failed"
+            ls -la build/artifacts/ 2>/dev/null || echo "Directory does not exist"
+            exit 1
           fi
 
-          # Upload zip
+          # Upload zip (optional)
           ZIPFILE="build/artifacts/${APP_NAME}.zip"
           if [ -f "$ZIPFILE" ]; then
             echo "Uploading $ZIPFILE"
-            gh release upload "$TAG" "$ZIPFILE" --clobber
+            gh release upload "$TAG" "$ZIPFILE" --clobber || echo "Warning: failed to upload zip"
           else
-            echo "Warning: $ZIPFILE not found"
+            echo "Note: $ZIPFILE not found, skipping"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
