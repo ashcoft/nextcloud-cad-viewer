@@ -12,10 +12,7 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: write
-  pull-requests: write
-  actions: read
+permissions: {}
 
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
@@ -26,6 +23,9 @@ jobs:
     name: Release Please
     runs-on: ubuntu-latest
     if: github.repository_owner == 'ashcoft'
+    permissions:
+      contents: write
+      pull-requests: write
     outputs:
       release_created: ${{ steps.release-please.outputs.release_created }}
       version: ${{ steps.release-please.outputs.version }}
@@ -59,6 +59,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -131,6 +133,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [release-please, update-version]
     if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -151,7 +155,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@v2 # v2.37.2
+        uses: shivammathur/setup-php@cb47f6f06ee14c35f1a4b2f07fe71b369a3c4af3 # v2.37.2
         with:
           php-version: ${{ steps.php-version.outputs.version }}
           coverage: none
