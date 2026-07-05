@@ -88,6 +88,12 @@ jobs:
             require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
 
+          # Update pnpm-lock.yaml
+          pnpm version ${VERSION} --no-git-tag-version --no-commit-hooks
+
+          # Update README.md with new version badge
+          sed -i "s|github/v/release/ashcoft/nextcloud-cad-viewer[^)]*)|github/v/release/ashcoft/nextcloud-cad-viewer/v${VERSION})|g" README.md
+
           # Update .release-please-manifest.json
           echo "{\"nextcloud-cad-viewer\": \"${VERSION}\"}" > .release-please-manifest.json
 
@@ -102,7 +108,7 @@ jobs:
             echo "No changes to commit"
           else
             echo "Committing version updates..."
-            git add appinfo/info.xml package.json .release-please-manifest.json
+            git add appinfo/info.xml package.json pnpm-lock.yaml .release-please-manifest.json README.md
             git commit -m "chore(release): update version to ${TAG}"
             git tag -a ${TAG} -m "${TAG}" || true
             git push origin main
