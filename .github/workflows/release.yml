@@ -102,13 +102,14 @@ jobs:
           git config --local user.name "github-actions[bot]"
 
       - name: Update version files
-        if: steps.gate.outputs.do_release == 'true'
         run: |
           VERSION=${{ steps.version.outputs.version }}
           echo "Updating version to ${VERSION}..."
 
+          # Always update info.xml with current version from package.json
           sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
 
+          # Update package.json version
           node -e "
             const pkg = require('./package.json');
             pkg.version = '${VERSION}';
@@ -123,7 +124,6 @@ jobs:
           git diff --stat
 
       - name: Commit and push version updates
-        if: steps.gate.outputs.do_release == 'true'
         run: |
           TAG=${{ steps.version.outputs.tag }}
           if git diff --quiet; then
@@ -131,8 +131,12 @@ jobs:
           else
             echo "Committing version updates..."
             git add appinfo/info.xml package.json pnpm-lock.yaml .release-please-manifest.json README.md
-            git commit -m "chore(release): update version to ${TAG}"
-            git tag -a ${TAG} -m "${TAG}" || true
+            if [ "${{ steps.gate.outputs.do_release }}" = "true" ]; then
+              git commit -m "chore(release): update version to ${TAG}"
+              git tag -a ${TAG} -m "${TAG}" || true
+            else
+              git commit -m "chore: sync info.xml version"
+            fi
             git push origin main
             git push origin ${TAG} || true
           fi
