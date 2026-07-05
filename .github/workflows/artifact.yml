@@ -31,11 +31,10 @@ on:
       - 'Makefile'
       - 'composer.json'
       - 'composer.lock'
+      - '.release-please-manifest.json'
 
 permissions:
   contents: read
-  pull-requests: read
-  actions: write
 
 concurrency:
   group: build-${{ github.head_ref || github.run_id }}
