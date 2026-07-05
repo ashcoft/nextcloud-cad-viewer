@@ -79,6 +79,7 @@ jobs:
         with:
           release-type: node
           target-branch: main
+          config-file: release-please-config.json
 
       # Single source of truth for "are we actually publishing a release right now?"
       - name: Compute release gate
@@ -99,22 +100,11 @@ jobs:
           echo "info.xml version: ${INFO_VERSION}"
           
           if [ "$VERSION" != "$INFO_VERSION" ]; then
-            echo "ERROR: info.xml version does not match package.json!"
+            echo "WARNING: info.xml version does not match package.json!"
             echo "Expected: ${VERSION}, Found: ${INFO_VERSION}"
-            exit 1
-          fi
-          echo "✓ Versions are synchronized!"
-
-      - name: Create release tag
-        if: steps.gate.outputs.do_release == 'true'
-        run: |
-          TAG=${{ steps.version.outputs.tag }}
-          if git rev-parse "${TAG}" >/dev/null 2>&1; then
-            echo "Tag ${TAG} already exists"
+            # Don't fail - release-please will update info.xml
           else
-            echo "Creating tag ${TAG}"
-            git tag -a ${TAG} -m "${TAG}"
-            git push origin ${TAG}
+            echo "✓ Versions are synchronized!"
           fi
 
       - name: Install dependencies

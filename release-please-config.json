@@ -1,0 +1,25 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "component": "nextcloud-cad-viewer",
+      "versioning": "node",
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        "appinfo/info.xml"
+      ],
+      "changelog-sections": {
+        "feat": "Features",
+        "fix": "Bug Fixes",
+        "perf": "Performance",
+        "refactor": "Refactoring",
+        "docs": "Documentation",
+        "test": "Testing",
+        "ci": "CI/CD",
+        "chore": "Maintenance",
+        "deps": "Dependencies",
+        "build": "Build System"
+      }
+    }
+  }
+}
