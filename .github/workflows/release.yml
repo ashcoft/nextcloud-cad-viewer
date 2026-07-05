@@ -84,39 +84,46 @@ jobs:
           changelog-types: |
             [{"type":"feat","section":"Features","hidden":false},{"type":"fix","section":"Bug Fixes","hidden":false},{"type":"chore","section":"Maintenance","hidden":false},{"type":"docs","section":"Documentation","hidden":false},{"type":"refactor","section":"Refactoring","hidden":false},{"type":"perf","section":"Performance","hidden":false},{"type":"test","section":"Testing","hidden":false},{"type":"ci","section":"CI/CD","hidden":false},{"type":"build","section":"Build System","hidden":false},{"type":"deps","section":"Dependencies","hidden":false},{"type":"security","section":"Security","hidden":true}]
 
+      # Single source of truth for "are we actually publishing a release right now?"
+      - name: Compute release gate
+        id: gate
+        run: |
+          DO_RELEASE=false
+          if [ "${{ steps.release_check.outputs.is_release }}" = "true" ] && \
+             [ "${{ steps.release-please.outputs.release_created }}" = "true" ]; then
+            DO_RELEASE=true
+          fi
+          echo "do_release=${DO_RELEASE}" >> $GITHUB_OUTPUT
+
       - name: Setup Git config
-        if: steps.release_check.outputs.is_release == 'true' && steps.release-please.outputs.release_created == 'true'
+        if: steps.gate.outputs.do_release == 'true'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
       - name: Update version files
-        if: steps.release_check.outputs.is_release == 'true' && steps.release-please.outputs.release_created == 'true'
+        if: steps.gate.outputs.do_release == 'true'
         run: |
           VERSION=${{ steps.version.outputs.version }}
           echo "Updating version to ${VERSION}..."
 
-          # Update appinfo/info.xml
           sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
 
-          # Update package.json
           node -e "
             const pkg = require('./package.json');
             pkg.version = '${VERSION}';
             require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
 
-          # Update pnpm-lock.yaml
           pnpm install --lockfile-only --ignore-scripts
 
-          # Update .release-please-manifest.json
           echo "{\"nextcloud-cad-viewer\": \"${VERSION}\"}" > .release-please-manifest.json
 
           echo "=== Updated files ==="
           git diff --stat
 
       - name: Commit and push version updates
-        if: steps.release_check.outputs.is_release == 'true' && steps.release-please.outputs.release_created == 'true'
+        if: steps.gate.outputs.do_release == 'true'
         run: |
           TAG=${{ steps.version.outputs.tag }}
           if git diff --quiet; then
@@ -152,46 +159,35 @@ jobs:
           echo "=== Built Artifacts ==="
           ls -la build/artifacts/
 
-      - name: Upload Nextcloud app to release
-        if: steps.release_check.outputs.is_release == 'true' && steps.release-please.outputs.release_created == 'true'
+      - name: Create source archives
+        if: steps.gate.outputs.do_release == 'true'
         run: |
-          TAG=${{ steps.version.outputs.tag }}
-          echo "Uploading Nextcloud app archive for release: $TAG"
-
-          # Upload tar.gz (Nextcloud app archive - required)
-          TARBALL="build/artifacts/${APP_NAME}.tar.gz"
-          if [ -f "$TARBALL" ]; then
-            gh release upload "$TAG" "$TARBALL" --clobber
-            echo "Uploaded: $TARBALL"
-          else
-            echo "ERROR: $TARBALL not found"
-            exit 1
-          fi
-
-          # Upload zip (Nextcloud app archive - optional)
-          ZIPFILE="build/artifacts/${APP_NAME}.zip"
-          if [ -f "$ZIPFILE" ]; then
-            gh release upload "$TAG" "$ZIPFILE" --clobber
-            echo "Uploaded: $ZIPFILE"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload source code archive
-        if: steps.release_check.outputs.is_release == 'true' && steps.release-please.outputs.release_created == 'true'
-        run: |
-          TAG=${{ steps.version.outputs.tag }}
-          echo "Creating source archive for release: $TAG"
-
-          # Create source archive
           mkdir -p build/artifacts
           git archive --format=tar.gz --prefix=${APP_NAME}/ -o build/artifacts/${APP_NAME}-source.tar.gz HEAD
           git archive --format=zip --prefix=${APP_NAME}/ -o build/artifacts/${APP_NAME}-source.zip HEAD
 
-          # Upload source archives
-          gh release upload "$TAG" build/artifacts/${APP_NAME}-source.tar.gz --clobber
-          gh release upload "$TAG" build/artifacts/${APP_NAME}-source.zip --clobber
-          echo "Uploaded source archives"
+      - name: Upload artifacts to release
+        if: steps.gate.outputs.do_release == 'true'
+        run: |
+          TAG=${{ steps.version.outputs.tag }}
+          echo "Uploading release assets for: $TAG"
+
+          TARBALL="build/artifacts/${APP_NAME}.tar.gz"
+          if [ ! -f "$TARBALL" ]; then
+            echo "ERROR: $TARBALL not found"
+            exit 1
+          fi
+
+          for FILE in \
+            "build/artifacts/${APP_NAME}.tar.gz" \
+            "build/artifacts/${APP_NAME}.zip" \
+            "build/artifacts/${APP_NAME}-source.tar.gz" \
+            "build/artifacts/${APP_NAME}-source.zip"; do
+            if [ -f "$FILE" ]; then
+              gh release upload "$TAG" "$FILE" --clobber
+              echo "Uploaded: $FILE"
+            fi
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
