@@ -37,7 +37,8 @@ class LoadViewer implements IEventListener
         }
 
         // Inject the CAD viewer scripts and styles
-        // Using addInitScript to ensure the handler registers BEFORE the viewer loads
+        // Using addInitScript to ensure the handler registers
+        // BEFORE the viewer loads
         // This is required per Nextcloud docs: handler must be registered early
         Util::addInitScript(Application::APP_ID, 'cad-viewer');
         Util::addStyle(Application::APP_ID, 'cad-viewer');
