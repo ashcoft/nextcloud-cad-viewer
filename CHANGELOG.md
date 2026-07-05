@@ -16,6 +16,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.1.2...v0.2.0) (2026-07-05)
+
+
+### Features
+
+* finalize v0.1.3 release ([51782fe](https://github.com/ashcoft/nextcloud-cad-viewer/commit/51782fe8732350a1cdd0ea7e0bedf209f0d1d41a))
+
+
+### Bug Fixes
+
+* always update info.xml with version from package.json ([3c391f7](https://github.com/ashcoft/nextcloud-cad-viewer/commit/3c391f744a78d41d797c47f1b3ecc415d3981668))
+* remove unsupported release-please action inputs ([b363c71](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b363c717be20491be8c5b20ec1db98340618a18e))
+* update to @nextcloud/viewer API for proper CAD file viewing ([3944f56](https://github.com/ashcoft/nextcloud-cad-viewer/commit/3944f56853dfb816c2ab4270e6ad50edcb3ee3f4))
+
 ## [0.1.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.1.1...v0.1.2) (2026-07-05)
 
 
