@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { registerFileAction } from '@nextcloud/files'
+import { registerHandler } from '@nextcloud/viewer'
 import type { IFileAction } from '@nextcloud/files'
 import CadViewerApp from './App.vue'
 import router from './router'
@@ -41,14 +42,6 @@ interface NextcloudOC {
 }
 
 interface NextcloudOCA {
-  Viewer?: {
-    registerHandler: (handler: {
-      id: string
-      group?: string
-      mimes: string[]
-      component: unknown
-    }) => void
-  }
   Files?: {
     registerFileAction: (action: {
       name: string
@@ -64,78 +57,6 @@ interface NextcloudOCA {
 declare const OC: NextcloudOC
 declare const OCA: NextcloudOCA
 
-// Track if we've already registered to avoid duplicate registrations
-let isRegistered = false
-
-// Register the CAD viewer handler with Nextcloud Viewer
-function registerViewerHandler(): boolean {
-  if (isRegistered) return false
-  
-  if (OCA?.Viewer !== undefined) {
-    OCA.Viewer.registerHandler({
-      id: 'cad-viewer',
-      group: 'cad',
-      mimes: SUPPORTED_MIMES,
-      component: CadViewerHandler,
-    })
-    isRegistered = true
-    console.log('CAD Viewer handler registered successfully')
-    return true
-  }
-  return false
-}
-
-// Set up polling to ensure registration happens when OCA.Viewer becomes available
-function setupViewerPolling(): void {
-  // If already registered, nothing to do
-  if (registerViewerHandler()) return
-  
-  // Poll every 100ms for up to 10 seconds
-  let pollCount = 0
-  const maxPolls = 100
-  
-  const pollInterval = setInterval(() => {
-    if (registerViewerHandler()) {
-      clearInterval(pollInterval)
-      return
-    }
-    
-    pollCount++
-    if (pollCount >= maxPolls) {
-      clearInterval(pollInterval)
-      console.warn('OCA.Viewer not available after 10 seconds, CAD viewer handler not registered')
-    }
-  }, 100)
-}
-
-// Also use MutationObserver to detect when OCA.Viewer becomes available
-function setupViewerObserver(): void {
-  if (isRegistered) return
-
-  // Try immediately first
-  if (registerViewerHandler()) return
-
-  // Set up MutationObserver to watch for OCA object changes
-  if (typeof MutationObserver !== 'undefined') {
-    const observer = new MutationObserver(() => {
-      if (registerViewerHandler()) {
-        observer.disconnect()
-      }
-    })
-    
-    observer.observe(document.documentElement, {
-      childList: true,
-      subtree: true,
-    })
-  }
-  
-  // Also set up polling as backup
-  setupViewerPolling()
-}
-
-// Initialize viewer registration immediately when script loads
-setupViewerObserver()
-
 /**
  * Open the CAD viewer for a file
  */
@@ -144,6 +65,18 @@ function openInViewer(fileId: number | string): void {
     window.location.href = OC.generateUrl('/apps/cad_viewer/view') + '?fileIds=' + fileId
   }
 }
+
+/**
+ * Register the CAD viewer handler with Nextcloud Viewer using the new API
+ * This registers the handler to open CAD files in the viewer instead of downloading
+ */
+registerHandler({
+  id: 'cad-viewer',
+  group: 'cad',
+  mimes: SUPPORTED_MIMES,
+  component: CadViewerHandler,
+})
+console.log('CAD Viewer handler registered successfully')
 
 /**
  * Register file actions for CAD files in the Files sidebar
@@ -200,9 +133,6 @@ function registerFileActions(): void {
 document.addEventListener('DOMContentLoaded', () => {
   // Register file action for sidebar menu
   registerFileActions()
-
-  // Try viewer handler registration again at DOMContentLoaded
-  registerViewerHandler()
 
   const mountEl =
     document.getElementById('cad-viewer-app') ??

@@ -25,11 +25,13 @@
   "dependencies": {
     "@mlightcad/cad-html-plugin": "1.5.7",
     "@mlightcad/cad-pdf-plugin": "1.5.7",
+    "@mlightcad/cad-simple-viewer": "1.5.7",
     "@mlightcad/cad-svg-plugin": "1.5.7",
     "@mlightcad/cad-viewer": "1.5.7",
     "@mlightcad/data-model": "1.10.1",
     "@nextcloud/files": "^4.0.0",
     "@nextcloud/router": "^3.1.0",
+    "@nextcloud/viewer": "^1.0.0",
     "element-plus": "2.14.2",
     "lodash-es": "4.18.1",
     "three": "0.185.1",
