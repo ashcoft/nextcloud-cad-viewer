@@ -88,6 +88,12 @@ jobs:
             require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
 
+          # Update pnpm-lock.yaml
+          pnpm install --lockfile-only --ignore-scripts
+
+          # Update README.md with new version badge
+          # No need to update the badge — it dynamically resolves to the latest release
+          # Remove this sed command entirely
           # Update .release-please-manifest.json
           echo "{\"nextcloud-cad-viewer\": \"${VERSION}\"}" > .release-please-manifest.json
 
@@ -102,7 +108,7 @@ jobs:
             echo "No changes to commit"
           else
             echo "Committing version updates..."
-            git add appinfo/info.xml package.json .release-please-manifest.json
+            git add appinfo/info.xml package.json pnpm-lock.yaml .release-please-manifest.json README.md
             git commit -m "chore(release): update version to ${TAG}"
             git tag -a ${TAG} -m "${TAG}" || true
             git push origin main
@@ -124,7 +130,6 @@ jobs:
         run: |
           pnpm run build
           make production-setup
-          make appstore || true
 
       - name: Ensure zip available
         if: steps.release-please.outputs.release_created == 'true'
@@ -136,39 +141,54 @@ jobs:
       - name: Build app archive
         if: steps.release-please.outputs.release_created == 'true'
         run: |
-          if [ ! -f "build/artifacts/${APP_NAME}.tar.gz" ]; then
-            make appstore
-          fi
+          make appstore
           echo "=== Built Artifacts ==="
-          ls -la build/artifacts/ 2>/dev/null || echo "No artifacts found"
+          ls -la build/artifacts/
 
-      - name: Upload artifacts to release
+      - name: Upload Nextcloud app to release
         if: steps.release-please.outputs.release_created == 'true'
         run: |
-          TAG=${{ needs.release.outputs.tag_name }}
-          if [ -z "$TAG" ]; then
-            TAG=${{ steps.version.outputs.tag }}
-          fi
-          echo "Uploading artifacts for release: $TAG"
+          TAG=${{ steps.version.outputs.tag }}
+          echo "Uploading Nextcloud app archive for release: $TAG"
 
-          # Upload tar.gz (required)
+          # Upload tar.gz (Nextcloud app archive - required)
           TARBALL="build/artifacts/${APP_NAME}.tar.gz"
           if [ -f "$TARBALL" ]; then
             gh release upload "$TAG" "$TARBALL" --clobber
+            echo "Uploaded: $TARBALL"
           else
             echo "ERROR: $TARBALL not found"
             exit 1
           fi
 
-          # Upload zip (optional)
+          # Upload zip (Nextcloud app archive - optional)
           ZIPFILE="build/artifacts/${APP_NAME}.zip"
           if [ -f "$ZIPFILE" ]; then
-            gh release upload "$TAG" "$ZIPFILE" --clobber || true
+            gh release upload "$TAG" "$ZIPFILE" --clobber
+            echo "Uploaded: $ZIPFILE"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload build artifacts
+      - name: Upload source code archive
+        if: steps.release-please.outputs.release_created == 'true'
+        run: |
+          TAG=${{ steps.version.outputs.tag }}
+          echo "Creating source archive for release: $TAG"
+
+          # Create source archive
+          mkdir -p build/artifacts
+          git archive --format=tar.gz --prefix=${APP_NAME}/ -o build/artifacts/${APP_NAME}-source.tar.gz HEAD
+          git archive --format=zip --prefix=${APP_NAME}/ -o build/artifacts/${APP_NAME}-source.zip HEAD
+
+          # Upload source archives
+          gh release upload "$TAG" build/artifacts/${APP_NAME}-source.tar.gz --clobber
+          gh release upload "$TAG" build/artifacts/${APP_NAME}-source.zip --clobber
+          echo "Uploaded source archives"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload build artifacts (CI)
         if: steps.release-please.outputs.release_created == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
