@@ -91,50 +91,30 @@ jobs:
           fi
           echo "do_release=${DO_RELEASE}" >> $GITHUB_OUTPUT
 
-      - name: Setup Git config
-        if: steps.gate.outputs.do_release == 'true'
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-
-      - name: Update version files
+      - name: Verify versions are synchronized
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          echo "Updating version to ${VERSION}..."
+          INFO_VERSION=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml)
+          echo "package.json version: ${VERSION}"
+          echo "info.xml version: ${INFO_VERSION}"
+          
+          if [ "$VERSION" != "$INFO_VERSION" ]; then
+            echo "ERROR: info.xml version does not match package.json!"
+            echo "Expected: ${VERSION}, Found: ${INFO_VERSION}"
+            exit 1
+          fi
+          echo "✓ Versions are synchronized!"
 
-          # Always update info.xml with current version from package.json
-          sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
-
-          # Update package.json version
-          node -e "
-            const pkg = require('./package.json');
-            pkg.version = '${VERSION}';
-            require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-          "
-
-          pnpm install --lockfile-only --ignore-scripts
-
-          echo "{\"nextcloud-cad-viewer\": \"${VERSION}\"}" > .release-please-manifest.json
-
-          echo "=== Updated files ==="
-          git diff --stat
-
-      - name: Commit and push version updates
+      - name: Create release tag
+        if: steps.gate.outputs.do_release == 'true'
         run: |
           TAG=${{ steps.version.outputs.tag }}
-          if git diff --quiet; then
-            echo "No changes to commit"
+          if git rev-parse "${TAG}" >/dev/null 2>&1; then
+            echo "Tag ${TAG} already exists"
           else
-            echo "Committing version updates..."
-            git add appinfo/info.xml package.json pnpm-lock.yaml .release-please-manifest.json README.md
-            if [ "${{ steps.gate.outputs.do_release }}" = "true" ]; then
-              git commit -m "chore(release): update version to ${TAG}"
-              git tag -a ${TAG} -m "${TAG}" || true
-            else
-              git commit -m "chore: sync info.xml version"
-            fi
-            git push origin main
-            git push origin ${TAG} || true
+            echo "Creating tag ${TAG}"
+            git tag -a ${TAG} -m "${TAG}"
+            git push origin ${TAG}
           fi
 
       - name: Install dependencies
