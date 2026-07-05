@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import { registerFileAction } from '@nextcloud/files'
+import { registerFileAction, DefaultType } from '@nextcloud/files'
 import type { IFileAction } from '@nextcloud/files'
 import CadViewerApp from './App.vue'
 import router from './router'
@@ -40,14 +40,17 @@ interface NextcloudOC {
   imagePath: (app: string, file: string) => string
 }
 
+interface NextcloudOCAViewer {
+  id?: string
+  group?: string
+  mimes: string[]
+  component: unknown
+}
+
 interface NextcloudOCA {
   Viewer?: {
-    registerHandler: (handler: {
-      id: string
-      group?: string
-      mimes: string[]
-      component: unknown
-    }) => void
+    registerHandler: (handler: NextcloudOCAViewer) => void
+    open: (options: { path?: string; fileId?: number | string }) => boolean
   }
   Files?: {
     registerFileAction: (action: {
@@ -58,6 +61,17 @@ interface NextcloudOCA {
       icon: () => string
       actionHandler: (fileName: string, context: { fileInfo?: { id: number | string; path?: string } }) => void
     }) => void
+    fileActions?: {
+      register: (action: {
+        name: string
+        displayName: string
+        mime: string
+        permissions: number
+        icon: () => string
+        actionHandler: (fileName: string, context: { fileInfo?: { id: number | string; path?: string } }) => void
+      }) => void
+    }
+    setUserValue?: (app: string, key: string, value: string) => void
   }
 }
 
@@ -67,10 +81,15 @@ declare const OCA: NextcloudOCA
 // Track if we've already registered to avoid duplicate registrations
 let isRegistered = false
 
-// Register the CAD viewer handler with Nextcloud Viewer
+/**
+ * Register the CAD viewer handler with the Nextcloud Viewer API.
+ * This is the PRIMARY mechanism that enables inline file viewing:
+ * when a user clicks a CAD file in Files, the Viewer API automatically
+ * opens our handler component inline without navigating away.
+ */
 function registerViewerHandler(): boolean {
   if (isRegistered) return false
-  
+
   if (OCA?.Viewer !== undefined) {
     OCA.Viewer.registerHandler({
       id: 'cad-viewer',
@@ -79,7 +98,7 @@ function registerViewerHandler(): boolean {
       component: CadViewerHandler,
     })
     isRegistered = true
-    console.log('CAD Viewer handler registered successfully')
+    console.debug('CAD Viewer handler registered successfully')
     return true
   }
   return false
@@ -87,121 +106,87 @@ function registerViewerHandler(): boolean {
 
 // Set up polling to ensure registration happens when OCA.Viewer becomes available
 function setupViewerPolling(): void {
-  // If already registered, nothing to do
   if (registerViewerHandler()) return
-  
+
   // Poll every 100ms for up to 10 seconds
   let pollCount = 0
   const maxPolls = 100
-  
+
   const pollInterval = setInterval(() => {
     if (registerViewerHandler()) {
       clearInterval(pollInterval)
       return
     }
-    
+
     pollCount++
     if (pollCount >= maxPolls) {
       clearInterval(pollInterval)
-      console.warn('OCA.Viewer not available after 10 seconds, CAD viewer handler not registered')
+      console.debug('OCA.Viewer not available after 10 seconds')
     }
   }, 100)
 }
 
-// Also use MutationObserver to detect when OCA.Viewer becomes available
-function setupViewerObserver(): void {
-  if (isRegistered) return
-
-  // Try immediately first
-  if (registerViewerHandler()) return
-
-  // Set up MutationObserver to watch for OCA object changes
-  if (typeof MutationObserver !== 'undefined') {
-    const observer = new MutationObserver(() => {
-      if (registerViewerHandler()) {
-        observer.disconnect()
-      }
-    })
-    
-    observer.observe(document.documentElement, {
-      childList: true,
-      subtree: true,
-    })
-  }
-  
-  // Also set up polling as backup
-  setupViewerPolling()
-}
-
-// Initialize viewer registration immediately when script loads
-setupViewerObserver()
+// Initialize viewer registration when script loads
+setupViewerPolling()
 
 /**
- * Open the CAD viewer for a file
+ * Open the CAD viewer inline for a file using the Nextcloud Viewer API.
+ * Falls back to standalone page if Viewer API is not available.
  */
 function openInViewer(fileId: number | string): void {
+  // Priority 1: Open inline via Nextcloud Viewer API
+  // OCA.Viewer.open() opens the file in the registered handler inline
+  if (OCA?.Viewer?.open !== undefined) {
+    OCA.Viewer.open({ fileId })
+    return
+  }
+
+  // Priority 2: Fallback to standalone viewer page
+  // This preserves backward compatibility with the standalone view
   if (OC !== undefined) {
     window.location.href = OC.generateUrl('/apps/cad_viewer/view') + '?fileIds=' + fileId
   }
 }
 
 /**
- * Register file actions for CAD files in the Files sidebar
- * Uses the Nextcloud Files app API (OCA.Files.registerFileAction)
- * Also registers using @nextcloud/files package API for NC33+ compatibility
+ * Register file actions that appear in the Files "..." context menu.
+ * These are secondary actions - the primary inline viewing is handled
+ * automatically by OCA.Viewer.registerHandler().
  */
 function registerFileActions(): void {
-  if (OC === undefined || OCA === undefined) {
+  if (OC === undefined) {
     return
   }
 
-  // Register a file action for each supported MIME type
-  SUPPORTED_MIMES.forEach((mime) => {
-    // NC33+ package API
-    try {
-      const action: IFileAction = {
-        id: 'cad-viewer-open',
-        displayName: () => t('cad_viewer', 'Open with CAD Viewer'),
-        iconSvgInline: () => CAD_VIEWER_ICON,
-        enabled: ({ nodes }) => nodes.some((node) => node.mime === mime),
-        exec: async ({ nodes }) => {
-          const fileId = nodes[0].id
-          if (fileId !== undefined) {
-            openInViewer(fileId)
-          }
-          return null
-        },
-      }
-      registerFileAction(action)
-    } catch {
-      // Fall back to OCA global if package API fails
+  // Register using the NC33+ @nextcloud/files API
+  try {
+    const action: IFileAction = {
+      id: 'cad-viewer-open',
+      displayName: () => t('cad_viewer', 'Open with CAD Viewer'),
+      iconSvgInline: () => CAD_VIEWER_ICON,
+      enabled: ({ nodes }) => nodes.length === 1 && nodes.some((node) => SUPPORTED_MIMES.includes(node.mime)),
+      exec: async ({ nodes }) => {
+        const node = nodes[0]
+        const fileId = node.id
+        if (fileId !== undefined) {
+          openInViewer(fileId)
+        }
+        return null
+      },
+      // HIDDEN means this action only appears in the "..." context menu,
+      // not as the default click handler. The default click is handled
+      // by Nextcloud Viewer via OCA.Viewer.registerHandler().
+      default: DefaultType.HIDDEN,
     }
-
-    // Legacy OCA global fallback
-    if (OCA?.Files?.registerFileAction !== undefined) {
-      OCA.Files.registerFileAction({
-        name: 'cad-viewer-open',
-        displayName: t('cad_viewer', 'Open with CAD Viewer'),
-        mime,
-        permissions: OC.PERMISSION_READ,
-        icon: () => CAD_VIEWER_ICON,
-        actionHandler: (_fileName: string, context: { fileInfo?: { id: number | string } }) => {
-          const fileId = context.fileInfo?.id
-          if (fileId) {
-            openInViewer(fileId)
-          }
-        },
-      })
-    }
-  })
+    registerFileAction(action)
+  } catch {
+    // Fall back
+  }
 }
 
 // Register file actions when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  // Register file action for sidebar menu
   registerFileActions()
-
-  // Try viewer handler registration again at DOMContentLoaded
   registerViewerHandler()
 
   const mountEl =
@@ -211,6 +196,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (mountEl) {
     app.mount(mountEl)
   }
+})
+
+// Also re-register on Nextcloud Files ready event
+document.addEventListener('nextcloud-files-ready', () => {
+  registerFileActions()
+  registerViewerHandler()
 })
 
 export default app
