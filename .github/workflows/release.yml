@@ -92,8 +92,8 @@ jobs:
           pnpm install --lockfile-only --ignore-scripts
 
           # Update README.md with new version badge
-          sed -i "s|github/v/release/ashcoft/nextcloud-cad-viewer[^)]*)|github/v/release/ashcoft/nextcloud-cad-viewer/v${VERSION})|g" README.md
-
+          # No need to update the badge — it dynamically resolves to the latest release
+          # Remove this sed command entirely
           # Update .release-please-manifest.json
           echo "{\"nextcloud-cad-viewer\": \"${VERSION}\"}" > .release-please-manifest.json
 
