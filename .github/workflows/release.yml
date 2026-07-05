@@ -89,7 +89,7 @@ jobs:
           "
 
           # Update pnpm-lock.yaml
-          pnpm version ${VERSION} --no-git-tag-version --no-commit-hooks
+          pnpm install --lockfile-only --ignore-scripts
 
           # Update README.md with new version badge
           sed -i "s|github/v/release/ashcoft/nextcloud-cad-viewer[^)]*)|github/v/release/ashcoft/nextcloud-cad-viewer/v${VERSION})|g" README.md
