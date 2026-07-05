@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 ashcoft
+# SPDX-FileCopyrightText: 2026 ashcoft
 # SPDX-License-Identifier: MIT
 
 name: Release
@@ -7,10 +7,17 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      skip_release:
+        description: 'Skip release creation (build artifacts only)'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
@@ -25,7 +32,7 @@ jobs:
       contents: write
       pull-requests: write
     outputs:
-      release_created: ${{ steps.release-please.outputs.release_created }}
+      is_release: ${{ steps.release_check.outputs.is_release }}
       version: ${{ steps.version.outputs.version }}
       tag_name: ${{ steps.version.outputs.tag }}
     steps:
@@ -55,7 +62,18 @@ jobs:
           echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
           echo "Current version: ${VERSION}"
 
+      - name: Check if release mode
+        id: release_check
+        run: |
+          IS_RELEASE=true
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.skip_release }}" = "true" ]; then
+            IS_RELEASE=false
+            echo "Running in build-only mode (no release)"
+          fi
+          echo "is_release=${IS_RELEASE}" >> $GITHUB_OUTPUT
+
       - name: Release Please
+        if: steps.release_check.outputs.is_release == 'true'
         id: release-please
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
@@ -66,42 +84,46 @@ jobs:
           changelog-types: |
             [{"type":"feat","section":"Features","hidden":false},{"type":"fix","section":"Bug Fixes","hidden":false},{"type":"chore","section":"Maintenance","hidden":false},{"type":"docs","section":"Documentation","hidden":false},{"type":"refactor","section":"Refactoring","hidden":false},{"type":"perf","section":"Performance","hidden":false},{"type":"test","section":"Testing","hidden":false},{"type":"ci","section":"CI/CD","hidden":false},{"type":"build","section":"Build System","hidden":false},{"type":"deps","section":"Dependencies","hidden":false},{"type":"security","section":"Security","hidden":true}]
 
+      # Single source of truth for "are we actually publishing a release right now?"
+      - name: Compute release gate
+        id: gate
+        run: |
+          DO_RELEASE=false
+          if [ "${{ steps.release_check.outputs.is_release }}" = "true" ] && \
+             [ "${{ steps.release-please.outputs.release_created }}" = "true" ]; then
+            DO_RELEASE=true
+          fi
+          echo "do_release=${DO_RELEASE}" >> $GITHUB_OUTPUT
+
       - name: Setup Git config
-        if: steps.release-please.outputs.release_created == 'true'
+        if: steps.gate.outputs.do_release == 'true'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
       - name: Update version files
-        if: steps.release-please.outputs.release_created == 'true'
+        if: steps.gate.outputs.do_release == 'true'
         run: |
           VERSION=${{ steps.version.outputs.version }}
           echo "Updating version to ${VERSION}..."
 
-          # Update appinfo/info.xml
           sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
 
-          # Update package.json
           node -e "
             const pkg = require('./package.json');
             pkg.version = '${VERSION}';
             require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
 
-          # Update pnpm-lock.yaml
           pnpm install --lockfile-only --ignore-scripts
 
-          # Update README.md with new version badge
-          # No need to update the badge — it dynamically resolves to the latest release
-          # Remove this sed command entirely
-          # Update .release-please-manifest.json
           echo "{\"nextcloud-cad-viewer\": \"${VERSION}\"}" > .release-please-manifest.json
 
           echo "=== Updated files ==="
           git diff --stat
 
       - name: Commit and push version updates
-        if: steps.release-please.outputs.release_created == 'true'
+        if: steps.gate.outputs.do_release == 'true'
         run: |
           TAG=${{ steps.version.outputs.tag }}
           if git diff --quiet; then
@@ -116,80 +138,60 @@ jobs:
           fi
 
       - name: Install dependencies
-        if: steps.release-please.outputs.release_created == 'true'
-        env:
-          CYPRESS_INSTALL_BINARY: 0
         run: |
           pnpm install --frozen-lockfile
           composer install --no-dev --optimize-autoloader
 
       - name: Build Nextcloud App
-        if: steps.release-please.outputs.release_created == 'true'
-        env:
-          CYPRESS_INSTALL_BINARY: 0
         run: |
           pnpm run build
           make production-setup
 
       - name: Ensure zip available
-        if: steps.release-please.outputs.release_created == 'true'
         run: |
           if ! command -v zip >/dev/null 2>&1; then
             sudo apt-get update && sudo apt-get install -y zip
           fi
 
       - name: Build app archive
-        if: steps.release-please.outputs.release_created == 'true'
         run: |
           make appstore
           echo "=== Built Artifacts ==="
           ls -la build/artifacts/
 
-      - name: Upload Nextcloud app to release
-        if: steps.release-please.outputs.release_created == 'true'
+      - name: Create source archives
+        if: steps.gate.outputs.do_release == 'true'
         run: |
-          TAG=${{ steps.version.outputs.tag }}
-          echo "Uploading Nextcloud app archive for release: $TAG"
-
-          # Upload tar.gz (Nextcloud app archive - required)
-          TARBALL="build/artifacts/${APP_NAME}.tar.gz"
-          if [ -f "$TARBALL" ]; then
-            gh release upload "$TAG" "$TARBALL" --clobber
-            echo "Uploaded: $TARBALL"
-          else
-            echo "ERROR: $TARBALL not found"
-            exit 1
-          fi
-
-          # Upload zip (Nextcloud app archive - optional)
-          ZIPFILE="build/artifacts/${APP_NAME}.zip"
-          if [ -f "$ZIPFILE" ]; then
-            gh release upload "$TAG" "$ZIPFILE" --clobber
-            echo "Uploaded: $ZIPFILE"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload source code archive
-        if: steps.release-please.outputs.release_created == 'true'
-        run: |
-          TAG=${{ steps.version.outputs.tag }}
-          echo "Creating source archive for release: $TAG"
-
-          # Create source archive
           mkdir -p build/artifacts
           git archive --format=tar.gz --prefix=${APP_NAME}/ -o build/artifacts/${APP_NAME}-source.tar.gz HEAD
           git archive --format=zip --prefix=${APP_NAME}/ -o build/artifacts/${APP_NAME}-source.zip HEAD
 
-          # Upload source archives
-          gh release upload "$TAG" build/artifacts/${APP_NAME}-source.tar.gz --clobber
-          gh release upload "$TAG" build/artifacts/${APP_NAME}-source.zip --clobber
-          echo "Uploaded source archives"
+      - name: Upload artifacts to release
+        if: steps.gate.outputs.do_release == 'true'
+        run: |
+          TAG=${{ steps.version.outputs.tag }}
+          echo "Uploading release assets for: $TAG"
+
+          TARBALL="build/artifacts/${APP_NAME}.tar.gz"
+          if [ ! -f "$TARBALL" ]; then
+            echo "ERROR: $TARBALL not found"
+            exit 1
+          fi
+
+          for FILE in \
+            "build/artifacts/${APP_NAME}.tar.gz" \
+            "build/artifacts/${APP_NAME}.zip" \
+            "build/artifacts/${APP_NAME}-source.tar.gz" \
+            "build/artifacts/${APP_NAME}-source.zip"; do
+            if [ -f "$FILE" ]; then
+              gh release upload "$TAG" "$FILE" --clobber
+              echo "Uploaded: $FILE"
+            fi
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload build artifacts (CI)
-        if: steps.release-please.outputs.release_created == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ env.APP_NAME }}-${{ steps.version.outputs.version }}
