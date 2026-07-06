@@ -141,20 +141,12 @@ namespace OCP\AppFramework {
 namespace OCP {
     class Util
     {
-        /**
-         * @param string $appId
-         * @param string $scriptName
-         * @noinspection PhpUnusedParameterInspection
-         */
+        // phpcs:ignore Squiz.Functions.MultiLineFunctionDeclaration.EmptyBody
         public static function addScript(string $appId, string $scriptName): void
         {
         }
 
-        /**
-         * @param string $appId
-         * @param string $styleName
-         * @noinspection PhpUnusedParameterInspection
-         */
+        // phpcs:ignore Squiz.Functions.MultiLineFunctionDeclaration.EmptyBody
         public static function addStyle(string $appId, string $styleName): void
         {
         }
@@ -165,8 +157,9 @@ namespace OCP {
          *
          * @param string $appId      The app ID
          * @param string $scriptName The script name (without .js extension)
-         * @noinspection PhpUnusedParameterInspection
+         * @SuppressWarnings(PHPMD.UnusedFormalParameter)
          */
+        // phpcs:ignore Squiz.Functions.MultiLineFunctionDeclaration.EmptyBody
         public static function addInitScript(string $appId, string $scriptName): void
         {
         }
