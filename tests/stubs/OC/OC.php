@@ -148,6 +148,17 @@ namespace OCP {
         public static function addStyle(string $appId, string $styleName): void
         {
         }
+
+        /**
+         * Add an initialization script that runs before the app's main script.
+         * Used to ensure handlers register before the Nextcloud Viewer app loads.
+         *
+         * @param string $appId The app ID
+         * @param string $scriptName The script name (without .js extension)
+         */
+        public static function addInitScript(string $appId, string $scriptName): void
+        {
+        }
     }
 }
 
