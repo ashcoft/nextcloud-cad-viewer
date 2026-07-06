@@ -1,21 +1,3 @@
-## [0.0.20] - 2026-07-04
-
-### Maintenance
-
-- Refactored release workflow to use release-please-action with conventional commits
-- Removed changesets-based release process
-- Removed auto-changeset-dependabot.yml and cleanup-pr-comments.yml workflows
-- Updated artifact.yml for cleaner build process
-
-### Patch Changes
-
-- [#319](https://github.com/ashcoft/nextcloud-cad-viewer/pull/319) [`ca07d90`](https://github.com/ashcoft/nextcloud-cad-viewer/commit/ca07d90230d3f8cbf9c6357ecb89ed320fc0084e) Thanks [@ashcoft](https://github.com/ashcoft)! - Enhance AGENTS.md with comprehensive development guide for AI agents
-
-All notable changes to this project are documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [0.2.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.2.1...v0.2.2) (2026-07-06)
 
 
