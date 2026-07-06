@@ -153,8 +153,10 @@ namespace OCP {
          * Add an initialization script that runs before the app's main script.
          * Used to ensure handlers register before the Nextcloud Viewer app loads.
          *
-         * @param string $appId The app ID
+         * @param string $appId      The app ID
          * @param string $scriptName The script name (without .js extension)
+         *
+         * @return void
          */
         public static function addInitScript(string $appId, string $scriptName): void
         {

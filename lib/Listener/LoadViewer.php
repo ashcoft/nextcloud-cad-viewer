@@ -42,13 +42,18 @@ class LoadViewer implements IEventListener
         $response = $event->getResponse();
 
         $app = $response->getApp();
-        if ($app !== 'files' && $app !== 'files_sharing' && $app !== Application::APP_ID) {
+        $isFilesApp = $app === 'files';
+        $isSharingApp = $app === 'files_sharing';
+        $isCadViewerApp = $app === Application::APP_ID;
+
+        if (!$isFilesApp && !$isSharingApp && !$isCadViewerApp) {
             return;
         }
 
         // Use addInitScript to ensure handler registration happens BEFORE
         // the Nextcloud Viewer app initializes. This is critical for the
         // registerHandler() call to be picked up by the Viewer.
+        // The script is injected before the Viewer's own initialization.
         //
         // The actual CAD viewer bundle is lazy-loaded only when a CAD file
         // is opened (in the component's onMounted hook), avoiding unnecessary

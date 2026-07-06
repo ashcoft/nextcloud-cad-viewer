@@ -171,7 +171,7 @@ const CadViewerHandlerComponent = defineComponent({
     function resolveFileUrl(): string | null {
       // Priority 1: Use fileid prop with the app's API endpoint
       const fileId = props.fileid ?? props.fileInfo?.id
-      if (fileId !== undefined && fileId !== null && fileId !== '') {
+      if (fileId) {
         return generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileId) })
       }
       // Priority 2: Fallback to source if provided
@@ -194,14 +194,15 @@ const CadViewerHandlerComponent = defineComponent({
      * Cancels loading if component has unmounted.
      */
     async function loadViewer(url: string): Promise<void> {
-      if (isUnmounted || !viewerContainer.value) return
+      const container = viewerContainer.value
+      if (!container || isUnmounted) return
 
       try {
-        const instance = await loadCADViewer(viewerContainer.value, {
+        const instance = await loadCADViewer(container, {
           url,
           theme: 'dark',
         })
-        // Check if unmounted before assigning
+        // Check if unmounted before assigning (unmount may have occurred during await)
         if (isUnmounted) {
           instance.dispose()
           return
