@@ -170,9 +170,12 @@ const CadViewerHandlerComponent = defineComponent({
      */
     function resolveFileUrl(): string | null {
       // Priority 1: Use fileid prop with the app's API endpoint
-      const fileId = props.fileid ?? props.fileInfo?.id
-      if (fileId) {
-        return generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileId) })
+      if (props.fileid !== null) {
+        return generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(props.fileid) })
+      }
+      const fileIdFromInfo = props.fileInfo?.id
+      if (fileIdFromInfo !== undefined) {
+        return generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileIdFromInfo) })
       }
       // Priority 2: Fallback to source if provided
       if (props.source) {
@@ -274,26 +277,30 @@ const CadViewerHandlerComponent = defineComponent({
     }
 
     return () => {
-      // Sibling overlay elements instead of nested ternary
-      const overlay = loading.value || error.value
-        ? h('div', { class: 'cad-viewer-overlay' }, [
-            loading.value
-              ? h('div', { class: 'cad-viewer-loading' }, [
-                h('div', { class: 'spinner' }),
-                h('p', {}, appTranslation('Loading CAD Viewer...')),
-              ])
-              : error.value
-                ? h('div', { class: 'cad-viewer-error' }, [
-                    h('p', {}, error.value),
-                    retryUrl.value
-                      ? h('button', {
-                          class: 'button primary',
-                          onClick: retryLoad,
-                        }, appTranslation('Retry'))
-                      : null,
-                  ])
-                : null,
-          ])
+      // Build overlay children only when needed
+      const overlayChildren: ReturnType<typeof h>[] = []
+      if (loading.value) {
+        overlayChildren.push(
+          h('div', { class: 'cad-viewer-loading' }, [
+            h('div', { class: 'spinner' }),
+            h('p', {}, appTranslation('Loading CAD Viewer...')),
+          ]),
+        )
+      }
+      if (error.value) {
+        const errorContent: ReturnType<typeof h>[] = [h('p', {}, error.value)]
+        if (retryUrl.value) {
+          errorContent.push(
+            h('button', {
+              class: 'button primary',
+              onClick: retryLoad,
+            }, appTranslation('Retry')),
+          )
+        }
+        overlayChildren.push(h('div', { class: 'cad-viewer-error' }, errorContent))
+      }
+      const overlay = overlayChildren.length > 0
+        ? h('div', { class: 'cad-viewer-overlay' }, overlayChildren)
         : null
 
       return h('div', { class: 'cad-viewer-handler' }, [

@@ -18,8 +18,8 @@ use OCP\Util;
  * requiring the user to download them.
  *
  * The cad-viewer.js bundle contains only the lightweight registration code and
- * a thin Vue 3 component wrapper. The heavy CAD viewer engine (Three.js, Element Plus)
- * is loaded on-demand when the handler's onMounted() lifecycle hook fires.
+ * a thin Vue 3 component wrapper. The heavy CAD viewer engine (Three.js,
+ * Element Plus) is loaded on-demand when the handler's onMounted() fires.
  *
  * @template-implements IEventListener<BeforeTemplateRenderedEvent>
  */

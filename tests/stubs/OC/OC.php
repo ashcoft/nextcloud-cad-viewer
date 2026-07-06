@@ -157,9 +157,12 @@ namespace OCP {
          * @param string $scriptName The script name (without .js extension)
          *
          * @return void
+         * @SuppressWarnings(PHPMD.UnusedFormalParameter)
          */
         public static function addInitScript(string $appId, string $scriptName): void
         {
+            // Stub implementation - parameters unused but required for interface
+            // phpcs:ignore Squiz.Functions.MultiLineFunctionDeclaration.EmptyBody
         }
     }
 }

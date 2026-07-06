@@ -31,12 +31,13 @@ describe('CadViewerHandler Component', () => {
     })
 
     it('should accept fileid as number or string', () => {
-      // This verifies the prop type definition allows both number and string
-      const validNumber: number = 123
-      const validString: string = '456'
+      // Verify that both number and string types can be converted to string for URL
+      const fileIdNumber: number = 123
+      const fileIdString: string = '456'
       
-      expect(typeof validNumber).toBe('number')
-      expect(typeof validString).toBe('string')
+      // Both should produce valid URL segments
+      expect(String(fileIdNumber)).toBe('123')
+      expect(String(fileIdString)).toBe('456')
     })
   })
 
