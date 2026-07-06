@@ -142,22 +142,37 @@ jobs:
           TAG=${{ steps.version.outputs.tag }}
           echo "Uploading release assets for: $TAG"
 
+          # Wait for release to be created by release-please
+          echo "Waiting for release $TAG to be available..."
+          for i in {1..30}; do
+            if gh release view "$TAG" &>/dev/null; then
+              echo "Release $TAG is available"
+              break
+            fi
+            echo "Waiting for release... ($i/30)"
+            sleep 2
+          done
+
           TARBALL="build/artifacts/${APP_NAME}.tar.gz"
           if [ ! -f "$TARBALL" ]; then
             echo "ERROR: $TARBALL not found"
             exit 1
           fi
 
+          echo "=== Uploading artifacts ==="
           for FILE in \
             "build/artifacts/${APP_NAME}.tar.gz" \
             "build/artifacts/${APP_NAME}.zip" \
             "build/artifacts/${APP_NAME}-source.tar.gz" \
             "build/artifacts/${APP_NAME}-source.zip"; do
             if [ -f "$FILE" ]; then
+              echo "Uploading: $FILE"
               gh release upload "$TAG" "$FILE" --clobber
-              echo "Uploaded: $FILE"
             fi
           done
+
+          echo "=== Release assets ==="
+          gh release view "$TAG" --json assets -q '.assets[].name'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
