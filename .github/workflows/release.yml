@@ -129,13 +129,6 @@ jobs:
           echo "=== Built Artifacts ==="
           ls -la build/artifacts/
 
-      - name: Create source archives
-        if: steps.gate.outputs.do_release == 'true'
-        run: |
-          mkdir -p build/artifacts
-          git archive --format=tar.gz --prefix=${APP_NAME}/ -o build/artifacts/${APP_NAME}-source.tar.gz HEAD
-          git archive --format=zip --prefix=${APP_NAME}/ -o build/artifacts/${APP_NAME}-source.zip HEAD
-
       - name: Upload artifacts to release
         if: steps.gate.outputs.do_release == 'true'
         run: |
