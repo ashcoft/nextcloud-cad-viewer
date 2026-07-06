@@ -27,7 +27,7 @@
     "@mlightcad/cad-pdf-plugin": "1.5.7",
     "@mlightcad/cad-svg-plugin": "1.5.7",
     "@mlightcad/cad-viewer": "1.5.7",
-    "@mlightcad/data-model": "1.10.1",
+    "@mlightcad/data-model": "1.10.2",
     "@nextcloud/files": "^4.0.0",
     "@nextcloud/router": "^3.1.0",
     "element-plus": "2.14.2",
