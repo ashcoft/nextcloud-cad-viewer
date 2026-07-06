@@ -15,10 +15,13 @@ module.exports = {
     '^@mlightcad/cad-viewer$': '<rootDir>/tests/__mocks__/@mlightcad/cad-viewer.js',
     '^element-plus$': '<rootDir>/tests/__mocks__/element-plus.js',
     '^element-plus/dist/index.css$': 'jest-transform-stub',
+    '^@nextcloud/router$': '<rootDir>/tests/__mocks__/@nextcloud/router.js',
+    '^@nextcloud/files$': '<rootDir>/tests/__mocks__/@nextcloud/files.js',
   },
   // snapshotSerializers removed - jest-serializer-vue is incompatible with Jest 30
   testMatch: [
     '**/tests/unit/**/*.spec.(js|jsx|ts|tsx)',
+    '**/tests/unit/**/*.test.(js|jsx|ts|tsx)',
     '**/__tests__/*.(js|jsx|ts|tsx)',
   ],
   testEnvironmentOptions: {

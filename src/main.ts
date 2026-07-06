@@ -1,9 +1,10 @@
-import { createApp } from 'vue'
+import { createApp, defineComponent, h, onMounted, onBeforeUnmount, ref, type PropType } from 'vue'
 import { registerFileAction, DefaultType } from '@nextcloud/files'
 import type { IFileAction } from '@nextcloud/files'
+import { generateUrl } from '@nextcloud/router'
 import CadViewerApp from './App.vue'
 import router from './router'
-import CadViewerHandler from './components/ViewerHandler.vue'
+import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
 
 // Global translation function from Nextcloud - must be declared before use
 const t = (app: string, text: string): string => {
@@ -38,6 +39,14 @@ interface NextcloudOC {
   PERMISSION_READ: number
   generateUrl: (url: string, params?: Record<string, unknown>) => string
   imagePath: (app: string, file: string) => string
+}
+
+interface FileInfoType {
+  id?: number | string
+  path?: string
+  directory?: string
+  name?: string
+  filename?: string
 }
 
 interface NextcloudOCAViewer {
@@ -82,10 +91,205 @@ declare const OCA: NextcloudOCA
 let isRegistered = false
 
 /**
+ * Vue 3 handler component for the Nextcloud Viewer API.
+ * This component is registered with OCA.Viewer.registerHandler() and
+ * lazily loads the heavy CAD viewer bundle only when a CAD file is actually opened.
+ * 
+ * The Nextcloud Viewer app in Nextcloud 33+ has been migrated to Vue 3,
+ * so Vue 3 components can be rendered directly. This component uses
+ * the Composition API and defines props compatible with the Viewer's
+ * file handler interface.
+ */
+const CadViewerHandlerComponent = defineComponent({
+  name: 'CadViewerHandler',
+  props: {
+    path: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    fileid: {
+      type: [Number, String],
+      required: false,
+      default: null,
+    },
+    mime: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    filename: {
+      type: Object as PropType<FileInfoType | null>,
+      required: false,
+      default: null,
+    },
+    source: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    davPath: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    fileInfo: {
+      type: Object as PropType<FileInfoType | null>,
+      required: false,
+      default: null,
+    },
+  },
+  setup(props) {
+    const loading = ref<boolean>(true)
+    const error = ref<string | null>(null)
+    const viewerContainer = ref<HTMLElement | null>(null)
+    const viewerInstance = ref<ViewerInstance | null>(null)
+    const retryUrl = ref<string | null>(null)
+
+    const appTranslation = (text: string) => t('cad_viewer', text)
+
+    // Browser animation frame function type
+    const raf = globalThis.requestAnimationFrame.bind(globalThis)
+
+    async function initViewer(): Promise<void> {
+      // Determine the file URL to use
+      let fileUrl: string | null = null
+
+      // Priority 1: Use fileid prop with the app's API endpoint
+      let fileId = props.fileid
+      // Priority 1b: Fallback to fileInfo.id (how Nextcloud Viewer API passes it)
+      if (!fileId && props.fileInfo?.id) {
+        fileId = props.fileInfo.id
+      }
+      if (fileId) {
+        fileUrl = generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileId) })
+        retryUrl.value = fileUrl
+      }
+
+      // Priority 2: Fallback to source if provided
+      if (!fileUrl && props.source) {
+        fileUrl = props.source
+        retryUrl.value = fileUrl
+      }
+
+      // Priority 3: Fallback to davPath with WebDAV
+      if (!fileUrl && props.davPath) {
+        const pathSegments = props.davPath.split('/').filter(Boolean)
+        const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
+        fileUrl = generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
+        retryUrl.value = fileUrl
+      }
+
+      // Priority 4: Fallback to path with WebDAV
+      if (!fileUrl && props.path) {
+        const pathSegments = props.path.split('/').filter(Boolean)
+        const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
+        fileUrl = generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
+        retryUrl.value = fileUrl
+      }
+
+      if (!fileUrl) {
+        error.value = appTranslation('No file selected. Please open a DWG or DXF file from Nextcloud.')
+        loading.value = false
+        return
+      }
+
+      // Wait for container to be in the DOM
+      await new Promise<void>((resolve) => {
+        const checkContainer = () => {
+          const container = viewerContainer.value
+          if (container && container.isConnected) {
+            resolve()
+          } else {
+            raf(checkContainer)
+          }
+        }
+        checkContainer()
+      })
+
+      if (viewerContainer.value) {
+        try {
+          // Load the CAD viewer with the file URL
+          // The axios request will include session cookies automatically
+          viewerInstance.value = await loadCADViewer(viewerContainer.value, {
+            url: fileUrl,
+            theme: 'dark',
+          })
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          error.value = appTranslation('Failed to load CAD viewer: ') + msg
+        }
+      }
+      loading.value = false
+    }
+
+    onMounted(async () => {
+      try {
+        await initViewer()
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        error.value = appTranslation('Failed to load CAD viewer: ') + msg
+        loading.value = false
+      }
+    })
+
+    onBeforeUnmount(() => {
+      viewerInstance.value?.dispose()
+      viewerInstance.value = null
+    })
+
+    async function retryLoad(): Promise<void> {
+      error.value = null
+      loading.value = true
+
+      if (viewerContainer.value && retryUrl.value) {
+        viewerInstance.value?.dispose()
+        try {
+          viewerInstance.value = await loadCADViewer(viewerContainer.value, {
+            url: retryUrl.value,
+            theme: 'dark',
+          })
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          error.value = appTranslation('Failed to load CAD viewer: ') + msg
+        }
+      }
+      loading.value = false
+    }
+
+    return () => h('div', { class: 'cad-viewer-handler' }, [
+      h('div', { ref: viewerContainer, class: 'cad-viewer-canvas' }, [
+        loading.value
+          ? h('div', { class: 'cad-viewer-loading' }, [
+              h('div', { class: 'spinner' }),
+              h('p', {}, appTranslation('Loading CAD Viewer...')),
+            ])
+          : error.value
+            ? h('div', { class: 'cad-viewer-error' }, [
+                h('p', {}, error.value),
+                retryUrl.value
+                  ? h('button', {
+                      class: 'button primary',
+                      onClick: retryLoad,
+                    }, appTranslation('Retry'))
+                  : null,
+              ])
+            : null,
+      ]),
+    ])
+  },
+})
+
+/**
  * Register the CAD viewer handler with the Nextcloud Viewer API.
  * This is the PRIMARY mechanism that enables inline file viewing:
  * when a user clicks a CAD file in Files, the Viewer API automatically
  * opens our handler component inline without navigating away.
+ * 
+ * Vue 3 Compatibility Note:
+ * The Nextcloud Viewer app in Nextcloud 33+ has been migrated to Vue 3.
+ * This handler uses a Vue 3 defineComponent with render function to ensure
+ * compatibility with the Viewer's Vue 3 runtime.
  */
 function registerViewerHandler(): boolean {
   if (isRegistered) return false
@@ -95,10 +299,9 @@ function registerViewerHandler(): boolean {
       id: 'cad-viewer',
       group: 'cad',
       mimes: SUPPORTED_MIMES,
-      component: CadViewerHandler,
+      component: CadViewerHandlerComponent,
     })
     isRegistered = true
-    console.debug('CAD Viewer handler registered successfully')
     return true
   }
   return false
