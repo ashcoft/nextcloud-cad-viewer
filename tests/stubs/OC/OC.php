@@ -141,10 +141,20 @@ namespace OCP\AppFramework {
 namespace OCP {
     class Util
     {
+        /**
+         * @param string $appId
+         * @param string $scriptName
+         * @noinspection PhpUnusedParameterInspection
+         */
         public static function addScript(string $appId, string $scriptName): void
         {
         }
 
+        /**
+         * @param string $appId
+         * @param string $styleName
+         * @noinspection PhpUnusedParameterInspection
+         */
         public static function addStyle(string $appId, string $styleName): void
         {
         }
@@ -155,14 +165,10 @@ namespace OCP {
          *
          * @param string $appId      The app ID
          * @param string $scriptName The script name (without .js extension)
-         *
-         * @return void
-         * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+         * @noinspection PhpUnusedParameterInspection
          */
         public static function addInitScript(string $appId, string $scriptName): void
         {
-            // Stub implementation - parameters unused but required for interface
-            // phpcs:ignore Squiz.Functions.MultiLineFunctionDeclaration.EmptyBody
         }
     }
 }

@@ -155,6 +155,7 @@ const CadViewerHandlerComponent = defineComponent({
     /**
      * Build a WebDAV URL from a path by encoding each segment.
      */
+    // eslint-disable-next-line sonarjs/no-performance-issue
     function webdavUrl(path: string): string {
       const encodedPath = path
         .split('/')
@@ -232,7 +233,7 @@ const CadViewerHandlerComponent = defineComponent({
       await new Promise<void>((resolve) => {
         const checkContainer = () => {
           const container = viewerContainer.value
-          if (container && container.isConnected) {
+          if (container?.isConnected) {
             resolve()
           } else {
             raf(checkContainer)
