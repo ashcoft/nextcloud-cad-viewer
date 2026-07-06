@@ -164,19 +164,17 @@ describe('CadViewerHandler Component', () => {
     })
 
     it('should handle retry on load failure', () => {
-      // Simulate ref values
-      let retryUrl: string | null = '/ajax/apps/cad_viewer/api/file/123/content'
-      let loading = true
-      let error: string | null = 'Previous error'
+      // Simulate retry by verifying state transitions
+      const resetState = () => ({
+        retryUrl: null,
+        loading: false,
+        error: null,
+      })
 
-      // Simulate retry
-      retryUrl = null
-      loading = false
-      error = null
-
-      expect(retryUrl).toBeNull()
-      expect(loading).toBe(false)
-      expect(error).toBeNull()
+      const afterRetry = resetState()
+      expect(afterRetry.retryUrl).toBeNull()
+      expect(afterRetry.loading).toBe(false)
+      expect(afterRetry.error).toBeNull()
     })
   })
 })

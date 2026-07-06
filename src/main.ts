@@ -155,7 +155,6 @@ const CadViewerHandlerComponent = defineComponent({
     /**
      * Build a WebDAV URL from a path by encoding each segment.
      */
-    // eslint-disable-next-line sonarjs/no-performance-issue
     function webdavUrl(path: string): string {
       const encodedPath = path
         .split('/')
