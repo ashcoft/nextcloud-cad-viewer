@@ -145,54 +145,84 @@ const CadViewerHandlerComponent = defineComponent({
     const viewerContainer = ref<HTMLElement | null>(null)
     const viewerInstance = ref<ViewerInstance | null>(null)
     const retryUrl = ref<string | null>(null)
+    let isUnmounted = false
 
     const appTranslation = (text: string) => t('cad_viewer', text)
 
     // Browser animation frame function type
     const raf = globalThis.requestAnimationFrame.bind(globalThis)
 
-    async function initViewer(): Promise<void> {
-      // Determine the file URL to use
-      let fileUrl: string | null = null
+    /**
+     * Build a WebDAV URL from a path by encoding each segment.
+     */
+    function webdavUrl(path: string): string {
+      const encodedPath = path
+        .split('/')
+        .filter(Boolean)
+        .map((segment) => encodeURIComponent(segment))
+        .join('/')
+      return generateUrl('/remote.php/webdav') + '/' + encodedPath
+    }
 
+    /**
+     * Resolve the file URL using the Nextcloud Viewer props.
+     * Priority: fileid > fileInfo.id > source > davPath > path
+     */
+    function resolveFileUrl(): string | null {
       // Priority 1: Use fileid prop with the app's API endpoint
-      let fileId = props.fileid
-      // Priority 1b: Fallback to fileInfo.id (how Nextcloud Viewer API passes it)
-      if (!fileId && props.fileInfo?.id) {
-        fileId = props.fileInfo.id
+      const fileId = props.fileid ?? props.fileInfo?.id
+      if (fileId !== undefined && fileId !== null && fileId !== '') {
+        return generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileId) })
       }
-      if (fileId) {
-        fileUrl = generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileId) })
-        retryUrl.value = fileUrl
-      }
-
       // Priority 2: Fallback to source if provided
-      if (!fileUrl && props.source) {
-        fileUrl = props.source
-        retryUrl.value = fileUrl
+      if (props.source) {
+        return props.source
       }
-
       // Priority 3: Fallback to davPath with WebDAV
-      if (!fileUrl && props.davPath) {
-        const pathSegments = props.davPath.split('/').filter(Boolean)
-        const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
-        fileUrl = generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
-        retryUrl.value = fileUrl
+      if (props.davPath) {
+        return webdavUrl(props.davPath)
       }
-
       // Priority 4: Fallback to path with WebDAV
-      if (!fileUrl && props.path) {
-        const pathSegments = props.path.split('/').filter(Boolean)
-        const encodedSegments = pathSegments.map((segment) => encodeURIComponent(segment))
-        fileUrl = generateUrl('/remote.php/webdav') + '/' + encodedSegments.join('/')
-        retryUrl.value = fileUrl
+      if (props.path) {
+        return webdavUrl(props.path)
       }
+      return null
+    }
+
+    /**
+     * Load the CAD viewer with the given URL.
+     * Cancels loading if component has unmounted.
+     */
+    async function loadViewer(url: string): Promise<void> {
+      if (isUnmounted || !viewerContainer.value) return
+
+      try {
+        const instance = await loadCADViewer(viewerContainer.value, {
+          url,
+          theme: 'dark',
+        })
+        // Check if unmounted before assigning
+        if (isUnmounted) {
+          instance.dispose()
+          return
+        }
+        viewerInstance.value = instance
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        error.value = appTranslation('Failed to load CAD viewer: ') + msg
+      }
+    }
+
+    async function initViewer(): Promise<void> {
+      const fileUrl = resolveFileUrl()
 
       if (!fileUrl) {
         error.value = appTranslation('No file selected. Please open a DWG or DXF file from Nextcloud.')
         loading.value = false
         return
       }
+
+      retryUrl.value = fileUrl
 
       // Wait for container to be in the DOM
       await new Promise<void>((resolve) => {
@@ -207,18 +237,8 @@ const CadViewerHandlerComponent = defineComponent({
         checkContainer()
       })
 
-      if (viewerContainer.value) {
-        try {
-          // Load the CAD viewer with the file URL
-          // The axios request will include session cookies automatically
-          viewerInstance.value = await loadCADViewer(viewerContainer.value, {
-            url: fileUrl,
-            theme: 'dark',
-          })
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err)
-          error.value = appTranslation('Failed to load CAD viewer: ') + msg
-        }
+      if (!isUnmounted) {
+        await loadViewer(fileUrl)
       }
       loading.value = false
     }
@@ -234,49 +254,52 @@ const CadViewerHandlerComponent = defineComponent({
     })
 
     onBeforeUnmount(() => {
+      isUnmounted = true
       viewerInstance.value?.dispose()
       viewerInstance.value = null
     })
 
     async function retryLoad(): Promise<void> {
+      if (!retryUrl.value) return
+
       error.value = null
       loading.value = true
 
-      if (viewerContainer.value && retryUrl.value) {
+      if (viewerContainer.value) {
         viewerInstance.value?.dispose()
-        try {
-          viewerInstance.value = await loadCADViewer(viewerContainer.value, {
-            url: retryUrl.value,
-            theme: 'dark',
-          })
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err)
-          error.value = appTranslation('Failed to load CAD viewer: ') + msg
-        }
+        await loadViewer(retryUrl.value)
       }
       loading.value = false
     }
 
-    return () => h('div', { class: 'cad-viewer-handler' }, [
-      h('div', { ref: viewerContainer, class: 'cad-viewer-canvas' }, [
-        loading.value
-          ? h('div', { class: 'cad-viewer-loading' }, [
-              h('div', { class: 'spinner' }),
-              h('p', {}, appTranslation('Loading CAD Viewer...')),
-            ])
-          : error.value
-            ? h('div', { class: 'cad-viewer-error' }, [
-                h('p', {}, error.value),
-                retryUrl.value
-                  ? h('button', {
-                      class: 'button primary',
-                      onClick: retryLoad,
-                    }, appTranslation('Retry'))
-                  : null,
+    return () => {
+      // Sibling overlay elements instead of nested ternary
+      const overlay = loading.value || error.value
+        ? h('div', { class: 'cad-viewer-overlay' }, [
+            loading.value
+              ? h('div', { class: 'cad-viewer-loading' }, [
+                h('div', { class: 'spinner' }),
+                h('p', {}, appTranslation('Loading CAD Viewer...')),
               ])
-            : null,
-      ]),
-    ])
+              : error.value
+                ? h('div', { class: 'cad-viewer-error' }, [
+                    h('p', {}, error.value),
+                    retryUrl.value
+                      ? h('button', {
+                          class: 'button primary',
+                          onClick: retryLoad,
+                        }, appTranslation('Retry'))
+                      : null,
+                  ])
+                : null,
+          ])
+        : null
+
+      return h('div', { class: 'cad-viewer-handler' }, [
+        h('div', { ref: viewerContainer, class: 'cad-viewer-canvas' }),
+        overlay,
+      ])
+    }
   },
 })
 

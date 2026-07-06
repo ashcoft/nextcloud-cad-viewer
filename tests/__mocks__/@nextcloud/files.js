@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 // Mock for @nextcloud/files
 module.exports = {
   registerFileAction: jest.fn(),
