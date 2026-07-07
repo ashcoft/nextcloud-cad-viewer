@@ -92,7 +92,7 @@ jobs:
           fi
           echo "do_release=${DO_RELEASE}" >> $GITHUB_OUTPUT
 
-      - name: Verify versions are synchronized
+      - name: Verify and synchronize versions
         run: |
           VERSION=${{ steps.version.outputs.version }}
           INFO_VERSION=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml)
@@ -102,7 +102,15 @@ jobs:
           if [ "$VERSION" != "$INFO_VERSION" ]; then
             echo "WARNING: info.xml version does not match package.json!"
             echo "Expected: ${VERSION}, Found: ${INFO_VERSION}"
-            # Don't fail - release-please will update info.xml
+            echo "Updating info.xml to match package.json..."
+            # Update info.xml version to match package.json
+            sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
+            # Commit the version update
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add appinfo/info.xml
+            git commit -m "chore: sync version from package.json to info.xml [skip ci]" || true
+            git push || true
           else
             echo "✓ Versions are synchronized!"
           fi
