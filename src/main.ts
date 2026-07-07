@@ -250,11 +250,14 @@ const CadViewerHandlerComponent = defineComponent({
       }
 
       // Load viewer with base64 content
-      await loadViewerWithContent(
-        viewerContainer.value!,
-        fileData.content,
-        fileData.name
-      )
+      const container = viewerContainer.value
+      if (container) {
+        await loadViewerWithContent(container, fileData.content, fileData.name)
+      } else {
+        error.value = appTranslation('Failed to initialize viewer container.')
+        loading.value = false
+        return
+      }
 
       loading.value = false
     }
