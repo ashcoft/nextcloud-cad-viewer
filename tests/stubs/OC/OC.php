@@ -161,9 +161,9 @@ namespace OCP {
          *
          * @SuppressWarnings(PHPMD.UnusedFormalParameter)
          */
-        // phpcs:ignore Squiz.Functions.MultiLineFunctionDeclaration.EmptyBody
         public static function addInitScript(string $appId, string $scriptName): void
         {
+            // phpcs:ignore Squiz.Functions.MultiLineFunctionDeclaration.EmptyBody
         }
     }
 }
