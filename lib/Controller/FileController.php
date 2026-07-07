@@ -13,7 +13,6 @@ use OCA\CadViewer\AppInfo\Application;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
-use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\StreamResponse;
 use OCP\Files\IRootFolder;
@@ -21,38 +20,108 @@ use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IRequest;
 use OCP\IUserSession;
+use Psr\Log\LoggerInterface;
 
+/**
+ * Controller for CAD file operations.
+ * 
+ * Follows the same pattern as draw.io and OnlyOffice Nextcloud apps:
+ * - Simple load endpoint that returns file content by ID
+ * - No strict MIME type validation (Nextcloud already filters by file type)
+ * - FileId is the primary identifier
+ */
 class FileController extends Controller
 {
     private IRootFolder $rootFolder;
     private IUserSession $userSession;
-
-    /** @var string[] Supported CAD MIME types */
-    private const SUPPORTED_MIME_TYPES = [
-        'application/acad',
-        'application/autocad_dwg',
-        'application/dwg',
-        'application/x-autocad',
-        'application/x-dwg',
-        'image/vnd.dwg',
-        'image/vnd.dxf',
-        'application/dxf',
-        'application/x-dxf',
-        'image/x-dxf',
-    ];
-
-    private const ERROR_UNSUPPORTED_FILE_TYPE = 'Unsupported file type';
-    private const ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME = 'Unsupported file type: ';
+    private LoggerInterface $logger;
 
     public function __construct(
         string $appName,
         IRequest $request,
         IRootFolder $rootFolder,
-        IUserSession $userSession
+        IUserSession $userSession,
+        LoggerInterface $logger
     ) {
         parent::__construct($appName, $request);
         $this->rootFolder = $rootFolder;
         $this->userSession = $userSession;
+        $this->logger = $logger;
+    }
+
+    /**
+     * Load a CAD file by ID and return its content.
+     * 
+     * Simple endpoint similar to draw.io /load/{fileId}.
+     * Returns file content directly for the CAD viewer to process.
+     * No MIME type validation - file was already selected by user in Nextcloud.
+     */
+    #[NoAdminRequired]
+    public function load(int $fileId): DataResponse|StreamResponse
+    {
+        try {
+            $user = $this->userSession->getUser();
+            if ($user === null) {
+                $this->logger->warning('CAD Viewer: Unauthorized access attempt');
+                return new DataResponse(['error' => 'Unauthorized'], Http::STATUS_UNAUTHORIZED);
+            }
+
+            $userFolder = $this->rootFolder->getUserFolder($user->getUID());
+            $files = $userFolder->getById($fileId);
+
+            if (empty($files)) {
+                $this->logger->warning('CAD Viewer: File not found', ['fileId' => $fileId]);
+                return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
+            }
+
+            $file = $files[0];
+            if (!($file instanceof \OCP\Files\File)) {
+                return new DataResponse(['error' => 'Not a file'], Http::STATUS_BAD_REQUEST);
+            }
+
+            if (!$file->isReadable()) {
+                $this->logger->warning('CAD Viewer: Access denied', ['fileId' => $fileId]);
+                return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
+            }
+
+            $mimeType = $file->getMimeType();
+            $fileName = $file->getName();
+            $fileSize = $file->getSize();
+
+            $this->logger->info('CAD Viewer: Loading file', [
+                'fileId' => $fileId,
+                'name' => $fileName,
+                'mime' => $mimeType,
+                'size' => $fileSize
+            ]);
+
+            // Get file content
+            $content = $file->getContent();
+            
+            // Return as data response with metadata - similar to draw.io approach
+            return new DataResponse([
+                'id' => $file->getId(),
+                'name' => $fileName,
+                'size' => $fileSize,
+                'mime' => $mimeType,
+                'path' => $file->getPath(),
+                'content' => base64_encode($content),
+                'contentType' => 'application/octet-stream',
+            ]);
+
+        } catch (NotFoundException $e) {
+            $this->logger->warning('CAD Viewer: File not found', ['fileId' => $fileId]);
+            return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
+        } catch (NotPermittedException $e) {
+            $this->logger->warning('CAD Viewer: Access denied', ['fileId' => $fileId]);
+            return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
+        } catch (\Exception $e) {
+            $this->logger->error('CAD Viewer: Error loading file', [
+                'fileId' => $fileId,
+                'error' => $e->getMessage()
+            ]);
+            return new DataResponse(['error' => 'Internal server error: ' . $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -83,32 +152,25 @@ class FileController extends Controller
                 return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
             }
 
-            $mimeType = $file->getMimeType();
-            if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
-                throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
-            }
-
             return new DataResponse([
                 'id' => $file->getId(),
                 'name' => $file->getName(),
                 'size' => $file->getSize(),
-                'mimeType' => $mimeType,
+                'mimeType' => $file->getMimeType(),
                 'path' => $file->getPath(),
             ]);
         } catch (NotFoundException $e) {
             return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
         } catch (NotPermittedException $e) {
             return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
-        } catch (\UnexpectedValueException $e) {
-            return new DataResponse(['error' => self::ERROR_UNSUPPORTED_FILE_TYPE], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
         } catch (\Exception $e) {
             return new DataResponse(['error' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
-     * Stream the raw CAD file content for the viewer to load
-     *
+     * Stream the raw CAD file content for the viewer to load.
+     * 
      * Uses application/octet-stream to prevent browser download attempts.
      * The CAD viewer library will fetch and process this content via JavaScript.
      */
@@ -137,31 +199,20 @@ class FileController extends Controller
                 return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
             }
 
-            $mimeType = $file->getMimeType();
-            if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
-                throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
-            }
-
             $stream = $file->fopen('r');
             if ($stream === false) {
                 return new DataResponse(['error' => 'Could not open file'], Http::STATUS_INTERNAL_SERVER_ERROR);
             }
 
             $response = new StreamResponse($stream);
-            // Use application/octet-stream to prevent browser handling
-            // Browser won't display or auto-download unknown binary types
-            // JavaScript fetch() can read the response body normally
             $response->addHeader('Content-Type', 'application/octet-stream');
             $response->addHeader('Content-Length', (string) $file->getSize());
-            // No Content-Disposition header - browser won't trigger download
-            // No cache headers - Nextcloud handles caching appropriately
+            $response->addHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
             return $response;
         } catch (NotFoundException $e) {
             return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
         } catch (NotPermittedException $e) {
             return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
-        } catch (\UnexpectedValueException $e) {
-            return new DataResponse(['error' => self::ERROR_UNSUPPORTED_FILE_TYPE], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
         } catch (\Exception $e) {
             return new DataResponse(['error' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
         }
@@ -195,25 +246,18 @@ class FileController extends Controller
                 return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
             }
 
-            $mimeType = $file->getMimeType();
-            if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
-                throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
-            }
-
             $stream = $file->fopen('r');
             if ($stream === false) {
                 return new DataResponse(['error' => 'Could not open file'], Http::STATUS_INTERNAL_SERVER_ERROR);
             }
 
             $response = new StreamResponse($stream);
-            $response->addHeader('Content-Type', $mimeType);
+            $response->addHeader('Content-Type', $file->getMimeType());
             return $response;
         } catch (NotFoundException $e) {
             return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
         } catch (NotPermittedException $e) {
             return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
-        } catch (\UnexpectedValueException $e) {
-            return new DataResponse(['error' => self::ERROR_UNSUPPORTED_FILE_TYPE], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
         } catch (\Exception $e) {
             return new DataResponse(['error' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
         }

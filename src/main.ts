@@ -49,6 +49,17 @@ interface FileInfoType {
   filename?: string
 }
 
+interface LoadResponse {
+  id: number
+  name: string
+  size: number
+  mime: string
+  path: string
+  content: string
+  contentType: string
+  error?: string
+}
+
 interface NextcloudOCAViewer {
   id?: string
   group?: string
@@ -95,10 +106,7 @@ let isRegistered = false
  * This component is registered with OCA.Viewer.registerHandler() and
  * lazily loads the heavy CAD viewer bundle only when a CAD file is actually opened.
  * 
- * The Nextcloud Viewer app in Nextcloud 33+ has been migrated to Vue 3,
- * so Vue 3 components can be rendered directly. This component uses
- * the Composition API and defines props compatible with the Viewer's
- * file handler interface.
+ * Uses the load endpoint to fetch file content (similar to draw.io approach).
  */
 const CadViewerHandlerComponent = defineComponent({
   name: 'CadViewerHandler',
@@ -144,7 +152,7 @@ const CadViewerHandlerComponent = defineComponent({
     const error = ref<string | null>(null)
     const viewerContainer = ref<HTMLElement | null>(null)
     const viewerInstance = ref<ViewerInstance | null>(null)
-    const retryUrl = ref<string | null>(null)
+    const retryFileId = ref<number | string | null>(null)
     const isUnmounted = ref(false)
 
     const appTranslation = (text: string) => t('cad_viewer', text)
@@ -153,61 +161,52 @@ const CadViewerHandlerComponent = defineComponent({
     const raf = globalThis.requestAnimationFrame.bind(globalThis)
 
     /**
-     * Build a WebDAV URL from a path by encoding each segment.
+     * Resolve the file ID from props.
+     * Priority: fileid > fileInfo.id
      */
-    function webdavUrl(path: string): string {
-      const encodedPath = path
-        .split('/')
-        .filter(Boolean)
-        .map((segment) => encodeURIComponent(segment))
-        .join('/')
-      return generateUrl('/remote.php/webdav') + '/' + encodedPath
-    }
-
-    /**
-     * Resolve the file URL using the Nextcloud Viewer props.
-     * Priority: fileid > fileInfo.id > source > davPath > path
-     */
-    function resolveFileUrl(): string | null {
-      // Priority 1: Use fileid prop with the app's API endpoint
+    function resolveFileId(): number | string | null {
       if (props.fileid !== null) {
-        return generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(props.fileid) })
+        return props.fileid
       }
-      const fileIdFromInfo = props.fileInfo?.id
-      if (fileIdFromInfo !== undefined) {
-        return generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: String(fileIdFromInfo) })
-      }
-      // Priority 2: Fallback to source if provided
-      if (props.source) {
-        return props.source
-      }
-      // Priority 3: Fallback to davPath with WebDAV
-      if (props.davPath) {
-        return webdavUrl(props.davPath)
-      }
-      // Priority 4: Fallback to path with WebDAV
-      if (props.path) {
-        return webdavUrl(props.path)
-      }
-      return null
+      return props.fileInfo?.id ?? null
     }
 
     /**
-     * Load the CAD viewer with the given URL.
-     * Cancels loading if component has unmounted.
+     * Fetch file content using the load endpoint.
+     * Returns base64 encoded content similar to draw.io approach.
      */
-    async function loadViewer(url: string): Promise<void> {
-      const container = viewerContainer.value
-      if (!container || isUnmounted.value) return
+    async function fetchFileContent(fileId: number | string): Promise<LoadResponse | null> {
+      try {
+        const url = generateUrl('/apps/cad_viewer/api/load/{fileId}', { fileId: String(fileId) })
+        const response = await fetch(url)
+        
+        if (!response.ok) {
+          const data = await response.json()
+          throw new Error(data.error || `HTTP ${response.status}`)
+        }
+        
+        return await response.json()
+      } catch (err) {
+        console.error('CAD Viewer: Failed to fetch file content', err)
+        return null
+      }
+    }
 
+    /**
+     * Load the CAD viewer with base64 file content.
+     */
+    async function loadViewerWithContent(
+      container: HTMLElement,
+      fileContent: string,
+      fileName: string
+    ): Promise<void> {
       try {
         const instance = await loadCADViewer(container, {
-          url,
+          fileContent,
+          fileName,
           theme: 'dark',
         })
-        // Check if unmounted before assigning (unmount may have occurred during await)
-        // Note: isUnmounted.value can change during the await above via the onBeforeUnmount()
-        // closure; the linter's flow analysis doesn't account for cross-closure mutation.
+        // Check if unmounted before assigning
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (isUnmounted.value) {
           instance.dispose()
@@ -221,15 +220,15 @@ const CadViewerHandlerComponent = defineComponent({
     }
 
     async function initViewer(): Promise<void> {
-      const fileUrl = resolveFileUrl()
+      const fileId = resolveFileId()
 
-      if (!fileUrl) {
+      if (!fileId) {
         error.value = appTranslation('No file selected. Please open a DWG or DXF file from Nextcloud.')
         loading.value = false
         return
       }
 
-      retryUrl.value = fileUrl
+      retryFileId.value = fileId
 
       // Wait for container to be in the DOM
       await new Promise<void>((resolve) => {
@@ -244,9 +243,30 @@ const CadViewerHandlerComponent = defineComponent({
         checkContainer()
       })
 
-      if (!isUnmounted.value) {
-        await loadViewer(fileUrl)
+      if (isUnmounted.value) return
+
+      // Fetch file content using load endpoint
+      const fileData = await fetchFileContent(fileId)
+
+      if (!fileData) {
+        error.value = appTranslation('Failed to load file content. Please try again.')
+        loading.value = false
+        return
       }
+
+      if (fileData.error) {
+        error.value = fileData.error
+        loading.value = false
+        return
+      }
+
+      // Load viewer with base64 content
+      await loadViewerWithContent(
+        viewerContainer.value!,
+        fileData.content,
+        fileData.name
+      )
+
       loading.value = false
     }
 
@@ -267,14 +287,20 @@ const CadViewerHandlerComponent = defineComponent({
     })
 
     async function retryLoad(): Promise<void> {
-      if (!retryUrl.value) return
+      if (!retryFileId.value) return
 
       error.value = null
       loading.value = true
 
       if (viewerContainer.value) {
         viewerInstance.value?.dispose()
-        await loadViewer(retryUrl.value)
+        
+        const fileData = await fetchFileContent(retryFileId.value)
+        if (fileData && !fileData.error) {
+          await loadViewerWithContent(viewerContainer.value, fileData.content, fileData.name)
+        } else {
+          error.value = fileData?.error || appTranslation('Failed to load file')
+        }
       }
       loading.value = false
     }
@@ -292,7 +318,7 @@ const CadViewerHandlerComponent = defineComponent({
       }
       if (error.value) {
         const errorContent: ReturnType<typeof h>[] = [h('p', {}, error.value)]
-        if (retryUrl.value) {
+        if (retryFileId.value) {
           errorContent.push(
             h('button', {
               class: 'button primary',
@@ -316,14 +342,6 @@ const CadViewerHandlerComponent = defineComponent({
 
 /**
  * Register the CAD viewer handler with the Nextcloud Viewer API.
- * This is the PRIMARY mechanism that enables inline file viewing:
- * when a user clicks a CAD file in Files, the Viewer API automatically
- * opens our handler component inline without navigating away.
- * 
- * Vue 3 Compatibility Note:
- * The Nextcloud Viewer app in Nextcloud 33+ has been migrated to Vue 3.
- * This handler uses a Vue 3 defineComponent with render function to ensure
- * compatibility with the Viewer's Vue 3 runtime.
  */
 function registerViewerHandler(): boolean {
   if (isRegistered) return false
@@ -368,18 +386,13 @@ setupViewerPolling()
 
 /**
  * Open the CAD viewer inline for a file using the Nextcloud Viewer API.
- * Falls back to standalone page if Viewer API is not available.
  */
 function openInViewer(fileId: number | string): void {
-  // Priority 1: Open inline via Nextcloud Viewer API
-  // OCA.Viewer.open() opens the file in the registered handler inline
   if (OCA?.Viewer?.open !== undefined) {
     OCA.Viewer.open({ fileId })
     return
   }
 
-  // Priority 2: Fallback to standalone viewer page
-  // This preserves backward compatibility with the standalone view
   if (OC !== undefined) {
     window.location.href = OC.generateUrl('/apps/cad_viewer/view') + '?fileIds=' + fileId
   }
@@ -387,15 +400,12 @@ function openInViewer(fileId: number | string): void {
 
 /**
  * Register file actions that appear in the Files "..." context menu.
- * These are secondary actions - the primary inline viewing is handled
- * automatically by OCA.Viewer.registerHandler().
  */
 function registerFileActions(): void {
   if (OC === undefined) {
     return
   }
 
-  // Register using the NC33+ @nextcloud/files API
   try {
     const action: IFileAction = {
       id: 'cad-viewer-open',
@@ -410,9 +420,6 @@ function registerFileActions(): void {
         }
         return null
       },
-      // HIDDEN means this action only appears in the "..." context menu,
-      // not as the default click handler. The default click is handled
-      // by Nextcloud Viewer via OCA.Viewer.registerHandler().
       default: DefaultType.HIDDEN,
     }
     registerFileAction(action)

@@ -6,7 +6,7 @@
     </div>
     <div v-else-if="error" class="cad-viewer-error">
       <p>{{ error }}</p>
-      <button v-if="fileUrl" class="button primary" @click="retryLoad">
+      <button v-if="retryFileId" class="button primary" @click="retryLoad">
         {{ appTranslation('Retry') }}
       </button>
     </div>
@@ -26,12 +26,22 @@ declare global {
   }
 }
 
+interface LoadResponse {
+  id: number
+  name: string
+  size: number
+  mime: string
+  path: string
+  content: string
+  contentType: string
+  error?: string
+}
+
 const t = (app: string, text: string) => {
   const nextcloudTranslate = (window as unknown as { t?: (app: string, text: string) => string }).t
   return nextcloudTranslate ? nextcloudTranslate(app, text) : text
 }
 
-// Use the new app ID for translations
 const appTranslation = (text: string) => t('cad_viewer', text)
 
 export default defineComponent({
@@ -47,7 +57,24 @@ export default defineComponent({
     const error = ref<string | null>(null)
     const viewerContainer = ref<HTMLElement | null>(null)
     const viewerInstance = ref<ViewerInstance | null>(null)
-    const fileUrl = ref<string | null>(null)
+    const retryFileId = ref<string | null>(null)
+
+    async function fetchFileContent(fileId: string): Promise<LoadResponse | null> {
+      try {
+        const url = generateUrl('/apps/cad_viewer/api/load/{fileId}', { fileId })
+        const response = await fetch(url)
+        
+        if (!response.ok) {
+          const data = await response.json()
+          throw new Error(data.error || `HTTP ${response.status}`)
+        }
+        
+        return await response.json()
+      } catch (err) {
+        console.error('CAD Viewer: Failed to fetch file content', err)
+        return null
+      }
+    }
 
     async function initViewer(): Promise<void> {
       let fid: string | number | null = props.fileId
@@ -70,11 +97,28 @@ export default defineComponent({
         return
       }
 
-      fileUrl.value = generateUrl('/apps/cad_viewer/api/file/{fileId}/content', { fileId: fid as string })
+      retryFileId.value = String(fid)
 
+      // Fetch file content using load endpoint
+      const fileData = await fetchFileContent(String(fid))
+
+      if (!fileData) {
+        error.value = appTranslation('Failed to load file content. Please try again.')
+        loading.value = false
+        return
+      }
+
+      if (fileData.error) {
+        error.value = fileData.error
+        loading.value = false
+        return
+      }
+
+      // Load viewer with base64 content
       if (viewerContainer.value) {
         viewerInstance.value = await loadCADViewer(viewerContainer.value, {
-          url: fileUrl.value,
+          fileContent: fileData.content,
+          fileName: fileData.name,
           theme: 'dark',
         })
       }
@@ -97,19 +141,23 @@ export default defineComponent({
     })
 
     async function retryLoad(): Promise<void> {
+      if (!retryFileId.value) return
+
       error.value = null
       loading.value = true
 
-      if (viewerContainer.value && fileUrl.value) {
+      if (viewerContainer.value) {
         viewerInstance.value?.dispose()
-        try {
+        
+        const fileData = await fetchFileContent(retryFileId.value)
+        if (fileData && !fileData.error) {
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
-            url: fileUrl.value,
+            fileContent: fileData.content,
+            fileName: fileData.name,
             theme: 'dark',
           })
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err)
-          error.value = appTranslation('Failed to load CAD viewer: ') + msg
+        } else {
+          error.value = fileData?.error || appTranslation('Failed to load file')
         }
       }
       loading.value = false
@@ -119,7 +167,7 @@ export default defineComponent({
       loading,
       error,
       viewerContainer,
-      fileUrl,
+      retryFileId,
       retryLoad,
       appTranslation,
     }

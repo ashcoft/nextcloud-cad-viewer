@@ -8,6 +8,10 @@ export interface CADViewerOptions {
   baseUrl?: string
   background?: number
   useMainThreadDraw?: boolean
+  /** Base64 encoded file content from load endpoint */
+  fileContent?: string
+  /** Original filename */
+  fileName?: string
 }
 
 export interface ViewerInstance {
@@ -42,6 +46,8 @@ export async function loadCADViewer(
     baseUrl,
     background = 0x1e1e1e,
     useMainThreadDraw = false,
+    fileContent,
+    fileName,
   } = options
 
   const viewerProps: Record<string, unknown> = {
@@ -54,6 +60,8 @@ export async function loadCADViewer(
   if (url !== undefined) viewerProps.url = url
   if (localFile !== undefined) viewerProps.localFile = localFile
   if (baseUrl !== undefined) viewerProps.baseUrl = baseUrl
+  if (fileContent !== undefined) viewerProps.fileContent = fileContent
+  if (fileName !== undefined) viewerProps.fileName = fileName
 
   function mountApp(props: Record<string, unknown>): App {
     const vueApp = createApp(MlCadViewer, props)
