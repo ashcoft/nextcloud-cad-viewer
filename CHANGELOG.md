@@ -6,6 +6,15 @@
 * add wait loop for release availability before uploading assets ([b3b39e6](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b3b39e6c4754b2612de6647dd131d23d5d7c236e))
 * sync info.xml to v0.2.1 ([193a79b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/193a79bdbb161fc452ccf899d4c267456377a5ad))
 
+## [0.2.4](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.2.3...v0.2.4) (2026-07-07)
+
+
+### Bug Fixes
+
+* remove unrecognized xmlSnippet property from release-please config ([5e801fa](https://github.com/ashcoft/nextcloud-cad-viewer/commit/5e801fa90d713531f09c97c7014e1d0d22c86b8c))
+* update release-please config to properly update info.xml version ([67f0b7c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/67f0b7c7770f7ebb9339c4ff6f52950b9dad1bfd))
+* use camelCase for xmlSnippet property ([4705797](https://github.com/ashcoft/nextcloud-cad-viewer/commit/4705797c4c9378f7dca78d9144a78e4758325c83))
+
 ## [0.2.3](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.2.2...v0.2.3) (2026-07-07)
 
 
