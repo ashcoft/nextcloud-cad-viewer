@@ -159,6 +159,8 @@ namespace OCP {
          * @param string $appId      The app ID
          * @param string $scriptName The script name (without .js extension)
          *
+         * @return void
+         *
          * @SuppressWarnings(PHPMD.UnusedFormalParameter)
          */
         public static function addInitScript(string $appId, string $scriptName): void

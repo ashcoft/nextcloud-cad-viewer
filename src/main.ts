@@ -208,7 +208,7 @@ const CadViewerHandlerComponent = defineComponent({
         // Check if unmounted before assigning (unmount may have occurred during await)
         // Note: isUnmounted.value can change during the await above via the onBeforeUnmount()
         // closure; the linter's flow analysis doesn't account for cross-closure mutation.
-        // Codacy may flag this as unnecessary; the check is required for correctness.
+        // eslint-disable-next-line
         if (isUnmounted.value) {
           instance.dispose()
           return
