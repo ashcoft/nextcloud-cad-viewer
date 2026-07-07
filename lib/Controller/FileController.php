@@ -108,23 +108,29 @@ class FileController extends Controller
 
             // Check file size limit to prevent memory exhaustion
             if ($fileSize > self::MAX_FILE_SIZE) {
-                $this->logger->warning('CAD Viewer: File too large', [
-                    'fileId' => $fileId,
-                    'size' => $fileSize,
-                    'limit' => self::MAX_FILE_SIZE,
-                ]);
+                $this->logger->warning(
+                    'CAD Viewer: File too large',
+                    [
+                        'fileId' => $fileId,
+                        'size' => $fileSize,
+                        'limit' => self::MAX_FILE_SIZE,
+                    ]
+                );
                 return new DataResponse(
                     ['error' => 'File too large. Maximum supported size is 50MB.'],
                     Http::STATUS_REQUEST_ENTITY_TOO_LARGE
                 );
             }
 
-            $this->logger->info('CAD Viewer: Loading file', [
-                'fileId' => $fileId,
-                'name' => $fileName,
-                'mime' => $mimeType,
-                'size' => $fileSize,
-            ]);
+            $this->logger->info(
+                'CAD Viewer: Loading file',
+                [
+                    'fileId' => $fileId,
+                    'name' => $fileName,
+                    'mime' => $mimeType,
+                    'size' => $fileSize,
+                ]
+            );
 
             $content = $file->getContent();
 
