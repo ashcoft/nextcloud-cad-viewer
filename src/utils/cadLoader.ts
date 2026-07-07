@@ -1,6 +1,4 @@
-import { createApp, type App } from 'vue'
-import ElementPlus from 'element-plus'
-import { i18n, MlCadViewer } from '@mlightcad/cad-viewer'
+import type { App } from 'vue'
 
 export interface CADViewerOptions {
   locale?: string
@@ -24,6 +22,18 @@ export async function loadCADViewer(
   container: HTMLElement,
   options: CADViewerOptions = {},
 ): Promise<ViewerInstance> {
+  // Dynamically import heavy dependencies to enable lazy loading
+  // Webpack will create a separate chunk for these modules
+  const [vueModule, elementPlus, cadViewerModule] = await Promise.all([
+    import(/* webpackChunkName: "cad-viewer-vue" */ 'vue'),
+    import(/* webpackChunkName: "cad-viewer-element" */ 'element-plus'),
+    import(/* webpackChunkName: "cad-viewer-engine" */ '@mlightcad/cad-viewer'),
+  ])
+
+  const { createApp } = vueModule
+  const ElementPlus = elementPlus.default
+  const { i18n, MlCadViewer } = cadViewerModule
+
   const {
     locale = 'en',
     url,
