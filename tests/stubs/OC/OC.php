@@ -141,12 +141,31 @@ namespace OCP\AppFramework {
 namespace OCP {
     class Util
     {
+        // phpcs:ignore Squiz.Functions.MultiLineFunctionDeclaration.EmptyBody
         public static function addScript(string $appId, string $scriptName): void
         {
         }
 
+        // phpcs:ignore Squiz.Functions.MultiLineFunctionDeclaration.EmptyBody
         public static function addStyle(string $appId, string $styleName): void
         {
+        }
+
+        /**
+         * Add an initialization script that runs before the app's main script.
+         *
+         * Used to ensure handlers register before the Nextcloud Viewer app loads.
+         *
+         * @param string $appId      The app ID
+         * @param string $scriptName The script name (without .js extension)
+         *
+         * @return void
+         *
+         * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+         */
+        public static function addInitScript(string $appId, string $scriptName): void
+        {
+            // phpcs:ignore Squiz.Functions.MultiLineFunctionDeclaration.EmptyBody
         }
     }
 }
