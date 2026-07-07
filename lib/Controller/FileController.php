@@ -117,6 +117,62 @@ class FileController extends Controller
     }
 
     /**
+     * Handle exceptions from file operations and return appropriate error response.
+     *
+     * @return DataResponse|null Error response for handled exceptions, null for RuntimeException (auth check)
+     */
+    private function handleFileError(\Throwable $e, int $fileId, ?string $logMessage = null): ?DataResponse
+    {
+        $logMessage ??= $e->getMessage();
+
+        if ($e instanceof NotFoundException) {
+            $this->logger->warning(
+                'CAD Viewer: File not found',
+                ['fileId' => $fileId]
+            );
+            return new DataResponse(
+                ['error' => self::ERR_FILE_NOT_FOUND],
+                Http::STATUS_NOT_FOUND
+            );
+        }
+
+        if ($e instanceof NotPermittedException) {
+            $this->logger->warning(
+                'CAD Viewer: Access denied',
+                ['fileId' => $fileId]
+            );
+            return new DataResponse(
+                ['error' => self::ERR_ACCESS_DENIED],
+                Http::STATUS_FORBIDDEN
+            );
+        }
+
+        if ($e instanceof \RuntimeException) {
+            $this->logger->warning('CAD Viewer: Unauthorized access attempt');
+            return new DataResponse(
+                ['error' => 'Unauthorized'],
+                Http::STATUS_UNAUTHORIZED
+            );
+        }
+
+        if ($e instanceof \InvalidArgumentException) {
+            return new DataResponse(
+                ['error' => self::ERR_NOT_A_FILE],
+                Http::STATUS_BAD_REQUEST
+            );
+        }
+
+        $this->logger->error(
+            'CAD Viewer: Error loading file',
+            ['fileId' => $fileId, 'error' => $logMessage]
+        );
+        return new DataResponse(
+            ['error' => self::ERR_INTERNAL_SERVER_ERROR],
+            Http::STATUS_INTERNAL_SERVER_ERROR
+        );
+    }
+
+    /**
      * Load a CAD file by ID and return its content.
      *
      * Returns file content as base64 for the CAD viewer.
@@ -152,44 +208,12 @@ class FileController extends Controller
                 'content' => base64_encode($file->getContent()),
                 'contentType' => 'application/octet-stream',
             ]);
-        } catch (NotFoundException $e) {
-            $this->logger->warning(
-                'CAD Viewer: File not found',
-                ['fileId' => $fileId]
-            );
-            return new DataResponse(
-                ['error' => self::ERR_FILE_NOT_FOUND],
-                Http::STATUS_NOT_FOUND
-            );
-        } catch (NotPermittedException $e) {
-            $this->logger->warning(
-                'CAD Viewer: Access denied',
-                ['fileId' => $fileId]
-            );
-            return new DataResponse(
-                ['error' => self::ERR_ACCESS_DENIED],
-                Http::STATUS_FORBIDDEN
-            );
-        } catch (\RuntimeException $e) {
-            $this->logger->warning('CAD Viewer: Unauthorized access attempt');
-            return new DataResponse(
-                ['error' => 'Unauthorized'],
-                Http::STATUS_UNAUTHORIZED
-            );
-        } catch (\InvalidArgumentException $e) {
-            return new DataResponse(
-                ['error' => self::ERR_NOT_A_FILE],
-                Http::STATUS_BAD_REQUEST
-            );
-        } catch (\Exception $e) {
-            $this->logger->error(
-                'CAD Viewer: Error loading file',
-                ['fileId' => $fileId, 'error' => $e->getMessage()]
-            );
-            return new DataResponse(
-                ['error' => self::ERR_INTERNAL_SERVER_ERROR],
-                Http::STATUS_INTERNAL_SERVER_ERROR
-            );
+        } catch (\Throwable $e) {
+            $errorResponse = $this->handleFileError($e, $fileId, $e->getMessage());
+            if ($errorResponse !== null) {
+                return $errorResponse;
+            }
+            throw $e;
         }
     }
 
@@ -209,31 +233,12 @@ class FileController extends Controller
                 'mimeType' => $file->getMimeType(),
                 'path' => $file->getPath(),
             ]);
-        } catch (NotFoundException $e) {
-            return new DataResponse(
-                ['error' => self::ERR_FILE_NOT_FOUND],
-                Http::STATUS_NOT_FOUND
-            );
-        } catch (NotPermittedException $e) {
-            return new DataResponse(
-                ['error' => self::ERR_ACCESS_DENIED],
-                Http::STATUS_FORBIDDEN
-            );
-        } catch (\RuntimeException $e) {
-            return new DataResponse(
-                ['error' => 'Unauthorized'],
-                Http::STATUS_UNAUTHORIZED
-            );
-        } catch (\InvalidArgumentException $e) {
-            return new DataResponse(
-                ['error' => self::ERR_NOT_A_FILE],
-                Http::STATUS_BAD_REQUEST
-            );
-        } catch (\Exception $e) {
-            return new DataResponse(
-                ['error' => self::ERR_INTERNAL_SERVER_ERROR],
-                Http::STATUS_INTERNAL_SERVER_ERROR
-            );
+        } catch (\Throwable $e) {
+            $errorResponse = $this->handleFileError($e, $fileId);
+            if ($errorResponse !== null) {
+                return $errorResponse;
+            }
+            throw $e;
         }
     }
 
@@ -262,31 +267,12 @@ class FileController extends Controller
                 'no-cache, no-store, must-revalidate'
             );
             return $response;
-        } catch (NotFoundException $e) {
-            return new DataResponse(
-                ['error' => self::ERR_FILE_NOT_FOUND],
-                Http::STATUS_NOT_FOUND
-            );
-        } catch (NotPermittedException $e) {
-            return new DataResponse(
-                ['error' => self::ERR_ACCESS_DENIED],
-                Http::STATUS_FORBIDDEN
-            );
-        } catch (\RuntimeException $e) {
-            return new DataResponse(
-                ['error' => 'Unauthorized'],
-                Http::STATUS_UNAUTHORIZED
-            );
-        } catch (\InvalidArgumentException $e) {
-            return new DataResponse(
-                ['error' => self::ERR_NOT_A_FILE],
-                Http::STATUS_BAD_REQUEST
-            );
-        } catch (\Exception $e) {
-            return new DataResponse(
-                ['error' => self::ERR_INTERNAL_SERVER_ERROR],
-                Http::STATUS_INTERNAL_SERVER_ERROR
-            );
+        } catch (\Throwable $e) {
+            $errorResponse = $this->handleFileError($e, $fileId);
+            if ($errorResponse !== null) {
+                return $errorResponse;
+            }
+            throw $e;
         }
     }
 
@@ -310,31 +296,12 @@ class FileController extends Controller
             $response = new StreamResponse($stream);
             $response->addHeader('Content-Type', $file->getMimeType());
             return $response;
-        } catch (NotFoundException $e) {
-            return new DataResponse(
-                ['error' => self::ERR_FILE_NOT_FOUND],
-                Http::STATUS_NOT_FOUND
-            );
-        } catch (NotPermittedException $e) {
-            return new DataResponse(
-                ['error' => self::ERR_ACCESS_DENIED],
-                Http::STATUS_FORBIDDEN
-            );
-        } catch (\RuntimeException $e) {
-            return new DataResponse(
-                ['error' => 'Unauthorized'],
-                Http::STATUS_UNAUTHORIZED
-            );
-        } catch (\InvalidArgumentException $e) {
-            return new DataResponse(
-                ['error' => self::ERR_NOT_A_FILE],
-                Http::STATUS_BAD_REQUEST
-            );
-        } catch (\Exception $e) {
-            return new DataResponse(
-                ['error' => self::ERR_INTERNAL_SERVER_ERROR],
-                Http::STATUS_INTERNAL_SERVER_ERROR
-            );
+        } catch (\Throwable $e) {
+            $errorResponse = $this->handleFileError($e, $fileId);
+            if ($errorResponse !== null) {
+                return $errorResponse;
+            }
+            throw $e;
         }
     }
 }
