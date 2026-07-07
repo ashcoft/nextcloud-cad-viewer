@@ -50,9 +50,10 @@ class FileController extends Controller
             $user = $this->userSession->getUser();
             if ($user === null) {
                 $this->logger->warning('CAD Viewer: Unauthorized access attempt');
-                return new DataResponse([
-                    'error' => 'Unauthorized',
-                ], Http::STATUS_UNAUTHORIZED);
+                return new DataResponse(
+                    ['error' => 'Unauthorized'],
+                    Http::STATUS_UNAUTHORIZED
+                );
             }
 
             $userFolder = $this->rootFolder->getUserFolder($user->getUID());
@@ -62,17 +63,17 @@ class FileController extends Controller
                 $this->logger->warning('CAD Viewer: File not found', [
                     'fileId' => $fileId,
                 ]);
-                return new DataResponse([
-                    'error' => 'File not found',
-                ], Http::STATUS_NOT_FOUND
+                return new DataResponse(
+                    ['error' => 'File not found'],
+                    Http::STATUS_NOT_FOUND
                 );
             }
 
             $file = $files[0];
             if (!($file instanceof File)) {
-                return new DataResponse([
-                    'error' => 'Not a file',
-                ], Http::STATUS_BAD_REQUEST
+                return new DataResponse(
+                    ['error' => 'Not a file'],
+                    Http::STATUS_BAD_REQUEST
                 );
             }
 
@@ -80,9 +81,9 @@ class FileController extends Controller
                 $this->logger->warning('CAD Viewer: Access denied', [
                     'fileId' => $fileId,
                 ]);
-                return new DataResponse([
-                    'error' => 'Access denied',
-                ], Http::STATUS_FORBIDDEN
+                return new DataResponse(
+                    ['error' => 'Access denied'],
+                    Http::STATUS_FORBIDDEN
                 );
             }
 
@@ -97,9 +98,9 @@ class FileController extends Controller
                     'fileId' => $fileId,
                     'extension' => $extension,
                 ]);
-                return new DataResponse([
-                    'error' => 'Unsupported file type. Only DWG/DXF supported.',
-                ], Http::STATUS_UNSUPPORTED_MEDIA_TYPE
+                return new DataResponse(
+                    ['error' => 'Unsupported file type. Only DWG/DXF supported.'],
+                    Http::STATUS_UNSUPPORTED_MEDIA_TYPE
                 );
             }
 
@@ -110,9 +111,9 @@ class FileController extends Controller
                     'size' => $fileSize,
                     'limit' => self::MAX_FILE_SIZE,
                 ]);
-                return new DataResponse([
-                    'error' => 'File too large. Maximum supported size is 50MB.',
-                ], Http::STATUS_REQUEST_ENTITY_TOO_LARGE
+                return new DataResponse(
+                    ['error' => 'File too large. Maximum supported size is 50MB.'],
+                    Http::STATUS_REQUEST_ENTITY_TOO_LARGE
                 );
             }
 
@@ -138,26 +139,26 @@ class FileController extends Controller
             $this->logger->warning('CAD Viewer: File not found', [
                 'fileId' => $fileId,
             ]);
-            return new DataResponse([
-                'error' => 'File not found',
-            ], Http::STATUS_NOT_FOUND
+            return new DataResponse(
+                ['error' => 'File not found'],
+                Http::STATUS_NOT_FOUND
             );
         } catch (NotPermittedException $e) {
             $this->logger->warning('CAD Viewer: Access denied', [
                 'fileId' => $fileId,
             ]);
-            return new DataResponse([
-                'error' => 'Access denied',
-            ], Http::STATUS_FORBIDDEN
+            return new DataResponse(
+                ['error' => 'Access denied'],
+                Http::STATUS_FORBIDDEN
             );
         } catch (\Exception $e) {
             $this->logger->error('CAD Viewer: Error loading file', [
                 'fileId' => $fileId,
                 'error' => $e->getMessage(),
             ]);
-            return new DataResponse([
-                'error' => 'Internal server error: ' . $e->getMessage(),
-            ], Http::STATUS_INTERNAL_SERVER_ERROR
+            return new DataResponse(
+                ['error' => 'Internal server error: ' . $e->getMessage()],
+                Http::STATUS_INTERNAL_SERVER_ERROR
             );
         }
     }
