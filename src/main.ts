@@ -207,7 +207,6 @@ const CadViewerHandlerComponent = defineComponent({
           theme: 'dark',
         })
         // Check if unmounted before assigning
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (isUnmounted.value) {
           instance.dispose()
           return

@@ -62,7 +62,7 @@ export default defineComponent({
     async function fetchFileContent(fileId: string): Promise<LoadResponse | null> {
       try {
         const url = generateUrl('/apps/cad_viewer/api/load/{fileId}', { fileId })
-        const response = await fetch(url)
+        const response = await window.fetch(url)
         
         if (!response.ok) {
           const data = await response.json()

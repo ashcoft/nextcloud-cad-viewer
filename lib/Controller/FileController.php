@@ -97,7 +97,7 @@ class FileController extends Controller
 
             // Get file content
             $content = $file->getContent();
-            
+
             // Return as data response with metadata - similar to draw.io approach
             return new DataResponse([
                 'id' => $file->getId(),
