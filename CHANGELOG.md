@@ -6,6 +6,28 @@
 * add wait loop for release availability before uploading assets ([b3b39e6](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b3b39e6c4754b2612de6647dd131d23d5d7c236e))
 * sync info.xml to v0.2.1 ([193a79b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/193a79bdbb161fc452ccf899d4c267456377a5ad))
 
+## [0.2.3](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.2.2...v0.2.3) (2026-07-07)
+
+
+### Bug Fixes
+
+* add missing addInitScript stub method ([32b58ba](https://github.com/ashcoft/nextcloud-cad-viewer/commit/32b58bae9578b30975f70a0af33efa221acfd36a))
+* add SuppressWarnings annotation to addInitScript stub ([64e7f20](https://github.com/ashcoft/nextcloud-cad-viewer/commit/64e7f206dc6dcdaea4d9877ce1f9266433a34a5c))
+* address all Codacy and SonarCloud issues ([fe4cc60](https://github.com/ashcoft/nextcloud-cad-viewer/commit/fe4cc600bc1cdb7e0d1a1616b9d94dc7a4b25383))
+* address Codacy and SonarCloud quality issues ([1b5ee7e](https://github.com/ashcoft/nextcloud-cad-viewer/commit/1b5ee7e9585e27ecda89f5447ccc72947edb48cc))
+* address Codacy false positive warnings ([9d0ed89](https://github.com/ashcoft/nextcloud-cad-viewer/commit/9d0ed89dad0ca11d5c6bee8ba4ea17e4eaae2dee))
+* address CodeRabbit review comments ([5e7b54a](https://github.com/ashcoft/nextcloud-cad-viewer/commit/5e7b54a6b8566933f4a6f75c9e697db1ccecb7aa))
+* address remaining Codacy issues ([1200665](https://github.com/ashcoft/nextcloud-cad-viewer/commit/12006655e537eeca774eabd156cec76f3a9f325d))
+* address remaining SonarCloud issues ([80c394e](https://github.com/ashcoft/nextcloud-cad-viewer/commit/80c394eec985dff2779e8ec75a92248e1648c871))
+* improve type safety and docblock formatting ([98e3a7a](https://github.com/ashcoft/nextcloud-cad-viewer/commit/98e3a7a87afd92f1d550d2de438893df4118ffcb))
+* remove duplicate ViewerHandler and add lazy loading ([d079fe7](https://github.com/ashcoft/nextcloud-cad-viewer/commit/d079fe73b6705fe2e84d370ec6a9b7f7cc6444b5))
+* remove invalid eslint comment and fix test assignments ([7e42f29](https://github.com/ashcoft/nextcloud-cad-viewer/commit/7e42f29deff3758475aca1897fe7963be5c1319e))
+* resolve viewer registration PR review comments ([c4b467f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/c4b467f0e3fdfc6328852b07bdc8883929de3db4))
+* resolve viewer registration PR review comments ([4c37271](https://github.com/ashcoft/nextcloud-cad-viewer/commit/4c372718ae6a0d4896431bc7d7686c34d9b3dbf5))
+* sync info.xml version with package.json ([4c750f7](https://github.com/ashcoft/nextcloud-cad-viewer/commit/4c750f725f5843689a3cad5d79426efc635ac5e5))
+* sync info.xml version with package.json ([d638318](https://github.com/ashcoft/nextcloud-cad-viewer/commit/d63831873f705404207e0451738a55c40c8589bc))
+* use standard eslint-disable comment for Codacy ([0154195](https://github.com/ashcoft/nextcloud-cad-viewer/commit/0154195b88eaace1b1e69187a9d5ccbe977b2a95))
+
 ## [0.2.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.2.0...v0.2.1) (2026-07-05)
 
 
