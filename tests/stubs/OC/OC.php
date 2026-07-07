@@ -153,10 +153,12 @@ namespace OCP {
 
         /**
          * Add an initialization script that runs before the app's main script.
+         *
          * Used to ensure handlers register before the Nextcloud Viewer app loads.
          *
          * @param string $appId      The app ID
          * @param string $scriptName The script name (without .js extension)
+         *
          * @SuppressWarnings(PHPMD.UnusedFormalParameter)
          */
         // phpcs:ignore Squiz.Functions.MultiLineFunctionDeclaration.EmptyBody

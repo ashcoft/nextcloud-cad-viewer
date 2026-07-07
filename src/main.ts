@@ -109,7 +109,7 @@ const CadViewerHandlerComponent = defineComponent({
       default: '',
     },
     fileid: {
-      type: [Number, String],
+      type: [Number, String] as PropType<number | string | null>,
       required: false,
       default: null,
     },
@@ -145,7 +145,7 @@ const CadViewerHandlerComponent = defineComponent({
     const viewerContainer = ref<HTMLElement | null>(null)
     const viewerInstance = ref<ViewerInstance | null>(null)
     const retryUrl = ref<string | null>(null)
-    let isUnmounted = false
+    const isUnmounted = ref(false)
 
     const appTranslation = (text: string) => t('cad_viewer', text)
 
@@ -198,7 +198,7 @@ const CadViewerHandlerComponent = defineComponent({
      */
     async function loadViewer(url: string): Promise<void> {
       const container = viewerContainer.value
-      if (!container || isUnmounted) return
+      if (!container || isUnmounted.value) return
 
       try {
         const instance = await loadCADViewer(container, {
@@ -206,7 +206,7 @@ const CadViewerHandlerComponent = defineComponent({
           theme: 'dark',
         })
         // Check if unmounted before assigning (unmount may have occurred during await)
-        if (isUnmounted) {
+        if (isUnmounted.value) {
           instance.dispose()
           return
         }
@@ -241,7 +241,7 @@ const CadViewerHandlerComponent = defineComponent({
         checkContainer()
       })
 
-      if (!isUnmounted) {
+      if (!isUnmounted.value) {
         await loadViewer(fileUrl)
       }
       loading.value = false
@@ -258,7 +258,7 @@ const CadViewerHandlerComponent = defineComponent({
     })
 
     onBeforeUnmount(() => {
-      isUnmounted = true
+      isUnmounted.value = true
       viewerInstance.value?.dispose()
       viewerInstance.value = null
     })
