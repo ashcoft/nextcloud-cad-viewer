@@ -24,6 +24,9 @@ use Psr\Log\LoggerInterface;
 
 class FileController extends Controller
 {
+    private const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    private const ALLOWED_EXTENSIONS = ['dwg', 'dxf'];
+
     public function __construct(
         string $appName,
         IRequest $request,
@@ -65,6 +68,32 @@ class FileController extends Controller
             $mimeType = $file->getMimeType();
             $fileName = $file->getName();
             $fileSize = $file->getSize();
+
+            // Check file extension allowlist - lightweight check without strict MIME validation
+            $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+            if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
+                $this->logger->warning('CAD Viewer: Unsupported file extension', [
+                    'fileId' => $fileId,
+                    'extension' => $extension,
+                ]);
+                return new DataResponse(
+                    ['error' => 'Unsupported file type. Only DWG and DXF files are supported.'],
+                    Http::STATUS_UNSUPPORTED_MEDIA_TYPE
+                );
+            }
+
+            // Check file size limit to prevent memory exhaustion
+            if ($fileSize > self::MAX_FILE_SIZE) {
+                $this->logger->warning('CAD Viewer: File too large', [
+                    'fileId' => $fileId,
+                    'size' => $fileSize,
+                    'limit' => self::MAX_FILE_SIZE,
+                ]);
+                return new DataResponse(
+                    ['error' => 'File too large. Maximum supported size is 50MB.'],
+                    Http::STATUS_REQUEST_ENTITY_TOO_LARGE
+                );
+            }
 
             $this->logger->info('CAD Viewer: Loading file', [
                 'fileId' => $fileId,

@@ -5,6 +5,7 @@ import { generateUrl } from '@nextcloud/router'
 import CadViewerApp from './App.vue'
 import router from './router'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
+import type { LoadResponse } from './types/loadResponse'
 
 // Global translation function from Nextcloud - must be declared before use
 const t = (app: string, text: string): string => {
@@ -47,17 +48,6 @@ interface FileInfoType {
   directory?: string
   name?: string
   filename?: string
-}
-
-interface LoadResponse {
-  id: number
-  name: string
-  size: number
-  mime: string
-  path: string
-  content: string
-  contentType: string
-  error?: string
 }
 
 interface NextcloudOCAViewer {

@@ -18,23 +18,13 @@
 import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
+import type { LoadResponse } from './types/loadResponse'
 
 // Global translation function from Nextcloud
 declare global {
   interface Window {
     t: (app: string, text: string) => string
   }
-}
-
-interface LoadResponse {
-  id: number
-  name: string
-  size: number
-  mime: string
-  path: string
-  content: string
-  contentType: string
-  error?: string
 }
 
 const t = (app: string, text: string) => {
