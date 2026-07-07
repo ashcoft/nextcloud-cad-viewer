@@ -9,8 +9,7 @@
         {
           "type": "xml",
           "path": "appinfo/info.xml",
-          "xpath": "//version",
-          "xmlSnippet": true
+          "xpath": "//version"
         }
       ],
       "changelog-sections": {
