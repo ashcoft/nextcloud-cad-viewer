@@ -9,12 +9,12 @@ declare(strict_types=1);
 
 namespace OCA\CadViewer\Controller;
 
-use OCA\CadViewer\AppInfo\Application;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\StreamResponse;
+use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -22,42 +22,20 @@ use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-/**
- * Controller for CAD file operations.
- * 
- * Follows the same pattern as draw.io and OnlyOffice Nextcloud apps:
- * - Simple load endpoint that returns file content by ID
- * - No strict MIME type validation (Nextcloud already filters by file type)
- * - FileId is the primary identifier
- */
 class FileController extends Controller
 {
-    private IRootFolder $rootFolder;
-    private IUserSession $userSession;
-    private LoggerInterface $logger;
-
     public function __construct(
         string $appName,
         IRequest $request,
-        IRootFolder $rootFolder,
-        IUserSession $userSession,
-        LoggerInterface $logger
+        private readonly IRootFolder $rootFolder,
+        private readonly IUserSession $userSession,
+        private readonly LoggerInterface $logger
     ) {
         parent::__construct($appName, $request);
-        $this->rootFolder = $rootFolder;
-        $this->userSession = $userSession;
-        $this->logger = $logger;
     }
 
-    /**
-     * Load a CAD file by ID and return its content.
-     * 
-     * Simple endpoint similar to draw.io /load/{fileId}.
-     * Returns file content directly for the CAD viewer to process.
-     * No MIME type validation - file was already selected by user in Nextcloud.
-     */
     #[NoAdminRequired]
-    public function load(int $fileId): DataResponse|StreamResponse
+    public function load(int $fileId): DataResponse
     {
         try {
             $user = $this->userSession->getUser();
@@ -75,7 +53,7 @@ class FileController extends Controller
             }
 
             $file = $files[0];
-            if (!($file instanceof \OCP\Files\File)) {
+            if (!($file instanceof File)) {
                 return new DataResponse(['error' => 'Not a file'], Http::STATUS_BAD_REQUEST);
             }
 
@@ -92,13 +70,11 @@ class FileController extends Controller
                 'fileId' => $fileId,
                 'name' => $fileName,
                 'mime' => $mimeType,
-                'size' => $fileSize
+                'size' => $fileSize,
             ]);
 
-            // Get file content
             $content = $file->getContent();
 
-            // Return as data response with metadata - similar to draw.io approach
             return new DataResponse([
                 'id' => $file->getId(),
                 'name' => $fileName,
@@ -108,7 +84,6 @@ class FileController extends Controller
                 'content' => base64_encode($content),
                 'contentType' => 'application/octet-stream',
             ]);
-
         } catch (NotFoundException $e) {
             $this->logger->warning('CAD Viewer: File not found', ['fileId' => $fileId]);
             return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
@@ -118,15 +93,15 @@ class FileController extends Controller
         } catch (\Exception $e) {
             $this->logger->error('CAD Viewer: Error loading file', [
                 'fileId' => $fileId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            return new DataResponse(['error' => 'Internal server error: ' . $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
+            return new DataResponse(
+                ['error' => 'Internal server error: ' . $e->getMessage()],
+                Http::STATUS_INTERNAL_SERVER_ERROR
+            );
         }
     }
 
-    /**
-     * Get file metadata for a CAD file
-     */
     #[NoAdminRequired]
     public function getFile(int $fileId): DataResponse
     {
@@ -144,7 +119,7 @@ class FileController extends Controller
             }
 
             $file = $files[0];
-            if (!($file instanceof \OCP\Files\File)) {
+            if (!($file instanceof File)) {
                 return new DataResponse(['error' => 'Not a file'], Http::STATUS_BAD_REQUEST);
             }
 
@@ -168,12 +143,6 @@ class FileController extends Controller
         }
     }
 
-    /**
-     * Stream the raw CAD file content for the viewer to load.
-     * 
-     * Uses application/octet-stream to prevent browser download attempts.
-     * The CAD viewer library will fetch and process this content via JavaScript.
-     */
     #[NoAdminRequired]
     public function getFileContent(int $fileId): DataResponse|StreamResponse
     {
@@ -191,7 +160,7 @@ class FileController extends Controller
             }
 
             $file = $files[0];
-            if (!($file instanceof \OCP\Files\File)) {
+            if (!($file instanceof File)) {
                 return new DataResponse(['error' => 'Not a file'], Http::STATUS_BAD_REQUEST);
             }
 
@@ -218,9 +187,6 @@ class FileController extends Controller
         }
     }
 
-    /**
-     * Get a preview/thumbnail for a CAD file
-     */
     #[NoAdminRequired]
     public function preview(int $fileId): DataResponse|StreamResponse
     {
@@ -238,7 +204,7 @@ class FileController extends Controller
             }
 
             $file = $files[0];
-            if (!($file instanceof \OCP\Files\File)) {
+            if (!($file instanceof File)) {
                 return new DataResponse(['error' => 'Not a file'], Http::STATUS_BAD_REQUEST);
             }
 
