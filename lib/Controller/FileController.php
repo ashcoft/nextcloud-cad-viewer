@@ -60,9 +60,10 @@ class FileController extends Controller
             $files = $userFolder->getById($fileId);
 
             if (empty($files)) {
-                $this->logger->warning('CAD Viewer: File not found', [
-                    'fileId' => $fileId,
-                ]);
+                $this->logger->warning(
+                    'CAD Viewer: File not found',
+                    ['fileId' => $fileId]
+                );
                 return new DataResponse(
                     ['error' => 'File not found'],
                     Http::STATUS_NOT_FOUND
@@ -78,9 +79,10 @@ class FileController extends Controller
             }
 
             if (!$file->isReadable()) {
-                $this->logger->warning('CAD Viewer: Access denied', [
-                    'fileId' => $fileId,
-                ]);
+                $this->logger->warning(
+                    'CAD Viewer: Access denied',
+                    ['fileId' => $fileId]
+                );
                 return new DataResponse(
                     ['error' => 'Access denied'],
                     Http::STATUS_FORBIDDEN
@@ -94,10 +96,10 @@ class FileController extends Controller
             // Check file extension allowlist
             $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
             if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
-                $this->logger->warning('CAD Viewer: Unsupported file extension', [
-                    'fileId' => $fileId,
-                    'extension' => $extension,
-                ]);
+                $this->logger->warning(
+                    'CAD Viewer: Unsupported file extension',
+                    ['fileId' => $fileId, 'extension' => $extension]
+                );
                 return new DataResponse(
                     ['error' => 'Unsupported file type. Only DWG/DXF supported.'],
                     Http::STATUS_UNSUPPORTED_MEDIA_TYPE
@@ -136,26 +138,28 @@ class FileController extends Controller
                 'contentType' => 'application/octet-stream',
             ]);
         } catch (NotFoundException $e) {
-            $this->logger->warning('CAD Viewer: File not found', [
-                'fileId' => $fileId,
-            ]);
+            $this->logger->warning(
+                'CAD Viewer: File not found',
+                ['fileId' => $fileId]
+            );
             return new DataResponse(
                 ['error' => 'File not found'],
                 Http::STATUS_NOT_FOUND
             );
         } catch (NotPermittedException $e) {
-            $this->logger->warning('CAD Viewer: Access denied', [
-                'fileId' => $fileId,
-            ]);
+            $this->logger->warning(
+                'CAD Viewer: Access denied',
+                ['fileId' => $fileId]
+            );
             return new DataResponse(
                 ['error' => 'Access denied'],
                 Http::STATUS_FORBIDDEN
             );
         } catch (\Exception $e) {
-            $this->logger->error('CAD Viewer: Error loading file', [
-                'fileId' => $fileId,
-                'error' => $e->getMessage(),
-            ]);
+            $this->logger->error(
+                'CAD Viewer: Error loading file',
+                ['fileId' => $fileId, 'error' => $e->getMessage()]
+            );
             return new DataResponse(
                 ['error' => 'Internal server error: ' . $e->getMessage()],
                 Http::STATUS_INTERNAL_SERVER_ERROR
