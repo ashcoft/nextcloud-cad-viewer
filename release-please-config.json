@@ -6,7 +6,11 @@
       "versioning": "node",
       "changelog-path": "CHANGELOG.md",
       "extra-files": [
-        "appinfo/info.xml"
+        {
+          "type": "xml",
+          "path": "appinfo/info.xml",
+          "xpath": "//version"
+        }
       ],
       "changelog-sections": {
         "feat": "Features",
