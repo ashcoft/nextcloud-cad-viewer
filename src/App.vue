@@ -34,6 +34,26 @@ const t = (app: string, text: string) => {
 
 const appTranslation = (text: string) => t('cad_viewer', text)
 
+/**
+ * Fetch file content using the load endpoint.
+ */
+async function fetchFileContent(fileId: number | string): Promise<LoadResponse | null> {
+  try {
+    const url = generateUrl('/apps/cad_viewer/api/load/{fileId}', { fileId: String(fileId) })
+    const response = await window.fetch(url)
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.error || `HTTP ${response.status}`)
+    }
+
+    return await response.json()
+  } catch (err) {
+    console.error('CAD Viewer: Failed to fetch file content', err)
+    return null
+  }
+}
+
 export default defineComponent({
   name: 'CadViewerApp',
   props: {
@@ -48,23 +68,6 @@ export default defineComponent({
     const viewerContainer = ref<HTMLElement | null>(null)
     const viewerInstance = ref<ViewerInstance | null>(null)
     const retryFileId = ref<string | null>(null)
-
-    async function fetchFileContent(fileId: string): Promise<LoadResponse | null> {
-      try {
-        const url = generateUrl('/apps/cad_viewer/api/load/{fileId}', { fileId })
-        const response = await window.fetch(url)
-        
-        if (!response.ok) {
-          const data = await response.json()
-          throw new Error(data.error || `HTTP ${response.status}`)
-        }
-        
-        return await response.json()
-      } catch (err) {
-        console.error('CAD Viewer: Failed to fetch file content', err)
-        return null
-      }
-    }
 
     async function initViewer(): Promise<void> {
       let fid: string | number | null = props.fileId

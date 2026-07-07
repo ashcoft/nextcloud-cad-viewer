@@ -26,6 +26,10 @@ class FileController extends Controller
 {
     private const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
     private const ALLOWED_EXTENSIONS = ['dwg', 'dxf'];
+    private const ERR_FILE_NOT_FOUND = 'File not found';
+    private const ERR_ACCESS_DENIED = 'Access denied';
+    private const ERR_NOT_A_FILE = 'Not a file';
+    private const ERR_INTERNAL_SERVER_ERROR = 'Internal server error';
 
     public function __construct(
         string $appName,
@@ -38,6 +42,81 @@ class FileController extends Controller
     }
 
     /**
+     * Resolve a file by ID for the current user.
+     *
+     * @throws NotFoundException if file not found
+     * @throws NotPermittedException if access denied
+     * @throws \InvalidArgumentException if not a file
+     */
+    private function resolveFile(int $fileId): File
+    {
+        $user = $this->userSession->getUser();
+        if ($user === null) {
+            throw new \RuntimeException('Unauthorized');
+        }
+
+        $userFolder = $this->rootFolder->getUserFolder($user->getUID());
+        $files = $userFolder->getById($fileId);
+
+        if (empty($files)) {
+            throw new NotFoundException('File not found');
+        }
+
+        $file = $files[0];
+        if (!($file instanceof File)) {
+            throw new \InvalidArgumentException('Not a file');
+        }
+
+        if (!$file->isReadable()) {
+            throw new NotPermittedException('Access denied');
+        }
+
+        return $file;
+    }
+
+    /**
+     * Validate file constraints (extension and size).
+     *
+     * @return DataResponse|null Error response if validation fails, null otherwise
+     */
+    private function validateFileConstraints(File $file, int $fileId): ?DataResponse
+    {
+        $fileName = $file->getName();
+        $fileSize = $file->getSize();
+
+        // Check file extension allowlist
+        $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
+            $this->logger->warning(
+                'CAD Viewer: Unsupported file extension',
+                ['fileId' => $fileId, 'extension' => $extension]
+            );
+            return new DataResponse(
+                ['error' => 'Unsupported file type. Only DWG/DXF supported.'],
+                Http::STATUS_UNSUPPORTED_MEDIA_TYPE
+            );
+        }
+
+        // Check file size limit to prevent memory exhaustion
+        if ($fileSize > self::MAX_FILE_SIZE) {
+            $this->logger->warning(
+                'CAD Viewer: File too large',
+                [
+                    'fileId' => $fileId,
+                    'size' => $fileSize,
+                    'limit' => self::MAX_FILE_SIZE,
+                ]
+            );
+            return new DataResponse(
+                ['error' => 'File too large. Maximum supported size is 50MB.'],
+                Http::STATUS_REQUEST_ENTITY_TOO_LARGE
+            );
+        }
+
+        return null;
+    }
+
+    /**
      * Load a CAD file by ID and return its content.
      *
      * Returns file content as base64 for the CAD viewer.
@@ -47,100 +126,30 @@ class FileController extends Controller
     public function load(int $fileId): DataResponse
     {
         try {
-            $user = $this->userSession->getUser();
-            if ($user === null) {
-                $this->logger->warning('CAD Viewer: Unauthorized access attempt');
-                return new DataResponse(
-                    ['error' => 'Unauthorized'],
-                    Http::STATUS_UNAUTHORIZED
-                );
-            }
+            $file = $this->resolveFile($fileId);
 
-            $userFolder = $this->rootFolder->getUserFolder($user->getUID());
-            $files = $userFolder->getById($fileId);
-
-            if (empty($files)) {
-                $this->logger->warning(
-                    'CAD Viewer: File not found',
-                    ['fileId' => $fileId]
-                );
-                return new DataResponse(
-                    ['error' => 'File not found'],
-                    Http::STATUS_NOT_FOUND
-                );
-            }
-
-            $file = $files[0];
-            if (!($file instanceof File)) {
-                return new DataResponse(
-                    ['error' => 'Not a file'],
-                    Http::STATUS_BAD_REQUEST
-                );
-            }
-
-            if (!$file->isReadable()) {
-                $this->logger->warning(
-                    'CAD Viewer: Access denied',
-                    ['fileId' => $fileId]
-                );
-                return new DataResponse(
-                    ['error' => 'Access denied'],
-                    Http::STATUS_FORBIDDEN
-                );
-            }
-
-            $mimeType = $file->getMimeType();
-            $fileName = $file->getName();
-            $fileSize = $file->getSize();
-
-            // Check file extension allowlist
-            $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-            if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
-                $this->logger->warning(
-                    'CAD Viewer: Unsupported file extension',
-                    ['fileId' => $fileId, 'extension' => $extension]
-                );
-                return new DataResponse(
-                    ['error' => 'Unsupported file type. Only DWG/DXF supported.'],
-                    Http::STATUS_UNSUPPORTED_MEDIA_TYPE
-                );
-            }
-
-            // Check file size limit to prevent memory exhaustion
-            if ($fileSize > self::MAX_FILE_SIZE) {
-                $this->logger->warning(
-                    'CAD Viewer: File too large',
-                    [
-                        'fileId' => $fileId,
-                        'size' => $fileSize,
-                        'limit' => self::MAX_FILE_SIZE,
-                    ]
-                );
-                return new DataResponse(
-                    ['error' => 'File too large. Maximum supported size is 50MB.'],
-                    Http::STATUS_REQUEST_ENTITY_TOO_LARGE
-                );
+            $errorResponse = $this->validateFileConstraints($file, $fileId);
+            if ($errorResponse !== null) {
+                return $errorResponse;
             }
 
             $this->logger->info(
                 'CAD Viewer: Loading file',
                 [
                     'fileId' => $fileId,
-                    'name' => $fileName,
-                    'mime' => $mimeType,
-                    'size' => $fileSize,
+                    'name' => $file->getName(),
+                    'mime' => $file->getMimeType(),
+                    'size' => $file->getSize(),
                 ]
             );
 
-            $content = $file->getContent();
-
             return new DataResponse([
                 'id' => $file->getId(),
-                'name' => $fileName,
-                'size' => $fileSize,
-                'mime' => $mimeType,
+                'name' => $file->getName(),
+                'size' => $file->getSize(),
+                'mime' => $file->getMimeType(),
                 'path' => $file->getPath(),
-                'content' => base64_encode($content),
+                'content' => base64_encode($file->getContent()),
                 'contentType' => 'application/octet-stream',
             ]);
         } catch (NotFoundException $e) {
@@ -149,7 +158,7 @@ class FileController extends Controller
                 ['fileId' => $fileId]
             );
             return new DataResponse(
-                ['error' => 'File not found'],
+                ['error' => self::ERR_FILE_NOT_FOUND],
                 Http::STATUS_NOT_FOUND
             );
         } catch (NotPermittedException $e) {
@@ -158,8 +167,19 @@ class FileController extends Controller
                 ['fileId' => $fileId]
             );
             return new DataResponse(
-                ['error' => 'Access denied'],
+                ['error' => self::ERR_ACCESS_DENIED],
                 Http::STATUS_FORBIDDEN
+            );
+        } catch (\RuntimeException $e) {
+            $this->logger->warning('CAD Viewer: Unauthorized access attempt');
+            return new DataResponse(
+                ['error' => 'Unauthorized'],
+                Http::STATUS_UNAUTHORIZED
+            );
+        } catch (\InvalidArgumentException $e) {
+            return new DataResponse(
+                ['error' => self::ERR_NOT_A_FILE],
+                Http::STATUS_BAD_REQUEST
             );
         } catch (\Exception $e) {
             $this->logger->error(
@@ -167,7 +187,7 @@ class FileController extends Controller
                 ['fileId' => $fileId, 'error' => $e->getMessage()]
             );
             return new DataResponse(
-                ['error' => 'Internal server error: ' . $e->getMessage()],
+                ['error' => self::ERR_INTERNAL_SERVER_ERROR],
                 Http::STATUS_INTERNAL_SERVER_ERROR
             );
         }
@@ -180,38 +200,7 @@ class FileController extends Controller
     public function getFile(int $fileId): DataResponse
     {
         try {
-            $user = $this->userSession->getUser();
-            if ($user === null) {
-                return new DataResponse(
-                    ['error' => 'Unauthorized'],
-                    Http::STATUS_UNAUTHORIZED
-                );
-            }
-
-            $userFolder = $this->rootFolder->getUserFolder($user->getUID());
-            $files = $userFolder->getById($fileId);
-
-            if (empty($files)) {
-                return new DataResponse(
-                    ['error' => 'File not found'],
-                    Http::STATUS_NOT_FOUND
-                );
-            }
-
-            $file = $files[0];
-            if (!($file instanceof File)) {
-                return new DataResponse(
-                    ['error' => 'Not a file'],
-                    Http::STATUS_BAD_REQUEST
-                );
-            }
-
-            if (!$file->isReadable()) {
-                return new DataResponse(
-                    ['error' => 'Access denied'],
-                    Http::STATUS_FORBIDDEN
-                );
-            }
+            $file = $this->resolveFile($fileId);
 
             return new DataResponse([
                 'id' => $file->getId(),
@@ -222,17 +211,27 @@ class FileController extends Controller
             ]);
         } catch (NotFoundException $e) {
             return new DataResponse(
-                ['error' => 'File not found'],
+                ['error' => self::ERR_FILE_NOT_FOUND],
                 Http::STATUS_NOT_FOUND
             );
         } catch (NotPermittedException $e) {
             return new DataResponse(
-                ['error' => 'Access denied'],
+                ['error' => self::ERR_ACCESS_DENIED],
                 Http::STATUS_FORBIDDEN
+            );
+        } catch (\RuntimeException $e) {
+            return new DataResponse(
+                ['error' => 'Unauthorized'],
+                Http::STATUS_UNAUTHORIZED
+            );
+        } catch (\InvalidArgumentException $e) {
+            return new DataResponse(
+                ['error' => self::ERR_NOT_A_FILE],
+                Http::STATUS_BAD_REQUEST
             );
         } catch (\Exception $e) {
             return new DataResponse(
-                ['error' => 'Internal server error'],
+                ['error' => self::ERR_INTERNAL_SERVER_ERROR],
                 Http::STATUS_INTERNAL_SERVER_ERROR
             );
         }
@@ -245,38 +244,7 @@ class FileController extends Controller
     public function getFileContent(int $fileId): DataResponse|StreamResponse
     {
         try {
-            $user = $this->userSession->getUser();
-            if ($user === null) {
-                return new DataResponse(
-                    ['error' => 'Unauthorized'],
-                    Http::STATUS_UNAUTHORIZED
-                );
-            }
-
-            $userFolder = $this->rootFolder->getUserFolder($user->getUID());
-            $files = $userFolder->getById($fileId);
-
-            if (empty($files)) {
-                return new DataResponse(
-                    ['error' => 'File not found'],
-                    Http::STATUS_NOT_FOUND
-                );
-            }
-
-            $file = $files[0];
-            if (!($file instanceof File)) {
-                return new DataResponse(
-                    ['error' => 'Not a file'],
-                    Http::STATUS_BAD_REQUEST
-                );
-            }
-
-            if (!$file->isReadable()) {
-                return new DataResponse(
-                    ['error' => 'Access denied'],
-                    Http::STATUS_FORBIDDEN
-                );
-            }
+            $file = $this->resolveFile($fileId);
 
             $stream = $file->fopen('r');
             if ($stream === false) {
@@ -296,17 +264,27 @@ class FileController extends Controller
             return $response;
         } catch (NotFoundException $e) {
             return new DataResponse(
-                ['error' => 'File not found'],
+                ['error' => self::ERR_FILE_NOT_FOUND],
                 Http::STATUS_NOT_FOUND
             );
         } catch (NotPermittedException $e) {
             return new DataResponse(
-                ['error' => 'Access denied'],
+                ['error' => self::ERR_ACCESS_DENIED],
                 Http::STATUS_FORBIDDEN
+            );
+        } catch (\RuntimeException $e) {
+            return new DataResponse(
+                ['error' => 'Unauthorized'],
+                Http::STATUS_UNAUTHORIZED
+            );
+        } catch (\InvalidArgumentException $e) {
+            return new DataResponse(
+                ['error' => self::ERR_NOT_A_FILE],
+                Http::STATUS_BAD_REQUEST
             );
         } catch (\Exception $e) {
             return new DataResponse(
-                ['error' => 'Internal server error'],
+                ['error' => self::ERR_INTERNAL_SERVER_ERROR],
                 Http::STATUS_INTERNAL_SERVER_ERROR
             );
         }
@@ -319,38 +297,7 @@ class FileController extends Controller
     public function preview(int $fileId): DataResponse|StreamResponse
     {
         try {
-            $user = $this->userSession->getUser();
-            if ($user === null) {
-                return new DataResponse(
-                    ['error' => 'Unauthorized'],
-                    Http::STATUS_UNAUTHORIZED
-                );
-            }
-
-            $userFolder = $this->rootFolder->getUserFolder($user->getUID());
-            $files = $userFolder->getById($fileId);
-
-            if (empty($files)) {
-                return new DataResponse(
-                    ['error' => 'File not found'],
-                    Http::STATUS_NOT_FOUND
-                );
-            }
-
-            $file = $files[0];
-            if (!($file instanceof File)) {
-                return new DataResponse(
-                    ['error' => 'Not a file'],
-                    Http::STATUS_BAD_REQUEST
-                );
-            }
-
-            if (!$file->isReadable()) {
-                return new DataResponse(
-                    ['error' => 'Access denied'],
-                    Http::STATUS_FORBIDDEN
-                );
-            }
+            $file = $this->resolveFile($fileId);
 
             $stream = $file->fopen('r');
             if ($stream === false) {
@@ -365,17 +312,27 @@ class FileController extends Controller
             return $response;
         } catch (NotFoundException $e) {
             return new DataResponse(
-                ['error' => 'File not found'],
+                ['error' => self::ERR_FILE_NOT_FOUND],
                 Http::STATUS_NOT_FOUND
             );
         } catch (NotPermittedException $e) {
             return new DataResponse(
-                ['error' => 'Access denied'],
+                ['error' => self::ERR_ACCESS_DENIED],
                 Http::STATUS_FORBIDDEN
+            );
+        } catch (\RuntimeException $e) {
+            return new DataResponse(
+                ['error' => 'Unauthorized'],
+                Http::STATUS_UNAUTHORIZED
+            );
+        } catch (\InvalidArgumentException $e) {
+            return new DataResponse(
+                ['error' => self::ERR_NOT_A_FILE],
+                Http::STATUS_BAD_REQUEST
             );
         } catch (\Exception $e) {
             return new DataResponse(
-                ['error' => 'Internal server error'],
+                ['error' => self::ERR_INTERNAL_SERVER_ERROR],
                 Http::STATUS_INTERNAL_SERVER_ERROR
             );
         }

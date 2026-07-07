@@ -7,11 +7,35 @@ import router from './router'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
 import type { LoadResponse } from './types/loadResponse'
 
+// Type alias for file ID
+type FileIdType = number | string | null
+
 // Global translation function from Nextcloud - must be declared before use
 const t = (app: string, text: string): string => {
   const nextcloudGlobal = globalThis as unknown as { t?: (app: string, text: string) => string }
   const nextcloudTranslate = nextcloudGlobal.t
   return nextcloudTranslate ? nextcloudTranslate(app, text) : text
+}
+
+/**
+ * Fetch file content using the load endpoint.
+ * Returns base64 encoded content similar to draw.io approach.
+ */
+async function fetchFileContent(fileId: number | string): Promise<LoadResponse | null> {
+  try {
+    const url = generateUrl('/apps/cad_viewer/api/load/{fileId}', { fileId: String(fileId) })
+    const response = await fetch(url)
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.error || `HTTP ${response.status}`)
+    }
+
+    return await response.json()
+  } catch (err) {
+    console.error('CAD Viewer: Failed to fetch file content', err)
+    return null
+  }
 }
 
 const app = createApp(CadViewerApp)
@@ -107,7 +131,7 @@ const CadViewerHandlerComponent = defineComponent({
       default: '',
     },
     fileid: {
-      type: [Number, String] as PropType<number | string | null>,
+      type: [Number, String] as PropType<FileIdType>,
       required: false,
       default: null,
     },
@@ -159,27 +183,6 @@ const CadViewerHandlerComponent = defineComponent({
         return props.fileid
       }
       return props.fileInfo?.id ?? null
-    }
-
-    /**
-     * Fetch file content using the load endpoint.
-     * Returns base64 encoded content similar to draw.io approach.
-     */
-    async function fetchFileContent(fileId: number | string): Promise<LoadResponse | null> {
-      try {
-        const url = generateUrl('/apps/cad_viewer/api/load/{fileId}', { fileId: String(fileId) })
-        const response = await fetch(url)
-        
-        if (!response.ok) {
-          const data = await response.json()
-          throw new Error(data.error || `HTTP ${response.status}`)
-        }
-        
-        return await response.json()
-      } catch (err) {
-        console.error('CAD Viewer: Failed to fetch file content', err)
-        return null
-      }
     }
 
     /**
