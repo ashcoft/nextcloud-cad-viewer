@@ -28,10 +28,8 @@ export interface ViewerInstance {
  */
 function base64ToFile(base64: string, fileName: string): File {
   const binary = atob(base64)
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i)
-  }
+  // Safe: convert base64 string to Uint8Array using from() method
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
   // Determine MIME type from extension
   const ext = fileName.split('.').pop()?.toLowerCase()
   const mimeType = ext === 'dxf' ? 'application/dxf' : 'application/dwg'
@@ -85,9 +83,6 @@ export async function loadCADViewer(
 
   if (baseUrl !== undefined) viewerProps.baseUrl = baseUrl
 
-  // Record<string, unknown> is safe here as props are controlled internally
-  // and MlCadViewer component expects these specific prop names
-  // noinspection TypeScriptValidateTypes
   function mountApp(props: Record<string, unknown>): App {
     const vueApp = createApp(MlCadViewer, props)
     vueApp.use(i18n)

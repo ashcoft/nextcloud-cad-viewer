@@ -46,10 +46,8 @@ describe('base64ToFile conversion', () => {
   // These tests verify the expected conversion logic
   function base64ToFile(base64: string, fileName: string): File {
     const binary = atob(base64)
-    const bytes = new Uint8Array(binary.length)
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i)
-    }
+    // Safe: convert base64 string to Uint8Array using from() method
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
     const ext = fileName.split('.').pop()?.toLowerCase()
     const mimeType = ext === 'dxf' ? 'application/dxf' : 'application/dwg'
     return new File([bytes], fileName, { type: mimeType })
