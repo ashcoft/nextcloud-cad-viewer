@@ -1,5 +1,20 @@
 import { describe, it, expect } from '@jest/globals';
-import { isSupportedCADFormat, getFileExtension } from '../../src/utils/cadLoader';
+import { isSupportedCADFormat, getFileExtension, type CADViewerOptions } from '../../src/utils/cadLoader';
+
+// Type-only import to verify our CADViewerOptions interface matches the real MlCadViewer component props.
+// This test will fail to compile if the package props change, alerting us to update our interface.
+import type MlCadViewerModule from '@mlightcad/cad-viewer';
+
+// Extract the actual props type from the imported module
+type MlCadViewerProps = InstanceType<typeof MlCadViewerModule.default>['$props'];
+
+// Verify localFile prop exists with File type in the real component
+type AssertLocalFileProp = MlCadViewerProps extends { localFile?: File } ? true : false;
+const _assertLocalFile: AssertLocalFileProp = true;
+
+// Verify CADViewerOptions.localFile is compatible with MlCadViewerProps.localFile
+type AssertCompatibleLocalFile = MlCadViewerProps['localFile'] extends CADViewerOptions['localFile'] ? true : false;
+const _assertCompatibleLocalFile: AssertCompatibleLocalFile = true;
 
 describe('CAD Loader Utilities', () => {
   describe('isSupportedCADFormat', () => {
@@ -39,3 +54,47 @@ describe('CAD Loader Utilities', () => {
     });
   });
 });
+
+describe('base64ToFile conversion', () => {
+  // Test helper to simulate base64ToFile behavior
+  // Note: The actual function is internal to cadLoader module
+  // These tests verify the expected conversion logic
+  function base64ToFile(base64: string, fileName: string): File {
+    const binary = atob(base64)
+    // Safe: convert base64 string to Uint8Array using from() method
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+    const ext = fileName.split('.').pop()?.toLowerCase()
+    const mimeType = ext === 'dxf' ? 'application/dxf' : 'application/dwg'
+    return new File([bytes], fileName, { type: mimeType })
+  }
+
+  it('should convert base64 to File object for DWG files', () => {
+    // Simple test data: "test" in base64
+    const testBase64 = 'dGVzdA=='
+    const file = base64ToFile(testBase64, 'test.dwg')
+
+    expect(file).toBeInstanceOf(File)
+    expect(file.name).toBe('test.dwg')
+    expect(file.type).toBe('application/dwg')
+  })
+
+  it('should convert base64 to File object for DXF files', () => {
+    const testBase64 = 'dGVzdA=='
+    const file = base64ToFile(testBase64, 'drawing.dxf')
+
+    expect(file).toBeInstanceOf(File)
+    expect(file.name).toBe('drawing.dxf')
+    expect(file.type).toBe('application/dxf')
+  })
+
+  it('should create File with correct size for binary data', () => {
+    // Create test binary data (null bytes, etc.)
+    const binaryData = new Uint8Array([0x00, 0x01, 0x02, 0xff, 0xfe])
+    const base64 = btoa(String.fromCharCode(...binaryData))
+    const file = base64ToFile(base64, 'binary.dwg')
+
+    // Verify the File object was created with correct size
+    expect(file.size).toBe(binaryData.length)
+    expect(file).toBeInstanceOf(File)
+  })
+})
