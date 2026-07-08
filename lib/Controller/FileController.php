@@ -9,213 +9,291 @@ declare(strict_types=1);
 
 namespace OCA\CadViewer\Controller;
 
-use OCA\CadViewer\AppInfo\Application;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
-use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\StreamResponse;
+use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IRequest;
 use OCP\IUserSession;
+use Psr\Log\LoggerInterface;
 
 class FileController extends Controller
 {
-    private IRootFolder $rootFolder;
-    private IUserSession $userSession;
-
-    /** @var string[] Supported CAD MIME types */
-    private const SUPPORTED_MIME_TYPES = [
-        'application/acad',
-        'application/autocad_dwg',
-        'application/dwg',
-        'application/x-autocad',
-        'application/x-dwg',
-        'image/vnd.dwg',
-        'image/vnd.dxf',
-        'application/dxf',
-        'application/x-dxf',
-        'image/x-dxf',
-    ];
-
-    private const ERROR_UNSUPPORTED_FILE_TYPE = 'Unsupported file type';
-    private const ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME = 'Unsupported file type: ';
+    private const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    private const ALLOWED_EXTENSIONS = ['dwg', 'dxf'];
+    private const ERR_FILE_NOT_FOUND = 'File not found';
+    private const ERR_ACCESS_DENIED = 'Access denied';
+    private const ERR_NOT_A_FILE = 'Not a file';
+    private const ERR_INTERNAL_SERVER_ERROR = 'Internal server error';
 
     public function __construct(
         string $appName,
         IRequest $request,
-        IRootFolder $rootFolder,
-        IUserSession $userSession
+        private readonly IRootFolder $rootFolder,
+        private readonly IUserSession $userSession,
+        private readonly LoggerInterface $logger
     ) {
         parent::__construct($appName, $request);
-        $this->rootFolder = $rootFolder;
-        $this->userSession = $userSession;
     }
 
     /**
-     * Get file metadata for a CAD file
+     * Resolve a file by ID for the current user.
+     *
+     * @throws NotFoundException if file not found
+     * @throws NotPermittedException if access denied
+     * @throws \InvalidArgumentException if not a file
+     */
+    private function _resolveFile(int $fileId): File
+    {
+        $user = $this->userSession->getUser();
+        if ($user === null) {
+            throw new \RuntimeException('Unauthorized');
+        }
+
+        $userFolder = $this->rootFolder->getUserFolder($user->getUID());
+        $files = $userFolder->getById($fileId);
+
+        if (empty($files)) {
+            throw new NotFoundException('File not found');
+        }
+
+        $file = $files[0];
+        if (!($file instanceof File)) {
+            throw new \InvalidArgumentException('Not a file');
+        }
+
+        if (!$file->isReadable()) {
+            throw new NotPermittedException('Access denied');
+        }
+
+        return $file;
+    }
+
+    /**
+     * Validate file constraints (extension and size).
+     *
+     * @return DataResponse|null Error response if validation fails, null otherwise
+     */
+    private function _validateFileConstraints(File $file, int $fileId): ?DataResponse
+    {
+        $fileName = $file->getName();
+        $fileSize = $file->getSize();
+
+        // Check file extension allowlist
+        $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
+            $this->logger->warning(
+                'CAD Viewer: Unsupported file extension',
+                ['fileId' => $fileId, 'extension' => $extension]
+            );
+            return new DataResponse(
+                ['error' => 'Unsupported file type. Only DWG/DXF supported.'],
+                Http::STATUS_UNSUPPORTED_MEDIA_TYPE
+            );
+        }
+
+        // Check file size limit to prevent memory exhaustion
+        if ($fileSize > self::MAX_FILE_SIZE) {
+            $this->logger->warning(
+                'CAD Viewer: File too large',
+                [
+                    'fileId' => $fileId,
+                    'size' => $fileSize,
+                    'limit' => self::MAX_FILE_SIZE,
+                ]
+            );
+            return new DataResponse(
+                ['error' => 'File too large. Maximum supported size is 50MB.'],
+                Http::STATUS_REQUEST_ENTITY_TOO_LARGE
+            );
+        }
+
+        return null;
+    }
+
+    /**
+     * Handle exceptions from file operations and return appropriate error response.
+     */
+    private function _handleFileError(
+        \Throwable $e,
+        int $fileId,
+        ?string $logMessage = null,
+    ): DataResponse {
+        $logMessage ??= $e->getMessage();
+
+        if ($e instanceof NotFoundException) {
+            $this->logger->warning(
+                'CAD Viewer: File not found',
+                ['fileId' => $fileId]
+            );
+            return new DataResponse(
+                ['error' => self::ERR_FILE_NOT_FOUND],
+                Http::STATUS_NOT_FOUND
+            );
+        }
+
+        if ($e instanceof NotPermittedException) {
+            $this->logger->warning(
+                'CAD Viewer: Access denied',
+                ['fileId' => $fileId]
+            );
+            return new DataResponse(
+                ['error' => self::ERR_ACCESS_DENIED],
+                Http::STATUS_FORBIDDEN
+            );
+        }
+
+        if ($e instanceof \RuntimeException) {
+            $this->logger->warning('CAD Viewer: Unauthorized access attempt');
+            return new DataResponse(
+                ['error' => 'Unauthorized'],
+                Http::STATUS_UNAUTHORIZED
+            );
+        }
+
+        if ($e instanceof \InvalidArgumentException) {
+            return new DataResponse(
+                ['error' => self::ERR_NOT_A_FILE],
+                Http::STATUS_BAD_REQUEST
+            );
+        }
+
+        $this->logger->error(
+            'CAD Viewer: Error loading file',
+            ['fileId' => $fileId, 'error' => $logMessage]
+        );
+        return new DataResponse(
+            ['error' => self::ERR_INTERNAL_SERVER_ERROR],
+            Http::STATUS_INTERNAL_SERVER_ERROR
+        );
+    }
+
+    /**
+     * Load a CAD file by ID and return its content.
+     *
+     * Returns file content as base64 for the CAD viewer.
+     * Validates extension (.dwg/.dxf) and file size (max 50MB).
      */
     #[NoAdminRequired]
-    public function getFile(int $fileId): DataResponse
+    public function load(int $fileId): DataResponse
     {
         try {
-            $user = $this->userSession->getUser();
-            if ($user === null) {
-                return new DataResponse(['error' => 'Unauthorized'], Http::STATUS_UNAUTHORIZED);
+            $file = $this->_resolveFile($fileId);
+
+            $errorResponse = $this->_validateFileConstraints($file, $fileId);
+            if ($errorResponse !== null) {
+                return $errorResponse;
             }
 
-            $userFolder = $this->rootFolder->getUserFolder($user->getUID());
-            $files = $userFolder->getById($fileId);
-
-            if (empty($files)) {
-                return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
-            }
-
-            $file = $files[0];
-            if (!($file instanceof \OCP\Files\File)) {
-                return new DataResponse(['error' => 'Not a file'], Http::STATUS_BAD_REQUEST);
-            }
-
-            if (!$file->isReadable()) {
-                return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
-            }
-
-            $mimeType = $file->getMimeType();
-            if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
-                throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
-            }
+            $this->logger->info(
+                'CAD Viewer: Loading file',
+                [
+                    'fileId' => $fileId,
+                    'name' => $file->getName(),
+                    'mime' => $file->getMimeType(),
+                    'size' => $file->getSize(),
+                ]
+            );
 
             return new DataResponse([
                 'id' => $file->getId(),
                 'name' => $file->getName(),
                 'size' => $file->getSize(),
-                'mimeType' => $mimeType,
+                'mime' => $file->getMimeType(),
                 'path' => $file->getPath(),
+                'content' => base64_encode($file->getContent()),
+                'contentType' => 'application/octet-stream',
             ]);
-        } catch (NotFoundException $e) {
-            return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
-        } catch (NotPermittedException $e) {
-            return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
-        } catch (\UnexpectedValueException $e) {
-            return new DataResponse(['error' => self::ERROR_UNSUPPORTED_FILE_TYPE], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
-        } catch (\Exception $e) {
-            return new DataResponse(['error' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
+        } catch (\Throwable $e) {
+            $this->logger->error(
+                'CAD Viewer: Error loading file',
+                [
+                    'fileId' => $fileId,
+                    'exception' => $e,
+                ]
+            );
+            return $this->_handleFileError($e, $fileId);
         }
     }
 
     /**
-     * Stream the raw CAD file content for the viewer to load
-     *
-     * Uses application/octet-stream to prevent browser download attempts.
-     * The CAD viewer library will fetch and process this content via JavaScript.
+     * Get file metadata for a CAD file.
+     */
+    #[NoAdminRequired]
+    public function getFile(int $fileId): DataResponse
+    {
+        try {
+            $file = $this->_resolveFile($fileId);
+
+            return new DataResponse([
+                'id' => $file->getId(),
+                'name' => $file->getName(),
+                'size' => $file->getSize(),
+                'mimeType' => $file->getMimeType(),
+                'path' => $file->getPath(),
+            ]);
+        } catch (\Throwable $e) {
+            return $this->_handleFileError($e, $fileId);
+        }
+    }
+
+    /**
+     * Stream raw CAD file content.
      */
     #[NoAdminRequired]
     public function getFileContent(int $fileId): DataResponse|StreamResponse
     {
         try {
-            $user = $this->userSession->getUser();
-            if ($user === null) {
-                return new DataResponse(['error' => 'Unauthorized'], Http::STATUS_UNAUTHORIZED);
-            }
-
-            $userFolder = $this->rootFolder->getUserFolder($user->getUID());
-            $files = $userFolder->getById($fileId);
-
-            if (empty($files)) {
-                return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
-            }
-
-            $file = $files[0];
-            if (!($file instanceof \OCP\Files\File)) {
-                return new DataResponse(['error' => 'Not a file'], Http::STATUS_BAD_REQUEST);
-            }
-
-            if (!$file->isReadable()) {
-                return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
-            }
-
-            $mimeType = $file->getMimeType();
-            if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
-                throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
-            }
+            $file = $this->_resolveFile($fileId);
 
             $stream = $file->fopen('r');
             if ($stream === false) {
-                return new DataResponse(['error' => 'Could not open file'], Http::STATUS_INTERNAL_SERVER_ERROR);
+                return new DataResponse(
+                    ['error' => 'Could not open file'],
+                    Http::STATUS_INTERNAL_SERVER_ERROR
+                );
             }
 
             $response = new StreamResponse($stream);
-            // Use application/octet-stream to prevent browser handling
-            // Browser won't display or auto-download unknown binary types
-            // JavaScript fetch() can read the response body normally
             $response->addHeader('Content-Type', 'application/octet-stream');
             $response->addHeader('Content-Length', (string) $file->getSize());
-            // No Content-Disposition header - browser won't trigger download
-            // No cache headers - Nextcloud handles caching appropriately
+            $response->addHeader(
+                'Cache-Control',
+                'no-cache, no-store, must-revalidate'
+            );
             return $response;
-        } catch (NotFoundException $e) {
-            return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
-        } catch (NotPermittedException $e) {
-            return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
-        } catch (\UnexpectedValueException $e) {
-            return new DataResponse(['error' => self::ERROR_UNSUPPORTED_FILE_TYPE], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
-        } catch (\Exception $e) {
-            return new DataResponse(['error' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
+        } catch (\Throwable $e) {
+            return $this->_handleFileError($e, $fileId);
         }
     }
 
     /**
-     * Get a preview/thumbnail for a CAD file
+     * Get a preview/thumbnail for a CAD file.
      */
     #[NoAdminRequired]
     public function preview(int $fileId): DataResponse|StreamResponse
     {
         try {
-            $user = $this->userSession->getUser();
-            if ($user === null) {
-                return new DataResponse(['error' => 'Unauthorized'], Http::STATUS_UNAUTHORIZED);
-            }
-
-            $userFolder = $this->rootFolder->getUserFolder($user->getUID());
-            $files = $userFolder->getById($fileId);
-
-            if (empty($files)) {
-                return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
-            }
-
-            $file = $files[0];
-            if (!($file instanceof \OCP\Files\File)) {
-                return new DataResponse(['error' => 'Not a file'], Http::STATUS_BAD_REQUEST);
-            }
-
-            if (!$file->isReadable()) {
-                return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
-            }
-
-            $mimeType = $file->getMimeType();
-            if (!in_array($mimeType, self::SUPPORTED_MIME_TYPES, true)) {
-                throw new \UnexpectedValueException(self::ERROR_UNSUPPORTED_FILE_TYPE_WITH_MIME . $mimeType);
-            }
+            $file = $this->_resolveFile($fileId);
 
             $stream = $file->fopen('r');
             if ($stream === false) {
-                return new DataResponse(['error' => 'Could not open file'], Http::STATUS_INTERNAL_SERVER_ERROR);
+                return new DataResponse(
+                    ['error' => 'Could not open file'],
+                    Http::STATUS_INTERNAL_SERVER_ERROR
+                );
             }
 
             $response = new StreamResponse($stream);
-            $response->addHeader('Content-Type', $mimeType);
+            $response->addHeader('Content-Type', $file->getMimeType());
             return $response;
-        } catch (NotFoundException $e) {
-            return new DataResponse(['error' => 'File not found'], Http::STATUS_NOT_FOUND);
-        } catch (NotPermittedException $e) {
-            return new DataResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
-        } catch (\UnexpectedValueException $e) {
-            return new DataResponse(['error' => self::ERROR_UNSUPPORTED_FILE_TYPE], Http::STATUS_UNSUPPORTED_MEDIA_TYPE);
-        } catch (\Exception $e) {
-            return new DataResponse(['error' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
+        } catch (\Throwable $e) {
+            return $this->_handleFileError($e, $fileId);
         }
     }
 }

@@ -3,11 +3,20 @@ import type { App } from 'vue'
 export interface CADViewerOptions {
   locale?: string
   url?: string
+  /**
+   * Optional local File object to automatically load a CAD file on component mount.
+   * Verified against @mlightcad/cad-viewer@1.5.7 MlCadViewer props (dist/component/MlCadViewer.vue.d.ts).
+   * The package README confirms: "Pass a File object directly to the `localFile` prop for automatic loading."
+   */
   localFile?: File
   theme?: 'light' | 'dark'
   baseUrl?: string
   background?: number
   useMainThreadDraw?: boolean
+  /** Base64 encoded file content from load endpoint */
+  fileContent?: string
+  /** Original filename */
+  fileName?: string
 }
 
 export interface ViewerInstance {
@@ -16,6 +25,20 @@ export interface ViewerInstance {
   app: App | null
   loadFile(fileUrl: string): Promise<{ success: boolean; error?: string }>
   dispose(): void
+}
+
+/**
+ * Convert base64 encoded string to a File object.
+ * MlCadViewer only accepts url or localFile props, not raw base64 content.
+ */
+function base64ToFile(base64: string, fileName: string): File {
+  const binary = atob(base64)
+  // Safe: convert base64 string to Uint8Array using from() method
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+  // Determine MIME type from extension
+  const ext = fileName.split('.').pop()?.toLowerCase()
+  const mimeType = ext === 'dxf' ? 'application/dxf' : 'application/dwg'
+  return new File([bytes], fileName, { type: mimeType })
 }
 
 export async function loadCADViewer(
@@ -42,6 +65,8 @@ export async function loadCADViewer(
     baseUrl,
     background = 0x1e1e1e,
     useMainThreadDraw = false,
+    fileContent,
+    fileName,
   } = options
 
   const viewerProps: Record<string, unknown> = {
@@ -52,7 +77,15 @@ export async function loadCADViewer(
   }
 
   if (url !== undefined) viewerProps.url = url
-  if (localFile !== undefined) viewerProps.localFile = localFile
+
+  // Handle localFile - either provided directly or converted from base64
+  if (localFile !== undefined) {
+    viewerProps.localFile = localFile
+  } else if (fileContent !== undefined && fileName !== undefined) {
+    // MlCadViewer only accepts localFile (File object), not raw content
+    viewerProps.localFile = base64ToFile(fileContent, fileName)
+  }
+
   if (baseUrl !== undefined) viewerProps.baseUrl = baseUrl
 
   function mountApp(props: Record<string, unknown>): App {
