@@ -59,30 +59,30 @@ jobs:
         id: version
         run: |
           # Priority order for version detection:
-          # 1. If a GitHub release exists for v*, use that version (handles release-please created releases)
+          # 1. Check GitHub API for the latest release (handles release-please created releases)
           # 2. Read from .release-please-manifest.json (updated by release-please)
           # 3. Fall back to package.json (manual runs)
           
           TAG=""
-          for TAG_VERSION in $(git tag --list 'v*' --sort=-version:refname | head -1 | sed 's/^v//; s/^/v/'); do
-            if gh release view "$TAG_VERSION" &>/dev/null; then
-              TAG="$TAG_VERSION"
-              break
-            fi
-          done
+          VERSION=""
           
-          if [ -n "$TAG" ]; then
-            # Extract version from tag (remove 'v' prefix)
+          # Check GitHub API for latest release
+          if RESPONSE=$(gh api repos/${{ github.repository }}/releases/latest 2>/dev/null); then
+            TAG=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'])")
             VERSION="${TAG#v}"
-            echo "Found release tag: $TAG"
-          elif [ -f ".release-please-manifest.json" ]; then
-            VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
-            TAG="v${VERSION}"
-            echo "Using manifest version: ${VERSION}"
-          else
-            VERSION=$(node -p "require('./package.json').version")
-            TAG="v${VERSION}"
-            echo "Using package.json version: ${VERSION}"
+            echo "Found release tag from API: $TAG"
+          fi
+          
+          if [ -z "$VERSION" ]; then
+            if [ -f ".release-please-manifest.json" ]; then
+              VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
+              TAG="v${VERSION}"
+              echo "Using manifest version: ${VERSION}"
+            else
+              VERSION=$(node -p "require('./package.json').version")
+              TAG="v${VERSION}"
+              echo "Using package.json version: ${VERSION}"
+            fi
           fi
           
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
