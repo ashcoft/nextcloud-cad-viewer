@@ -55,6 +55,26 @@ jobs:
           php-version: '8.4'
           coverage: none
 
+      - name: Check if release mode
+        id: release_check
+        run: |
+          IS_RELEASE=true
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.skip_release }}" = "true" ]; then
+            IS_RELEASE=false
+            echo "Running in build-only mode (no release)"
+          fi
+          echo "is_release=${IS_RELEASE}" >> $GITHUB_OUTPUT
+
+      - name: Release Please
+        if: steps.release_check.outputs.is_release == 'true'
+        id: release-please
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          release-type: node
+          target-branch: main
+          config-file: release-please-config.json
+
+      # Get version AFTER release-please has run (so manifest is updated)
       - name: Get version
         id: version
         run: |
@@ -88,25 +108,6 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "Current version: ${VERSION}"
-
-      - name: Check if release mode
-        id: release_check
-        run: |
-          IS_RELEASE=true
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.skip_release }}" = "true" ]; then
-            IS_RELEASE=false
-            echo "Running in build-only mode (no release)"
-          fi
-          echo "is_release=${IS_RELEASE}" >> $GITHUB_OUTPUT
-
-      - name: Release Please
-        if: steps.release_check.outputs.is_release == 'true'
-        id: release-please
-        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
-        with:
-          release-type: node
-          target-branch: main
-          config-file: release-please-config.json
 
       # Single source of truth for "are we actually publishing a release right now?"
       - name: Compute release gate
