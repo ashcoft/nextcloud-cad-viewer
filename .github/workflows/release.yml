@@ -74,31 +74,14 @@ jobs:
           target-branch: main
           config-file: release-please-config.json
 
-      # Get version AFTER release-please has run (so manifest is updated)
-      - name: Get version
-        id: version
-        run: |
-          # Read version from manifest (updated by release-please step above)
-          # Fall back to package.json if manifest doesn't exist (manual runs)
-          if [ -f ".release-please-manifest.json" ]; then
-            VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
-            echo "Using manifest version: ${VERSION}"
-          else
-            VERSION=$(node -p "require('./package.json').version")
-            echo "Using package.json version: ${VERSION}"
-          fi
-          TAG="v${VERSION}"
-          
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
-          echo "Current version: ${VERSION}"
-
       # Single source of truth for "are we actually publishing a release right now?"
+      # This step also determines the correct version from the release tag
       - name: Compute release gate
         id: gate
         run: |
           DO_RELEASE=false
-          TAG="v${{ steps.version.outputs.version }}"
+          VERSION=""
+          TAG=""
           
           # Check if release was just created by this workflow run
           if [ "${{ steps.release_check.outputs.is_release }}" = "true" ] && \
@@ -108,14 +91,55 @@ jobs:
           fi
           
           # Also check if release already exists (created by release-please on release branch)
+          # Get the latest release tag from the API
           if [ "$DO_RELEASE" = "false" ] && [ "${{ github.event_name }}" = "push" ]; then
-            if gh release view "$TAG" &>/dev/null; then
+            # Try to get version from manifest first
+            if [ -f ".release-please-manifest.json" ]; then
+              VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
+              TAG="v${VERSION}"
+            fi
+            
+            # Check if the release exists
+            if [ -n "$TAG" ] && gh release view "$TAG" &>/dev/null; then
               DO_RELEASE=true
-              echo "Release $TAG already exists (created by release-please)"
+              echo "Release $TAG exists"
+            fi
+            
+            # If no release exists from manifest, check latest release API
+            if [ "$DO_RELEASE" = "false" ]; then
+              LATEST_TAG=$(gh api repos/${{ github.repository }}/releases/latest --jq '.tag_name' 2>/dev/null)
+              if [ -n "$LATEST_TAG" ]; then
+                VERSION="${LATEST_TAG#v}"
+                TAG="$LATEST_TAG"
+                DO_RELEASE=true
+                echo "Using latest release tag: $TAG"
+              fi
             fi
           fi
           
+          # For manual runs or if no release found, fall back to manifest/package.json
+          if [ "$DO_RELEASE" = "false" ]; then
+            if [ -f ".release-please-manifest.json" ]; then
+              VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
+            else
+              VERSION=$(node -p "require('./package.json').version")
+            fi
+            TAG="v${VERSION}"
+            echo "No release found, using manifest/package.json version: ${VERSION}"
+          fi
+          
           echo "do_release=${DO_RELEASE}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "Final version: ${VERSION}, tag: ${TAG}"
+
+      # Pass through version from gate step (needed for outputs used elsewhere)
+      - name: Get version
+        id: version
+        run: |
+          # Just pass through from gate step
+          echo "version=${{ steps.gate.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "tag=${{ steps.gate.outputs.tag }}" >> $GITHUB_OUTPUT
 
       - name: Verify and synchronize versions
         run: |
