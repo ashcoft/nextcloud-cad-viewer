@@ -39,3 +39,49 @@ describe('CAD Loader Utilities', () => {
     });
   });
 });
+
+describe('base64ToFile conversion', () => {
+  // Test helper to simulate base64ToFile behavior
+  // Note: The actual function is internal to cadLoader module
+  // These tests verify the expected conversion logic
+  function base64ToFile(base64: string, fileName: string): File {
+    const binary = atob(base64)
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i)
+    }
+    const ext = fileName.split('.').pop()?.toLowerCase()
+    const mimeType = ext === 'dxf' ? 'application/dxf' : 'application/dwg'
+    return new File([bytes], fileName, { type: mimeType })
+  }
+
+  it('should convert base64 to File object for DWG files', () => {
+    // Simple test data: "test" in base64
+    const testBase64 = 'dGVzdA=='
+    const file = base64ToFile(testBase64, 'test.dwg')
+
+    expect(file).toBeInstanceOf(File)
+    expect(file.name).toBe('test.dwg')
+    expect(file.type).toBe('application/dwg')
+  })
+
+  it('should convert base64 to File object for DXF files', () => {
+    const testBase64 = 'dGVzdA=='
+    const file = base64ToFile(testBase64, 'drawing.dxf')
+
+    expect(file).toBeInstanceOf(File)
+    expect(file.name).toBe('drawing.dxf')
+    expect(file.type).toBe('application/dxf')
+  })
+
+  it('should create File with correct size for binary data', () => {
+    // Create test binary data (null bytes, etc.)
+    const binaryData = new Uint8Array([0x00, 0x01, 0x02, 0xff, 0xfe])
+    const base64 = btoa(String.fromCharCode(...binaryData))
+    const file = base64ToFile(base64, 'binary.dwg')
+
+    // Verify the File object was created with correct size
+    expect(file.size).toBe(binaryData.length)
+    expect(file).toBeInstanceOf(File)
+  })
+})

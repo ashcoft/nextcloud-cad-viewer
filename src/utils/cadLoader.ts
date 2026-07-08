@@ -22,6 +22,22 @@ export interface ViewerInstance {
   dispose(): void
 }
 
+/**
+ * Convert base64 encoded string to a File object.
+ * MlCadViewer only accepts url or localFile props, not raw base64 content.
+ */
+function base64ToFile(base64: string, fileName: string): File {
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i)
+  }
+  // Determine MIME type from extension
+  const ext = fileName.split('.').pop()?.toLowerCase()
+  const mimeType = ext === 'dxf' ? 'application/dxf' : 'application/dwg'
+  return new File([bytes], fileName, { type: mimeType })
+}
+
 export async function loadCADViewer(
   container: HTMLElement,
   options: CADViewerOptions = {},
@@ -58,10 +74,16 @@ export async function loadCADViewer(
   }
 
   if (url !== undefined) viewerProps.url = url
-  if (localFile !== undefined) viewerProps.localFile = localFile
+
+  // Handle localFile - either provided directly or converted from base64
+  if (localFile !== undefined) {
+    viewerProps.localFile = localFile
+  } else if (fileContent !== undefined && fileName !== undefined) {
+    // MlCadViewer only accepts localFile (File object), not raw content
+    viewerProps.localFile = base64ToFile(fileContent, fileName)
+  }
+
   if (baseUrl !== undefined) viewerProps.baseUrl = baseUrl
-  if (fileContent !== undefined) viewerProps.fileContent = fileContent
-  if (fileName !== undefined) viewerProps.fileName = fileName
 
   function mountApp(props: Record<string, unknown>): App {
     const vueApp = createApp(MlCadViewer, props)
