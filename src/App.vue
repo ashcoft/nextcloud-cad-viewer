@@ -122,20 +122,23 @@ export default defineComponent({
       // Fetch file content using load endpoint
       const fileData = await fetchFileContent(String(fid))
 
-      // Skip remaining work if unmounted during fetch
-      // Codacy cannot detect that refs can change across await boundaries
-      switch (false) {
-        case !isUnmounted.value:
-          loading.value = false
-          return
-        case !!fileData:
+      // Check state flags set during component lifecycle
+      // These flags can change during async operations
+      const stillMounted = isUnmounted.value === false
+      const hasData = fileData !== null
+
+      if (!stillMounted || !hasData) {
+        loading.value = false
+        if (!hasData) {
           error.value = appTranslation('Failed to load file content. Please try again.')
-          loading.value = false
-          return
-        case !fileData.error:
-          error.value = fileData.error
-          loading.value = false
-          return
+        }
+        return
+      }
+
+      if (fileData.error) {
+        error.value = fileData.error
+        loading.value = false
+        return
       }
 
       // Load viewer with base64 content
