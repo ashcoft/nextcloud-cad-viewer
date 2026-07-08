@@ -48,7 +48,7 @@ class FileController extends Controller
      * @throws NotPermittedException if access denied
      * @throws \InvalidArgumentException if not a file
      */
-    private function resolveFile(int $fileId): File
+    private function _resolveFile(int $fileId): File
     {
         $user = $this->userSession->getUser();
         if ($user === null) {
@@ -79,7 +79,7 @@ class FileController extends Controller
      *
      * @return DataResponse|null Error response if validation fails, null otherwise
      */
-    private function validateFileConstraints(File $file, int $fileId): ?DataResponse
+    private function _validateFileConstraints(File $file, int $fileId): ?DataResponse
     {
         $fileName = $file->getName();
         $fileSize = $file->getSize();
@@ -119,8 +119,11 @@ class FileController extends Controller
     /**
      * Handle exceptions from file operations and return appropriate error response.
      */
-    private function handleFileError(\Throwable $e, int $fileId, ?string $logMessage = null): DataResponse
-    {
+    private function _handleFileError(
+        \Throwable $e,
+        int $fileId,
+        ?string $logMessage = null,
+    ): DataResponse {
         $logMessage ??= $e->getMessage();
 
         if ($e instanceof NotFoundException) {
@@ -180,9 +183,9 @@ class FileController extends Controller
     public function load(int $fileId): DataResponse
     {
         try {
-            $file = $this->resolveFile($fileId);
+            $file = $this->_resolveFile($fileId);
 
-            $errorResponse = $this->validateFileConstraints($file, $fileId);
+            $errorResponse = $this->_validateFileConstraints($file, $fileId);
             if ($errorResponse !== null) {
                 return $errorResponse;
             }
@@ -207,7 +210,7 @@ class FileController extends Controller
                 'contentType' => 'application/octet-stream',
             ]);
         } catch (\Throwable $e) {
-            return $this->handleFileError($e, $fileId, $e->getMessage());
+            return $this->_handleFileError($e, $fileId, $e->getMessage());
         }
     }
 
@@ -218,7 +221,7 @@ class FileController extends Controller
     public function getFile(int $fileId): DataResponse
     {
         try {
-            $file = $this->resolveFile($fileId);
+            $file = $this->_resolveFile($fileId);
 
             return new DataResponse([
                 'id' => $file->getId(),
@@ -228,7 +231,7 @@ class FileController extends Controller
                 'path' => $file->getPath(),
             ]);
         } catch (\Throwable $e) {
-            return $this->handleFileError($e, $fileId);
+            return $this->_handleFileError($e, $fileId);
         }
     }
 
@@ -239,7 +242,7 @@ class FileController extends Controller
     public function getFileContent(int $fileId): DataResponse|StreamResponse
     {
         try {
-            $file = $this->resolveFile($fileId);
+            $file = $this->_resolveFile($fileId);
 
             $stream = $file->fopen('r');
             if ($stream === false) {
@@ -258,7 +261,7 @@ class FileController extends Controller
             );
             return $response;
         } catch (\Throwable $e) {
-            return $this->handleFileError($e, $fileId);
+            return $this->_handleFileError($e, $fileId);
         }
     }
 
@@ -269,7 +272,7 @@ class FileController extends Controller
     public function preview(int $fileId): DataResponse|StreamResponse
     {
         try {
-            $file = $this->resolveFile($fileId);
+            $file = $this->_resolveFile($fileId);
 
             $stream = $file->fopen('r');
             if ($stream === false) {
@@ -283,7 +286,7 @@ class FileController extends Controller
             $response->addHeader('Content-Type', $file->getMimeType());
             return $response;
         } catch (\Throwable $e) {
-            return $this->handleFileError($e, $fileId);
+            return $this->_handleFileError($e, $fileId);
         }
     }
 }

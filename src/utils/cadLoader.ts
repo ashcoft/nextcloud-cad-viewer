@@ -85,6 +85,9 @@ export async function loadCADViewer(
 
   if (baseUrl !== undefined) viewerProps.baseUrl = baseUrl
 
+  // Record<string, unknown> is safe here as props are controlled internally
+  // and MlCadViewer component expects these specific prop names
+  // noinspection TypeScriptValidateTypes
   function mountApp(props: Record<string, unknown>): App {
     const vueApp = createApp(MlCadViewer, props)
     vueApp.use(i18n)
