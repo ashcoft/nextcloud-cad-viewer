@@ -3,6 +3,11 @@ import type { App } from 'vue'
 export interface CADViewerOptions {
   locale?: string
   url?: string
+  /**
+   * Optional local File object to automatically load a CAD file on component mount.
+   * Verified against @mlightcad/cad-viewer@1.5.7 MlCadViewer props (dist/component/MlCadViewer.vue.d.ts).
+   * The package README confirms: "Pass a File object directly to the `localFile` prop for automatic loading."
+   */
   localFile?: File
   theme?: 'light' | 'dark'
   baseUrl?: string

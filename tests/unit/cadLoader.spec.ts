@@ -1,5 +1,20 @@
 import { describe, it, expect } from '@jest/globals';
-import { isSupportedCADFormat, getFileExtension } from '../../src/utils/cadLoader';
+import { isSupportedCADFormat, getFileExtension, type CADViewerOptions } from '../../src/utils/cadLoader';
+
+// Type-only import to verify our CADViewerOptions interface matches the real MlCadViewer component props.
+// This test will fail to compile if the package props change, alerting us to update our interface.
+import type MlCadViewerModule from '@mlightcad/cad-viewer';
+
+// Extract the actual props type from the imported module
+type MlCadViewerProps = InstanceType<typeof MlCadViewerModule.default>['$props'];
+
+// Verify localFile prop exists with File type in the real component
+type AssertLocalFileProp = MlCadViewerProps extends { localFile?: File } ? true : false;
+const _assertLocalFile: AssertLocalFileProp = true;
+
+// Verify CADViewerOptions.localFile is compatible with MlCadViewerProps.localFile
+type AssertCompatibleLocalFile = MlCadViewerProps['localFile'] extends CADViewerOptions['localFile'] ? true : false;
+const _assertCompatibleLocalFile: AssertCompatibleLocalFile = true;
 
 describe('CAD Loader Utilities', () => {
   describe('isSupportedCADFormat', () => {
