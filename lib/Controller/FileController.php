@@ -118,10 +118,8 @@ class FileController extends Controller
 
     /**
      * Handle exceptions from file operations and return appropriate error response.
-     *
-     * @return DataResponse|null Error response for handled exceptions, null for RuntimeException (auth check)
      */
-    private function handleFileError(\Throwable $e, int $fileId, ?string $logMessage = null): ?DataResponse
+    private function handleFileError(\Throwable $e, int $fileId, ?string $logMessage = null): DataResponse
     {
         $logMessage ??= $e->getMessage();
 
@@ -209,11 +207,7 @@ class FileController extends Controller
                 'contentType' => 'application/octet-stream',
             ]);
         } catch (\Throwable $e) {
-            $errorResponse = $this->handleFileError($e, $fileId, $e->getMessage());
-            if ($errorResponse !== null) {
-                return $errorResponse;
-            }
-            throw $e;
+            return $this->handleFileError($e, $fileId, $e->getMessage());
         }
     }
 
@@ -234,11 +228,7 @@ class FileController extends Controller
                 'path' => $file->getPath(),
             ]);
         } catch (\Throwable $e) {
-            $errorResponse = $this->handleFileError($e, $fileId);
-            if ($errorResponse !== null) {
-                return $errorResponse;
-            }
-            throw $e;
+            return $this->handleFileError($e, $fileId);
         }
     }
 
@@ -268,11 +258,7 @@ class FileController extends Controller
             );
             return $response;
         } catch (\Throwable $e) {
-            $errorResponse = $this->handleFileError($e, $fileId);
-            if ($errorResponse !== null) {
-                return $errorResponse;
-            }
-            throw $e;
+            return $this->handleFileError($e, $fileId);
         }
     }
 
@@ -297,11 +283,7 @@ class FileController extends Controller
             $response->addHeader('Content-Type', $file->getMimeType());
             return $response;
         } catch (\Throwable $e) {
-            $errorResponse = $this->handleFileError($e, $fileId);
-            if ($errorResponse !== null) {
-                return $errorResponse;
-            }
-            throw $e;
+            return $this->handleFileError($e, $fileId);
         }
     }
 }
