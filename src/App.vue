@@ -122,12 +122,15 @@ export default defineComponent({
       // Fetch file content using load endpoint
       const fileData = await fetchFileContent(String(fid))
 
+      // codacy ignore start
       // Check if unmounted after async operation
+      // Codacy static analysis cannot track ref changes across await boundaries
       const wasUnmounted = isUnmounted.value
       if (wasUnmounted) {
         loading.value = false
         return
       }
+      // codacy ignore end
 
       if (!fileData) {
         error.value = appTranslation('Failed to load file content. Please try again.')
