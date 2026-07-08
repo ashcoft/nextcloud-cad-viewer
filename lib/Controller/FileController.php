@@ -210,7 +210,14 @@ class FileController extends Controller
                 'contentType' => 'application/octet-stream',
             ]);
         } catch (\Throwable $e) {
-            return $this->_handleFileError($e, $fileId, $e->getMessage());
+            $this->logger->error(
+                'CAD Viewer: Error loading file',
+                [
+                    'fileId' => $fileId,
+                    'exception' => $e,
+                ]
+            );
+            return $this->_handleFileError($e, $fileId);
         }
     }
 
