@@ -78,32 +78,16 @@ jobs:
       - name: Get version
         id: version
         run: |
-          # Priority order for version detection:
-          # 1. Check GitHub API for the latest release (handles release-please created releases)
-          # 2. Read from .release-please-manifest.json (updated by release-please)
-          # 3. Fall back to package.json (manual runs)
-          
-          TAG=""
-          VERSION=""
-          
-          # Check GitHub API for latest release
-          if RESPONSE=$(gh api repos/${{ github.repository }}/releases/latest 2>/dev/null); then
-            TAG=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'])")
-            VERSION="${TAG#v}"
-            echo "Found release tag from API: $TAG"
+          # Read version from manifest (updated by release-please step above)
+          # Fall back to package.json if manifest doesn't exist (manual runs)
+          if [ -f ".release-please-manifest.json" ]; then
+            VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
+            echo "Using manifest version: ${VERSION}"
+          else
+            VERSION=$(node -p "require('./package.json').version")
+            echo "Using package.json version: ${VERSION}"
           fi
-          
-          if [ -z "$VERSION" ]; then
-            if [ -f ".release-please-manifest.json" ]; then
-              VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
-              TAG="v${VERSION}"
-              echo "Using manifest version: ${VERSION}"
-            else
-              VERSION=$(node -p "require('./package.json').version")
-              TAG="v${VERSION}"
-              echo "Using package.json version: ${VERSION}"
-            fi
-          fi
+          TAG="v${VERSION}"
           
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
