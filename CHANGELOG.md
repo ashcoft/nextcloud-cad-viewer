@@ -6,6 +6,29 @@
 * add wait loop for release availability before uploading assets ([b3b39e6](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b3b39e6c4754b2612de6647dd131d23d5d7c236e))
 * sync info.xml to v0.2.1 ([193a79b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/193a79bdbb161fc452ccf899d4c267456377a5ad))
 
+## [0.2.6](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.2.5...v0.2.6) (2026-07-08)
+
+
+### Bug Fixes
+
+* detect version from GitHub release tag first ([5afe987](https://github.com/ashcoft/nextcloud-cad-viewer/commit/5afe987bcab1a9e54055efcc99aa47007accfdf1))
+* fetch updated manifest from release branch after release-please runs ([fadec70](https://github.com/ashcoft/nextcloud-cad-viewer/commit/fadec70dc999c71ef80d93a14ff24ec5fc748bae))
+* get version from release API in gate step ([5f0c4f6](https://github.com/ashcoft/nextcloud-cad-viewer/commit/5f0c4f607377e140d9eae8e7a60b9af5b57297eb))
+* move extra-files inside packages config for release-please ([82d4cb6](https://github.com/ashcoft/nextcloud-cad-viewer/commit/82d4cb6bbeaf9cd1ab8a9a48c2365e94a3d31c84))
+* move extra-files to top level config ([8e993d1](https://github.com/ashcoft/nextcloud-cad-viewer/commit/8e993d16dc4ae602560cf192c45159a0efc84ca8))
+* only upload artifacts to release on main branch ([b82cfcb](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b82cfcb87b4f924a04078e73f56e7980e74c6234))
+* read version from manifest and fix release-please config ([15e57c6](https://github.com/ashcoft/nextcloud-cad-viewer/commit/15e57c6a8017288728af4bf2608248825838ae8a))
+* read version from release-please output instead of manifest ([ab34913](https://github.com/ashcoft/nextcloud-cad-viewer/commit/ab34913ec9d2be0370d4dd9a07125a3d9d5f65d0))
+* rebase before pushing to avoid conflicts ([bf7f976](https://github.com/ashcoft/nextcloud-cad-viewer/commit/bf7f976ff6881f6ba37a9b1c35ea03db799199fc))
+* **release:** trigger workflow on release branch and check for existing releases ([4600790](https://github.com/ashcoft/nextcloud-cad-viewer/commit/4600790da5b5dc50f4acdcf2393b14f8f600ef4a))
+* reorder workflow to run release-please before version detection ([7c16ddd](https://github.com/ashcoft/nextcloud-cad-viewer/commit/7c16ddd5bd18d0d7b5816dfcda7bcac9177a2de1))
+* sync info.xml version after release-please creates PR ([f3b3c45](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f3b3c45e745219dbbb15e3b90c8eab963917350a))
+* update xpath for info.xml extra-files ([5fcc8dc](https://github.com/ashcoft/nextcloud-cad-viewer/commit/5fcc8dc8536b9329ba9db655624da3bc76561a9c))
+* use --jq flag for gh api to extract tag_name directly ([815024d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/815024dbc76be3d0023221c55495f980a920c682))
+* use curl instead of gh api for release detection ([e229206](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e229206c039abb0cbe52776be9295ca3d09aad2c))
+* use GitHub API to detect latest release instead of local tags ([e31e7b8](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e31e7b8b4942c86d1ff29d06d46d3377ed399b59))
+* use x-release-please-version annotation in info.xml for simpler extra-files config ([c225b4f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/c225b4f9c70ea88954da7b81877db92084229aac))
+
 ## [0.2.4](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.2.3...v0.2.4) (2026-07-08)
 
 
