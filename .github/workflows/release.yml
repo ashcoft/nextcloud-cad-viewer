@@ -33,7 +33,6 @@ jobs:
       contents: write
       pull-requests: write
     outputs:
-      is_release: ${{ steps.release_check.outputs.is_release }}
       version: ${{ steps.version.outputs.version }}
       tag_name: ${{ steps.version.outputs.tag }}
     steps:
@@ -74,83 +73,19 @@ jobs:
           target-branch: main
           config-file: release-please-config.json
 
-      # Single source of truth for "are we actually publishing a release right now?"
-      # This step also determines the correct version from the release tag
-      - name: Compute release gate
-        id: gate
-        run: |
-          DO_RELEASE=false
-          VERSION=""
-          TAG=""
-          
-          # Check if release was just created by this workflow run
-          if [ "${{ steps.release_check.outputs.is_release }}" = "true" ] && \
-             [ "${{ steps.release-please.outputs.release_created }}" = "true" ]; then
-            DO_RELEASE=true
-            echo "Release was created by this workflow"
-          fi
-          
-          # Also check if release already exists (created by release-please on release branch)
-          # Get the latest release tag from the API
-          if [ "$DO_RELEASE" = "false" ] && [ "${{ github.event_name }}" = "push" ]; then
-            # Check latest release API first using curl
-            LATEST_TAG=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/releases/latest" | \
-              python3 -c "import sys,json; print(json.load(sys.stdin).get('tag_name', ''))")
-            if [ -n "$LATEST_TAG" ]; then
-              VERSION="${LATEST_TAG#v}"
-              TAG="$LATEST_TAG"
-              DO_RELEASE=true
-              echo "Found release from API: $TAG"
-            fi
-          fi
-          
-          # For manual runs or if no release found, fall back to manifest/package.json
-          if [ "$DO_RELEASE" = "false" ]; then
-            if [ -f ".release-please-manifest.json" ]; then
-              VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
-            else
-              VERSION=$(node -p "require('./package.json').version")
-            fi
-            TAG="v${VERSION}"
-            echo "No release found, using manifest/package.json version: ${VERSION}"
-          fi
-          
-          echo "do_release=${DO_RELEASE}" >> $GITHUB_OUTPUT
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
-          echo "Final version: ${VERSION}, tag: ${TAG}"
-
-      # Pass through version from gate step (needed for outputs used elsewhere)
       - name: Get version
         id: version
         run: |
-          # Just pass through from gate step
-          echo "version=${{ steps.gate.outputs.version }}" >> $GITHUB_OUTPUT
-          echo "tag=${{ steps.gate.outputs.tag }}" >> $GITHUB_OUTPUT
-
-      - name: Verify and synchronize versions
-        run: |
-          MANIFEST_VERSION=${{ steps.version.outputs.version }}
-          INFO_VERSION=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml)
-          echo "Manifest version: ${MANIFEST_VERSION}"
-          echo "info.xml version: ${INFO_VERSION}"
-          
-          if [ "$MANIFEST_VERSION" != "$INFO_VERSION" ]; then
-            echo "WARNING: info.xml version does not match manifest!"
-            echo "Expected: ${MANIFEST_VERSION}, Found: ${INFO_VERSION}"
-            echo "Updating info.xml to match manifest..."
-            # Update info.xml version to match manifest
-            sed -i "s|<version>[^<]*</version>|<version>${MANIFEST_VERSION}</version>|" appinfo/info.xml
-            # Commit the version update
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add appinfo/info.xml
-            git commit -m "chore: sync version from manifest to info.xml [skip ci]" || true
-            git push || true
+          # Read version from manifest (updated by release-please)
+          if [ -f ".release-please-manifest.json" ]; then
+            VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
           else
-            echo "✓ Versions are synchronized!"
+            VERSION=$(node -p "require('./package.json').version")
           fi
+          TAG="v${VERSION}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "Version: ${VERSION}"
 
       - name: Install dependencies
         run: |
@@ -175,13 +110,12 @@ jobs:
           ls -la build/artifacts/
 
       - name: Upload artifacts to release
-        if: steps.gate.outputs.do_release == 'true'
+        if: steps.release_check.outputs.is_release == 'true'
         run: |
           TAG=${{ steps.version.outputs.tag }}
           echo "Uploading release assets for: $TAG"
 
           # Wait for release to be created by release-please
-          echo "Waiting for release $TAG to be available..."
           for i in {1..30}; do
             if gh release view "$TAG" &>/dev/null; then
               echo "Release $TAG is available"
@@ -191,18 +125,10 @@ jobs:
             sleep 2
           done
 
-          TARBALL="build/artifacts/${APP_NAME}.tar.gz"
-          if [ ! -f "$TARBALL" ]; then
-            echo "ERROR: $TARBALL not found"
-            exit 1
-          fi
-
           echo "=== Uploading artifacts ==="
           for FILE in \
             "build/artifacts/${APP_NAME}.tar.gz" \
-            "build/artifacts/${APP_NAME}.zip" \
-            "build/artifacts/${APP_NAME}-source.tar.gz" \
-            "build/artifacts/${APP_NAME}-source.zip"; do
+            "build/artifacts/${APP_NAME}.zip"; do
             if [ -f "$FILE" ]; then
               echo "Uploading: $FILE"
               gh release upload "$TAG" "$FILE" --clobber
