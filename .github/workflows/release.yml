@@ -58,15 +58,35 @@ jobs:
       - name: Get version
         id: version
         run: |
-          # Read from .release-please-manifest.json (updated by release-please before creating release)
-          # Fall back to package.json if manifest doesn't exist (e.g., manual runs)
-          if [ -f ".release-please-manifest.json" ]; then
+          # Priority order for version detection:
+          # 1. If a GitHub release exists for v*, use that version (handles release-please created releases)
+          # 2. Read from .release-please-manifest.json (updated by release-please)
+          # 3. Fall back to package.json (manual runs)
+          
+          TAG=""
+          for TAG_VERSION in $(git tag --list 'v*' --sort=-version:refname | head -1 | sed 's/^v//; s/^/v/'); do
+            if gh release view "$TAG_VERSION" &>/dev/null; then
+              TAG="$TAG_VERSION"
+              break
+            fi
+          done
+          
+          if [ -n "$TAG" ]; then
+            # Extract version from tag (remove 'v' prefix)
+            VERSION="${TAG#v}"
+            echo "Found release tag: $TAG"
+          elif [ -f ".release-please-manifest.json" ]; then
             VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
+            TAG="v${VERSION}"
+            echo "Using manifest version: ${VERSION}"
           else
             VERSION=$(node -p "require('./package.json').version")
+            TAG="v${VERSION}"
+            echo "Using package.json version: ${VERSION}"
           fi
+          
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "Current version: ${VERSION}"
 
       - name: Check if release mode
