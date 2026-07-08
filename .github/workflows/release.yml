@@ -76,15 +76,18 @@ jobs:
       - name: Sync info.xml version
         if: steps.release_check.outputs.is_release == 'true'
         run: |
-          # Read version from release-please output
-          VERSION="${{ steps.release-please.outputs.version }}"
-          if [ -z "$VERSION" ]; then
-            # Fallback to manifest if release-please output is not available
-            if [ -f ".release-please-manifest.json" ]; then
-              VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
-            else
-              VERSION=$(node -p "require('./package.json').version")
-            fi
+          # Fetch the updated manifest from the release branch (updated by release-please)
+          git fetch origin ${{ github.ref }} --depth=2
+          git checkout FETCH_HEAD -- .release-please-manifest.json package.json
+          
+          # Read version from updated manifest
+          if [ -f ".release-please-manifest.json" ]; then
+            VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
+          elif [ -f "package.json" ]; then
+            VERSION=$(node -p "require('./package.json').version")
+          else
+            echo "ERROR: Could not find version file"
+            exit 1
           fi
           echo "Syncing info.xml to version: ${VERSION}"
           
@@ -104,8 +107,11 @@ jobs:
           # Read version from manifest (updated by release-please)
           if [ -f ".release-please-manifest.json" ]; then
             VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
-          else
+          elif [ -f "package.json" ]; then
             VERSION=$(node -p "require('./package.json').version")
+          else
+            echo "ERROR: Could not find version file"
+            exit 1
           fi
           TAG="v${VERSION}"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
