@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - main
+      - 'release-please--branches--*--components--*'
   workflow_dispatch:
     inputs:
       skip_release:
@@ -86,10 +87,23 @@ jobs:
         id: gate
         run: |
           DO_RELEASE=false
+          TAG="v${{ steps.version.outputs.version }}"
+          
+          # Check if release was just created by this workflow run
           if [ "${{ steps.release_check.outputs.is_release }}" = "true" ] && \
              [ "${{ steps.release-please.outputs.release_created }}" = "true" ]; then
             DO_RELEASE=true
+            echo "Release was created by this workflow"
           fi
+          
+          # Also check if release already exists (created by release-please on release branch)
+          if [ "$DO_RELEASE" = "false" ] && [ "${{ github.event_name }}" = "push" ]; then
+            if gh release view "$TAG" &>/dev/null; then
+              DO_RELEASE=true
+              echo "Release $TAG already exists (created by release-please)"
+            fi
+          fi
+          
           echo "do_release=${DO_RELEASE}" >> $GITHUB_OUTPUT
 
       - name: Verify and synchronize versions
