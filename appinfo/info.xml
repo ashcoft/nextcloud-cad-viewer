@@ -39,4 +39,12 @@
       <type>link</type>
     </navigation>
   </navigations>
+  <repair-steps>
+    <install>
+      <step>OCA\CadViewer\Migration\RegisterMimeType</step>
+    </install>
+    <uninstall>
+      <step>OCA\CadViewer\Migration\UnregisterMimeType</step>
+    </uninstall>
+  </repair-steps>
 </info>

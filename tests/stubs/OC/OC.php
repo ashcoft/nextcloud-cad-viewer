@@ -7,6 +7,9 @@ namespace {
     {
         /** @var mixed */
         public static $server;
+
+        /** @var string */
+        public static $configDir = '';
     }
 }
 
