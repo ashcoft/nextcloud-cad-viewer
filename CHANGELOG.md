@@ -6,6 +6,43 @@
 * add wait loop for release availability before uploading assets ([b3b39e6](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b3b39e6c4754b2612de6647dd131d23d5d7c236e))
 * sync info.xml to v0.2.1 ([193a79b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/193a79bdbb161fc452ccf899d4c267456377a5ad))
 
+## [0.2.4](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.2.3...v0.2.4) (2026-07-08)
+
+
+### Bug Fixes
+
+* add Codacy ignore comment for async ref change detection ([cba9e08](https://github.com/ashcoft/nextcloud-cad-viewer/commit/cba9e08c7b0bd8ced201ae88db24f8f98077a6eb))
+* address Codacy static analysis issues ([d9d560b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/d9d560b68361fbbe48a0137e40cd91670e3d3f50))
+* address review findings ([7ca6a7f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/7ca6a7f5a70b056c22f1f5c15a7cdda967f6234e))
+* **App.vue:** extract guard check to helper function ([777e8aa](https://github.com/ashcoft/nextcloud-cad-viewer/commit/777e8aaf43ae712d6b1b6a03af17f83eca44de08))
+* **App.vue:** fix TypeScript null checks after async fetch ([e037222](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e03722239606b8b17c04ad460a16a77fdb7b428e))
+* **App.vue:** use closure to wrap ref access for async guard ([aa5640f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/aa5640f9d17142bf0debb910ad7dd0642a2000ad))
+* **App.vue:** use object to capture state and avoid literal comparisons ([cef675c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/cef675c42dc033261e9e019e4d80ddebb78c1823))
+* apply PHP CS Fixer style rules ([920ac0e](https://github.com/ashcoft/nextcloud-cad-viewer/commit/920ac0e94b91d692a2626ba1884ca920c91a3af8))
+* capture isUnmounted state to local variable for Codacy ([d420507](https://github.com/ashcoft/nextcloud-cad-viewer/commit/d420507429fdd38f325c28251f1ac9cb66850513))
+* closing parenthesis on own line per PSR12 ([cf9c401](https://github.com/ashcoft/nextcloud-cad-viewer/commit/cf9c401d4ac089f1d7e9d748ac2c78a1d98c7f16))
+* convert base64 to File for MlCadViewer localFile prop ([cd2a6f9](https://github.com/ashcoft/nextcloud-cad-viewer/commit/cd2a6f9037bea03ad1df180105c80c137c666694))
+* extract error handling to reduce duplication ([4da2996](https://github.com/ashcoft/nextcloud-cad-viewer/commit/4da299623482d5e3dc3a6b27d0c58aaeac0b1f53))
+* **FileController:** log full exception in load() method ([e6fb581](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e6fb581f0e733f76f219f4c4936a79ffc2693bd0))
+* move opening parenthesis to end of line per Codacy PSR12 ([1ff9491](https://github.com/ashcoft/nextcloud-cad-viewer/commit/1ff949135226a4e49a499c1d00e5bc406b191013))
+* PSR12 - opening parenthesis at end of line ([d05d73d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/d05d73dc1f7071e9bd9c77fe42ce4a5ff5c7c91d))
+* PSR12 - opening parenthesis on function name line ([7eed314](https://github.com/ashcoft/nextcloud-cad-viewer/commit/7eed3149c790c7467645713f2b8bb0f3e0f9caac))
+* PSR12 multi-line function call formatting ([e7f3472](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e7f3472498fa226ae140ea26a8c27e95ba10f593))
+* refactor file loading to use load endpoint pattern ([693f7af](https://github.com/ashcoft/nextcloud-cad-viewer/commit/693f7af2c966304c769514dd5987c8d375a8d77a))
+* refactor FileController to reduce duplication and return statements ([e033360](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e033360aa5ed6ba2e455730225bbcd7bb47d8882))
+* remove unrecognized xmlSnippet property from release-please config ([5e801fa](https://github.com/ashcoft/nextcloud-cad-viewer/commit/5e801fa90d713531f09c97c7014e1d0d22c86b8c))
+* resolve App.vue viewer container DOM attachment bug ([d60ccca](https://github.com/ashcoft/nextcloud-cad-viewer/commit/d60cccaa3f3447b2d109ac32177e6d1f6e90df3e))
+* resolve Codacy CI issues ([27dd348](https://github.com/ashcoft/nextcloud-cad-viewer/commit/27dd348378090148842a4a8eea7efd6e86f916a8))
+* resolve ESLint warnings and PHP whitespace issues ([40ecb63](https://github.com/ashcoft/nextcloud-cad-viewer/commit/40ecb630e4bc38997857b7a85966893f6929a0b6))
+* simplify error handling and fix PHPStan return type ([90d9bd3](https://github.com/ashcoft/nextcloud-cad-viewer/commit/90d9bd3d68030efbfe187133812819d8d1cbc342))
+* try codacy ignore block format ([0b15d85](https://github.com/ashcoft/nextcloud-cad-viewer/commit/0b15d85efa5c789c764f161ef1c9bbca7c83846a))
+* try codacy ignore line format ([ca37ac3](https://github.com/ashcoft/nextcloud-cad-viewer/commit/ca37ac31cf6672b049d904338da1e09f3c1a0824))
+* update release-please config to properly update info.xml version ([67f0b7c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/67f0b7c7770f7ebb9339c4ff6f52950b9dad1bfd))
+* use camelCase for xmlSnippet property ([4705797](https://github.com/ashcoft/nextcloud-cad-viewer/commit/4705797c4c9378f7dca78d9144a78e4758325c83))
+* use modern CSS rgb() syntax with percentage alpha ([300256f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/300256faa04e2021ed2e3385d00f22e092520592))
+* use switch statement to avoid Codacy false positive ([6a33c99](https://github.com/ashcoft/nextcloud-cad-viewer/commit/6a33c998ba584440efc5a87016ba03ccab7cb21e))
+* use Uint8Array.from() to avoid Codacy security warning ([ce9867f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/ce9867fc5ab116ab46d9b55a52c864dc71701685))
+
 ## [0.2.3](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.2.2...v0.2.3) (2026-07-07)
 
 
