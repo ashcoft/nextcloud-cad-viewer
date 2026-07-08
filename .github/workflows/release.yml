@@ -93,27 +93,13 @@ jobs:
           # Also check if release already exists (created by release-please on release branch)
           # Get the latest release tag from the API
           if [ "$DO_RELEASE" = "false" ] && [ "${{ github.event_name }}" = "push" ]; then
-            # Try to get version from manifest first
-            if [ -f ".release-please-manifest.json" ]; then
-              VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
-              TAG="v${VERSION}"
-            fi
-            
-            # Check if the release exists
-            if [ -n "$TAG" ] && gh release view "$TAG" &>/dev/null; then
+            # Check latest release API first
+            LATEST_TAG=$(gh api repos/${{ github.repository }}/releases/latest --jq '.tag_name' 2>/dev/null)
+            if [ -n "$LATEST_TAG" ]; then
+              VERSION="${LATEST_TAG#v}"
+              TAG="$LATEST_TAG"
               DO_RELEASE=true
-              echo "Release $TAG exists"
-            fi
-            
-            # If no release exists from manifest, check latest release API
-            if [ "$DO_RELEASE" = "false" ]; then
-              LATEST_TAG=$(gh api repos/${{ github.repository }}/releases/latest --jq '.tag_name' 2>/dev/null)
-              if [ -n "$LATEST_TAG" ]; then
-                VERSION="${LATEST_TAG#v}"
-                TAG="$LATEST_TAG"
-                DO_RELEASE=true
-                echo "Using latest release tag: $TAG"
-              fi
+              echo "Found release from API: $TAG"
             fi
           fi
           
