@@ -21,7 +21,7 @@
         {
           "type": "xml",
           "path": "appinfo/info.xml",
-          "xpath": "//version"
+          "xpath": "/info/version"
         }
       ]
     }
