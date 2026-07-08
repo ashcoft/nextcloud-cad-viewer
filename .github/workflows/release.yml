@@ -145,7 +145,7 @@ jobs:
           ls -la build/artifacts/
 
       - name: Upload artifacts to release
-        if: steps.release_check.outputs.is_release == 'true'
+        if: steps.release_check.outputs.is_release == 'true' && github.ref == 'refs/heads/main'
         run: |
           TAG=${{ steps.version.outputs.tag }}
           echo "Uploading release assets for: $TAG"
