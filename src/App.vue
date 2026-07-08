@@ -1,16 +1,20 @@
 <template>
   <div id="cad-viewer-wrapper" class="cad-viewer-wrapper">
-    <div v-if="loading" class="cad-viewer-loading">
-      <div class="spinner"></div>
-      <p>{{ appTranslation('Loading CAD Viewer...') }}</p>
+    <!-- Viewer container rendered unconditionally to ensure it's in the DOM -->
+    <div ref="viewerContainer" class="cad-viewer-canvas"></div>
+    <!-- Loading/Error overlay on top of the viewer container -->
+    <div v-if="loading || error" class="cad-viewer-overlay">
+      <div v-if="loading" class="cad-viewer-loading">
+        <div class="spinner"></div>
+        <p>{{ appTranslation('Loading CAD Viewer...') }}</p>
+      </div>
+      <div v-else-if="error" class="cad-viewer-error">
+        <p>{{ error }}</p>
+        <button v-if="retryFileId" class="button primary" @click="retryLoad">
+          {{ appTranslation('Retry') }}
+        </button>
+      </div>
     </div>
-    <div v-else-if="error" class="cad-viewer-error">
-      <p>{{ error }}</p>
-      <button v-if="retryFileId" class="button primary" @click="retryLoad">
-        {{ appTranslation('Retry') }}
-      </button>
-    </div>
-    <div v-else ref="viewerContainer" class="cad-viewer-canvas"></div>
   </div>
 </template>
 
@@ -68,6 +72,10 @@ export default defineComponent({
     const viewerContainer = ref<HTMLElement | null>(null)
     const viewerInstance = ref<ViewerInstance | null>(null)
     const retryFileId = ref<string | null>(null)
+    const isUnmounted = ref(false)
+
+    // Browser animation frame function for polling
+    const raf = globalThis.requestAnimationFrame.bind(globalThis)
 
     async function initViewer(): Promise<void> {
       let fid: string | number | null = props.fileId
@@ -92,8 +100,32 @@ export default defineComponent({
 
       retryFileId.value = String(fid)
 
+      // Wait for container to be in the DOM before mounting
+      // This is critical: viewerContainer may not be attached yet even after onMounted
+      await new Promise<void>((resolve) => {
+        const checkContainer = () => {
+          const container = viewerContainer.value
+          if (container?.isConnected) {
+            resolve()
+          } else if (!isUnmounted.value) {
+            raf(checkContainer)
+          }
+        }
+        checkContainer()
+      })
+
+      if (isUnmounted.value) {
+        loading.value = false
+        return
+      }
+
       // Fetch file content using load endpoint
       const fileData = await fetchFileContent(String(fid))
+
+      if (isUnmounted.value) {
+        loading.value = false
+        return
+      }
 
       if (!fileData) {
         error.value = appTranslation('Failed to load file content. Please try again.')
@@ -108,13 +140,23 @@ export default defineComponent({
       }
 
       // Load viewer with base64 content
-      if (viewerContainer.value) {
-        viewerInstance.value = await loadCADViewer(viewerContainer.value, {
-          fileContent: fileData.content,
-          fileName: fileData.name,
-          theme: 'dark',
-        })
+      const container = viewerContainer.value
+      if (container?.isConnected) {
+        try {
+          viewerInstance.value = await loadCADViewer(container, {
+            fileContent: fileData.content,
+            fileName: fileData.name,
+            theme: 'dark',
+          })
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          error.value = appTranslation('Failed to load CAD viewer: ') + msg
+        }
+      } else {
+        error.value = appTranslation('Failed to initialize viewer container.')
       }
+
+      loading.value = false
     }
 
     onMounted(async () => {
@@ -123,35 +165,38 @@ export default defineComponent({
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err)
         error.value = appTranslation('Failed to load CAD viewer: ') + msg
-      } finally {
         loading.value = false
       }
     })
 
     onBeforeUnmount(() => {
+      isUnmounted.value = true
       viewerInstance.value?.dispose()
       viewerInstance.value = null
     })
 
     async function retryLoad(): Promise<void> {
-      if (!retryFileId.value) return
+      if (!retryFileId.value || !viewerContainer.value?.isConnected) return
 
       error.value = null
       loading.value = true
 
-      if (viewerContainer.value) {
-        viewerInstance.value?.dispose()
-        
-        const fileData = await fetchFileContent(retryFileId.value)
-        if (fileData && !fileData.error) {
+      viewerInstance.value?.dispose()
+
+      const fileData = await fetchFileContent(retryFileId.value)
+      if (fileData && !fileData.error) {
+        try {
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
             fileContent: fileData.content,
             fileName: fileData.name,
             theme: 'dark',
           })
-        } else {
-          error.value = fileData?.error || appTranslation('Failed to load file')
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          error.value = appTranslation('Failed to load CAD viewer: ') + msg
         }
+      } else {
+        error.value = fileData?.error || appTranslation('Failed to load file')
       }
       loading.value = false
     }
@@ -175,6 +220,24 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   background: #1e1e1e;
+  position: relative;
+}
+
+.cad-viewer-canvas {
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+}
+
+.cad-viewer-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 30, 30, 0.95);
+  z-index: 10;
 }
 
 .cad-viewer-loading,
@@ -205,11 +268,5 @@ export default defineComponent({
 
 .cad-viewer-error {
   color: #d93025;
-}
-
-.cad-viewer-canvas {
-  flex: 1;
-  width: 100%;
-  overflow: hidden;
 }
 </style>
