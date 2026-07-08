@@ -76,11 +76,15 @@ jobs:
       - name: Sync info.xml version
         if: steps.release_check.outputs.is_release == 'true'
         run: |
-          # Read version from manifest (updated by release-please)
-          if [ -f ".release-please-manifest.json" ]; then
-            VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
-          else
-            VERSION=$(node -p "require('./package.json').version")
+          # Read version from release-please output
+          VERSION="${{ steps.release-please.outputs.version }}"
+          if [ -z "$VERSION" ]; then
+            # Fallback to manifest if release-please output is not available
+            if [ -f ".release-please-manifest.json" ]; then
+              VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
+            else
+              VERSION=$(node -p "require('./package.json').version")
+            fi
           fi
           echo "Syncing info.xml to version: ${VERSION}"
           
