@@ -242,7 +242,7 @@ export default defineComponent({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(30, 30, 30, 0.95);
+  background: rgb(30 30 30 / 95%);
   z-index: 10;
 }
 
