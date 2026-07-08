@@ -58,7 +58,13 @@ jobs:
       - name: Get version
         id: version
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          # Read from .release-please-manifest.json (updated by release-please before creating release)
+          # Fall back to package.json if manifest doesn't exist (e.g., manual runs)
+          if [ -f ".release-please-manifest.json" ]; then
+            VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
+          else
+            VERSION=$(node -p "require('./package.json').version")
+          fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
           echo "Current version: ${VERSION}"
@@ -108,22 +114,22 @@ jobs:
 
       - name: Verify and synchronize versions
         run: |
-          VERSION=${{ steps.version.outputs.version }}
+          MANIFEST_VERSION=${{ steps.version.outputs.version }}
           INFO_VERSION=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml)
-          echo "package.json version: ${VERSION}"
+          echo "Manifest version: ${MANIFEST_VERSION}"
           echo "info.xml version: ${INFO_VERSION}"
           
-          if [ "$VERSION" != "$INFO_VERSION" ]; then
-            echo "WARNING: info.xml version does not match package.json!"
-            echo "Expected: ${VERSION}, Found: ${INFO_VERSION}"
-            echo "Updating info.xml to match package.json..."
-            # Update info.xml version to match package.json
-            sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
+          if [ "$MANIFEST_VERSION" != "$INFO_VERSION" ]; then
+            echo "WARNING: info.xml version does not match manifest!"
+            echo "Expected: ${MANIFEST_VERSION}, Found: ${INFO_VERSION}"
+            echo "Updating info.xml to match manifest..."
+            # Update info.xml version to match manifest
+            sed -i "s|<version>[^<]*</version>|<version>${MANIFEST_VERSION}</version>|" appinfo/info.xml
             # Commit the version update
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add appinfo/info.xml
-            git commit -m "chore: sync version from package.json to info.xml [skip ci]" || true
+            git commit -m "chore: sync version from manifest to info.xml [skip ci]" || true
             git push || true
           else
             echo "✓ Versions are synchronized!"
