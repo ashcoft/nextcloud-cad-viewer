@@ -176,6 +176,54 @@ PR limits: 10 for npm/composer, 5 for actions.
 
 ---
 
+## Release Please Configuration
+
+This project uses release-please for automated releases. When modifying `release-please-config.json`:
+
+### Extra Files Configuration
+- **`extra-files` must be at release-type level** (top-level, not inside `packages`)
+- The `extra-files` configuration for XML files uses xpath-based updates via GenericXml updater
+- Package-level extra-files uses xmlSnippet wrapping which may not work correctly with xpath
+
+**Correct structure:**
+```json
+{
+  "$schema": "...",
+  "release-type": "node",
+  "extra-files": [
+    {
+      "type": "xml",
+      "path": "appinfo/info.xml",
+      "xpath": "//version"
+    }
+  ],
+  "packages": {
+    ".": {
+      "component": "nextcloud-cad-viewer"
+    }
+  }
+}
+```
+
+**Incorrect (broken):**
+```json
+{
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "extra-files": [...]  // This doesn't work correctly for XML with xpath
+    }
+  }
+}
+```
+
+### Versioning Field
+- Do NOT use `versioning: "node"` - this is not a valid value
+- Valid values: `always-bump-major`, `always-bump-minor`, `always-bump-patch`, `default`, `prerelease`, `service-pack`
+- For `release-type: node`, omit the `versioning` field entirely
+
+---
+
 ## Documentation
 
 | Document               | Purpose                                       |
