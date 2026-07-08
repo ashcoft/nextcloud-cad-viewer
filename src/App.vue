@@ -122,10 +122,7 @@ export default defineComponent({
       // Fetch file content using load endpoint
       const fileData = await fetchFileContent(String(fid))
 
-      if (isUnmounted.value) {
-        loading.value = false
-        return
-      }
+      if (isUnmounted.value) return
 
       if (!fileData) {
         error.value = appTranslation('Failed to load file content. Please try again.')
