@@ -3,15 +3,87 @@
 
 # Makefile for building the project
 
-app_id=$(shell sed -n 's/.*<id>\(.*\)<\/id>.*/\1/p' appinfo/info.xml | head -1)
-app_version=$(shell sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' appinfo/info.xml | xargs)
-pkg_version=$(shell node -p "require('./package.json').version")
+app_name=cad_viewer
 project_dir=$(CURDIR)
 build_dir=$(project_dir)/build/artifacts
-app_dir=$(build_dir)/$(app_id)
+sign_dir=$(build_dir)/sign
+version=$(shell sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' appinfo/info.xml | xargs)
 info_xml=appinfo/info.xml
 
-all: appstore source
+all: dev-setup build-production
+
+dev-setup: clean-dev pnpm-init build-js
+production-setup: clean-dev pnpm-init build-js-production
+
+build-js:
+	pnpm run build
+
+build-js-production:
+	pnpm run build
+
+release: appstore create-tag
+
+create-tag:
+	git tag -a v$(version) -m "Tagging the $(version) release."
+	git push origin v$(version)
+
+pnpm-init:
+	pnpm install --frozen-lockfile
+
+pnpm-update:
+	pnpm update
+
+clean:
+	rm -rf js/*
+	rm -rf $(build_dir)
+
+clean-dev: clean
+	rm -rf vendor
+	rm -rf node_modules
+
+appstore:
+	rm -rf $(build_dir)
+	mkdir -p $(sign_dir)
+	rsync -a \
+		--exclude=/build \
+		--exclude=.git \
+		--exclude=.github \
+		--exclude=node_modules \
+		--exclude=src \
+		--exclude=tests \
+		--exclude=vendor-bin \
+		--exclude=docs \
+		--exclude=wiki \
+		--exclude=*.tar.gz \
+		--exclude=*.zip \
+		--exclude=Makefile \
+		--exclude=package.json \
+		--exclude=pnpm-lock.yaml \
+		--exclude=tsconfig.json \
+		--exclude=*.config.js \
+		--exclude=*.config.mjs \
+		--exclude=jest.config.js \
+		--exclude=playwright.config.ts \
+		--exclude=rector.php \
+		--exclude=phpstan.neon \
+		--exclude=psalm.xml \
+		--exclude=eslint.config.js \
+		--exclude=stylelint.config.js \
+		--exclude=commitlint.config.js \
+		--exclude=.stylelintignore \
+		--exclude=composer.json \
+		--exclude=composer.lock \
+		--exclude=composer.*.json \
+		--exclude=vendor \
+		$(project_dir)/ $(sign_dir)/$(app_name)
+	cp package.json pnpm-lock.yaml $(sign_dir)/$(app_name)/
+	tar -czf $(build_dir)/$(app_name).tar.gz -C $(sign_dir) $(app_name)
+	@if command -v zip >/dev/null 2>&1; then \
+		cd $(sign_dir) && zip -r $(app_name).zip $(app_name); \
+		mv $(sign_dir)/$(app_name).zip $(build_dir)/; \
+	else \
+		echo "Warning: zip not installed, skipping zip archive"; \
+	fi
 
 # Bump version in appinfo/info.xml and package.json
 # Usage: make bump-version VERSION=x.x.x
@@ -44,16 +116,6 @@ endif
 	fi
 	@echo "package.json version updated to $(VERSION)"
 
-dev-setup: clean npm-init build-js
-
-production-setup: clean npm-init build-js-production
-
-build-js:
-	pnpm run build
-
-build-js-production:
-	pnpm run build
-
 test:
 	composer run test:unit
 	pnpm run test
@@ -65,37 +127,3 @@ lint:
 
 lint-fix:
 	composer run cs:fix
-
-npm-init:
-	pnpm install --frozen-lockfile
-
-clean:
-	rm -rf $(build_dir)
-	rm -rf js/*
-
-$(app_dir):
-	mkdir -p $(app_dir)
-	# Use tar to copy files (excludes built-in tar exclusions for .* files)
-	tar --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='src' \
-		--exclude='tests' --exclude='vendor-bin' --exclude='docs' --exclude='wiki' \
-		--exclude='build' \
-		--exclude='*.tar.gz' --exclude='*.zip' \
-		-cf - . | tar -xf - -C $(app_dir)
-	# Copy specific files that are needed (not excluded above)
-	cp composer.json composer.lock package.json pnpm-lock.yaml tsconfig.json $(app_dir)/ 2>/dev/null || true
-	# Ensure proper permissions
-	find $(app_dir) -type d -exec chmod 755 {} +
-	find $(app_dir) -type f -exec chmod 644 {} +
-
-appstore: $(app_dir)
-	cd $(build_dir) && tar -czf $(app_id).tar.gz --owner=www-data --group=www-data $(app_id)
-	@if command -v zip >/dev/null 2>&1; then \
-		cd $(build_dir) && zip -r $(app_id).zip $(app_id); \
-	else \
-		echo "Warning: zip not installed, skipping zip archive"; \
-	fi
-
-source:
-	mkdir -p $(build_dir)
-	git archive --format=tar.gz --prefix=$(app_id)/ -o $(build_dir)/$(app_id)-source.tar.gz HEAD
-	git archive --format=zip --prefix=$(app_id)/ -o $(build_dir)/$(app_id)-source.zip HEAD
