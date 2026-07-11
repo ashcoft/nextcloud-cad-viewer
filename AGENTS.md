@@ -224,6 +224,26 @@ This project uses release-please for automated releases. When modifying `release
 
 ---
 
+## Makefile Targets
+
+| Target          | Description                                      |
+| -------------- | ------------------------------------------------ |
+| `make bump-version VERSION=x.x.x` | Bump the version in `appinfo/info.xml` |
+| `make appstore` | Build the Nextcloud app archive (tar.gz and zip) |
+| `make production-setup` | Clean and build for production         |
+| `make dev-setup` | Clean and build for development                  |
+
+Usage:
+```bash
+# Bump version
+make bump-version VERSION=0.3.0
+
+# Build app archive
+make appstore
+```
+
+---
+
 ## Documentation
 
 | Document               | Purpose                                       |

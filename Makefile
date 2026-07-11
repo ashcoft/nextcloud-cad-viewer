@@ -8,8 +8,22 @@ app_version=$(shell sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' appinfo/info.
 project_dir=$(CURDIR)
 build_dir=$(project_dir)/build/artifacts
 app_dir=$(build_dir)/$(app_id)
+info_xml=appinfo/info.xml
 
 all: appstore source
+
+bump-version:
+ifndef VERSION
+	$(error VERSION is undefined. Usage: make bump-version VERSION=x.x.x)
+endif
+	@echo "Bumping info.xml version to $(VERSION)"
+	@sed -i "s|<version>[^<]*</version>|<version>$(VERSION)</version>|" $(info_xml)
+	@NEW_VERSION=$$(sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' $(info_xml) | xargs); \
+	if [ "$$NEW_VERSION" != "$(VERSION)" ]; then \
+		echo "ERROR: Failed to update info.xml. Expected $(VERSION), got $$NEW_VERSION"; \
+		exit 1; \
+	fi
+	@echo "info.xml version updated to $(VERSION)"
 
 dev-setup: clean npm-init build-js
 

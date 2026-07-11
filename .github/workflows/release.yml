@@ -92,15 +92,8 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "Syncing info.xml to version: ${VERSION}"
 
-          # Update info.xml version
-          sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
-
-          # Verify update
-          NEW_VERSION=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml)
-          if [ "$NEW_VERSION" != "$VERSION" ]; then
-            echo "ERROR: Failed to update info.xml. Expected ${VERSION}, got ${NEW_VERSION}"
-            exit 1
-          fi
+          # Update info.xml version using Makefile
+          make bump-version VERSION=${VERSION}
 
           # Commit and push update
           git config user.name "github-actions[bot]"
