@@ -5,6 +5,7 @@
 
 app_id=$(shell sed -n 's/.*<id>\(.*\)<\/id>.*/\1/p' appinfo/info.xml | head -1)
 app_version=$(shell sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' appinfo/info.xml | xargs)
+pkg_version=$(shell node -p "require('./package.json').version")
 project_dir=$(CURDIR)
 build_dir=$(project_dir)/build/artifacts
 app_dir=$(build_dir)/$(app_id)
@@ -12,7 +13,12 @@ info_xml=appinfo/info.xml
 
 all: appstore source
 
-bump-version:
+# Bump version in appinfo/info.xml and package.json
+# Usage: make bump-version VERSION=x.x.x
+bump-version: bump-info-xml bump-package-json
+	@echo "Version bumped to $(VERSION)"
+
+bump-info-xml:
 ifndef VERSION
 	$(error VERSION is undefined. Usage: make bump-version VERSION=x.x.x)
 endif
@@ -24,6 +30,19 @@ endif
 		exit 1; \
 	fi
 	@echo "info.xml version updated to $(VERSION)"
+
+bump-package-json:
+ifndef VERSION
+	$(error VERSION is undefined. Usage: make bump-version VERSION=x.x.x)
+endif
+	@echo "Bumping package.json version to $(VERSION)"
+	@node -e "const pkg=require('./package.json'); pkg.version='$(VERSION)'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2)+'\\n');"
+	@NEW_VERSION=$$(node -p "require('./package.json').version"); \
+	if [ "$$NEW_VERSION" != "$(VERSION)" ]; then \
+		echo "ERROR: Failed to update package.json. Expected $(VERSION), got $$NEW_VERSION"; \
+		exit 1; \
+	fi
+	@echo "package.json version updated to $(VERSION)"
 
 dev-setup: clean npm-init build-js
 
