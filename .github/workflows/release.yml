@@ -38,6 +38,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
@@ -77,7 +79,7 @@ jobs:
         id: sync_info_xml
         run: |
           # Fetch updated manifest from release-please branch
-          git fetch origin ${{ github.ref }} --depth=2
+          git fetch origin ${{ github.ref }} --depth=2 || echo "Fetch completed"
           git checkout FETCH_HEAD -- .release-please-manifest.json package.json 2>/dev/null || true
 
           # Get version from manifest or package.json
@@ -86,25 +88,32 @@ jobs:
           else
             VERSION=$(node -p "require('./package.json').version")
           fi
-          
+
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "Syncing info.xml to version: ${VERSION}"
 
           # Update info.xml version
           sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
 
+          # Verify update
+          NEW_VERSION=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml)
+          if [ "$NEW_VERSION" != "$VERSION" ]; then
+            echo "ERROR: Failed to update info.xml. Expected ${VERSION}, got ${NEW_VERSION}"
+            exit 1
+          fi
+
           # Commit and push update
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add appinfo/info.xml
-          
+
           if git diff --cached --quiet; then
             echo "info.xml already at version ${VERSION}"
           else
             git commit -m "chore: sync version to info.xml [skip ci]"
-            git fetch origin ${{ github.ref }}
+            git fetch origin ${{ github.ref }} || true
             git rebase origin/${{ github.ref_name }} || true
-            git push
+            git push --force-with-lease || git push --force
             echo "info.xml synced to version ${VERSION}"
           fi
 
