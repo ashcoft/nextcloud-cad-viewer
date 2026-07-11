@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - main
-      - 'release-please--branches--*--components--*'
   workflow_dispatch:
     inputs:
       skip_release:
@@ -33,13 +32,12 @@ jobs:
       contents: write
       pull-requests: write
     outputs:
-      version: ${{ steps.sync_info_xml.outputs.version }}
-      tag: v${{ steps.sync_info_xml.outputs.version }}
+      is_release: ${{ steps.release_check.outputs.is_release }}
+      version: ${{ steps.version.outputs.version }}
+      tag_name: ${{ steps.version.outputs.tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
@@ -56,17 +54,25 @@ jobs:
           php-version: '8.4'
           coverage: none
 
-      - name: Check release mode
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+          echo "Current version: ${VERSION}"
+
+      - name: Check if release mode
         id: release_check
         run: |
+          IS_RELEASE=true
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.skip_release }}" = "true" ]; then
-            echo "is_release=false" >> $GITHUB_OUTPUT
-            echo "Running in build-only mode"
-          else
-            echo "is_release=true" >> $GITHUB_OUTPUT
+            IS_RELEASE=false
+            echo "Running in build-only mode (no release)"
           fi
+          echo "is_release=${IS_RELEASE}" >> $GITHUB_OUTPUT
 
-      - name: Run release-please
+      - name: Release Please
         if: steps.release_check.outputs.is_release == 'true'
         id: release-please
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
@@ -75,39 +81,30 @@ jobs:
           target-branch: main
           config-file: release-please-config.json
 
-      - name: Sync info.xml version
-        id: sync_info_xml
+      # Single source of truth for "are we actually publishing a release right now?"
+      - name: Compute release gate
+        id: gate
         run: |
-          # Fetch updated manifest from release-please branch
-          git fetch origin ${{ github.ref }} --depth=2 || echo "Fetch completed"
-          git checkout FETCH_HEAD -- .release-please-manifest.json package.json 2>/dev/null || true
-
-          # Get version from manifest or package.json
-          if [ -f ".release-please-manifest.json" ]; then
-            VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
-          else
-            VERSION=$(node -p "require('./package.json').version")
+          DO_RELEASE=false
+          if [ "${{ steps.release_check.outputs.is_release }}" = "true" ] && \
+             [ "${{ steps.release-please.outputs.release_created }}" = "true" ]; then
+            DO_RELEASE=true
           fi
+          echo "do_release=${DO_RELEASE}" >> $GITHUB_OUTPUT
 
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "Syncing info.xml to version: ${VERSION}"
-
-          # Update info.xml version using Makefile
-          make bump-version VERSION=${VERSION}
-
-          # Commit and push update
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add appinfo/info.xml
-
-          if git diff --cached --quiet; then
-            echo "info.xml already at version ${VERSION}"
+      - name: Verify versions are synchronized
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          INFO_VERSION=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml)
+          echo "package.json version: ${VERSION}"
+          echo "info.xml version: ${INFO_VERSION}"
+          
+          if [ "$VERSION" != "$INFO_VERSION" ]; then
+            echo "WARNING: info.xml version does not match package.json!"
+            echo "Expected: ${VERSION}, Found: ${INFO_VERSION}"
+            # Don't fail - release-please will update info.xml
           else
-            git commit -m "chore: sync version to info.xml [skip ci]"
-            git fetch origin ${{ github.ref }} || true
-            git rebase origin/${{ github.ref_name }} || true
-            git push --force-with-lease || git push --force
-            echo "info.xml synced to version ${VERSION}"
+            echo "✓ Versions are synchronized!"
           fi
 
       - name: Install dependencies
@@ -129,37 +126,39 @@ jobs:
       - name: Build app archive
         run: |
           make appstore
+          echo "=== Built Artifacts ==="
           ls -la build/artifacts/
 
       - name: Upload artifacts to release
-        if: steps.release_check.outputs.is_release == 'true' && github.ref == 'refs/heads/main'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: steps.gate.outputs.do_release == 'true'
         run: |
-          TAG=v${{ steps.sync_info_xml.outputs.version }}
+          TAG=${{ steps.version.outputs.tag }}
           echo "Uploading release assets for: $TAG"
 
-          # Wait for release to be created
-          for i in {1..30}; do
-            if gh release view "$TAG" &>/dev/null; then
-              echo "Release $TAG is available"
-              break
+          TARBALL="build/artifacts/${APP_NAME}.tar.gz"
+          if [ ! -f "$TARBALL" ]; then
+            echo "ERROR: $TARBALL not found"
+            exit 1
+          fi
+
+          for FILE in \
+            "build/artifacts/${APP_NAME}.tar.gz" \
+            "build/artifacts/${APP_NAME}.zip"; do
+            if [ -f "$FILE" ]; then
+              gh release upload "$TAG" "$FILE" --clobber
+              echo "Uploaded: $FILE"
             fi
-            echo "Waiting for release... ($i/30)"
-            sleep 2
           done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          # Upload artifacts
-          for FILE in build/artifacts/${APP_NAME}.tar.gz build/artifacts/${APP_NAME}.zip; do
-            [ -f "$FILE" ] && gh release upload "$TAG" "$FILE" --clobber
-          done
-
-      - name: Upload build artifacts
+      - name: Upload build artifacts (CI)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ${{ env.APP_NAME }}-${{ steps.sync_info_xml.outputs.version }}
+          name: ${{ env.APP_NAME }}-${{ steps.version.outputs.version }}
           path: |
             build/artifacts/*.tar.gz
             build/artifacts/*.zip
           retention-days: 90
+          compression-level: 6
           overwrite: true
