@@ -12,14 +12,23 @@
         "image/x-dxf"
     ],
     "aliases": {
-        "dwg": "application/dwg",
-        "dxf": "image/vnd.dxf"
+        "application/acad": "application/dwg",
+        "application/autocad_dwg": "application/dwg",
+        "application/x-autocad": "application/dwg",
+        "application/x-dwg": "application/dwg",
+        "image/vnd.dwg": "application/dwg",
+        "application/dxf": "image/vnd.dxf",
+        "application/x-dxf": "image/vnd.dxf",
+        "image/x-dxf": "image/vnd.dxf"
     },
     "mimetypealiases": {
         "application/acad": "application/dwg",
         "application/autocad_dwg": "application/dwg",
         "application/x-autocad": "application/dwg",
         "application/x-dwg": "application/dwg",
-        "image/vnd.dwg": "application/dwg"
+        "image/vnd.dwg": "application/dwg",
+        "application/dxf": "image/vnd.dxf",
+        "application/x-dxf": "image/vnd.dxf",
+        "image/x-dxf": "image/vnd.dxf"
     }
 }

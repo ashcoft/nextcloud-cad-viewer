@@ -335,24 +335,64 @@ const CadViewerHandlerComponent = defineComponent({
   },
 })
 
-/**
- * Register the CAD viewer handler with the Nextcloud Viewer API.
- */
-function registerViewerHandler(): boolean {
-  if (isRegistered) return false
-
-  if (OCA?.Viewer !== undefined) {
-    OCA.Viewer.registerHandler({
-      id: 'cad-viewer',
-      group: 'cad',
-      mimes: SUPPORTED_MIMES,
-      component: CadViewerHandlerComponent,
-    })
-    isRegistered = true
-    return true
+  /**
+   * Decide whether the CAD viewer handler can display a given file node.
+   *
+   * The Viewer app decides if it should intercept a file click (instead of
+   * triggering a download) based on whether a registered handler supports the
+   * file. We match on the detected mime type and, as a robust fallback, on the
+   * file extension so that files which were uploaded before the CAD mimetypes
+   * were registered (and are therefore still detected as
+   * application/octet-stream) still open in the viewer.
+   */
+  function isCadFile(
+    node: { name?: string; mime?: string } | null | undefined,
+  ): boolean {
+    if (!node) return false
+    const ext = (node.name ?? '').split('.').pop()?.toLowerCase()
+    if (ext === 'dwg' || ext === 'dxf') return true
+    return node.mime ? SUPPORTED_MIMES.includes(node.mime) : false
   }
-  return false
-}
+
+  // Expose the matcher as a static on the handler component. Newer Viewer
+  // versions call `component.isFileSupported(node)` as an additional way to
+  // decide whether a file can be displayed.
+  ;(CadViewerHandlerComponent as unknown as {
+    isFileSupported?: typeof isCadFile
+  }).isFileSupported = isCadFile
+
+  /**
+   * Register the CAD viewer handler with the Nextcloud Viewer API.
+   *
+   * Registering the handler with the supported mimes (and their aliases) is
+   * what makes the Files app open DWG / DXF files in the viewer on click
+   * instead of downloading them.
+   */
+  function registerViewerHandler(): boolean {
+    if (isRegistered) return false
+
+    if (OCA?.Viewer !== undefined) {
+      OCA.Viewer.registerHandler({
+        id: 'cad-viewer',
+        group: 'cad',
+        mimes: SUPPORTED_MIMES,
+        mimesAliases: {
+          'application/acad': 'application/dwg',
+          'application/autocad_dwg': 'application/dwg',
+          'application/x-autocad': 'application/dwg',
+          'application/x-dwg': 'application/dwg',
+          'image/vnd.dwg': 'application/dwg',
+          'application/dxf': 'image/vnd.dxf',
+          'application/x-dxf': 'image/vnd.dxf',
+          'image/x-dxf': 'image/vnd.dxf',
+        },
+        component: CadViewerHandlerComponent,
+      })
+      isRegistered = true
+      return true
+    }
+    return false
+  }
 
 // Set up polling to ensure registration happens when OCA.Viewer becomes available
 function setupViewerPolling(): void {

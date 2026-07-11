@@ -1,0 +1,4 @@
+{
+    "dwg": ["application/dwg"],
+    "dxf": ["image/vnd.dxf"]
+}

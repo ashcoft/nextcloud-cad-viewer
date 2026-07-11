@@ -31,6 +31,14 @@
     <php min-version="8.4"/>
     <nextcloud min-version="33" max-version="34"/>
   </dependencies>
+  <repair-steps>
+    <install>
+      <step>OCA\CadViewer\Migration\MimeTypeInstall</step>
+    </install>
+    <uninstall>
+      <step>OCA\CadViewer\Migration\MimeTypeUninstall</step>
+    </uninstall>
+  </repair-steps>
   <navigations>
     <navigation>
       <id>cad_viewer</id>
