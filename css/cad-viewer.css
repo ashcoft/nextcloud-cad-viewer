@@ -1,16 +1,25 @@
 /**
  * CAD Viewer Styles
  * Provides full-height container and layout for the CAD viewer
+ * Following Nextcloud viewer patterns for seamless integration
  */
 
-#cad-viewer-container {
+/* Main container - works in both full page and modal viewer modes */
+#cad-viewer-container,
+#cad-viewer-app {
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
-  min-height: 100vh;
   background: #1e1e1e;
   overflow: hidden;
+}
+
+/* Fallback for standalone page view */
+body#body-public {
+  #cad-viewer-container {
+    min-height: 100vh;
+  }
 }
 
 .cad-viewer-wrapper {
@@ -19,6 +28,16 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
+}
+
+/* Handler component wrapper for Nextcloud Viewer integration */
+.cad-viewer-handler {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #1e1e1e;
+  position: relative;
 }
 
 .cad-viewer-canvas {
@@ -41,14 +60,39 @@
 }
 
 /* Loading overlay */
+.cad-viewer-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgb(30 30 30 / 95%);
+  z-index: 10;
+}
+
 .cad-viewer-loading {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
   color: #ccc;
   gap: 1rem;
+}
+
+.cad-viewer-loading .spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgb(255 255 255 / 30%);
+  border-top-color: #0082c9;
+  border-radius: 50%;
+  animation: cad-viewer-spin 1s linear infinite;
+}
+
+@keyframes cad-viewer-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Error state */
@@ -67,9 +111,17 @@
   margin-top: 0.5rem;
 }
 
+/* Nextcloud Viewer modal integration */
+.modal-mask {
+  .cad-viewer-handler {
+    height: 100vh;
+  }
+}
+
 /* Responsive adjustments */
 @media (width <= 768px) {
-  #cad-viewer-container {
+  #cad-viewer-container,
+  #cad-viewer-app {
     min-height: calc(100vh - 50px);
   }
 }

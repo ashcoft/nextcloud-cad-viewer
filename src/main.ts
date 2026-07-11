@@ -1,7 +1,7 @@
 import { createApp, defineComponent, h, onMounted, onBeforeUnmount, ref, type PropType } from 'vue'
-import { registerFileAction, DefaultType } from '@nextcloud/files'
-import type { IFileAction } from '@nextcloud/files'
+import { registerFileAction, DefaultType, FileAction } from '@nextcloud/files'
 import { generateUrl } from '@nextcloud/router'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import CadViewerApp from './App.vue'
 import router from './router'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
@@ -16,6 +16,28 @@ const t = (app: string, text: string): string => {
   const nextcloudTranslate = nextcloudGlobal.t
   return nextcloudTranslate ? nextcloudTranslate(app, text) : text
 }
+
+const app = createApp(CadViewerApp)
+app.use(router)
+
+// Supported MIME types for CAD files
+const SUPPORTED_MIMES = [
+  'application/acad',
+  'application/autocad_dwg',
+  'application/dwg',
+  'application/x-autocad',
+  'application/x-dwg',
+  'image/vnd.dwg',
+  'image/vnd.dxf',
+  'application/dxf',
+  'application/x-dxf',
+  'image/x-dxf',
+]
+
+// CAD Viewer icon as inline SVG
+const CAD_VIEWER_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h6v6h6v10H6zm2-8h2v2H8v-2zm0-2h2v2H8v-2zm4 4h2v2h-2v-2zm0-2h2v2h-2v-2zm4-2h2v4h-2v-4z"/>
+</svg>`
 
 /**
  * Fetch file content using the load endpoint.
@@ -38,40 +60,14 @@ async function fetchFileContent(fileId: number | string): Promise<LoadResponse |
   }
 }
 
-const app = createApp(CadViewerApp)
-app.use(router)
-
-const SUPPORTED_MIMES = [
-  'application/acad',
-  'application/autocad_dwg',
-  'application/dwg',
-  'application/x-autocad',
-  'application/x-dwg',
-  'image/vnd.dwg',
-  'image/vnd.dxf',
-  'application/dxf',
-  'application/x-dxf',
-  'image/x-dxf',
-]
-
-// CAD Viewer icon as inline SVG
-const CAD_VIEWER_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-  <path d="M7 2a2 2 0 0 0-2 2v1H3a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2V4a2 2 0 0 0-2-2H7zm0 2h10v2H7V4zm0 4h10v2H7V8zm0 4h6v2H7v-2z"/>
-</svg>`
-
 // Declare global types for Nextcloud
-interface NextcloudOC {
-  PERMISSION_READ: number
-  generateUrl: (url: string, params?: Record<string, unknown>) => string
-  imagePath: (app: string, file: string) => string
-}
-
 interface FileInfoType {
   id?: number | string
   path?: string
   directory?: string
   name?: string
   filename?: string
+  mime?: string
 }
 
 interface NextcloudOCAViewer {
@@ -86,41 +82,18 @@ interface NextcloudOCA {
     registerHandler: (handler: NextcloudOCAViewer) => void
     open: (options: { path?: string; fileId?: number | string }) => boolean
   }
-  Files?: {
-    registerFileAction: (action: {
-      name: string
-      displayName: string
-      mime: string
-      permissions: number
-      icon: () => string
-      actionHandler: (fileName: string, context: { fileInfo?: { id: number | string; path?: string } }) => void
-    }) => void
-    fileActions?: {
-      register: (action: {
-        name: string
-        displayName: string
-        mime: string
-        permissions: number
-        icon: () => string
-        actionHandler: (fileName: string, context: { fileInfo?: { id: number | string; path?: string } }) => void
-      }) => void
-    }
-    setUserValue?: (app: string, key: string, value: string) => void
-  }
 }
 
-declare const OC: NextcloudOC
 declare const OCA: NextcloudOCA
 
 // Track if we've already registered to avoid duplicate registrations
-let isRegistered = false
+let isViewerRegistered = false
+let isFileActionRegistered = false
 
 /**
  * Vue 3 handler component for the Nextcloud Viewer API.
  * This component is registered with OCA.Viewer.registerHandler() and
  * lazily loads the heavy CAD viewer bundle only when a CAD file is actually opened.
- * 
- * Uses the load endpoint to fetch file content (similar to draw.io approach).
  */
 const CadViewerHandlerComponent = defineComponent({
   name: 'CadViewerHandler',
@@ -199,7 +172,6 @@ const CadViewerHandlerComponent = defineComponent({
           fileName,
           theme: 'dark',
         })
-        // Check if unmounted before assigning
         if (isUnmounted.value) {
           instance.dispose()
           return
@@ -228,7 +200,7 @@ const CadViewerHandlerComponent = defineComponent({
           const container = viewerContainer.value
           if (container?.isConnected) {
             resolve()
-          } else {
+          } else if (!isUnmounted.value) {
             raf(checkContainer)
           }
         }
@@ -289,7 +261,7 @@ const CadViewerHandlerComponent = defineComponent({
 
       if (viewerContainer.value) {
         viewerInstance.value?.dispose()
-        
+
         const fileData = await fetchFileContent(retryFileId.value)
         if (fileData && !fileData.error) {
           await loadViewerWithContent(viewerContainer.value, fileData.content, fileData.name)
@@ -339,7 +311,7 @@ const CadViewerHandlerComponent = defineComponent({
  * Register the CAD viewer handler with the Nextcloud Viewer API.
  */
 function registerViewerHandler(): boolean {
-  if (isRegistered) return false
+  if (isViewerRegistered) return false
 
   if (OCA?.Viewer !== undefined) {
     OCA.Viewer.registerHandler({
@@ -348,39 +320,16 @@ function registerViewerHandler(): boolean {
       mimes: SUPPORTED_MIMES,
       component: CadViewerHandlerComponent,
     })
-    isRegistered = true
+    isViewerRegistered = true
+    console.debug('CAD Viewer: Registered with Nextcloud Viewer')
     return true
   }
   return false
 }
 
-// Set up polling to ensure registration happens when OCA.Viewer becomes available
-function setupViewerPolling(): void {
-  if (registerViewerHandler()) return
-
-  // Poll every 100ms for up to 10 seconds
-  let pollCount = 0
-  const maxPolls = 100
-
-  const pollInterval = setInterval(() => {
-    if (registerViewerHandler()) {
-      clearInterval(pollInterval)
-      return
-    }
-
-    pollCount++
-    if (pollCount >= maxPolls) {
-      clearInterval(pollInterval)
-      console.debug('OCA.Viewer not available after 10 seconds')
-    }
-  }, 100)
-}
-
-// Initialize viewer registration when script loads
-setupViewerPolling()
-
 /**
  * Open the CAD viewer inline for a file using the Nextcloud Viewer API.
+ * Similar to draw.io approach - opens the file directly in the viewer.
  */
 function openInViewer(fileId: number | string): void {
   if (OCA?.Viewer?.open !== undefined) {
@@ -388,46 +337,92 @@ function openInViewer(fileId: number | string): void {
     return
   }
 
-  if (OC !== undefined) {
-    window.location.href = OC.generateUrl('/apps/cad_viewer/view') + '?fileIds=' + fileId
-  }
+  // Fallback: navigate to the viewer page
+  window.location.href = generateUrl('/apps/cad_viewer/view') + '?fileIds=' + fileId
 }
 
 /**
- * Register file actions that appear in the Files "..." context menu.
+ * Register file actions that appear in the Files "..." context menu and as default action.
+ * Following the draw.io pattern for seamless integration.
  */
 function registerFileActions(): void {
-  if (OC === undefined) {
-    return
-  }
+  if (isFileActionRegistered) return
 
   try {
-    const action: IFileAction = {
+    // Create the file action for opening CAD files
+    const action = new FileAction({
       id: 'cad-viewer-open',
       displayName: () => t('cad_viewer', 'Open with CAD Viewer'),
       iconSvgInline: () => CAD_VIEWER_ICON,
-      enabled: ({ nodes }) => nodes.length === 1 && nodes.some((node) => SUPPORTED_MIMES.includes(node.mime)),
-      exec: async ({ nodes }) => {
-        const node = nodes[0]
+      enabled: ({ nodes }) => {
+        // Only enable for single file selection with supported MIME type
+        return nodes.length === 1 && nodes[0].mime !== undefined && SUPPORTED_MIMES.includes(nodes[0].mime)
+      },
+      exec: async (selectedNodes) => {
+        const node = selectedNodes[0]
         const fileId = node.id
         if (fileId !== undefined) {
           openInViewer(fileId)
         }
         return null
       },
-      default: DefaultType.HIDDEN,
+      // Set as default action (shown in main click action)
+      default: DefaultType.AVAILABLE,
+      // Higher priority than default file actions
+      order: 50,
+    })
+
+    // Register for each supported MIME type
+    for (const mime of SUPPORTED_MIMES) {
+      registerFileAction(action, mime)
     }
-    registerFileAction(action)
-  } catch {
-    // Fall back
+
+    isFileActionRegistered = true
+    console.debug('CAD Viewer: Registered file actions for DWG/DXF files')
+  } catch (err) {
+    console.error('CAD Viewer: Failed to register file actions', err)
   }
 }
 
-// Register file actions when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+// Set up polling to ensure registration happens when OCA.Viewer becomes available
+function setupRegistration(): void {
+  // Try to register immediately
+  if (registerViewerHandler() && registerFileActions()) {
+    return
+  }
+
+  // Poll every 100ms for up to 10 seconds
+  let pollCount = 0
+  const maxPolls = 100
+
+  const pollInterval = setInterval(() => {
+    const viewerRegistered = registerViewerHandler()
+    const fileActionsRegistered = registerFileActions()
+
+    if (viewerRegistered && fileActionsRegistered) {
+      clearInterval(pollInterval)
+      return
+    }
+
+    pollCount++
+    if (pollCount >= maxPolls) {
+      clearInterval(pollInterval)
+      console.debug('CAD Viewer: Registration timeout - some features may not be available')
+    }
+  }, 100)
+}
+
+// Initialize registration when script loads
+setupRegistration()
+
+// Re-register on Nextcloud Files ready event (for dynamic navigation)
+document.addEventListener('nextcloud-files-ready', () => {
   registerFileActions()
   registerViewerHandler()
+})
 
+// Mount Vue app if container exists
+document.addEventListener('DOMContentLoaded', () => {
   const mountEl =
     document.getElementById('cad-viewer-app') ??
     document.getElementById('cad-viewer-container')
@@ -435,12 +430,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (mountEl) {
     app.mount(mountEl)
   }
-})
-
-// Also re-register on Nextcloud Files ready event
-document.addEventListener('nextcloud-files-ready', () => {
-  registerFileActions()
-  registerViewerHandler()
 })
 
 export default app
