@@ -3,9 +3,8 @@
   "release-type": "node",
   "extra-files": [
     {
-      "type": "xml",
-      "path": "appinfo/info.xml",
-      "xpath": "//version"
+      "type": "generic",
+      "path": "appinfo/info.xml"
     }
   ],
   "packages": {
