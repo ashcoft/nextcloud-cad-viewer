@@ -6,6 +6,19 @@
 * add wait loop for release availability before uploading assets ([b3b39e6](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b3b39e6c4754b2612de6647dd131d23d5d7c236e))
 * sync info.xml to v0.2.1 ([193a79b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/193a79bdbb161fc452ccf899d4c267456377a5ad))
 
+## [0.2.7](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.2.6...v0.2.7) (2026-07-11)
+
+
+### Bug Fixes
+
+* add extra-files to release-please-config for info.xml bump ([28523f9](https://github.com/ashcoft/nextcloud-cad-viewer/commit/28523f9d51be96c18798766a09076378c3602693))
+* add extra-files to release-please-config for info.xml bump ([f5fcbc6](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f5fcbc65005d369734321ca2a03c26ac1e367341))
+* ensure info.xml version bump with generic extra-files and fallback ([c389419](https://github.com/ashcoft/nextcloud-cad-viewer/commit/c389419d98919bac3fabcf702a61815636c1e297))
+* improve info.xml version update in release workflow ([81a4825](https://github.com/ashcoft/nextcloud-cad-viewer/commit/81a48256eafea452292b4c5702625c66a599a1d0))
+* improve info.xml version update in release workflow ([4e1f496](https://github.com/ashcoft/nextcloud-cad-viewer/commit/4e1f496e3d8bc4e9c0f65f03a03b9bc7d8ba0b0e))
+* refactor info.xml update in release workflow ([a139862](https://github.com/ashcoft/nextcloud-cad-viewer/commit/a13986280ffd78a7d4268784afe46afba6afa655))
+* refactor info.xml update step in release workflow ([50583a2](https://github.com/ashcoft/nextcloud-cad-viewer/commit/50583a2c50a123b3332fbe384299de31d29b683a))
+
 ## [0.2.6](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.2.5...v0.2.6) (2026-07-08)
 
 
