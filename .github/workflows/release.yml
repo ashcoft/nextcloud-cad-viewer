@@ -79,7 +79,7 @@ jobs:
           ls -lah build/artifacts/${{ steps.app_info.outputs.app_id }}.tar.gz build/artifacts/${{ steps.app_info.outputs.app_id }}.zip
 
       - name: Attach assets to release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
         with:
           files: |
             build/artifacts/${{ steps.app_info.outputs.app_id }}.tar.gz
