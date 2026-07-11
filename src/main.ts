@@ -337,6 +337,7 @@ const CadViewerHandlerComponent = defineComponent({
 
 /**
  * Register the CAD viewer handler with the Nextcloud Viewer API.
+ * This enables clicking on DWG/DXF files to open them directly in the CAD viewer.
  */
 function registerViewerHandler(): boolean {
   if (isRegistered) return false
@@ -353,31 +354,6 @@ function registerViewerHandler(): boolean {
   }
   return false
 }
-
-// Set up polling to ensure registration happens when OCA.Viewer becomes available
-function setupViewerPolling(): void {
-  if (registerViewerHandler()) return
-
-  // Poll every 100ms for up to 10 seconds
-  let pollCount = 0
-  const maxPolls = 100
-
-  const pollInterval = setInterval(() => {
-    if (registerViewerHandler()) {
-      clearInterval(pollInterval)
-      return
-    }
-
-    pollCount++
-    if (pollCount >= maxPolls) {
-      clearInterval(pollInterval)
-      console.debug('OCA.Viewer not available after 10 seconds')
-    }
-  }, 100)
-}
-
-// Initialize viewer registration when script loads
-setupViewerPolling()
 
 /**
  * Open the CAD viewer inline for a file using the Nextcloud Viewer API.
