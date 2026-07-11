@@ -73,43 +73,13 @@ jobs:
           target-branch: main
           config-file: release-please-config.json
 
-      - name: Sync info.xml version
-        if: steps.release_check.outputs.is_release == 'true'
-        run: |
-          # Fetch the updated manifest from the release branch (updated by release-please)
-          git fetch origin ${{ github.ref }} --depth=2
-          git checkout FETCH_HEAD -- .release-please-manifest.json package.json
-          
-          # Read version from updated manifest
-          if [ -f ".release-please-manifest.json" ]; then
-            VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
-          elif [ -f "package.json" ]; then
-            VERSION=$(node -p "require('./package.json').version")
-          else
-            echo "ERROR: Could not find version file"
-            exit 1
-          fi
-          echo "Syncing info.xml to version: ${VERSION}"
-          
-          # Update info.xml version
-          sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
-          
-          # Commit the version update to the release branch
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add appinfo/info.xml
-          git commit -m "chore: sync version to info.xml [skip ci]" || true
-          
-          # Fetch latest commits and rebase before pushing
-          git fetch origin ${{ github.ref }}
-          git rebase origin/${{ github.ref_name }} || true
-          git push || true
-
       - name: Get version
         id: version
         run: |
-          # Read version from manifest (updated by release-please)
-          if [ -f ".release-please-manifest.json" ]; then
+          # Read version from info.xml (updated by release-please via extra-files)
+          if [ -f "appinfo/info.xml" ]; then
+            VERSION=$(sed -n 's/.*<version>\([^<]*\)<\/version>.*/\1/p' appinfo/info.xml)
+          elif [ -f ".release-please-manifest.json" ]; then
             VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
           elif [ -f "package.json" ]; then
             VERSION=$(node -p "require('./package.json').version")
