@@ -73,10 +73,42 @@ jobs:
           target-branch: main
           config-file: release-please-config.json
 
+      - name: Sync info.xml version
+        if: steps.release_check.outputs.is_release == 'true'
+        run: |
+          # Fetch the updated manifest from the release branch (updated by release-please)
+          git fetch origin ${{ github.ref }} --depth=2
+          git checkout FETCH_HEAD -- .release-please-manifest.json package.json
+
+          # Read version from updated manifest
+          if [ -f ".release-please-manifest.json" ]; then
+            VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
+          elif [ -f "package.json" ]; then
+            VERSION=$(node -p "require('./package.json').version")
+          else
+            echo "ERROR: Could not find version file"
+            exit 1
+          fi
+          echo "Syncing info.xml to version: ${VERSION}"
+
+          # Update info.xml version
+          sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
+
+          # Commit the version update to the release branch
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add appinfo/info.xml
+          git commit -m "chore: sync version to info.xml [skip ci]" || true
+
+          # Fetch latest commits and rebase before pushing
+          git fetch origin ${{ github.ref }}
+          git rebase origin/${{ github.ref_name }} || true
+          git push || true
+
       - name: Get version
         id: version
         run: |
-          # Read version from manifest (set by release-please)
+          # Read version from manifest (updated by release-please)
           if [ -f ".release-please-manifest.json" ]; then
             VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
           elif [ -f "package.json" ]; then
@@ -89,51 +121,6 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "Version: ${VERSION}"
-
-      - name: Update info.xml version
-        run: |
-          # Always get the latest version from manifest or package.json
-          if [ -f ".release-please-manifest.json" ]; then
-            VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
-          else
-            VERSION=$(node -p "require('./package.json').version")
-          fi
-
-          echo "Target version from manifest/package.json: ${VERSION}"
-
-          # Check current info.xml version
-          CURRENT=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml || echo "not-found")
-          echo "Current info.xml version: ${CURRENT}"
-
-          # Always update info.xml to match the target version
-          if [ "$CURRENT" != "$VERSION" ]; then
-            echo "Updating info.xml version from '${CURRENT}' to '${VERSION}'"
-            sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
-
-            # Verify the update
-            NEW_VERSION=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml)
-            echo "Verified info.xml version: ${NEW_VERSION}"
-
-            if [ "$NEW_VERSION" != "$VERSION" ]; then
-              echo "ERROR: Failed to update info.xml version. Expected '${VERSION}', got '${NEW_VERSION}'"
-              exit 1
-            fi
-            echo "info.xml successfully updated to version ${VERSION}"
-          else
-            echo "info.xml already at correct version ${VERSION}"
-          fi
-
-          # Always commit and push if there are changes
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add appinfo/info.xml
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore: update info.xml version to ${VERSION} [skip ci]"
-            git push
-            echo "Pushed info.xml version update to ${VERSION}"
-          fi
 
       - name: Install dependencies
         run: |
