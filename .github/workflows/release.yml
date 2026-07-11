@@ -33,11 +33,13 @@ jobs:
       contents: write
       pull-requests: write
     outputs:
-      version: ${{ steps.version.outputs.version }}
-      tag_name: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.sync_info_xml.outputs.version }}
+      tag: v${{ steps.sync_info_xml.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
@@ -54,17 +56,17 @@ jobs:
           php-version: '8.4'
           coverage: none
 
-      - name: Check if release mode
+      - name: Check release mode
         id: release_check
         run: |
-          IS_RELEASE=true
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.skip_release }}" = "true" ]; then
-            IS_RELEASE=false
-            echo "Running in build-only mode (no release)"
+            echo "is_release=false" >> $GITHUB_OUTPUT
+            echo "Running in build-only mode"
+          else
+            echo "is_release=true" >> $GITHUB_OUTPUT
           fi
-          echo "is_release=${IS_RELEASE}" >> $GITHUB_OUTPUT
 
-      - name: Release Please
+      - name: Run release-please
         if: steps.release_check.outputs.is_release == 'true'
         id: release-please
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
@@ -73,66 +75,46 @@ jobs:
           target-branch: main
           config-file: release-please-config.json
 
-      - name: Get version
-        id: version
+      - name: Sync info.xml version
+        id: sync_info_xml
         run: |
-          # Read version from manifest (set by release-please)
+          # Fetch updated manifest from release-please branch
+          git fetch origin ${{ github.ref }} --depth=2 || echo "Fetch completed"
+          git checkout FETCH_HEAD -- .release-please-manifest.json package.json 2>/dev/null || true
+
+          # Get version from manifest or package.json
           if [ -f ".release-please-manifest.json" ]; then
             VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
-          elif [ -f "package.json" ]; then
-            VERSION=$(node -p "require('./package.json').version")
           else
-            echo "ERROR: Could not find version file"
+            VERSION=$(node -p "require('./package.json').version")
+          fi
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Syncing info.xml to version: ${VERSION}"
+
+          # Update info.xml version
+          sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
+
+          # Verify update
+          NEW_VERSION=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml)
+          if [ "$NEW_VERSION" != "$VERSION" ]; then
+            echo "ERROR: Failed to update info.xml. Expected ${VERSION}, got ${NEW_VERSION}"
             exit 1
           fi
-          TAG="v${VERSION}"
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
-          echo "Version: ${VERSION}"
 
-      - name: Update info.xml version
-        run: |
-          # Always get the latest version from manifest or package.json
-          if [ -f ".release-please-manifest.json" ]; then
-            VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
-          else
-            VERSION=$(node -p "require('./package.json').version")
-          fi
-
-          echo "Target version from manifest/package.json: ${VERSION}"
-
-          # Check current info.xml version
-          CURRENT=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml || echo "not-found")
-          echo "Current info.xml version: ${CURRENT}"
-
-          # Always update info.xml to match the target version
-          if [ "$CURRENT" != "$VERSION" ]; then
-            echo "Updating info.xml version from '${CURRENT}' to '${VERSION}'"
-            sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
-
-            # Verify the update
-            NEW_VERSION=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml)
-            echo "Verified info.xml version: ${NEW_VERSION}"
-
-            if [ "$NEW_VERSION" != "$VERSION" ]; then
-              echo "ERROR: Failed to update info.xml version. Expected '${VERSION}', got '${NEW_VERSION}'"
-              exit 1
-            fi
-            echo "info.xml successfully updated to version ${VERSION}"
-          else
-            echo "info.xml already at correct version ${VERSION}"
-          fi
-
-          # Always commit and push if there are changes
+          # Commit and push update
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add appinfo/info.xml
+
           if git diff --cached --quiet; then
-            echo "No changes to commit"
+            echo "info.xml already at version ${VERSION}"
           else
-            git commit -m "chore: update info.xml version to ${VERSION} [skip ci]"
-            git push
-            echo "Pushed info.xml version update to ${VERSION}"
+            git commit -m "chore: sync version to info.xml [skip ci]"
+            git fetch origin ${{ github.ref }} || true
+            git rebase origin/${{ github.ref_name }} || true
+            git push --force-with-lease || git push --force
+            echo "info.xml synced to version ${VERSION}"
           fi
 
       - name: Install dependencies
@@ -154,16 +136,17 @@ jobs:
       - name: Build app archive
         run: |
           make appstore
-          echo "=== Built Artifacts ==="
           ls -la build/artifacts/
 
       - name: Upload artifacts to release
         if: steps.release_check.outputs.is_release == 'true' && github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG=${{ steps.version.outputs.tag }}
+          TAG=v${{ steps.sync_info_xml.outputs.version }}
           echo "Uploading release assets for: $TAG"
 
-          # Wait for release to be created by release-please
+          # Wait for release to be created
           for i in {1..30}; do
             if gh release view "$TAG" &>/dev/null; then
               echo "Release $TAG is available"
@@ -173,28 +156,17 @@ jobs:
             sleep 2
           done
 
-          echo "=== Uploading artifacts ==="
-          for FILE in \
-            "build/artifacts/${APP_NAME}.tar.gz" \
-            "build/artifacts/${APP_NAME}.zip"; do
-            if [ -f "$FILE" ]; then
-              echo "Uploading: $FILE"
-              gh release upload "$TAG" "$FILE" --clobber
-            fi
+          # Upload artifacts
+          for FILE in build/artifacts/${APP_NAME}.tar.gz build/artifacts/${APP_NAME}.zip; do
+            [ -f "$FILE" ] && gh release upload "$TAG" "$FILE" --clobber
           done
 
-          echo "=== Release assets ==="
-          gh release view "$TAG" --json assets -q '.assets[].name'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload build artifacts (CI)
+      - name: Upload build artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ${{ env.APP_NAME }}-${{ steps.version.outputs.version }}
+          name: ${{ env.APP_NAME }}-${{ steps.sync_info_xml.outputs.version }}
           path: |
             build/artifacts/*.tar.gz
             build/artifacts/*.zip
           retention-days: 90
-          compression-level: 6
           overwrite: true
