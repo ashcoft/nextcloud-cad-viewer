@@ -76,10 +76,8 @@ jobs:
       - name: Get version
         id: version
         run: |
-          # Read version from info.xml (updated by release-please via extra-files)
-          if [ -f "appinfo/info.xml" ]; then
-            VERSION=$(sed -n 's/.*<version>\([^<]*\)<\/version>.*/\1/p' appinfo/info.xml)
-          elif [ -f ".release-please-manifest.json" ]; then
+          # Read version from manifest (set by release-please)
+          if [ -f ".release-please-manifest.json" ]; then
             VERSION=$(node -p "require('./.release-please-manifest.json')['.']")
           elif [ -f "package.json" ]; then
             VERSION=$(node -p "require('./package.json').version")
@@ -91,6 +89,28 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "Version: ${VERSION}"
+
+      - name: Ensure info.xml version matches
+        if: steps.release_check.outputs.is_release == 'true'
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          CURRENT=$(sed -n 's/.*<version>\([^<]*\)<\/version>.*/\1/p' appinfo/info.xml)
+          
+          # Skip if already updated via extra-files or if using marker
+          if [ "$CURRENT" = "$VERSION" ] || [ "$CURRENT" = "${VERSION}-x-release-please-version" ]; then
+            echo "info.xml already at version ${VERSION}"
+            exit 0
+          fi
+          
+          echo "Updating info.xml from ${CURRENT} to ${VERSION}"
+          sed -i "s|<version>[^<]*</version>|<version>${VERSION}</version>|" appinfo/info.xml
+          
+          # Commit and push the update
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add appinfo/info.xml
+          git commit -m "chore: update info.xml version to ${VERSION} [skip ci]" || true
+          git push
 
       - name: Install dependencies
         run: |
