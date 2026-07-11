@@ -1,4 +1,8 @@
 <?xml version="1.0"?>
+<!--
+  - SPDX-FileCopyrightText: 2024 ashcoft
+  - SPDX-License-Identifier: MIT
+-->
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
   <id>cad_viewer</id>
   <name>CAD Viewer</name>
@@ -13,15 +17,10 @@
 - Dark/light theme
 - Fullscreen mode
 - Responsive design]]></description>
-  <version>0.2.7</version>
+  <version>0.2.8-dev.0</version>
   <licence>MIT</licence>
   <author mail="dony@dony.me">CAD Viewer Contributors</author>
   <namespace>CadViewer</namespace>
-  <documentation>
-    <user>https://github.com/ashcoft/nextcloud-cad-viewer</user>
-    <admin>https://github.com/ashcoft/nextcloud-cad-viewer</admin>
-    <developer>https://github.com/ashcoft/nextcloud-cad-viewer</developer>
-  </documentation>
   <category>files</category>
   <website>https://github.com/ashcoft/nextcloud-cad-viewer</website>
   <bugs>https://github.com/ashcoft/nextcloud-cad-viewer/issues</bugs>
