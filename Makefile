@@ -4,7 +4,7 @@
 # Makefile for building the project
 
 app_id=$(shell sed -n 's/.*<id>\(.*\)<\/id>.*/\1/p' appinfo/info.xml | head -1)
-app_version=$(shell sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' appinfo/info.xml | xargs)
+app_version=$(shell sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' appinfo/info.xml | head -1 | xargs)
 pkg_version=$(shell node -p "require('./package.json').version")
 project_dir=$(CURDIR)
 build_dir=$(project_dir)/build/artifacts
@@ -24,7 +24,7 @@ ifndef VERSION
 endif
 	@echo "Bumping info.xml version to $(VERSION)"
 	@sed -i "s|<version>[^<]*</version>|<version>$(VERSION)</version>|" $(info_xml)
-	@NEW_VERSION=$$(sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' $(info_xml) | xargs); \
+	@NEW_VERSION=$$(sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' $(info_xml) | head -n 1 | xargs); \
 	if [ "$$NEW_VERSION" != "$(VERSION)" ]; then \
 		echo "ERROR: Failed to update info.xml. Expected $(VERSION), got $$NEW_VERSION"; \
 		exit 1; \

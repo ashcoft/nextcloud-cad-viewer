@@ -92,17 +92,18 @@ jobs:
           fi
           echo "do_release=${DO_RELEASE}" >> $GITHUB_OUTPUT
 
-      - name: Verify versions are synchronized
+      - name: Verify and sync versions
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          INFO_VERSION=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml)
+          INFO_VERSION=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml | head -n 1)
           echo "package.json version: ${VERSION}"
           echo "info.xml version: ${INFO_VERSION}"
           
           if [ "$VERSION" != "$INFO_VERSION" ]; then
             echo "WARNING: info.xml version does not match package.json!"
             echo "Expected: ${VERSION}, Found: ${INFO_VERSION}"
-            # Don't fail - release-please will update info.xml
+            echo "Automatically syncing info.xml version to ${VERSION}..."
+            make bump-info-xml VERSION=${VERSION}
           else
             echo "✓ Versions are synchronized!"
           fi
