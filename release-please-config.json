@@ -5,6 +5,12 @@
     ".": {
       "component": "nextcloud-cad-viewer",
       "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        {
+          "type": "xml",
+          "path": "appinfo/info.xml"
+        }
+      ],
       "changelog-sections": {
         "feat": "Features",
         "fix": "Bug Fixes",
