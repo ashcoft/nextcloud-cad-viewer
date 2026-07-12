@@ -1,14 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "release-type": "node",
-  "extra-files": [
-    {
-      "type": "xml",
-      "path": "appinfo/info.xml",
-      "xpath": "//version"
-    },
-    "package.json"
-  ],
   "packages": {
     ".": {
       "component": "nextcloud-cad-viewer",
