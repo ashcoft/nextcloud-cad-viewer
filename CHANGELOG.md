@@ -6,6 +6,13 @@
 * add wait loop for release availability before uploading assets ([b3b39e6](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b3b39e6c4754b2612de6647dd131d23d5d7c236e))
 * sync info.xml to v0.2.1 ([193a79b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/193a79bdbb161fc452ccf899d4c267456377a5ad))
 
+## [0.3.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.2.7...v0.3.0) (2026-07-11)
+
+
+### Features
+
+* Enable inline viewing for DWG/DXF files on click ([1ea130c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/1ea130c6855fee3a6c796cd2cc3abc2d6a591186))
+
 ## [0.2.7](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.2.6...v0.2.7) (2026-07-11)
 
 
