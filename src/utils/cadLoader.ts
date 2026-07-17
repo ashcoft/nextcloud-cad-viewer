@@ -48,7 +48,6 @@ export async function loadCADViewer(
     baseUrl,
     background = 0x1e1e1e,
     useMainThreadDraw = false,
-    fileName,
   } = options
 
   const viewerProps: Record<string, unknown> = {
