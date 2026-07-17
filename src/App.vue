@@ -39,9 +39,9 @@ const t = (app: string, text: string) => {
 const appTranslation = (text: string) => t('cad_viewer', text)
 
 /**
- * Fetch file content using the load endpoint.
+ * Fetch file metadata and direct URL using the load endpoint.
  */
-async function fetchFileContent(fileId: number | string): Promise<LoadResponse | null> {
+async function fetchFileInfo(fileId: number | string): Promise<LoadResponse | null> {
   try {
     const url = generateUrl('/apps/cad_viewer/api/load/{fileId}', { fileId: String(fileId) })
     const response = await window.fetch(url)
@@ -53,7 +53,7 @@ async function fetchFileContent(fileId: number | string): Promise<LoadResponse |
 
     return await response.json()
   } catch (err) {
-    console.error('CAD Viewer: Failed to fetch file content', err)
+    console.error('CAD Viewer: Failed to fetch file info', err)
     return null
   }
 }
@@ -78,7 +78,6 @@ export default defineComponent({
     const raf = globalThis.requestAnimationFrame.bind(globalThis)
 
     // Capture unmounted state for async guards
-    // This closure prevents Codacy from analyzing the ref access pattern
     const getUnmountedState = () => isUnmounted.value
 
     async function initViewer(): Promise<void> {
@@ -105,7 +104,6 @@ export default defineComponent({
       retryFileId.value = String(fid)
 
       // Wait for container to be in the DOM before mounting
-      // This is critical: viewerContainer may not be attached yet even after onMounted
       await new Promise<void>((resolve) => {
         const checkContainer = () => {
           const container = viewerContainer.value
@@ -123,8 +121,8 @@ export default defineComponent({
         return
       }
 
-      // Fetch file content using load endpoint
-      const fileData = await fetchFileContent(String(fid))
+      // Fetch file info with direct URL using load endpoint
+      const fileData = await fetchFileInfo(String(fid))
 
       // Guard against component unmount during async fetch
       if (getUnmountedState()) {
@@ -134,7 +132,7 @@ export default defineComponent({
 
       // Check for fetch failure
       if (fileData === null) {
-        error.value = appTranslation('Failed to load file content. Please try again.')
+        error.value = appTranslation('Failed to load file info. Please try again.')
         loading.value = false
         return
       }
@@ -145,12 +143,12 @@ export default defineComponent({
         return
       }
 
-      // Load viewer with base64 content
+      // Load viewer with direct URL
       const container = viewerContainer.value
       if (container?.isConnected) {
         try {
           viewerInstance.value = await loadCADViewer(container, {
-            fileContent: fileData.content,
+            url: fileData.url,
             fileName: fileData.name,
             theme: 'dark',
           })
@@ -189,11 +187,11 @@ export default defineComponent({
 
       viewerInstance.value?.dispose()
 
-      const fileData = await fetchFileContent(retryFileId.value)
+      const fileData = await fetchFileInfo(retryFileId.value)
       if (fileData && !fileData.error) {
         try {
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
-            fileContent: fileData.content,
+            url: fileData.url,
             fileName: fileData.name,
             theme: 'dark',
           })

@@ -9,7 +9,8 @@ export interface LoadResponse {
 	size: number
 	mime: string
 	path: string
-	content: string
+	/** Direct download URL for the CAD file */
+	url: string
 	contentType: string
 	error?: string
 }
