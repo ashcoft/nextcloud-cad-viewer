@@ -5,7 +5,7 @@
     {
       "type": "xml",
       "path": "appinfo/info.xml",
-      "xpath": "//version"
+      "xpath": "//*[local-name()='version']"
     }
   ],
   "packages": {
