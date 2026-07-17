@@ -19,6 +19,7 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
@@ -36,7 +37,8 @@ class FileController extends Controller
         IRequest $request,
         private readonly IRootFolder $rootFolder,
         private readonly IUserSession $userSession,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly IURLGenerator $urlGenerator
     ) {
         parent::__construct($appName, $request);
     }
@@ -174,9 +176,9 @@ class FileController extends Controller
     }
 
     /**
-     * Load a CAD file by ID and return its content.
+     * Load a CAD file by ID and return metadata with direct download URL.
      *
-     * Returns file content as base64 for the CAD viewer.
+     * Returns file metadata and a direct URL for the CAD viewer to fetch.
      * Validates extension (.dwg/.dxf) and file size (max 50MB).
      */
     #[NoAdminRequired]
@@ -200,13 +202,17 @@ class FileController extends Controller
                 ]
             );
 
+            // Generate direct download URL using Nextcloud's file download endpoint
+            // This URL works with the current user's session cookies
+            $downloadUrl = $this->generateDownloadUrl($file);
+
             return new DataResponse([
                 'id' => $file->getId(),
                 'name' => $file->getName(),
                 'size' => $file->getSize(),
                 'mime' => $file->getMimeType(),
                 'path' => $file->getPath(),
-                'content' => base64_encode($file->getContent()),
+                'url' => $downloadUrl,
                 'contentType' => 'application/octet-stream',
             ]);
         } catch (\Throwable $e) {
@@ -219,6 +225,38 @@ class FileController extends Controller
             );
             return $this->_handleFileError($e, $fileId);
         }
+    }
+
+    /**
+     * Generate a direct download URL for the file.
+     */
+    private function generateDownloadUrl(File $file): string
+    {
+        $user = $this->userSession->getUser();
+        if ($user === null) {
+            throw new \RuntimeException('Unauthorized');
+        }
+
+        // Use Nextcloud's download endpoint with remote.php/dav/files/{user}
+        // This provides direct access to the file through WebDAV
+        // File path in Nextcloud format: /userId/files/path/to/file.ext
+        $userPath = ltrim($file->getPath(), '/');
+        // Extract the part after /userId/files/
+        $filesPrefix = $user->getUID() . '/files/';
+        if (str_starts_with($userPath, $filesPrefix)) {
+            $relativePath = substr($userPath, strlen($filesPrefix));
+        } else {
+            $relativePath = $userPath;
+        }
+
+        $encodedPath = implode(
+            '/',
+            array_map('rawurlencode', explode('/', $relativePath))
+        );
+
+        // Generate URL that works with session authentication
+        return $this->urlGenerator->getBaseUrl() .
+            '/remote.php/dav/files/' . $user->getUID() . '/' . $encodedPath;
     }
 
     /**
