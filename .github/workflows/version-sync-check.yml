@@ -36,10 +36,13 @@ jobs:
           
           if git diff --name-only "$MERGE_BASE" | grep -q "^package.json$"; then
             # package.json was changed, extract version from both
-            OLD_VERSION=$(git show "$MERGE_BASE:package.json" | node -p "require('./stdin')" 2>/dev/null || echo "")
+            OLD_VERSION=$(git show "$MERGE_BASE:package.json" 2>/dev/null | grep '"version"' | head -1 | sed 's/.*"version": *"\([^"]*\)".*/\1/')
             NEW_VERSION=$(node -p "require('./package.json').version")
             
-            if [ "$OLD_VERSION" = "$NEW_VERSION" ]; then
+            echo "Old version: $OLD_VERSION"
+            echo "New version: $NEW_VERSION"
+            
+            if [ "$OLD_VERSION" = "$NEW_VERSION" ] && [ -n "$OLD_VERSION" ]; then
               echo "skip=true" >> $GITHUB_OUTPUT
               echo "Only packageManager changed, skipping version sync check"
             else
