@@ -1,0 +1,99 @@
+# SPDX-FileCopyrightText: 2026 ashcoft
+# SPDX-License-Identifier: MIT
+
+name: Release PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (preview changes only)'
+        required: false
+        type: boolean
+        default: true
+
+concurrency:
+  group: release-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
+jobs:
+  release-pr:
+    name: Create Release PR
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'ashcoft'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Set up node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Analyze commits and generate changelog
+        id: analyze
+        run: |
+          pnpm exec semantic-release --dry-run --no-ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create or update release PR
+        if: github.event.inputs.dry_run != 'true'
+        run: |
+          BRANCH_NAME="release/$(date +%Y%m%d-%H%M%S)"
+          
+          # Create release branch
+          git checkout -b "$BRANCH_NAME"
+          
+          # Run semantic-release to bump versions and update changelog
+          pnpm exec semantic-release --no-ci
+          
+          # Push branch
+          git push -u origin "$BRANCH_NAME"
+          
+          # Get version
+          VERSION=$(node -p "require('./package.json').version")
+          
+          # Create PR
+          gh pr create \
+            --title "chore(main): release $VERSION" \
+            --body "$(cat << 'EOF'
+## Release Summary
+
+This PR bumps the version and updates the changelog based on conventional commits since the last release.
+
+### Changes
+- Version bumped in `info.xml` and `package.json`
+- Changelog updated in `CHANGELOG.md`
+
+### Merging this PR
+
+When this PR is merged, the **Release** workflow will:
+1. Create a GitHub release with the changelog
+2. Build and upload artifacts to the release
+
+EOF
+)" \
+            --base main \
+            --label "skip-changelog"
+          
+          echo "Created release PR"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
