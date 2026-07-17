@@ -1,7 +1,24 @@
 module.exports = {
   branches: ['main', 'stable'],
   plugins: [
-    '@semantic-release/commit-analyzer',
+    [
+      '@semantic-release/commit-analyzer',
+      {
+        preset: 'conventionalcommits',
+        releaseRules: [
+          { type: 'feat', release: 'minor' },
+          { type: 'fix', release: 'patch' },
+          { type: 'refactor', release: 'patch' },
+          { type: 'perf', release: 'patch' },
+          { type: 'chore', release: 'patch' },
+          { type: 'docs', release: 'patch' },
+          { type: 'test', release: 'patch' },
+          { type: 'build', release: 'patch' },
+          { type: 'ci', release: 'patch' },
+          { breaking: true, release: 'major' },
+        ],
+      },
+    ],
     '@semantic-release/release-notes-generator',
     '@semantic-release/changelog',
     [
