@@ -10,12 +10,14 @@ on:
       - 'appinfo/info.xml'
       - 'release-please-config.json'
       - '.release-please-manifest.json'
+      - '.github/workflows/version-sync-check.yml'
   push:
     branches:
       - main
     paths:
       - 'package.json'
       - 'appinfo/info.xml'
+      - '.github/workflows/version-sync-check.yml'
 
 jobs:
   version-sync-check:
@@ -25,7 +27,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
+      - name: Check if only packageManager changed
+        id: skip-check
+        run: |
+          # For PRs, compare against the merge-base
+          COMPARE_REF="${GITHUB_BASE_REF:-main}"
+          MERGE_BASE=$(git merge-base HEAD "$COMPARE_REF" 2>/dev/null || echo "HEAD^")
+          
+          if git diff --name-only "$MERGE_BASE" | grep -q "^package.json$"; then
+            # package.json was changed, extract version from both
+            OLD_VERSION=$(git show "$MERGE_BASE:package.json" | node -p "require('./stdin')" 2>/dev/null || echo "")
+            NEW_VERSION=$(node -p "require('./package.json').version")
+            
+            if [ "$OLD_VERSION" = "$NEW_VERSION" ]; then
+              echo "skip=true" >> $GITHUB_OUTPUT
+              echo "Only packageManager changed, skipping version sync check"
+            else
+              echo "skip=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Check version sync
+        if: steps.skip-check.outputs.skip != 'true'
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
           INFO_VERSION=$(grep -oP '(?<=<version>)[^<]+' appinfo/info.xml)
