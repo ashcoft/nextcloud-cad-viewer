@@ -6,6 +6,17 @@
 * add wait loop for release availability before uploading assets ([b3b39e6](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b3b39e6c4754b2612de6647dd131d23d5d7c236e))
 * sync info.xml to v0.2.1 ([193a79b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/193a79bdbb161fc452ccf899d4c267456377a5ad))
 
+## [0.3.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.3.1...v0.3.2) (2026-07-17)
+
+
+### Bug Fixes
+
+* improve version comparison script in skip-check step ([a309a9c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/a309a9c274db2101fdb872a67a0216133066e749))
+* skip version sync check when only packageManager changes ([6d9c805](https://github.com/ashcoft/nextcloud-cad-viewer/commit/6d9c80537c0a3cccde551b2f057eade1c56180c7))
+* skip version sync check when only packageManager changes ([2141bff](https://github.com/ashcoft/nextcloud-cad-viewer/commit/2141bff19a2ea2eb77a935b81983c77f9f0ee2b7))
+* sync info.xml version to 0.3.1 to match package.json ([55b2d5b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/55b2d5bfd8d98735479d75f38501d29c1ddd90c5))
+* use proper JSON stdin parsing for version extraction ([b648b3f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b648b3f9843578d7d8e7c28d2d757fe40b436a7b))
+
 ## [0.3.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.3.0...v0.3.1) (2026-07-12)
 
 
