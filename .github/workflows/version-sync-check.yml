@@ -36,7 +36,7 @@ jobs:
           
           if git diff --name-only "$MERGE_BASE" | grep -q "^package.json$"; then
             # package.json was changed, extract version from both
-            OLD_VERSION=$(git show "$MERGE_BASE:package.json" 2>/dev/null | grep '"version"' | head -1 | sed 's/.*"version": *"\([^"]*\)".*/\1/')
+            OLD_VERSION=$(git show "$MERGE_BASE:package.json" | node -e "const fs=require('fs'); const s=fs.readFileSync(0,'utf8'); const pkg=JSON.parse(s); console.log(pkg.version || '');")
             NEW_VERSION=$(node -p "require('./package.json').version")
             
             echo "Old version: $OLD_VERSION"
