@@ -6,6 +6,22 @@
 * add wait loop for release availability before uploading assets ([b3b39e6](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b3b39e6c4754b2612de6647dd131d23d5d7c236e))
 * sync info.xml to v0.2.1 ([193a79b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/193a79bdbb161fc452ccf899d4c267456377a5ad))
 
+## [0.3.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.3.1...v0.3.2) (2026-07-17)
+
+
+### Bug Fixes
+
+* bump info.xml version to 0.3.2 to match release ([923661a](https://github.com/ashcoft/nextcloud-cad-viewer/commit/923661a376379ee49fb0ec0705ee0bf28a192887))
+* commit info.xml version bump in release workflow ([2aebbe7](https://github.com/ashcoft/nextcloud-cad-viewer/commit/2aebbe79bd1cda435478f58dd6564f5b66a99da7))
+* commit info.xml version bump in release workflow ([bc442c8](https://github.com/ashcoft/nextcloud-cad-viewer/commit/bc442c8f661bee497de4106fd43aa130dd7894e0))
+* improve version comparison script in skip-check step ([a309a9c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/a309a9c274db2101fdb872a67a0216133066e749))
+* skip version sync check when only packageManager changes ([6d9c805](https://github.com/ashcoft/nextcloud-cad-viewer/commit/6d9c80537c0a3cccde551b2f057eade1c56180c7))
+* skip version sync check when only packageManager changes ([2141bff](https://github.com/ashcoft/nextcloud-cad-viewer/commit/2141bff19a2ea2eb77a935b81983c77f9f0ee2b7))
+* sync info.xml version to 0.3.1 to match package.json ([55b2d5b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/55b2d5bfd8d98735479d75f38501d29c1ddd90c5))
+* use namespace-aware xpath for info.xml version update ([6127544](https://github.com/ashcoft/nextcloud-cad-viewer/commit/6127544ef57b05af647b13eebcdac2100b874a8e))
+* use namespace-aware xpath for info.xml version update in release-please ([a4f208d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/a4f208d0bb786985df102a20e876a102c405667f))
+* use proper JSON stdin parsing for version extraction ([b648b3f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b648b3f9843578d7d8e7c28d2d757fe40b436a7b))
+
 ## [0.3.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.3.0...v0.3.1) (2026-07-12)
 
 
