@@ -119,8 +119,8 @@ let isRegistered = false
  * Vue 3 handler component for the Nextcloud Viewer API.
  * This component is registered with OCA.Viewer.registerHandler() and
  * lazily loads the heavy CAD viewer bundle only when a CAD file is actually opened.
- * 
- * Uses the load endpoint to fetch file content (similar to draw.io approach).
+ *
+ * Uses the load endpoint to get a direct file URL for the CAD viewer.
  */
 const CadViewerHandlerComponent = defineComponent({
   name: 'CadViewerHandler',
@@ -186,16 +186,16 @@ const CadViewerHandlerComponent = defineComponent({
     }
 
     /**
-     * Load the CAD viewer with base64 file content.
+     * Load the CAD viewer with a direct file URL.
      */
-    async function loadViewerWithContent(
+    async function loadViewerWithUrl(
       container: HTMLElement,
-      fileContent: string,
+      fileUrl: string,
       fileName: string
     ): Promise<void> {
       try {
         const instance = await loadCADViewer(container, {
-          fileContent,
+          url: fileUrl,
           fileName,
           theme: 'dark',
         })
@@ -237,7 +237,7 @@ const CadViewerHandlerComponent = defineComponent({
 
       if (isUnmounted.value) return
 
-      // Fetch file content using load endpoint
+      // Fetch file URL using load endpoint
       const fileData = await fetchFileContent(fileId)
 
       if (!fileData) {
@@ -252,10 +252,10 @@ const CadViewerHandlerComponent = defineComponent({
         return
       }
 
-      // Load viewer with base64 content
+      // Load viewer with direct URL
       const container = viewerContainer.value
       if (container) {
-        await loadViewerWithContent(container, fileData.content, fileData.name)
+        await loadViewerWithUrl(container, fileData.url, fileData.name)
       } else {
         error.value = appTranslation('Failed to initialize viewer container.')
         loading.value = false
@@ -289,10 +289,10 @@ const CadViewerHandlerComponent = defineComponent({
 
       if (viewerContainer.value) {
         viewerInstance.value?.dispose()
-        
+
         const fileData = await fetchFileContent(retryFileId.value)
         if (fileData && !fileData.error) {
-          await loadViewerWithContent(viewerContainer.value, fileData.content, fileData.name)
+          await loadViewerWithUrl(viewerContainer.value, fileData.url, fileData.name)
         } else {
           error.value = fileData?.error || appTranslation('Failed to load file')
         }
