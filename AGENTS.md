@@ -119,8 +119,7 @@ pnpm run stylelint    # Stylelint
 
 | Workflow                          | Purpose                              |
 | --------------------------------- | ------------------------------------ |
-| `release-please.yml`             | Auto-release via conventional commits |
-| `artifact.yml`                   | Build Nextcloud app package          |
+| `release.yml`                    | Release with semantic-release         |
 | `dependabot-approve-merge.yml`   | Auto-approve and merge Dependabot PRs|
 | `lint-*.yml`                      | Code quality checks                  |
 | `phpunit-*.yml`                   | PHP unit tests                       |
@@ -129,11 +128,11 @@ pnpm run stylelint    # Stylelint
 
 ### Release Process
 
-Releases use [release-please-action](https://github.com/google-github-actions/release-please-action) with conventional commits:
+Releases use [semantic-release](https://github.com/semantic-release/semantic-release) with conventional commits:
 
 1. **PR titles** determine release type (feat=minor, fix=patch, feat! or BREAKING CHANGE=major)
-2. When PR is merged to `main`, release-please creates a release PR
-3. When release PR is merged, GitHub Release is created and `artifact.yml` builds and uploads app package
+2. When PR is merged to `main` or `stable`, semantic-release triggers the `release.yml` workflow
+3. The workflow builds the Nextcloud app first, then semantic-release creates the GitHub Release with app archives (tar.gz and zip) as assets
 
 Example commit messages:
 ```
@@ -142,6 +141,16 @@ fix: resolve rendering issue
 chore: update dependencies
 docs: update README
 ```
+
+### Release Workflow Details
+
+The `release.yml` workflow has two jobs:
+- **`build`**: Installs dependencies, builds the app, creates archives
+- **`release`**: Downloads artifacts and runs semantic-release to publish the release with assets
+
+App archives are attached to releases with descriptive labels:
+- `cad_viewer.tar.gz` → "Nextcloud App (tar.gz)"
+- `cad_viewer.zip` → "Nextcloud App (zip)"
 
 ---
 
@@ -176,51 +185,29 @@ PR limits: 10 for npm/composer, 5 for actions.
 
 ---
 
-## Release Please Configuration
+## Semantic Release Configuration
 
-This project uses release-please for automated releases. When modifying `release-please-config.json`:
+The project uses semantic-release for automated releases. Configuration is in `release.config.js`:
 
-### Extra Files Configuration
-- **`extra-files` must be at release-type level** (top-level, not inside `packages`)
-- The `extra-files` configuration for XML files uses xpath-based updates via GenericXml updater
-- Package-level extra-files uses xmlSnippet wrapping which may not work correctly with xpath
-
-**Correct structure:**
-```json
-{
-  "$schema": "...",
-  "release-type": "node",
-  "extra-files": [
-    {
-      "type": "xml",
-      "path": "appinfo/info.xml",
-      "xpath": "//version"
-    }
-  ],
-  "packages": {
-    ".": {
-      "component": "nextcloud-cad-viewer"
-    }
-  }
-}
+### GitHub Assets Configuration
+App archives are uploaded to GitHub releases via the `@semantic-release/github` plugin:
+```javascript
+[
+  '@semantic-release/github',
+  {
+    assets: [
+      { path: 'build/artifacts/cad_viewer.tar.gz', label: 'Nextcloud App (tar.gz)' },
+      { path: 'build/artifacts/cad_viewer.zip', label: 'Nextcloud App (zip)' },
+    ],
+  },
+],
 ```
 
-**Incorrect (broken):**
-```json
-{
-  "packages": {
-    ".": {
-      "release-type": "node",
-      "extra-files": [...]  // This doesn't work correctly for XML with xpath
-    }
-  }
-}
+### Version Bumping
+The `bump-version` Makefile target is called by semantic-release's exec plugin during the prepare phase:
+```javascript
+prepareCmd: 'make bump-version VERSION=${nextRelease.version}',
 ```
-
-### Versioning Field
-- Do NOT use `versioning: "node"` - this is not a valid value
-- Valid values: `always-bump-major`, `always-bump-minor`, `always-bump-patch`, `default`, `prerelease`, `service-pack`
-- For `release-type: node`, omit the `versioning` field entirely
 
 ---
 
