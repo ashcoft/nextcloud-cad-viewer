@@ -19,6 +19,7 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
@@ -36,7 +37,8 @@ class FileController extends Controller
         IRequest $request,
         private readonly IRootFolder $rootFolder,
         private readonly IUserSession $userSession,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly IURLGenerator $urlGenerator
     ) {
         parent::__construct($appName, $request);
     }
@@ -237,15 +239,24 @@ class FileController extends Controller
 
         // Use Nextcloud's download endpoint with remote.php/dav/files/{user}
         // This provides direct access to the file through WebDAV
+        // File path in Nextcloud format: /userId/files/path/to/file.ext
         $userPath = ltrim($file->getPath(), '/');
+        // Extract the part after /userId/files/
+        $filesPrefix = $user->getUID() . '/files/';
+        if (str_starts_with($userPath, $filesPrefix)) {
+            $relativePath = substr($userPath, strlen($filesPrefix));
+        } else {
+            $relativePath = $userPath;
+        }
+
         $encodedPath = implode(
             '/',
-            array_map('rawurlencode', explode('/', $userPath))
+            array_map('rawurlencode', explode('/', $relativePath))
         );
 
         // Generate URL that works with session authentication
-        return \OC::$server->getURLGenerator()
-            ->linkTo('', 'remote.php/dav/files/' . $user->getUID() . '/' . $encodedPath);
+        return $this->urlGenerator->getBaseUrl() .
+            '/remote.php/dav/files/' . $user->getUID() . '/' . $encodedPath;
     }
 
     /**
