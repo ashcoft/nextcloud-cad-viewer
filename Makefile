@@ -1,19 +1,15 @@
 # SPDX-FileCopyrightText: 2024 ashcoft
 # SPDX-License-Identifier: MIT
 
-# Makefile for building the project
+# Makefile for Nextcloud CAD Viewer
 
-app_id=$(shell sed -n 's/.*<id>\(.*\)<\/id>.*/\1/p' appinfo/info.xml | head -1)
-app_version=$(shell sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' appinfo/info.xml | head -1 | xargs)
-pkg_version=$(shell node -p "require('./package.json').version")
-project_dir=$(CURDIR)
-build_dir=$(project_dir)/build/artifacts
-app_dir=$(build_dir)/$(app_id)
-info_xml=appinfo/info.xml
+# === Variables ===
+app_id := $(shell sed -n 's/.*<id>\(.*\)<\/id>.*/\1/p' appinfo/info.xml | head -1)
+build_dir := build/artifacts
+app_dir := $(build_dir)/$(app_id)
+info_xml := appinfo/info.xml
 
-all: appstore source
-
-# Bump version in appinfo/info.xml and package.json
+# === Version Bumping (used by semantic-release) ===
 # Usage: make bump-version VERSION=x.x.x
 bump-version: bump-info-xml bump-package-json
 	@echo "Version bumped to $(VERSION)"
@@ -44,16 +40,40 @@ endif
 	fi
 	@echo "package.json version updated to $(VERSION)"
 
-dev-setup: clean npm-init build-js
+# === Build Targets ===
+dev-setup: clean install build
 
-production-setup: clean npm-init build-js-production
+production-setup: clean install build
 
-build-js:
+install:
+	pnpm install --frozen-lockfile
+
+build:
 	pnpm run build
 
-build-js-production:
-	pnpm run build
+# === Cleanup ===
+clean:
+	rm -rf $(build_dir)
+	rm -rf js/*
 
+# === Package for App Store ===
+$(app_dir):
+	mkdir -p $(app_dir)
+	tar --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='src' \
+		--exclude='tests' --exclude='vendor-bin' --exclude='docs' --exclude='wiki' \
+		--exclude='build' --exclude='*.tar.gz' --exclude='*.zip' \
+		-cf - . | tar -xf - -C $(app_dir)
+	cp composer.json composer.lock package.json pnpm-lock.yaml tsconfig.json $(app_dir)/ 2>/dev/null || true
+	find $(app_dir) -type d -exec chmod 755 {} +
+	find $(app_dir) -type f -exec chmod 644 {} +
+
+appstore: $(app_dir)
+	cd $(build_dir) && tar -czf $(app_id).tar.gz --owner=www-data --group=www-data $(app_id)
+	@command -v zip >/dev/null 2>&1 && \
+		{ cd $(build_dir) && zip -r $(app_id).zip $(app_id); } || \
+		echo "Warning: zip not installed, skipping zip archive"
+
+# === Development ===
 test:
 	composer run test:unit
 	pnpm run test
@@ -66,36 +86,5 @@ lint:
 lint-fix:
 	composer run cs:fix
 
-npm-init:
-	pnpm install --frozen-lockfile
-
-clean:
-	rm -rf $(build_dir)
-	rm -rf js/*
-
-$(app_dir):
-	mkdir -p $(app_dir)
-	# Use tar to copy files (excludes built-in tar exclusions for .* files)
-	tar --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='src' \
-		--exclude='tests' --exclude='vendor-bin' --exclude='docs' --exclude='wiki' \
-		--exclude='build' \
-		--exclude='*.tar.gz' --exclude='*.zip' \
-		-cf - . | tar -xf - -C $(app_dir)
-	# Copy specific files that are needed (not excluded above)
-	cp composer.json composer.lock package.json pnpm-lock.yaml tsconfig.json $(app_dir)/ 2>/dev/null || true
-	# Ensure proper permissions
-	find $(app_dir) -type d -exec chmod 755 {} +
-	find $(app_dir) -type f -exec chmod 644 {} +
-
-appstore: $(app_dir)
-	cd $(build_dir) && tar -czf $(app_id).tar.gz --owner=www-data --group=www-data $(app_id)
-	@if command -v zip >/dev/null 2>&1; then \
-		cd $(build_dir) && zip -r $(app_id).zip $(app_id); \
-	else \
-		echo "Warning: zip not installed, skipping zip archive"; \
-	fi
-
-source:
-	mkdir -p $(build_dir)
-	git archive --format=tar.gz --prefix=$(app_id)/ -o $(build_dir)/$(app_id)-source.tar.gz HEAD
-	git archive --format=zip --prefix=$(app_id)/ -o $(build_dir)/$(app_id)-source.zip HEAD
+# === Meta ===
+all: appstore
