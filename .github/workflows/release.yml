@@ -25,16 +25,9 @@ env:
   APP_NAME: cad_viewer
 
 jobs:
-  release:
-    name: Release & Build
+  build:
+    name: Build Nextcloud App
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'ashcoft'
-    permissions:
-      contents: write
-      pull-requests: write
-    outputs:
-      version: ${{ steps.semantic.outputs.version }}
-      tag_name: ${{ steps.semantic.outputs.tag_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -59,21 +52,6 @@ jobs:
           pnpm install --frozen-lockfile
           composer install --no-dev --optimize-autoloader
 
-      - name: Semantic Release
-        id: semantic
-        run: |
-          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-            pnpm exec semantic-release --dry-run
-          else
-            pnpm exec semantic-release
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_AUTHOR_NAME: github-actions[bot]
-          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
-          GIT_COMMITTER_NAME: github-actions[bot]
-          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
-
       - name: Build Nextcloud App
         run: |
           pnpm run build
@@ -91,17 +69,64 @@ jobs:
           echo "=== Built Artifacts ==="
           ls -la build/artifacts/
 
-      - name: Upload artifacts to release
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ env.APP_NAME }}-build
+          path: |
+            build/artifacts/*.tar.gz
+            build/artifacts/*.zip
+          retention-days: 1
+          compression-level: 6
+          overwrite: true
+
+  release:
+    name: Release & Publish
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.repository_owner == 'ashcoft'
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      version: ${{ steps.semantic.outputs.version }}
+      tag_name: ${{ steps.semantic.outputs.tag_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ env.APP_NAME }}-build
+          path: build/artifacts
+
+      - name: Verify artifacts exist
+        run: |
+          echo "=== Artifacts ==="
+          ls -la build/artifacts/
+
+      - name: Semantic Release
+        id: semantic
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            npx semantic-release --dry-run
+          else
+            npx semantic-release
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+
+      - name: Upload artifacts to release (fallback)
         if: steps.semantic.outputs.version != ''
         run: |
           TAG="v${{ steps.semantic.outputs.version }}"
           echo "Uploading release assets for: $TAG"
-
-          TARBALL="build/artifacts/${APP_NAME}.tar.gz"
-          if [ ! -f "$TARBALL" ]; then
-            echo "ERROR: $TARBALL not found"
-            exit 1
-          fi
 
           for FILE in \
             "build/artifacts/${APP_NAME}.tar.gz" \
@@ -113,14 +138,3 @@ jobs:
           done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload build artifacts (CI)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: ${{ env.APP_NAME }}-${{ steps.semantic.outputs.version || 'dev' }}
-          path: |
-            build/artifacts/*.tar.gz
-            build/artifacts/*.zip
-          retention-days: 90
-          compression-level: 6
-          overwrite: true
