@@ -16,9 +16,9 @@
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3.95",
     "nextcloud/coding-standard": "^1.5",
-    "phpstan/phpstan": "^2.1",
+    "phpstan/phpstan": "^2.2",
     "phpunit/phpunit": "^13.0",
-    "rector/rector": "^2.4",
+    "rector/rector": "^2.5",
     "roave/security-advisories": "dev-latest",
     "symfony/event-dispatcher": "^8.0",
     "symfony/finder": "^8.0",
