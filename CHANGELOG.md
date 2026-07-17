@@ -1,3 +1,10 @@
+## [0.3.4](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.3.3...v0.3.4) (2026-07-17)
+
+
+### Bug Fixes
+
+* generate changelog during release ([e9670fa](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e9670fa564f451ee687319225dac3e51f15a328e))
+
 ## [0.2.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.2.1...v0.2.2) (2026-07-06)
 
 
