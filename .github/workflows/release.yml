@@ -54,14 +54,6 @@ jobs:
           php-version: '8.4'
           coverage: none
 
-      - name: Get version
-        id: version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
-          echo "Current version: ${VERSION}"
-
       - name: Check if release mode
         id: release_check
         run: |
@@ -91,6 +83,22 @@ jobs:
             DO_RELEASE=true
           fi
           echo "do_release=${DO_RELEASE}" >> $GITHUB_OUTPUT
+
+      # Get version AFTER release-please runs so we have the correct bumped version
+      - name: Get version
+        id: version
+        run: |
+          # Use version from release-please if it ran and created a release,
+          # otherwise fall back to reading package.json
+          if [ "${{ steps.release_check.outputs.is_release }}" = "true" ] && \
+             [ "${{ steps.release-please.outputs.release_created }}" = "true" ]; then
+            VERSION="${{ steps.release-please.outputs.version }}"
+          else
+            VERSION=$(node -p "require('./package.json').version")
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+          echo "Release version: ${VERSION}"
 
       - name: Verify and sync versions
         run: |
