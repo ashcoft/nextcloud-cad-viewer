@@ -1,0 +1,7 @@
+---
+exclude:
+  # Exclude minified/bundled JavaScript files from third-party libraries
+  - path: js/
+  - pattern: "*.min.js"
+  - pattern: "*.bundle.js"
+---
