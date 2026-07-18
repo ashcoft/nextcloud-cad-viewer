@@ -177,7 +177,7 @@ class FileController extends Controller
 
     /**
      * Generate a secure download callback URL.
-     * 
+     *
      * Follows ONLYOFFICE pattern:
      * - URL is short and doesn't expose file ID directly
      * - Download endpoint validates permissions per request

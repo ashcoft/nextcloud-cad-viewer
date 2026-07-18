@@ -369,7 +369,7 @@ function openInViewer(fileId: number | string): void {
  * Register file actions that appear in the Files "..." context menu.
  */
 function registerFileActions(): void {
-  if (areFileActionsRegistered || OC === undefined) {
+  if (areFileActionsRegistered || !('OC' in globalThis)) {
     return
   }
 
