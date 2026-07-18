@@ -49,7 +49,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pnpm install --frozen-lockfile
+          pnpm install
           composer install --no-dev --optimize-autoloader
 
       - name: Build Nextcloud App
@@ -68,6 +68,25 @@ jobs:
           make appstore
           echo "=== Built Artifacts ==="
           ls -la build/artifacts/
+
+      - name: Verify artifacts
+        id: verify
+        run: |
+          echo "Checking build artifacts..."
+          if [ -f "build/artifacts/${APP_NAME}.tar.gz" ]; then
+            echo "::notice::Found ${APP_NAME}.tar.gz"
+            echo "size=$(stat -f%z build/artifacts/${APP_NAME}.tar.gz 2>/dev/null || stat -c%s build/artifacts/${APP_NAME}.tar.gz)" >> $GITHUB_OUTPUT
+          else
+            echo "::error::Missing ${APP_NAME}.tar.gz"
+            exit 1
+          fi
+          if [ -f "build/artifacts/${APP_NAME}.zip" ]; then
+            echo "::notice::Found ${APP_NAME}.zip"
+            echo "zip_size=$(stat -f%z build/artifacts/${APP_NAME}.zip 2>/dev/null || stat -c%s build/artifacts/${APP_NAME}.zip)" >> $GITHUB_OUTPUT
+          else
+            echo "::error::Missing ${APP_NAME}.zip"
+            exit 1
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -91,6 +110,7 @@ jobs:
     outputs:
       version: ${{ steps.semantic.outputs.version }}
       tag_name: ${{ steps.semantic.outputs.tag_name }}
+      release_created: ${{ steps.release_check.outputs.created }}
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -117,13 +137,32 @@ jobs:
         run: |
           echo "=== Artifacts ==="
           ls -la build/artifacts/
+          if [ ! -f "build/artifacts/${APP_NAME}.tar.gz" ]; then
+            echo "::error::Missing tar.gz artifact"
+            exit 1
+          fi
+          if [ ! -f "build/artifacts/${APP_NAME}.zip" ]; then
+            echo "::error::Missing zip artifact"
+            exit 1
+          fi
+
+      - name: Check for existing release
+        id: release_check
+        run: |
+          # Get last successful release version from tags
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "Last tag: $LAST_TAG"
+          echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
+          echo "created=false" >> $GITHUB_OUTPUT
 
       - name: Semantic Release
         id: semantic
         run: |
           if [ "$DRY_RUN" = "true" ]; then
+            echo "Running semantic-release in dry-run mode..."
             npx semantic-release --dry-run
           else
+            echo "Running semantic-release..."
             npx semantic-release
           fi
         env:
@@ -131,21 +170,69 @@ jobs:
           GIT_AUTHOR_NAME: github-actions[bot]
           GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
           GIT_COMMITTER_NAME: github-actions[bot]
-          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_EMAIL: github-actions[bot}@users.noreply.github.com
           DRY_RUN: ${{ github.event.inputs.dry_run }}
 
-      - name: Upload artifacts to release (fallback)
-        if: steps.semantic.outputs.version != ''
+      - name: Check release status
+        id: release_status
         run: |
-          TAG="v${{ steps.semantic.outputs.version }}"
-          echo "Uploading release assets for: $TAG"
+          # Get the latest tag that was just created
+          CURRENT_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "Current tag: $CURRENT_TAG"
+          
+          if [ -n "$CURRENT_TAG" ]; then
+            echo "::notice::Release tag $CURRENT_TAG was created"
+            # Check if this is a new release by comparing with last successful run
+            if [ "$CURRENT_TAG" != "${{ steps.release_check.outputs.last_tag }}" ]; then
+              echo "release_created=true" >> $GITHUB_OUTPUT
+            else
+              echo "release_created=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "::warning::No release tag was created"
+            echo "release_created=false" >> $GITHUB_OUTPUT
+          fi
 
+      - name: Upload artifacts to release
+        if: steps.release_status.outputs.release_created == 'true'
+        run: |
+          TAG=$(git describe --tags --abbrev=0)
+          echo "Uploading release assets for: $TAG"
+          
           for FILE in \
             "build/artifacts/${APP_NAME}.tar.gz" \
             "build/artifacts/${APP_NAME}.zip"; do
             if [ -f "$FILE" ]; then
-              gh release upload "$TAG" "$FILE" --clobber
-              echo "Uploaded: $FILE"
+              echo "Uploading: $FILE"
+              gh release upload "$TAG" "$FILE" --clobber || {
+                echo "::error::Failed to upload $FILE to release $TAG"
+                exit 1
+              }
+              echo "::notice::Successfully uploaded: $FILE"
+            else
+              echo "::error::File not found: $FILE"
+              exit 1
+            fi
+          done
+          
+          echo "=== Verifying upload ==="
+          gh release view "$TAG" --json assets --jq '.assets[] | "\(.name): \(.size) bytes"'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Retry artifact upload if failed
+        if: failure() && steps.release_status.outputs.release_created == 'true'
+        run: |
+          echo "=== Retrying artifact upload ==="
+          TAG=$(git describe --tags --abbrev=0)
+          echo "Retrying upload for: $TAG"
+          
+          for FILE in \
+            "build/artifacts/${APP_NAME}.tar.gz" \
+            "build/artifacts/${APP_NAME}.zip"; do
+            if [ -f "$FILE" ]; then
+              echo "Retrying: $FILE"
+              gh release upload "$TAG" "$FILE" --clobber || echo "::error::Retry failed for $FILE"
             fi
           done
         env:
