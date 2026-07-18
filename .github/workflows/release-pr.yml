@@ -81,7 +81,6 @@ This PR bumps the version and updates the changelog based on conventional commit
 When this PR is merged, the **Release** workflow will:
 1. Create a GitHub release with the changelog
 2. Build and upload artifacts to the release
-
 EOF
 )" \
             --base main \
