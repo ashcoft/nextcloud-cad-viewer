@@ -69,6 +69,12 @@ jobs:
           echo "=== Built Artifacts ==="
           ls -la build/artifacts/
 
+      - name: Set ownership for artifacts
+        run: |
+          sudo chown -R www-data:www-data build/artifacts/
+          echo "=== Artifacts ownership ==="
+          ls -la build/artifacts/
+
       - name: Verify artifacts
         id: verify
         run: |
