@@ -61,9 +61,19 @@ $(app_dir):
 	mkdir -p $(app_dir)
 	tar --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='src' \
 		--exclude='tests' --exclude='vendor-bin' --exclude='docs' --exclude='wiki' \
+		--exclude='LICENSES' --exclude='AGENTS.md' --exclude='*.md' \
 		--exclude='build' --exclude='*.tar.gz' --exclude='*.zip' \
+		--exclude='*.lock' --exclude='pnpm-lock.yaml' \
+		--exclude='tsconfig.json' --exclude='jest.config.js' --exclude='playwright.config.ts' \
+		--exclude='phpstan.neon' --exclude='psalm.xml' --exclude='rector.php' \
+		--exclude='eslint.config.js' --exclude='stylelint.config.js' --exclude='babel.config.js' \
+		--exclude='webpack.config.js' --exclude='.npmrc' --exclude='.nvmrc' \
+		--exclude='.php-cs-fixer.dist.php' --exclude='.codacy.yml' \
+		--exclude='openapi.json' --exclude='sonar-project.properties' \
+		--exclude='commitlint.config.js' --exclude='renovate.json' --exclude='release.config.js' \
+		--exclude='pnpm-workspace.yaml' \
 		-cf - . | tar -xf - -C $(app_dir)
-	cp composer.json composer.lock package.json pnpm-lock.yaml tsconfig.json $(app_dir)/ 2>/dev/null || true
+	cp composer.json package.json $(app_dir)/
 	find $(app_dir) -type d -exec chmod 755 {} +
 	find $(app_dir) -type f -exec chmod 644 {} +
 
