@@ -339,6 +339,9 @@ const CadViewerHandlerComponent = defineComponent({
  * Register the CAD viewer handler with the Nextcloud Viewer API.
  * This enables clicking on DWG/DXF files to open them directly in the CAD viewer.
  */
+const MAX_RETRIES = 10
+let retryCount = 0
+
 function registerViewerHandler(): boolean {
   if (isRegistered) return true
 
@@ -358,10 +361,13 @@ function registerViewerHandler(): boolean {
       return false
     }
   }
-  
-  // Viewer API not yet available, schedule retry
-  if (typeof setTimeout !== 'undefined') {
+
+  // Viewer API not yet available, schedule retry with bounded attempts
+  if (retryCount < MAX_RETRIES && typeof setTimeout !== 'undefined') {
+    retryCount++
     setTimeout(registerViewerHandler, 1000)
+  } else if (retryCount >= MAX_RETRIES) {
+    console.warn('CAD Viewer: Max retries reached, Viewer app may not be available')
   }
   return false
 }

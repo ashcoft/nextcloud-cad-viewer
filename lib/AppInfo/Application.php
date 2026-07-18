@@ -11,7 +11,6 @@ use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\Files\IMimeTypeDetector;
-use OCP\Util;
 
 class Application extends App implements IBootstrap
 {

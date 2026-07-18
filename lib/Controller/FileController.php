@@ -239,22 +239,6 @@ class FileController extends Controller
         }
 
         // Use our own content endpoint which properly handles session authentication
-        // File path in Nextcloud format: /userId/files/path/to/file.ext
-        $userPath = ltrim($file->getPath(), '/');
-        // Extract the part after /userId/files/
-        $filesPrefix = $user->getUID() . '/files/';
-        if (str_starts_with($userPath, $filesPrefix)) {
-            $relativePath = substr($userPath, strlen($filesPrefix));
-        } else {
-            $relativePath = $userPath;
-        }
-
-        $encodedPath = implode(
-            '/',
-            array_map('rawurlencode', explode('/', $relativePath))
-        );
-
-        // Generate URL using our own API endpoint
         return $this->urlGenerator->getBaseUrl() .
             '/apps/cad_viewer/api/file/' . $file->getId() . '/content';
     }
