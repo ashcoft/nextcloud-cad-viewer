@@ -1,8 +1,9 @@
 import { createApp, defineComponent, h, onMounted, onBeforeUnmount, ref, type PropType } from 'vue'
-import { registerFileAction, DefaultType } from '@nextcloud/files'
+import { registerFileAction } from '@nextcloud/files'
 import type { IFileAction } from '@nextcloud/files'
 import { generateUrl } from '@nextcloud/router'
 import CadViewerApp from './App.vue'
+import { createCadFileAction, SUPPORTED_MIMES } from './fileActions'
 import router from './router'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
 import type { LoadResponse } from './types/loadResponse'
@@ -18,8 +19,13 @@ const t = (app: string, text: string): string => {
 }
 
 /**
- * Fetch file content using the load endpoint.
- * Returns base64 encoded content similar to draw.io approach.
+ * Fetch file metadata and secure download URL from load endpoint.
+ * 
+ * Design follows ONLYOFFICE pattern:
+ * - Metadata endpoint returns secure callback URL
+ * - Frontend fetches URL and streams file directly
+ * - No base64 encoding overhead
+ * - Memory efficient for large files
  */
 async function fetchFileContent(fileId: number | string): Promise<LoadResponse | null> {
   try {
@@ -33,26 +39,13 @@ async function fetchFileContent(fileId: number | string): Promise<LoadResponse |
 
     return await response.json()
   } catch (err) {
-    console.error('CAD Viewer: Failed to fetch file content', err)
+    console.error('CAD Viewer: Failed to fetch file metadata', err)
     return null
   }
 }
 
 const app = createApp(CadViewerApp)
 app.use(router)
-
-const SUPPORTED_MIMES = [
-  'application/acad',
-  'application/autocad_dwg',
-  'application/dwg',
-  'application/x-autocad',
-  'application/x-dwg',
-  'image/vnd.dwg',
-  'image/vnd.dxf',
-  'application/dxf',
-  'application/x-dxf',
-  'image/x-dxf',
-]
 
 // CAD Viewer icon as inline SVG
 const CAD_VIEWER_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -114,6 +107,8 @@ declare const OCA: NextcloudOCA
 
 // Track if we've already registered to avoid duplicate registrations
 let isRegistered = false
+let areFileActionsRegistered = false
+let isStandaloneAppMounted = false
 
 /**
  * Vue 3 handler component for the Nextcloud Viewer API.
@@ -121,6 +116,8 @@ let isRegistered = false
  * lazily loads the heavy CAD viewer bundle only when a CAD file is actually opened.
  *
  * Uses the load endpoint to get a direct file URL for the CAD viewer.
+ * 
+ * Uses secure callback URL pattern from ONLYOFFICE for file streaming.
  */
 const CadViewerHandlerComponent = defineComponent({
   name: 'CadViewerHandler',
@@ -187,8 +184,10 @@ const CadViewerHandlerComponent = defineComponent({
 
     /**
      * Load the CAD viewer with a direct file URL.
+     * Load the CAD viewer with secure download URL.
+     * Browser streams file directly from callback URL.
      */
-    async function loadViewerWithUrl(
+    async function loadViewerWithContent(
       container: HTMLElement,
       fileUrl: string,
       fileName: string
@@ -238,6 +237,7 @@ const CadViewerHandlerComponent = defineComponent({
       if (isUnmounted.value) return
 
       // Fetch file URL using load endpoint
+      // Fetch file metadata and secure download URL
       const fileData = await fetchFileContent(fileId)
 
       if (!fileData) {
@@ -255,7 +255,11 @@ const CadViewerHandlerComponent = defineComponent({
       // Load viewer with direct URL
       const container = viewerContainer.value
       if (container) {
-        await loadViewerWithUrl(container, fileData.url, fileData.name)
+        await loadViewerWithContent(container, fileData.url, fileData.name)
+      // Load viewer with secure callback URL
+      const container = viewerContainer.value
+      if (container) {
+        await loadViewerWithContent(container, fileData.url, fileData.name)
       } else {
         error.value = appTranslation('Failed to initialize viewer container.')
         loading.value = false
@@ -292,7 +296,8 @@ const CadViewerHandlerComponent = defineComponent({
 
         const fileData = await fetchFileContent(retryFileId.value)
         if (fileData && !fileData.error) {
-          await loadViewerWithUrl(viewerContainer.value, fileData.url, fileData.name)
+          await loadViewerWithContent(viewerContainer.value, fileData.url, fileData.name)
+          await loadViewerWithContent(viewerContainer.value, fileData.url, fileData.name)
         } else {
           error.value = fileData?.error || appTranslation('Failed to load file')
         }
@@ -373,36 +378,27 @@ function openInViewer(fileId: number | string): void {
  * Register file actions that appear in the Files "..." context menu.
  */
 function registerFileActions(): void {
-  if (OC === undefined) {
+  if (areFileActionsRegistered || OC === undefined) {
     return
   }
 
   try {
-    const action: IFileAction = {
-      id: 'cad-viewer-open',
-      displayName: () => t('cad_viewer', 'Open with CAD Viewer'),
-      iconSvgInline: () => CAD_VIEWER_ICON,
-      enabled: ({ nodes }) => nodes.length === 1 && nodes.some((node) => SUPPORTED_MIMES.includes(node.mime)),
-      exec: async ({ nodes }) => {
-        const node = nodes[0]
-        const fileId = node.id
-        if (fileId !== undefined) {
-          openInViewer(fileId)
-        }
-        return null
-      },
-      default: DefaultType.HIDDEN,
-    }
+    const action: IFileAction = createCadFileAction({
+      translate: t,
+      openFile: openInViewer,
+      iconSvgInline: CAD_VIEWER_ICON,
+    })
     registerFileAction(action)
+    areFileActionsRegistered = true
   } catch {
     // Fall back
   }
 }
 
-// Register file actions when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  registerFileActions()
-  registerViewerHandler()
+function mountStandaloneApp(): void {
+  if (isStandaloneAppMounted) {
+    return
+  }
 
   const mountEl =
     document.getElementById('cad-viewer-app') ??
@@ -410,13 +406,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (mountEl) {
     app.mount(mountEl)
+    isStandaloneAppMounted = true
   }
-})
+}
 
-// Also re-register on Nextcloud Files ready event
-document.addEventListener('nextcloud-files-ready', () => {
+function initializeCadViewerIntegration(): void {
   registerFileActions()
   registerViewerHandler()
+  mountStandaloneApp()
+}
+
+// Register immediately to avoid missing early Files rendering.
+initializeCadViewerIntegration()
+
+// Re-run on DOM readiness for pages that load placeholders later.
+document.addEventListener('DOMContentLoaded', () => {
+  initializeCadViewerIntegration()
+})
+
+// Also re-register when the Files app announces a fresh file list lifecycle.
+document.addEventListener('nextcloud-files-ready', () => {
+  initializeCadViewerIntegration()
 })
 
 export default app
