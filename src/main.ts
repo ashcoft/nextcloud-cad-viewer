@@ -19,8 +19,13 @@ const t = (app: string, text: string): string => {
 }
 
 /**
- * Fetch file content using the load endpoint.
- * Returns base64 encoded content similar to draw.io approach.
+ * Fetch file metadata and secure download URL from load endpoint.
+ * 
+ * Design follows ONLYOFFICE pattern:
+ * - Metadata endpoint returns secure callback URL
+ * - Frontend fetches URL and streams file directly
+ * - No base64 encoding overhead
+ * - Memory efficient for large files
  */
 async function fetchFileContent(fileId: number | string): Promise<LoadResponse | null> {
   try {
@@ -34,7 +39,7 @@ async function fetchFileContent(fileId: number | string): Promise<LoadResponse |
 
     return await response.json()
   } catch (err) {
-    console.error('CAD Viewer: Failed to fetch file content', err)
+    console.error('CAD Viewer: Failed to fetch file metadata', err)
     return null
   }
 }
@@ -110,7 +115,7 @@ let isStandaloneAppMounted = false
  * This component is registered with OCA.Viewer.registerHandler() and
  * lazily loads the heavy CAD viewer bundle only when a CAD file is actually opened.
  * 
- * Uses the load endpoint to fetch file content (similar to draw.io approach).
+ * Uses secure callback URL pattern from ONLYOFFICE for file streaming.
  */
 const CadViewerHandlerComponent = defineComponent({
   name: 'CadViewerHandler',
@@ -176,16 +181,17 @@ const CadViewerHandlerComponent = defineComponent({
     }
 
     /**
-     * Load the CAD viewer with base64 file content.
+     * Load the CAD viewer with secure download URL.
+     * Browser streams file directly from callback URL.
      */
     async function loadViewerWithContent(
       container: HTMLElement,
-      fileContent: string,
+      fileUrl: string,
       fileName: string
     ): Promise<void> {
       try {
         const instance = await loadCADViewer(container, {
-          fileContent,
+          url: fileUrl,
           fileName,
           theme: 'dark',
         })
@@ -227,7 +233,7 @@ const CadViewerHandlerComponent = defineComponent({
 
       if (isUnmounted.value) return
 
-      // Fetch file content using load endpoint
+      // Fetch file metadata and secure download URL
       const fileData = await fetchFileContent(fileId)
 
       if (!fileData) {
@@ -242,10 +248,10 @@ const CadViewerHandlerComponent = defineComponent({
         return
       }
 
-      // Load viewer with base64 content
+      // Load viewer with secure callback URL
       const container = viewerContainer.value
       if (container) {
-        await loadViewerWithContent(container, fileData.content, fileData.name)
+        await loadViewerWithContent(container, fileData.url, fileData.name)
       } else {
         error.value = appTranslation('Failed to initialize viewer container.')
         loading.value = false
@@ -282,7 +288,7 @@ const CadViewerHandlerComponent = defineComponent({
         
         const fileData = await fetchFileContent(retryFileId.value)
         if (fileData && !fileData.error) {
-          await loadViewerWithContent(viewerContainer.value, fileData.content, fileData.name)
+          await loadViewerWithContent(viewerContainer.value, fileData.url, fileData.name)
         } else {
           error.value = fileData?.error || appTranslation('Failed to load file')
         }
