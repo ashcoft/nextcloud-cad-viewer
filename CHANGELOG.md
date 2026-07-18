@@ -1,3 +1,18 @@
+# [0.4.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.3.8...v0.4.0) (2026-07-18)
+
+
+### Bug Fixes
+
+* exclude js/ directory from Codacy analysis ([3cce9cd](https://github.com/ashcoft/nextcloud-cad-viewer/commit/3cce9cda4304b14d8cc2bf8a2f9708bde65b8a87))
+* remove js/ from version control ([b0a6a5d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b0a6a5df7e1df271a87bd2107d22bb7adfb6a3dd))
+* resolve CI issues ([79fa4b0](https://github.com/ashcoft/nextcloud-cad-viewer/commit/79fa4b00cef9991f2d7cbddafd01fd48074fb655))
+* update Codacy config to exclude js/ directory ([32f771d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/32f771d8501d405a41cce0db4606c7ec4e1a9046))
+
+
+### Features
+
+* integrate CAD viewer to open DWG/DXF files in browser ([3434f74](https://github.com/ashcoft/nextcloud-cad-viewer/commit/3434f74c72889386a07500360e21d3ae52573856))
+
 ## [0.3.8](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.3.7...v0.3.8) (2026-07-18)
 
 
