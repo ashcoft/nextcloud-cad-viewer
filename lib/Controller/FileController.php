@@ -202,9 +202,9 @@ class FileController extends Controller
                 ]
             );
 
-            // Generate direct download URL using Nextcloud's file download endpoint
-            // This URL works with the current user's session cookies
-            $downloadUrl = $this->generateDownloadUrl($file);
+            // Provide the app-controlled content endpoint so we can control headers
+            $downloadUrl = $this->urlGenerator->getBaseUrl()
+                . '/apps/cad_viewer/api/file/' . $file->getId() . '/content';
 
             return new DataResponse([
                 'id' => $file->getId(),
@@ -213,7 +213,7 @@ class FileController extends Controller
                 'mime' => $file->getMimeType(),
                 'path' => $file->getPath(),
                 'url' => $downloadUrl,
-                'contentType' => 'application/octet-stream',
+                'contentType' => $file->getMimeType(),
             ]);
         } catch (\Throwable $e) {
             $this->logger->error(
@@ -298,8 +298,13 @@ class FileController extends Controller
             }
 
             $response = new StreamResponse($stream);
-            $response->addHeader('Content-Type', 'application/octet-stream');
+            // Serve using the real MIME type and prefer inline disposition so the
+            // in-browser CAD viewer can fetch and render the file instead of
+            // forcing a download.
+            $response->addHeader('Content-Type', $file->getMimeType());
             $response->addHeader('Content-Length', (string) $file->getSize());
+            $response->addHeader('Content-Disposition', 'inline; filename="' . rawurlencode($file->getName()) . '"');
+            $response->addHeader('Accept-Ranges', 'bytes');
             $response->addHeader(
                 'Cache-Control',
                 'no-cache, no-store, must-revalidate'
