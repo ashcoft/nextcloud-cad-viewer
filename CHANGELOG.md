@@ -1,3 +1,14 @@
+## [0.3.5](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.3.4...v0.3.5) (2026-07-18)
+
+
+### Bug Fixes
+
+* add conventional-changelog-conventionalcommits dependency and update release workflow ([4bd493a](https://github.com/ashcoft/nextcloud-cad-viewer/commit/4bd493a012ff555d715612b07cebd4aec5ca42ec))
+* disable concurrency cancellation in release workflow ([051edc5](https://github.com/ashcoft/nextcloud-cad-viewer/commit/051edc5fc4da007515e10f1017fc7d8b68d9b025))
+* install dependencies in release job before running semantic-release ([a5cf64a](https://github.com/ashcoft/nextcloud-cad-viewer/commit/a5cf64a7747d07510f6da69f4e5f21e8541e46ce))
+* remove --frozen-lockfile requirement for CI workflows ([fe8ea11](https://github.com/ashcoft/nextcloud-cad-viewer/commit/fe8ea113f76f5ed90f6f5b306fadc168961fde91))
+* **security:** prevent command injection in release workflow ([9838eb9](https://github.com/ashcoft/nextcloud-cad-viewer/commit/9838eb928f19f3471bd020f507083f2c15efe7da))
+
 ## [0.3.4](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.3.3...v0.3.4) (2026-07-17)
 
 
