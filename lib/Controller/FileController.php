@@ -228,7 +228,8 @@ class FileController extends Controller
     }
 
     /**
-     * Generate a direct download URL for the file.
+     * Generate a direct content URL for the file.
+     * Uses our own endpoint which handles session authentication properly.
      */
     private function generateDownloadUrl(File $file): string
     {
@@ -237,26 +238,9 @@ class FileController extends Controller
             throw new \RuntimeException('Unauthorized');
         }
 
-        // Use Nextcloud's download endpoint with remote.php/dav/files/{user}
-        // This provides direct access to the file through WebDAV
-        // File path in Nextcloud format: /userId/files/path/to/file.ext
-        $userPath = ltrim($file->getPath(), '/');
-        // Extract the part after /userId/files/
-        $filesPrefix = $user->getUID() . '/files/';
-        if (str_starts_with($userPath, $filesPrefix)) {
-            $relativePath = substr($userPath, strlen($filesPrefix));
-        } else {
-            $relativePath = $userPath;
-        }
-
-        $encodedPath = implode(
-            '/',
-            array_map('rawurlencode', explode('/', $relativePath))
-        );
-
-        // Generate URL that works with session authentication
+        // Use our own content endpoint which properly handles session authentication
         return $this->urlGenerator->getBaseUrl() .
-            '/remote.php/dav/files/' . $user->getUID() . '/' . $encodedPath;
+            '/apps/cad_viewer/api/file/' . $file->getId() . '/content';
     }
 
     /**
@@ -298,8 +282,12 @@ class FileController extends Controller
             }
 
             $response = new StreamResponse($stream);
-            $response->addHeader('Content-Type', 'application/octet-stream');
+            $response->addHeader('Content-Type', $file->getMimeType());
             $response->addHeader('Content-Length', (string) $file->getSize());
+            $response->addHeader(
+                'Content-Disposition',
+                'inline; filename="' . $file->getName() . '"'
+            );
             $response->addHeader(
                 'Cache-Control',
                 'no-cache, no-store, must-revalidate'
