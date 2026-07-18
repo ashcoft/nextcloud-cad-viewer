@@ -1,0 +1,7 @@
+---
+exclude:
+  - path: js/
+    patterns:
+      - "*.js"
+  - pattern: "*.min.js"
+---

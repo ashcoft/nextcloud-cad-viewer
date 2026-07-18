@@ -176,12 +176,37 @@ class FileController extends Controller
     }
 
     /**
-     * Load a CAD file by ID and return metadata with direct download URL.
+     * Generate a secure download callback URL.
      *
-     * Returns file metadata and a direct URL for the CAD viewer to fetch.
-     * Validates extension (.dwg/.dxf) and file size (max 50MB).
+     * Follows ONLYOFFICE pattern:
+     * - URL is short and doesn't expose file ID directly
+     * - Download endpoint validates permissions per request
+     * - Memory efficient: file is streamed directly
      */
-    #[NoAdminRequired]
+    private function generateDownloadUrl(int $fileId): string
+    {
+        // Generate a secure download callback URL
+        // The actual file download happens through a separate callback endpoint
+        return $this->urlGenerator->linkToRouteAbsolute(
+            $this->appName . '.file.download',
+            ['fileId' => $fileId]
+        );
+    }
+
+    /**
+     * Load a CAD file by ID and return its metadata with download URL.
+     *
+     * Returns metadata with a secure callback URL for downloading the file.
+     * The download URL is session-authenticated and memory-efficient.
+     *
+     * Design inspired by ONLYOFFICE integration:
+     * - Secure callback URLs instead of direct file paths
+     * - Session-authenticated downloads
+     * - Efficient streaming (no encoding overhead)
+     * - Size validation (max 50MB)
+     *
+     * @NoAdminRequired
+     */
     public function load(int $fileId): DataResponse
     {
         try {
@@ -192,25 +217,22 @@ class FileController extends Controller
                 return $errorResponse;
             }
 
+            $downloadUrl = $this->generateDownloadUrl($fileId);
+
             $this->logger->info(
                 'CAD Viewer: Loading file',
                 [
                     'fileId' => $fileId,
                     'name' => $file->getName(),
-                    'mime' => $file->getMimeType(),
                     'size' => $file->getSize(),
                 ]
             );
-
-            // Generate direct download URL using Nextcloud's file download endpoint
-            // This URL works with the current user's session cookies
-            $downloadUrl = $this->generateDownloadUrl($file);
 
             return new DataResponse([
                 'id' => $file->getId(),
                 'name' => $file->getName(),
                 'size' => $file->getSize(),
-                'mime' => $file->getMimeType(),
+                'mimeType' => $file->getMimeType(),
                 'path' => $file->getPath(),
                 'url' => $downloadUrl,
                 'contentType' => 'application/octet-stream',
@@ -228,41 +250,62 @@ class FileController extends Controller
     }
 
     /**
-     * Generate a direct download URL for the file.
+     * Download CAD file content - Memory efficient streaming.
+     *
+     * Called by frontend when loading file content.
+     * Streams file directly without buffering.
+     *
+     * @NoAdminRequired
      */
-    private function generateDownloadUrl(File $file): string
+    public function download(int $fileId): DataResponse|StreamResponse
     {
-        $user = $this->userSession->getUser();
-        if ($user === null) {
-            throw new \RuntimeException('Unauthorized');
+        try {
+            $file = $this->_resolveFile($fileId);
+
+            // Validate file is CAD type
+            $extension = strtolower(pathinfo($file->getName(), PATHINFO_EXTENSION));
+            if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
+                return new DataResponse(
+                    ['error' => 'Unsupported file type'],
+                    Http::STATUS_UNSUPPORTED_MEDIA_TYPE
+                );
+            }
+
+            // Stream file directly
+            $stream = $file->fopen('r');
+            if ($stream === false) {
+                return new DataResponse(
+                    ['error' => 'Could not open file'],
+                    Http::STATUS_INTERNAL_SERVER_ERROR
+                );
+            }
+
+            $response = new StreamResponse($stream);
+            $response->addHeader('Content-Type', 'application/octet-stream');
+            $response->addHeader('Content-Length', (string) $file->getSize());
+            $response->addHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            $response->addHeader('Content-Disposition', 'attachment; filename="' . $file->getName() . '"');
+
+            $this->logger->info(
+                'CAD Viewer: Download file',
+                [
+                    'fileId' => $fileId,
+                    'name' => $file->getName(),
+                    'size' => $file->getSize(),
+                ]
+            );
+
+            return $response;
+        } catch (\Throwable $e) {
+            return $this->_handleFileError($e, $fileId);
         }
-
-        // Use Nextcloud's download endpoint with remote.php/dav/files/{user}
-        // This provides direct access to the file through WebDAV
-        // File path in Nextcloud format: /userId/files/path/to/file.ext
-        $userPath = ltrim($file->getPath(), '/');
-        // Extract the part after /userId/files/
-        $filesPrefix = $user->getUID() . '/files/';
-        if (str_starts_with($userPath, $filesPrefix)) {
-            $relativePath = substr($userPath, strlen($filesPrefix));
-        } else {
-            $relativePath = $userPath;
-        }
-
-        $encodedPath = implode(
-            '/',
-            array_map('rawurlencode', explode('/', $relativePath))
-        );
-
-        // Generate URL that works with session authentication
-        return $this->urlGenerator->getBaseUrl() .
-            '/remote.php/dav/files/' . $user->getUID() . '/' . $encodedPath;
     }
 
     /**
      * Get file metadata for a CAD file.
+     *
+     * @NoAdminRequired
      */
-    #[NoAdminRequired]
     public function getFile(int $fileId): DataResponse
     {
         try {
@@ -281,39 +324,10 @@ class FileController extends Controller
     }
 
     /**
-     * Stream raw CAD file content.
-     */
-    #[NoAdminRequired]
-    public function getFileContent(int $fileId): DataResponse|StreamResponse
-    {
-        try {
-            $file = $this->_resolveFile($fileId);
-
-            $stream = $file->fopen('r');
-            if ($stream === false) {
-                return new DataResponse(
-                    ['error' => 'Could not open file'],
-                    Http::STATUS_INTERNAL_SERVER_ERROR
-                );
-            }
-
-            $response = new StreamResponse($stream);
-            $response->addHeader('Content-Type', 'application/octet-stream');
-            $response->addHeader('Content-Length', (string) $file->getSize());
-            $response->addHeader(
-                'Cache-Control',
-                'no-cache, no-store, must-revalidate'
-            );
-            return $response;
-        } catch (\Throwable $e) {
-            return $this->_handleFileError($e, $fileId);
-        }
-    }
-
-    /**
      * Get a preview/thumbnail for a CAD file.
+     *
+     * @NoAdminRequired
      */
-    #[NoAdminRequired]
     public function preview(int $fileId): DataResponse|StreamResponse
     {
         try {

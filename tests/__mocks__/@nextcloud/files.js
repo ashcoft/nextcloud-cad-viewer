@@ -6,7 +6,7 @@
 module.exports = {
   registerFileAction: jest.fn(),
   DefaultType: {
+    DEFAULT: 'default',
     HIDDEN: 'hidden',
-    DISPLAY: 'display',
   },
 }
