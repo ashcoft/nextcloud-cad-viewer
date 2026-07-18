@@ -79,8 +79,7 @@ $(app_dir):
 appstore: $(app_dir)
 	cd $(build_dir) && tar -czf $(app_id).tar.gz --owner=www-data --group=www-data $(app_id)
 	@command -v zip >/dev/null 2>&1 && \
-		{ cd $(build_dir) && zip -r $(app_id).zip $(app_id) && \
-		  sudo chown www-data:www-data $(app_id).zip; } || \
+		{ cd $(build_dir) && zip -r $(app_id).zip $(app_id); } || \
 		echo "Warning: zip not installed, skipping zip archive"
 
 # === Development ===

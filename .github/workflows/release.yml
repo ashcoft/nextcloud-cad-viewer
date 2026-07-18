@@ -56,7 +56,11 @@ jobs:
           # When dry_run is true, just do dry-run to see what would be released
           # When dry_run is false or not set, run full semantic-release to bump version
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-            npx semantic-release --dry-run
+            OUTPUT=$(npx semantic-release --dry-run 2>&1)
+            echo "$OUTPUT"
+            VERSION=$(echo "$OUTPUT" | grep -oP '(?<=The next release version is )[0-9.]+' | head -1)
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "DRY_RUN=true" >> $GITHUB_ENV
           else
             npx semantic-release
           fi
@@ -75,6 +79,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
@@ -96,27 +103,20 @@ jobs:
           pnpm install --frozen-lockfile
           composer install --no-dev --optimize-autoloader
 
-      - name: Determine version
+      - name: Get version from latest tag
         id: version
         run: |
-          if [ "${{ needs.prepare.outputs.version }}" != "" ]; then
-            echo "VERSION=${{ needs.prepare.outputs.version }}" >> $GITHUB_OUTPUT
+          # Get the latest tag (created by prepare job)
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$TAG" ]; then
+            VERSION=${TAG#v}
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Building from tag: $TAG (version: $VERSION)"
           else
-            # Fallback: use semantic-release to determine version
-            VERSION=$(npx semantic-release --dry-run | grep -oP '(?<=The next release version is )[0-9.]+' || echo "")
-            if [ -z "$VERSION" ]; then
-              # Get current version from info.xml
-              VERSION=$(grep -oP '(?<=<version>)[0-9.]+(?=</version>)' appinfo/info.xml)
-            fi
-            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          fi
-          echo "Building version: $VERSION"
-
-      - name: Bump version
-        run: |
-          VERSION="${{ steps.version.outputs.VERSION }}"
-          if [ -n "$VERSION" ]; then
-            make bump-version VERSION="$VERSION"
+            # Fallback: get version from info.xml
+            VERSION=$(grep -oP '(?<=<version>)[0-9.]+(?=</version>)' appinfo/info.xml)
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "No tag found, using info.xml version: $VERSION"
           fi
 
       - name: Build Nextcloud App
@@ -127,19 +127,13 @@ jobs:
       - name: Ensure zip available
         run: |
           if ! command -v zip >/dev/null 2>&1; then
-            sudo apt-get update && sudo apt-get install -y zip
+            apt-get update && apt-get install -y zip
           fi
 
       - name: Build app archive
         run: |
           make appstore
           echo "=== Built Artifacts ==="
-          ls -la build/artifacts/
-
-      - name: Set ownership for artifacts
-        run: |
-          sudo chown -R www-data:www-data build/artifacts/
-          echo "=== Artifacts ownership ==="
           ls -la build/artifacts/
 
       - name: Upload build artifacts
