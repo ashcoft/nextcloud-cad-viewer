@@ -44,6 +44,13 @@ namespace OCP\AppFramework\Bootstrap {
     interface IBootContext
     {
         public function getServer(): \OCP\IServerContainer;
+
+        /**
+         * Returns the app container for the current app.
+         *
+         * @return \OCP\AppFramework\IAppContainer
+         */
+        public function getAppContainer(): \OCP\AppFramework\IAppContainer;
     }
 
     interface IBootstrap
@@ -135,6 +142,28 @@ namespace OCP\AppFramework {
 
     interface IAppContainer extends \OCP\IServerContainer
     {
+    }
+}
+
+namespace OCP\Files {
+    interface IMimeTypeDetector
+    {
+        /**
+         * Get all MIME type mappings.
+         *
+         * @return array<string, string>
+         */
+        public function getAllMappings(): array;
+
+        /**
+         * Register a MIME type for a file extension.
+         *
+         * @param string $mimetype The MIME type
+         * @param string $ext The file extension (without dot)
+         *
+         * @return void
+         */
+        public function registerType(string $mimetype, string $ext): void;
     }
 }
 
