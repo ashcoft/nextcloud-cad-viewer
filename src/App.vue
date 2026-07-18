@@ -144,6 +144,7 @@ export default defineComponent({
       }
 
       // Load viewer with direct URL
+      // Load viewer with secure callback URL
       const container = viewerContainer.value
       if (container?.isConnected) {
         try {
