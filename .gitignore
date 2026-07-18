@@ -68,3 +68,7 @@ htmlcov/
 *.tar.xz
 *.tar.zst
 ```
+# Webpack build output
+js/*.js
+js/*.js.map
+!js/*.LICENSE.txt
