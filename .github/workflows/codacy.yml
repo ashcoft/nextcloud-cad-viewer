@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 ashcoft
+# SPDX-License-Identifier: MIT
+
+name: Codacy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  codacy:
+    name: Codacy Security and Quality Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Set up node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Run Codacy Analysis CLI
+        uses: codacy/codacy-analysis-cli-action@7ce5c0b13eb1fe6d4c8c3d1d5d1e15e5e4c2c2e8 # v4.5.0
+        with:
+          projectToken: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          verbose: true
+          upload: true
