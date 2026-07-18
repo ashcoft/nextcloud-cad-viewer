@@ -145,41 +145,6 @@ namespace OCP\AppFramework {
     }
 }
 
-namespace OCP\Files {
-    interface IMimeTypeDetector
-    {
-        /**
-         * Get all MIME type mappings.
-         *
-         * @return array<string, string>
-         */
-        public function getAllMappings(): array;
-
-        /**
-         * Register a MIME type for a file extension.
-         *
-         * @param string $mimetype The MIME type
-         * @param string $ext The file extension (without dot)
-         *
-         * @return void
-         */
-        public function registerType(string $mimetype, string $ext): void;
-    }
-}
-
-namespace OCA\Viewer\Event {
-    /**
-     * Event fired when the Nextcloud Viewer loads.
-     *
-     * This event is dispatched by the Viewer app to allow other apps
-     * to register handlers for specific file types.
-     */
-    class LoadViewer extends \OCP\EventDispatcher\Event
-    {
-        // This event is used to trigger handler registration
-    }
-}
-
 namespace OCP {
     class Util
     {
