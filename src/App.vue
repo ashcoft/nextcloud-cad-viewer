@@ -145,12 +145,12 @@ export default defineComponent({
         return
       }
 
-      // Load viewer with base64 content
+      // Load viewer with secure callback URL
       const container = viewerContainer.value
       if (container?.isConnected) {
         try {
           viewerInstance.value = await loadCADViewer(container, {
-            fileContent: fileData.content,
+            url: fileData.url,
             fileName: fileData.name,
             theme: 'dark',
           })
@@ -193,7 +193,7 @@ export default defineComponent({
       if (fileData && !fileData.error) {
         try {
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
-            fileContent: fileData.content,
+            url: fileData.url,
             fileName: fileData.name,
             theme: 'dark',
           })
