@@ -167,6 +167,19 @@ namespace OCP\Files {
     }
 }
 
+namespace OCA\Viewer\Event {
+    /**
+     * Event fired when the Nextcloud Viewer loads.
+     *
+     * This event is dispatched by the Viewer app to allow other apps
+     * to register handlers for specific file types.
+     */
+    class LoadViewer extends \OCP\EventDispatcher\Event
+    {
+        // This event is used to trigger handler registration
+    }
+}
+
 namespace OCP {
     class Util
     {

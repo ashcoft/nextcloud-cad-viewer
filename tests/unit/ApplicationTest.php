@@ -154,7 +154,16 @@ class ApplicationTest extends TestCase
         $app = new Application();
         $mockContext = $this->createMock(IBootContext::class);
         $mockContainer = $this->createMock(\OCP\AppFramework\IAppContainer::class);
-        
+        $mockDetector = $this->createMock(\OCP\Files\IMimeTypeDetector::class);
+
+        $mockDetector->expects($this->once())
+            ->method('getAllMappings');
+
+        $mockContainer->expects($this->once())
+            ->method('get')
+            ->with(\OCP\Files\IMimeTypeDetector::class)
+            ->willReturn($mockDetector);
+
         $mockContext->expects($this->once())
             ->method('getAppContainer')
             ->willReturn($mockContainer);
