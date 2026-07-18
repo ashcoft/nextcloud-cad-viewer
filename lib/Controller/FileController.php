@@ -177,7 +177,7 @@ class FileController extends Controller
 
     /**
      * Generate a secure download callback URL.
-     * 
+     *
      * Follows ONLYOFFICE pattern:
      * - URL is short and doesn't expose file ID directly
      * - Download endpoint validates permissions per request
@@ -185,8 +185,6 @@ class FileController extends Controller
      */
     private function generateDownloadUrl(int $fileId): string
     {
-        // Generate a secure download callback URL
-        // The actual file download happens through a separate callback endpoint
         return $this->urlGenerator->linkToRouteAbsolute(
             $this->appName . '.file.download',
             ['fileId' => $fileId]
@@ -198,15 +196,8 @@ class FileController extends Controller
      *
      * Returns metadata with a secure callback URL for downloading the file.
      * The download URL is session-authenticated and memory-efficient.
-     *
-     * Design inspired by ONLYOFFICE integration:
-     * - Secure callback URLs instead of direct file paths
-     * - Session-authenticated downloads
-     * - Efficient streaming (no encoding overhead)
-     * - Size validation (max 50MB)
-     *
-     * @NoAdminRequired
      */
+    #[NoAdminRequired]
     public function load(int $fileId): DataResponse
     {
         try {
@@ -254,9 +245,8 @@ class FileController extends Controller
      *
      * Called by frontend when loading file content.
      * Streams file directly without buffering.
-     *
-     * @NoAdminRequired
      */
+    #[NoAdminRequired]
     public function download(int $fileId): DataResponse|StreamResponse
     {
         try {
@@ -303,9 +293,8 @@ class FileController extends Controller
 
     /**
      * Get file metadata for a CAD file.
-     *
-     * @NoAdminRequired
      */
+    #[NoAdminRequired]
     public function getFile(int $fileId): DataResponse
     {
         try {
@@ -325,9 +314,8 @@ class FileController extends Controller
 
     /**
      * Get a preview/thumbnail for a CAD file.
-     *
-     * @NoAdminRequired
      */
+    #[NoAdminRequired]
     public function preview(int $fileId): DataResponse|StreamResponse
     {
         try {

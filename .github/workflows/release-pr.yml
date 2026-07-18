@@ -64,26 +64,27 @@ jobs:
           # Push branch
           git push -u origin "$BRANCH_NAME"
           
+          # Create PR body file
+          printf '%s\n' \
+            "## Release Summary" \
+            "" \
+            "This PR bumps the version and updates the changelog based on conventional commits since the last release." \
+            "" \
+            "### Changes" \
+            "- Version bumped in \`info.xml\` and \`package.json\`" \
+            "- Changelog updated" \
+            "" \
+            "### Merging this PR" \
+            "" \
+            "When this PR is merged, the **Release** workflow will:" \
+            "1. Create a GitHub release with the changelog" \
+            "2. Build and upload artifacts to the release" \
+            > /tmp/pr-body.md
+          
           # Create PR
           gh pr create \
             --title "chore(main): release $(node -p \"require('./package.json').version\")" \
-            --body "$(cat << 'EOF'
-## Release Summary
-
-This PR bumps the version and updates the changelog based on conventional commits since the last release.
-
-### Changes
-- Version bumped in `info.xml` and `package.json`
-- Changelog updated
-
-### Merging this PR
-
-When this PR is merged, the **Release** workflow will:
-1. Create a GitHub release with the changelog
-2. Build and upload artifacts to the release
-
-EOF
-)" \
+            --body "$(cat /tmp/pr-body.md)" \
             --base main \
             --label "skip-changelog"
           
