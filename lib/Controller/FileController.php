@@ -239,8 +239,10 @@ class FileController extends Controller
         }
 
         // Use our own content endpoint which properly handles session authentication
-        return $this->urlGenerator->getBaseUrl() .
-            '/apps/cad_viewer/api/file/' . $file->getId() . '/content';
+        return $this->urlGenerator->linkToRouteAbsolute(
+            'cad_viewer.file.getFileContent',
+            ['fileId' => $file->getId()]
+        );
     }
 
     /**
@@ -273,6 +275,12 @@ class FileController extends Controller
         try {
             $file = $this->_resolveFile($fileId);
 
+            // Enforce extension and size limits for security
+            $errorResponse = $this->_validateFileConstraints($file, $fileId);
+            if ($errorResponse !== null) {
+                return $errorResponse;
+            }
+
             $stream = $file->fopen('r');
             if ($stream === false) {
                 return new DataResponse(
@@ -283,10 +291,13 @@ class FileController extends Controller
 
             $response = new StreamResponse($stream);
             $response->addHeader('Content-Type', $file->getMimeType());
+            $response->addHeader('X-Content-Type-Options', 'nosniff');
             $response->addHeader('Content-Length', (string) $file->getSize());
+            // Escape filename to prevent header injection
+            $safeFilename = str_replace(['\\', '"'], ['\\\\', '\\"'], $file->getName());
             $response->addHeader(
                 'Content-Disposition',
-                'inline; filename="' . $file->getName() . '"'
+                'inline; filename="' . $safeFilename . '"'
             );
             $response->addHeader(
                 'Cache-Control',
