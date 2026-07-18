@@ -1,9 +1,0 @@
-# min: 8.4
-parameters:
-    level: 5
-    paths:
-        - lib
-    bootstrapFiles:
-        - vendor/autoload.php
-    phpVersion: 80400
-    treatPhpDocTypesAsCertain: false
