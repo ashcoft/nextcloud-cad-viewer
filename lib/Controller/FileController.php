@@ -301,9 +301,15 @@ class FileController extends Controller
             // Serve using the real MIME type and prefer inline disposition so the
             // in-browser CAD viewer can fetch and render the file instead of
             // forcing a download.
-            $response->addHeader('Content-Type', $file->getMimeType());
+            $mime = $file->getMimeType() ?: 'application/octet-stream';
+            $filename = $file->getName();
+
+            // Build robust Content-Disposition with filename* for UTF-8
+            $disposition = 'inline; filename="' . addcslashes($filename, '"') . '"; filename*=UTF-8\'\'' . rawurlencode($filename);
+
+            $response->addHeader('Content-Type', $mime);
             $response->addHeader('Content-Length', (string) $file->getSize());
-            $response->addHeader('Content-Disposition', 'inline; filename="' . rawurlencode($file->getName()) . '"');
+            $response->addHeader('Content-Disposition', $disposition);
             $response->addHeader('Accept-Ranges', 'bytes');
             $response->addHeader(
                 'Cache-Control',
