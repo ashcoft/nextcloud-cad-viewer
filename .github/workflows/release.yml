@@ -18,7 +18,7 @@ on:
 
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+  cancel-in-progress: false
 
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
