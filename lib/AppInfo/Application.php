@@ -45,7 +45,7 @@ class Application extends App implements IBootstrap
     }
 
     /**
-     * Registers the viewer listener for template rendering events.
+     * Registers the viewer listener for the Nextcloud Viewer integration.
      *
      * @param IRegistrationContext $context The app registration context.
      *
@@ -54,9 +54,11 @@ class Application extends App implements IBootstrap
     #[\Override]
     public function register(IRegistrationContext $context): void
     {
-        // Register event listener to inject scripts/styles when files app loads
+        // Register event listener for the OCA\Viewer\Event\LoadViewer event
+        // This is the same event used by OnlyOffice and other viewer integrations
+        // It ensures the CAD viewer handler is registered BEFORE the Viewer processes handlers
         $context->registerEventListener(
-            \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
+            \OCA\Viewer\Event\LoadViewer::class,
             LoadViewer::class
         );
     }

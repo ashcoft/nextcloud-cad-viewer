@@ -3,10 +3,15 @@ const webpack = require('webpack');
 const { VueLoaderPlugin } = require('vue-loader');
 
 module.exports = {
-  entry: './src/main.ts',
+  entry: {
+    // Main entry point for standalone app
+    'cad-viewer': './src/main.ts',
+    // Viewer entry point for Nextcloud Viewer integration
+    'cad-viewer.viewer': './src/main.ts',
+  },
   output: {
     path: path.resolve(__dirname, 'js'),
-    filename: 'cad-viewer.js',
+    filename: '[name].js',
     library: 'CadViewer',
     libraryTarget: 'window',
     clean: true,

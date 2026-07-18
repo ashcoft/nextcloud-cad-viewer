@@ -45,11 +45,11 @@ describe('CadViewerHandler Component', () => {
     it('should prioritize fileid prop for URL generation', () => {
       // The initViewer function should use fileid first
       const fileId = '12345'
-      const expectedUrl = `/ajax/apps/cad_viewer/api/file/${fileId}/content`
+      const expectedUrl = `/apps/cad_viewer/api/load/${fileId}`
       
       // Verify URL format expectation
       expect(expectedUrl).toContain(fileId)
-      expect(expectedUrl).toContain('/apps/cad_viewer/api/file/')
+      expect(expectedUrl).toContain('/apps/cad_viewer/api/load/')
     })
 
     it('should fallback to fileInfo.id when fileid is not provided', () => {
