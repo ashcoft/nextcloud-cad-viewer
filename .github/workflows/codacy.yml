@@ -39,7 +39,7 @@ jobs:
         run: pnpm run build
 
       - name: Run Codacy Analysis CLI
-        uses: codacy/codacy-analysis-cli-action@7ce5c0b13eb1fe6d4c8c3d1d5d1e15e5e4c2c2e8 # v4.5.0
+        uses: codacy/codacy-analysis-cli-action@562ee3e92b8e92df8b67e0a5ff8aa8e261919c08 # v4.4.7
         with:
           projectToken: ${{ secrets.CODACY_PROJECT_TOKEN }}
           verbose: true
