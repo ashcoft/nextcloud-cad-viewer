@@ -1,3 +1,10 @@
+## [0.3.8](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.3.7...v0.3.8) (2026-07-18)
+
+
+### Bug Fixes
+
+* use [@v2](https://github.com/v2) for setup-php to enable Renovate digest tracking ([be9013a](https://github.com/ashcoft/nextcloud-cad-viewer/commit/be9013aedc29bd2884c235937487148f7cf26964))
+
 ## [0.3.7](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.3.6...v0.3.7) (2026-07-18)
 
 ## [0.3.6](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.3.5...v0.3.6) (2026-07-18)
