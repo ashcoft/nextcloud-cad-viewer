@@ -5,40 +5,75 @@ declare(strict_types=1);
 namespace OCA\CadViewer\Listener;
 
 use OCA\CadViewer\AppInfo\Application;
+use OCA\Viewer\Event\LoadViewer as ViewerLoadViewerEvent;
 use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Util;
 
 /**
- * Loads the CAD viewer assets lazily for supported template renders.
+ * Loads the CAD viewer assets when the Nextcloud Viewer is being used.
  *
- * Uses addInitScript to ensure the handler registers BEFORE the Nextcloud Viewer
- * app loads. This allows the CAD viewer to handle .dwg/.dxf files inline without
- * requiring the user to download them.
+ * This listener hooks into two events:
+ * 1. BeforeTemplateRenderedEvent - Injects scripts/styles into the Files app
+ * 2. LoadViewer event - Registers the CAD viewer handler with Nextcloud Viewer
  *
- * The cad-viewer.js bundle contains only the lightweight registration code and
- * a thin Vue 3 component wrapper. The heavy CAD viewer engine (Three.js,
+ * The cad-viewer.js bundle contains the lightweight registration code and
+ * a Vue 3 component wrapper. The heavy CAD viewer engine (Three.js,
  * Element Plus) is loaded on-demand when the handler's onMounted() fires.
  *
- * @template-implements IEventListener<BeforeTemplateRenderedEvent>
+ * @template-implements IEventListener<BeforeTemplateRenderedEvent|ViewerLoadViewerEvent>
  */
 class LoadViewer implements IEventListener
 {
     /**
      * Loads the CAD viewer assets for supported template renders.
      *
-     * @param Event $event The event fired before a template is rendered.
+     * @param Event $event The event fired before a template is rendered or when Viewer loads.
      *
      * @return void
      */
     #[\Override]
     public function handle(Event $event): void
     {
-        if (!$event instanceof BeforeTemplateRenderedEvent) {
+        if ($event instanceof ViewerLoadViewerEvent) {
+            $this->handleViewerLoadEvent($event);
             return;
         }
 
+        if ($event instanceof BeforeTemplateRenderedEvent) {
+            $this->handleBeforeTemplateRendered($event);
+        }
+    }
+
+    /**
+     * Handle the Viewer LoadViewer event.
+     * This is called when the Nextcloud Viewer app loads and allows us to
+     * register our handler for CAD file types.
+     *
+     * @param ViewerLoadViewerEvent $event The viewer load event.
+     *
+     * @return void
+     */
+    private function handleViewerLoadEvent(ViewerLoadViewerEvent $event): void
+    {
+        // Register our handler for CAD file types
+        // The actual handler registration is done in JavaScript via OCA.Viewer.registerHandler()
+        // which is loaded via addInitScript
+        Util::addInitScript(Application::APP_ID, 'cad-viewer');
+        Util::addStyle(Application::APP_ID, 'cad-viewer');
+    }
+
+    /**
+     * Handle the BeforeTemplateRenderedEvent.
+     * Injects scripts/styles into supported apps.
+     *
+     * @param BeforeTemplateRenderedEvent $event The template render event.
+     *
+     * @return void
+     */
+    private function handleBeforeTemplateRendered(BeforeTemplateRenderedEvent $event): void
+    {
         $response = $event->getResponse();
 
         $app = $response->getApp();

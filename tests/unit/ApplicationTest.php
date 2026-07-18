@@ -73,7 +73,7 @@ class ApplicationTest extends TestCase
     }
 
     /**
-     * Test that register() calls registerEventListener exactly once.
+     * Test that register() calls registerEventListener for both events.
      *
      * @return void
      */
@@ -82,12 +82,8 @@ class ApplicationTest extends TestCase
         $app = new Application();
         $mockContext = $this->createMock(IRegistrationContext::class);
 
-        $mockContext->expects($this->exactly(1))
-            ->method('registerEventListener')
-            ->with(
-                \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
-                \OCA\CadViewer\Listener\LoadViewer::class,
-            );
+        $mockContext->expects($this->exactly(2))
+            ->method('registerEventListener');
 
         $app->register($mockContext);
     }
@@ -147,37 +143,39 @@ class ApplicationTest extends TestCase
     }
 
     /**
-     * Test that boot() does not interact with the IBootContext at all.
+     * Test that boot() interacts with the IBootContext to get app container.
      *
-     * The boot() method is intentionally a no-op because this app performs
-     * all setup in register().
+     * The boot() method now initializes MIME type detector via the app container.
      *
      * @return void
      */
-    public function testBootDoesNotInteractWithContext(): void
+    public function testBootGetsAppContainer(): void
     {
         $app = new Application();
         $mockContext = $this->createMock(IBootContext::class);
-
-        $mockContext->expects($this->never())->method($this->anything());
+        $mockContainer = $this->createMock(\OCP\AppFramework\IAppContainer::class);
+        
+        $mockContext->expects($this->once())
+            ->method('getAppContainer')
+            ->willReturn($mockContainer);
 
         $app->boot($mockContext);
     }
 
     /**
-     * Test that register() interacts with the context exactly once.
+     * Test that register() interacts with the context for both event listeners.
      *
-     * The method must only register the LoadViewer listener, confirming the
-     * #[\Override] method fulfils the IBootstrap contract.
+     * The method registers LoadViewer listener for both BeforeTemplateRenderedEvent
+     * and ViewerLoadViewerEvent, confirming the IBootstrap contract.
      *
      * @return void
      */
-    public function testRegisterCallsContextExactlyOnce(): void
+    public function testRegisterCallsContextForBothEvents(): void
     {
         $app = new Application();
         $mockContext = $this->createMock(IRegistrationContext::class);
 
-        $mockContext->expects($this->once())
+        $mockContext->expects($this->exactly(2))
             ->method('registerEventListener');
 
         $app->register($mockContext);

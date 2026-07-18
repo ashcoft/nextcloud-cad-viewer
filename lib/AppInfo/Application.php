@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace OCA\CadViewer\AppInfo;
 
 use OCA\CadViewer\Listener\LoadViewer;
+use OCA\Viewer\Event\LoadViewer as ViewerLoadViewerEvent;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\Files\IMimeTypeDetector;
+use OCP\Files\IMimeTypeLoader;
+use OCP\Util;
 
 class Application extends App implements IBootstrap
 {
@@ -59,21 +63,29 @@ class Application extends App implements IBootstrap
             \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
             LoadViewer::class
         );
+
+        // Register event listener for the Nextcloud Viewer LoadViewer event
+        // This is called when the Viewer app loads and allows us to register
+        // our handler for CAD file types
+        $context->registerEventListener(
+            ViewerLoadViewerEvent::class,
+            LoadViewer::class
+        );
     }
 
     /**
-     * Provides the app bootstrap hook without performing boot-time work.
+     * Provides the app bootstrap hook for runtime initialization.
      *
-     * This app has no boot-time registrations; the method is intentionally a no-op
-     * required by the IBootstrap interface contract.
-     *
-     * @param IBootContext $context Unused boot context.
+     * @param IBootContext $context The boot context.
      *
      * @return void
      */
     #[\Override]
     public function boot(IBootContext $context): void
     {
-        // Intentional no-op: this app performs all setup in register().
+        // Ensure MIME type mappings are available
+        $container = $context->getAppContainer();
+        $detector = $container->get(IMimeTypeDetector::class);
+        $detector->getAllMappings();
     }
 }

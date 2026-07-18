@@ -19,7 +19,7 @@ const t = (app: string, text: string): string => {
 
 /**
  * Fetch file content using the load endpoint.
- * Returns base64 encoded content similar to draw.io approach.
+ * Returns metadata and a direct URL for the CAD viewer to fetch the file content.
  */
 async function fetchFileContent(fileId: number | string): Promise<LoadResponse | null> {
   try {
@@ -340,17 +340,28 @@ const CadViewerHandlerComponent = defineComponent({
  * This enables clicking on DWG/DXF files to open them directly in the CAD viewer.
  */
 function registerViewerHandler(): boolean {
-  if (isRegistered) return false
+  if (isRegistered) return true
 
   if (OCA?.Viewer !== undefined) {
-    OCA.Viewer.registerHandler({
-      id: 'cad-viewer',
-      group: 'cad',
-      mimes: SUPPORTED_MIMES,
-      component: CadViewerHandlerComponent,
-    })
-    isRegistered = true
-    return true
+    try {
+      OCA.Viewer.registerHandler({
+        id: 'cad-viewer',
+        group: 'cad',
+        mimes: SUPPORTED_MIMES,
+        component: CadViewerHandlerComponent,
+      })
+      isRegistered = true
+      console.log('CAD Viewer: Registered handler for Nextcloud Viewer')
+      return true
+    } catch (err) {
+      console.error('CAD Viewer: Failed to register handler', err)
+      return false
+    }
+  }
+  
+  // Viewer API not yet available, schedule retry
+  if (typeof setTimeout !== 'undefined') {
+    setTimeout(registerViewerHandler, 1000)
   }
   return false
 }
@@ -373,7 +384,7 @@ function openInViewer(fileId: number | string): void {
  * Register file actions that appear in the Files "..." context menu.
  */
 function registerFileActions(): void {
-  if (OC === undefined) {
+  if (typeof OC === 'undefined') {
     return
   }
 
@@ -394,16 +405,21 @@ function registerFileActions(): void {
       default: DefaultType.HIDDEN,
     }
     registerFileAction(action)
-  } catch {
-    // Fall back
+    console.log('CAD Viewer: Registered file actions')
+  } catch (err) {
+    console.error('CAD Viewer: Failed to register file actions', err)
   }
 }
 
-// Register file actions when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+/**
+ * Initialize the CAD viewer app.
+ */
+function init(): void {
+  console.log('CAD Viewer: Initializing...')
   registerFileActions()
   registerViewerHandler()
 
+  // Mount the app if we're in the CAD viewer route
   const mountEl =
     document.getElementById('cad-viewer-app') ??
     document.getElementById('cad-viewer-container')
@@ -411,10 +427,18 @@ document.addEventListener('DOMContentLoaded', () => {
   if (mountEl) {
     app.mount(mountEl)
   }
-})
+}
+
+// Register when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init)
+} else {
+  init()
+}
 
 // Also re-register on Nextcloud Files ready event
 document.addEventListener('nextcloud-files-ready', () => {
+  console.log('CAD Viewer: Nextcloud Files ready, re-registering...')
   registerFileActions()
   registerViewerHandler()
 })

@@ -176,9 +176,9 @@ class FileController extends Controller
     }
 
     /**
-     * Load a CAD file by ID and return metadata with direct download URL.
+     * Load a CAD file by ID and return metadata with content URL.
      *
-     * Returns file metadata and a direct URL for the CAD viewer to fetch.
+     * Returns file metadata and a direct URL for the CAD viewer to fetch the file content.
      * Validates extension (.dwg/.dxf) and file size (max 50MB).
      */
     #[NoAdminRequired]
@@ -202,9 +202,9 @@ class FileController extends Controller
                 ]
             );
 
-            // Generate direct download URL using Nextcloud's file download endpoint
-            // This URL works with the current user's session cookies
-            $downloadUrl = $this->generateDownloadUrl($file);
+            // Generate direct content URL using our own API endpoint
+            // This ensures proper authentication via session cookies
+            $contentUrl = $this->generateContentUrl($file);
 
             return new DataResponse([
                 'id' => $file->getId(),
@@ -212,7 +212,7 @@ class FileController extends Controller
                 'size' => $file->getSize(),
                 'mime' => $file->getMimeType(),
                 'path' => $file->getPath(),
-                'url' => $downloadUrl,
+                'url' => $contentUrl,
                 'contentType' => 'application/octet-stream',
             ]);
         } catch (\Throwable $e) {
@@ -228,17 +228,17 @@ class FileController extends Controller
     }
 
     /**
-     * Generate a direct download URL for the file.
+     * Generate a direct content URL for the file.
+     * Uses our own API endpoint which handles authentication properly.
      */
-    private function generateDownloadUrl(File $file): string
+    private function generateContentUrl(File $file): string
     {
         $user = $this->userSession->getUser();
         if ($user === null) {
             throw new \RuntimeException('Unauthorized');
         }
 
-        // Use Nextcloud's download endpoint with remote.php/dav/files/{user}
-        // This provides direct access to the file through WebDAV
+        // Use our own content endpoint which properly handles session authentication
         // File path in Nextcloud format: /userId/files/path/to/file.ext
         $userPath = ltrim($file->getPath(), '/');
         // Extract the part after /userId/files/
@@ -254,9 +254,9 @@ class FileController extends Controller
             array_map('rawurlencode', explode('/', $relativePath))
         );
 
-        // Generate URL that works with session authentication
+        // Generate URL using our own API endpoint
         return $this->urlGenerator->getBaseUrl() .
-            '/remote.php/dav/files/' . $user->getUID() . '/' . $encodedPath;
+            '/apps/cad_viewer/api/file/' . $file->getId() . '/content';
     }
 
     /**
@@ -282,12 +282,18 @@ class FileController extends Controller
 
     /**
      * Stream raw CAD file content.
+     * This endpoint is used by the frontend to fetch file content directly.
      */
     #[NoAdminRequired]
     public function getFileContent(int $fileId): DataResponse|StreamResponse
     {
         try {
             $file = $this->_resolveFile($fileId);
+
+            $errorResponse = $this->_validateFileConstraints($file, $fileId);
+            if ($errorResponse !== null) {
+                return $errorResponse;
+            }
 
             $stream = $file->fopen('r');
             if ($stream === false) {
@@ -302,8 +308,10 @@ class FileController extends Controller
             $response->addHeader('Content-Length', (string) $file->getSize());
             $response->addHeader(
                 'Cache-Control',
-                'no-cache, no-store, must-revalidate'
+                'no-cache, no-store, must-revalidate, private'
             );
+            $response->addHeader('X-Content-Type-Options', 'nosniff');
+            $response->addHeader('Content-Disposition', 'inline; filename="' . rawurlencode($file->getName()) . '"');
             return $response;
         } catch (\Throwable $e) {
             return $this->_handleFileError($e, $fileId);

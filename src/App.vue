@@ -40,6 +40,7 @@ const appTranslation = (text: string) => t('cad_viewer', text)
 
 /**
  * Fetch file metadata and direct URL using the load endpoint.
+ * The endpoint returns a URL to fetch the file content from our own API.
  */
 async function fetchFileInfo(fileId: number | string): Promise<LoadResponse | null> {
   try {
@@ -143,10 +144,11 @@ export default defineComponent({
         return
       }
 
-      // Load viewer with direct URL
+      // Load viewer with direct URL (our own API endpoint handles authentication)
       const container = viewerContainer.value
       if (container?.isConnected) {
         try {
+          console.log('CAD Viewer: Loading file from', fileData.url)
           viewerInstance.value = await loadCADViewer(container, {
             url: fileData.url,
             fileName: fileData.name,
@@ -155,6 +157,7 @@ export default defineComponent({
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err)
           error.value = appTranslation('Failed to load CAD viewer: ') + msg
+          console.error('CAD Viewer: Failed to initialize viewer', err)
         }
       } else {
         error.value = appTranslation('Failed to initialize viewer container.')
@@ -164,6 +167,7 @@ export default defineComponent({
     }
 
     onMounted(async () => {
+      console.log('CAD Viewer: App mounted')
       try {
         await initViewer()
       } catch (err) {
