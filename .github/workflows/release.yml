@@ -53,9 +53,7 @@ jobs:
           composer install --no-dev --optimize-autoloader
 
       - name: Build Nextcloud App
-        run: |
-          pnpm run build
-          make production-setup
+        run: make production-setup
 
       - name: Ensure zip available
         run: |
