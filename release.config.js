@@ -38,10 +38,7 @@ module.exports = {
     [
       '@semantic-release/github',
       {
-        assets: [
-          { path: 'build/artifacts/cad_viewer.tar.gz', label: 'cad_viewer (tar.gz)' },
-          { path: 'build/artifacts/cad_viewer.zip', label: 'cad_viewer (zip)' },
-        ],
+        assets: null,
       },
     ],
   ],
