@@ -55,18 +55,18 @@ jobs:
         run: |
           echo "=== Before sync ==="
           echo "HEAD: $(git rev-parse HEAD)"
-          git fetch origin main
+          git fetch --all --tags
           echo "=== After fetch, origin/main: $(git rev-parse origin/main)"
           git reset --hard origin/main
           echo "=== After reset, HEAD: $(git rev-parse HEAD)"
           echo "=== Git log ==="
-          git log --oneline -3
+          git log --oneline -5
 
       - name: Semantic Release (prepare version)
         id: semantic
         run: |
           echo "=== Checking git history ==="
-          git log --oneline -5
+          git log --oneline -10
           echo "=== Last tag ==="
           git describe --tags --abbrev=0 || echo "No tags found"
           echo "=== Remote tags ==="
