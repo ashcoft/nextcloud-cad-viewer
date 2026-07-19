@@ -37,6 +37,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
+          fetch-tags: true
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
@@ -49,6 +50,11 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Sync with remote
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
 
       - name: Semantic Release (prepare version)
         id: semantic
