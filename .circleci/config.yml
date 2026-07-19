@@ -47,8 +47,8 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Clear composer cache and install dependencies
-          command: composer clear-cache && composer install --no-interaction --prefer-dist
+          name: Update composer lock and install dependencies
+          command: composer clear-cache && composer update --lock --no-install && composer install --no-interaction --prefer-dist
       - run:
           name: run tests
           command: ./vendor/bin/phpunit
