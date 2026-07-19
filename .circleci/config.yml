@@ -46,7 +46,9 @@ jobs:
       - image: cimg/php:8.4-node
     steps:
       - checkout
-      - php/install-packages
+      - run:
+          name: Clear composer cache and install dependencies
+          command: composer clear-cache && composer install --no-interaction --prefer-dist
       - run:
           name: run tests
           command: ./vendor/bin/phpunit
