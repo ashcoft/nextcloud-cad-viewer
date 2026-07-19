@@ -1,3 +1,11 @@
+## [0.4.5](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.4.4...v0.4.5) (2026-07-19)
+
+
+### Bug Fixes
+
+* add artifact upload step to release job ([44fb7b1](https://github.com/ashcoft/nextcloud-cad-viewer/commit/44fb7b10acaae55e6379ac3aa368709105c673b4))
+* add error handling for git describe --tags ([9c78737](https://github.com/ashcoft/nextcloud-cad-viewer/commit/9c7873730a0ea40c57a543f726cb705898eb805d))
+
 ## [0.4.4](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.4.3...v0.4.4) (2026-07-19)
 
 
