@@ -62,14 +62,14 @@ jobs:
           git describe --tags --abbrev=0 || echo "No tags found"
           echo "=== Commits since last release ==="
           git log --oneline $(git describe --tags --abbrev=0)..HEAD
-          echo "=== Running semantic-release ==="
+          echo "=== Running semantic-release with debug ==="
           
           # When DRY_RUN is true, just do dry-run to see what would be released
           # When DRY_RUN is false or not set, run full semantic-release to bump version
           if [ "$DRY_RUN" = "true" ]; then
-            npx semantic-release --dry-run
+            npx semantic-release --dry-run --debug
           else
-            npx semantic-release
+            npx semantic-release --debug
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
