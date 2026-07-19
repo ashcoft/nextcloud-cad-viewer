@@ -51,28 +51,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Sync with remote
-        run: |
-          echo "=== Before sync ==="
-          echo "HEAD: $(git rev-parse HEAD)"
-          git fetch --all --tags
-          echo "=== After fetch, origin/main: $(git rev-parse origin/main)"
-          git pull --ff-only origin main
-          echo "=== After pull, HEAD: $(git rev-parse HEAD)"
-          echo "=== Git log ==="
-          git log --oneline -5
-          echo "=== Verify we're up to date with remote ==="
-          echo "Behind/Ahead: $(git rev-list --left-right --count HEAD...origin/main)"
-
       - name: Semantic Release (prepare version)
         id: semantic
         run: |
-          echo "=== Checking git history ==="
+          echo "=== Git status ==="
+          git status
+          echo "=== Git log ==="
           git log --oneline -10
           echo "=== Last tag ==="
           git describe --tags --abbrev=0 || echo "No tags found"
-          echo "=== Remote tags ==="
-          git ls-remote --tags origin
+          echo "=== Commits since last release ==="
+          git log --oneline $(git describe --tags --abbrev=0)..HEAD
           echo "=== Running semantic-release ==="
           
           # When DRY_RUN is true, just do dry-run to see what would be released
