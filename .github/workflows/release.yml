@@ -171,23 +171,18 @@ jobs:
           ls -la build/artifacts/ || echo "No artifacts directory"
 
       - name: Upload artifacts to release
+        if: github.event.inputs.dry_run != 'true'
         run: |
-          # Only upload if not a dry run
-          if [ "$DRY_RUN" != "true" ]; then
-            TAG=$(git describe --tags --abbrev=0)
-            echo "Uploading release assets for: $TAG"
+          TAG=$(git describe --tags --abbrev=0)
+          echo "Uploading release assets for: $TAG"
 
-            for FILE in \
-              "build/artifacts/${APP_NAME}.tar.gz" \
-              "build/artifacts/${APP_NAME}.zip"; do
-              if [ -f "$FILE" ]; then
-                gh release upload "$TAG" "$FILE" --clobber
-                echo "Uploaded: $FILE"
-              fi
-            done
-          else
-            echo "Dry run - skipping artifact upload"
-          fi
+          for FILE in \
+            "build/artifacts/${APP_NAME}.tar.gz" \
+            "build/artifacts/${APP_NAME}.zip"; do
+            if [ -f "$FILE" ]; then
+              gh release upload "$TAG" "$FILE" --clobber
+              echo "Uploaded: $FILE"
+            fi
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ github.event.inputs.dry_run }}
