@@ -59,10 +59,12 @@ clean:
 # === Package for App Store ===
 $(app_dir):
 	mkdir -p $(app_dir)
-	tar --include='CHANGELOG.md' --include='l10n/' \
+	rsync -a \
+		--include='CHANGELOG.md' --include='l10n/' --include='l10n/**' \
+		--exclude='*.md' \
 		--exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='src' \
 		--exclude='tests' --exclude='vendor-bin' --exclude='docs' --exclude='wiki' \
-		--exclude='LICENSES' --exclude='AGENTS.md' --exclude='*.md' \
+		--exclude='LICENSES' --exclude='AGENTS.md' \
 		--exclude='build' --exclude='*.tar.gz' --exclude='*.zip' \
 		--exclude='*.lock' --exclude='pnpm-lock.yaml' --exclude='composer.lock' \
 		--exclude='tsconfig.json' --exclude='jest.config.js' --exclude='playwright.config.ts' \
@@ -73,7 +75,7 @@ $(app_dir):
 		--exclude='openapi.json' --exclude='sonar-project.properties' \
 		--exclude='commitlint.config.js' --exclude='renovate.json' --exclude='release.config.js' \
 		--exclude='pnpm-workspace.yaml' \
-		-cf - . | tar -xf - -C $(app_dir)
+		. $(app_dir)/
 	find $(app_dir) -type d -exec chmod 755 {} +
 	find $(app_dir) -type f -exec chmod 644 {} +
 
