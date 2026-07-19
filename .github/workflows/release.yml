@@ -57,12 +57,12 @@ jobs:
           echo "HEAD: $(git rev-parse HEAD)"
           git fetch --all --tags
           echo "=== After fetch, origin/main: $(git rev-parse origin/main)"
-          git reset --hard origin/main
-          echo "=== After reset, HEAD: $(git rev-parse HEAD)"
+          git pull --ff-only origin main
+          echo "=== After pull, HEAD: $(git rev-parse HEAD)"
           echo "=== Git log ==="
           git log --oneline -5
           echo "=== Verify we're up to date with remote ==="
-          git rev-list --left-right --count HEAD...origin/main
+          echo "Behind/Ahead: $(git rev-list --left-right --count HEAD...origin/main)"
 
       - name: Semantic Release (prepare version)
         id: semantic
