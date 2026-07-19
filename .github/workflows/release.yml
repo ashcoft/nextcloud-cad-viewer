@@ -54,13 +54,13 @@ jobs:
       - name: Sync with remote
         run: |
           echo "=== Before sync ==="
-          git rev-parse HEAD
+          echo "HEAD: $(git rev-parse HEAD)"
           git fetch origin main
-          echo "=== After fetch, origin/main is at ==="
-          git rev-parse origin/main
+          echo "=== After fetch, origin/main: $(git rev-parse origin/main)"
           git reset --hard origin/main
-          echo "=== After reset, HEAD is at ==="
-          git rev-parse HEAD
+          echo "=== After reset, HEAD: $(git rev-parse HEAD)"
+          echo "=== Git log ==="
+          git log --oneline -3
 
       - name: Semantic Release (prepare version)
         id: semantic
@@ -69,6 +69,8 @@ jobs:
           git log --oneline -5
           echo "=== Last tag ==="
           git describe --tags --abbrev=0 || echo "No tags found"
+          echo "=== Remote tags ==="
+          git ls-remote --tags origin
           echo "=== Running semantic-release ==="
           
           # When DRY_RUN is true, just do dry-run to see what would be released
