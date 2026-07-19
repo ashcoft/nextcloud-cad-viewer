@@ -127,3 +127,20 @@ jobs:
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
           DRY_RUN: ${{ github.event.inputs.dry_run }}
+
+      - name: Upload artifacts to release
+        if: github.event.inputs.dry_run != 'true'
+        run: |
+          TAG=$(git describe --tags --abbrev=0)
+          echo "Uploading release assets for: $TAG"
+
+          for FILE in \
+            "build/artifacts/${APP_NAME}.tar.gz" \
+            "build/artifacts/${APP_NAME}.zip"; do
+            if [ -f "$FILE" ]; then
+              gh release upload "$TAG" "$FILE" --clobber
+              echo "Uploaded: $FILE"
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
