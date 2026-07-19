@@ -51,7 +51,7 @@ jobs:
           command: composer clear-cache && composer update --no-interaction && composer install --no-interaction --prefer-dist
       - run:
           name: run tests
-          command: ./vendor/bin/phpunit
+          command: ./vendor/bin/phpunit -c tests/phpunit.xml
   deploy:
     # This is an example deploy job, not actually used by the workflow
     docker:
