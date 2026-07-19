@@ -131,7 +131,7 @@ jobs:
       - name: Upload artifacts to release
         if: github.event.inputs.dry_run != 'true'
         run: |
-          TAG=$(git describe --tags --abbrev=0)
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null) || { echo "Failed to get tag"; exit 1; }
           echo "Uploading release assets for: $TAG"
 
           for FILE in \
