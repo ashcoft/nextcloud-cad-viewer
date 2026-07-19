@@ -59,7 +59,8 @@ clean:
 # === Package for App Store ===
 $(app_dir):
 	mkdir -p $(app_dir)
-	tar --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='src' \
+	tar --include='CHANGELOG.md' --include='l10n/' \
+		--exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='src' \
 		--exclude='tests' --exclude='vendor-bin' --exclude='docs' --exclude='wiki' \
 		--exclude='LICENSES' --exclude='AGENTS.md' --exclude='*.md' \
 		--exclude='build' --exclude='*.tar.gz' --exclude='*.zip' \
