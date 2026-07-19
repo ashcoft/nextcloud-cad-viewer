@@ -53,19 +53,28 @@ jobs:
 
       - name: Sync with remote
         run: |
+          echo "=== Before sync ==="
+          git rev-parse HEAD
           git fetch origin main
+          echo "=== After fetch, origin/main is at ==="
+          git rev-parse origin/main
           git reset --hard origin/main
+          echo "=== After reset, HEAD is at ==="
+          git rev-parse HEAD
 
       - name: Semantic Release (prepare version)
         id: semantic
         run: |
+          echo "=== Checking git history ==="
+          git log --oneline -5
+          echo "=== Last tag ==="
+          git describe --tags --abbrev=0 || echo "No tags found"
+          echo "=== Running semantic-release ==="
+          
           # When DRY_RUN is true, just do dry-run to see what would be released
           # When DRY_RUN is false or not set, run full semantic-release to bump version
           if [ "$DRY_RUN" = "true" ]; then
-            OUTPUT=$(npx semantic-release --dry-run 2>&1)
-            echo "$OUTPUT"
-            VERSION=$(echo "$OUTPUT" | grep -oP '(?<=The next release version is )[0-9.]+' | head -1)
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            npx semantic-release --dry-run
           else
             npx semantic-release
           fi
