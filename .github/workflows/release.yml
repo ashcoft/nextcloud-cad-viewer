@@ -25,77 +25,12 @@ env:
   APP_NAME: cad_viewer
 
 jobs:
-  prepare:
-    name: Prepare Release
-    runs-on: ubuntu-latest
-    if: github.repository_owner == 'ashcoft'
-    outputs:
-      version: ${{ steps.semantic.outputs.version }}
-      tag_name: ${{ steps.semantic.outputs.tag_name }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
-
-      - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: '24'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Sync with remote
-        run: |
-          git fetch origin main
-          git branch --set-upstream-to=origin/main main || true
-          git reset --hard origin/main
-
-      - name: Semantic Release (prepare version)
-        id: semantic
-        run: |
-          echo "=== Git status ==="
-          git status
-          echo "=== Git log ==="
-          git log --oneline -10
-          echo "=== Last tag ==="
-          git describe --tags --abbrev=0 || echo "No tags found"
-          echo "=== Commits since last release ==="
-          git log --oneline $(git describe --tags --abbrev=0)..HEAD
-          echo "=== Running semantic-release ==="
-          
-          # When DRY_RUN is true, just do dry-run to see what would be released
-          # When DRY_RUN is false or not set, run full semantic-release to bump version
-          if [ "$DRY_RUN" = "true" ]; then
-            npx semantic-release --dry-run
-          else
-            npx semantic-release
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_AUTHOR_NAME: github-actions[bot]
-          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
-          GIT_COMMITTER_NAME: github-actions[bot]
-          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
-          DRY_RUN: ${{ github.event.inputs.dry_run }}
-
   build:
     name: Build Nextcloud App
     runs-on: ubuntu-latest
-    needs: prepare
-    if: always() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped')
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 0
-          fetch-tags: true
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
@@ -117,22 +52,6 @@ jobs:
           pnpm install --frozen-lockfile
           composer install --no-dev --optimize-autoloader
 
-      - name: Get version from latest tag
-        id: version
-        run: |
-          # Get the latest tag (created by prepare job)
-          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          if [ -n "$TAG" ]; then
-            VERSION=${TAG#v}
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "Building from tag: $TAG (version: $VERSION)"
-          else
-            # Fallback: get version from info.xml
-            VERSION=$(grep -oP '(?<=<version>)[0-9.]+(?=</version>)' appinfo/info.xml)
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "No tag found, using info.xml version: $VERSION"
-          fi
-
       - name: Build Nextcloud App
         run: |
           pnpm run build
@@ -141,13 +60,19 @@ jobs:
       - name: Ensure zip available
         run: |
           if ! command -v zip >/dev/null 2>&1; then
-            apt-get update && apt-get install -y zip
+            sudo apt-get update && sudo apt-get install -y zip
           fi
 
       - name: Build app archive
         run: |
           make appstore
           echo "=== Built Artifacts ==="
+          ls -la build/artifacts/
+
+      - name: Set ownership for artifacts
+        run: |
+          sudo chown -R www-data:www-data build/artifacts/
+          echo "=== Artifacts ownership ==="
           ls -la build/artifacts/
 
       - name: Upload build artifacts
@@ -164,37 +89,70 @@ jobs:
   release:
     name: Release & Publish
     runs-on: ubuntu-latest
-    needs: [prepare, build]
+    needs: build
     if: github.repository_owner == 'ashcoft'
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      version: ${{ steps.semantic.outputs.version }}
+      tag_name: ${{ steps.semantic.outputs.tag_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Set up node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          fetch-depth: 0
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
 
       - name: Download build artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ env.APP_NAME }}-build
           path: build/artifacts
-          if-no-files-found: ignore
 
       - name: Verify artifacts exist
-        if: github.event.inputs.dry_run != 'true'
         run: |
           echo "=== Artifacts ==="
-          ls -la build/artifacts/ || echo "No artifacts directory"
+          ls -la build/artifacts/
 
-      - name: Upload artifacts to release
-        if: github.event.inputs.dry_run != 'true'
+      - name: Semantic Release
+        id: semantic
         run: |
-          TAG=$(git describe --tags --abbrev=0)
+          if [ "$DRY_RUN" = "true" ]; then
+            npx semantic-release --dry-run
+          else
+            npx semantic-release
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+
+      - name: Upload artifacts to release (fallback)
+        if: steps.semantic.outputs.version != ''
+        run: |
+          TAG="v${{ steps.semantic.outputs.version }}"
           echo "Uploading release assets for: $TAG"
 
           for FILE in \
             "build/artifacts/${APP_NAME}.tar.gz" \
             "build/artifacts/${APP_NAME}.zip"; do
             if [ -f "$FILE" ]; then
-              gh release upload "$TAG" "$FILE" --clobber || echo "Upload may have failed, check if assets exist"
+              gh release upload "$TAG" "$FILE" --clobber
+              echo "Uploaded: $FILE"
             fi
           done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
