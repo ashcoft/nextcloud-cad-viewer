@@ -51,6 +51,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Sync with remote
+        run: |
+          git fetch origin main
+          git merge origin/main --no-edit
+
       - name: Semantic Release (prepare version)
         id: semantic
         run: |
@@ -62,14 +67,14 @@ jobs:
           git describe --tags --abbrev=0 || echo "No tags found"
           echo "=== Commits since last release ==="
           git log --oneline $(git describe --tags --abbrev=0)..HEAD
-          echo "=== Running semantic-release with debug ==="
+          echo "=== Running semantic-release ==="
           
           # When DRY_RUN is true, just do dry-run to see what would be released
           # When DRY_RUN is false or not set, run full semantic-release to bump version
           if [ "$DRY_RUN" = "true" ]; then
-            npx semantic-release --dry-run --debug
+            npx semantic-release --dry-run
           else
-            npx semantic-release --debug
+            npx semantic-release
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
