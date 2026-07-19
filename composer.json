@@ -69,9 +69,6 @@
       "bamarni/composer-bin-plugin": true
     },
     "optimize-autoloader": true,
-    "sort-packages": true,
-    "platform": {
-      "php": "8.4.3"
-    }
+    "sort-packages": true
   }
 }
