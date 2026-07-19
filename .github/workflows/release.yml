@@ -53,14 +53,13 @@ jobs:
       - name: Semantic Release (prepare version)
         id: semantic
         run: |
-          # When dry_run is true, just do dry-run to see what would be released
-          # When dry_run is false or not set, run full semantic-release to bump version
-          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+          # When DRY_RUN is true, just do dry-run to see what would be released
+          # When DRY_RUN is false or not set, run full semantic-release to bump version
+          if [ "$DRY_RUN" = "true" ]; then
             OUTPUT=$(npx semantic-release --dry-run 2>&1)
             echo "$OUTPUT"
             VERSION=$(echo "$OUTPUT" | grep -oP '(?<=The next release version is )[0-9.]+' | head -1)
             echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "DRY_RUN=true" >> $GITHUB_ENV
           else
             npx semantic-release
           fi
@@ -70,6 +69,7 @@ jobs:
           GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
 
   build:
     name: Build Nextcloud App
@@ -171,19 +171,23 @@ jobs:
           ls -la build/artifacts/ || echo "No artifacts directory"
 
       - name: Upload artifacts to release
-        if: github.event.inputs.dry_run != 'true'
         run: |
-          # Get the latest tag (created by prepare job)
-          TAG=$(git describe --tags --abbrev=0)
-          echo "Uploading release assets for: $TAG"
+          # Only upload if not a dry run
+          if [ "$DRY_RUN" != "true" ]; then
+            TAG=$(git describe --tags --abbrev=0)
+            echo "Uploading release assets for: $TAG"
 
-          for FILE in \
-            "build/artifacts/${APP_NAME}.tar.gz" \
-            "build/artifacts/${APP_NAME}.zip"; do
-            if [ -f "$FILE" ]; then
-              gh release upload "$TAG" "$FILE" --clobber
-              echo "Uploaded: $FILE"
-            fi
-          done
+            for FILE in \
+              "build/artifacts/${APP_NAME}.tar.gz" \
+              "build/artifacts/${APP_NAME}.zip"; do
+              if [ -f "$FILE" ]; then
+                gh release upload "$TAG" "$FILE" --clobber
+                echo "Uploaded: $FILE"
+              fi
+            done
+          else
+            echo "Dry run - skipping artifact upload"
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
