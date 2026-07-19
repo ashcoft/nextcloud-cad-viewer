@@ -67,12 +67,6 @@ jobs:
           echo "=== Built Artifacts ==="
           ls -la build/artifacts/
 
-      - name: Set ownership for artifacts
-        run: |
-          sudo chown -R www-data:www-data build/artifacts/
-          echo "=== Artifacts ownership ==="
-          ls -la build/artifacts/
-
       - name: Upload build artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -92,9 +86,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    outputs:
-      version: ${{ steps.semantic.outputs.version }}
-      tag_name: ${{ steps.semantic.outputs.tag_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -123,7 +114,6 @@ jobs:
           ls -la build/artifacts/
 
       - name: Semantic Release
-        id: semantic
         run: |
           if [ "$DRY_RUN" = "true" ]; then
             npx semantic-release --dry-run
@@ -137,20 +127,3 @@ jobs:
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
           DRY_RUN: ${{ github.event.inputs.dry_run }}
-
-      - name: Upload artifacts to release (fallback)
-        if: steps.semantic.outputs.version != ''
-        run: |
-          TAG="v${{ steps.semantic.outputs.version }}"
-          echo "Uploading release assets for: $TAG"
-
-          for FILE in \
-            "build/artifacts/${APP_NAME}.tar.gz" \
-            "build/artifacts/${APP_NAME}.zip"; do
-            if [ -f "$FILE" ]; then
-              gh release upload "$TAG" "$FILE" --clobber
-              echo "Uploaded: $FILE"
-            fi
-          done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
