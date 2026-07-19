@@ -54,7 +54,7 @@ jobs:
       - name: Sync with remote
         run: |
           git fetch origin main
-          git merge origin/main --no-edit
+          git pull origin main
 
       - name: Semantic Release (prepare version)
         id: semantic
