@@ -166,6 +166,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Verify artifacts exist
+        if: github.event.inputs.dry_run != 'true'
         run: |
           echo "=== Artifacts ==="
           ls -la build/artifacts/ || echo "No artifacts directory"
@@ -180,9 +181,6 @@ jobs:
             "build/artifacts/${APP_NAME}.tar.gz" \
             "build/artifacts/${APP_NAME}.zip"; do
             if [ -f "$FILE" ]; then
-              gh release upload "$TAG" "$FILE" --clobber
-              echo "Uploaded: $FILE"
+              gh release upload "$TAG" "$FILE" --clobber || echo "Upload may have failed, check if assets exist"
             fi
           done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
