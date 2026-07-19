@@ -1,3 +1,12 @@
+## [0.4.4](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.4.3...v0.4.4) (2026-07-19)
+
+
+### Bug Fixes
+
+* address PR review comments ([439121d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/439121d0890c6d476d98c332b39a512d18440c32))
+* resolve CI build failure and remove redundancy ([f87bc6a](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f87bc6aa67569d39cef2031dace068a3b82e1e1e))
+* restore release.yml to v0.4.2 working version ([4fe024c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/4fe024cdf68ec44075c407cb74c65d23ad64471a))
+
 ## [0.4.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.4.1...v0.4.2) (2026-07-18)
 
 
