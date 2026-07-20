@@ -1,3 +1,4 @@
+/* global OCA, OC */
 import { generateUrl } from '@nextcloud/router'
 import $ from 'jquery';
 import { translate as t } from '@nextcloud/l10n'
@@ -44,13 +45,13 @@ $(function () {
 			} else {
 				OC.dialogs.alert(
 					t(OCA.CadViewer.AppName, 'Error when trying to save settings')
-					+ ' (' + response.data + ')'
+						+ ' (' + response.data + ')'
 				);
 			}
 		} catch (error) {
 			OC.dialogs.alert(
 				t(OCA.CadViewer.AppName, 'Error when trying to save settings')
-				+ ': ' + error.message
+					+ ': ' + error.message
 			);
 		}
 	});
