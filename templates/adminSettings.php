@@ -1,4 +1,4 @@
-<?php // Scripts and styles are added in AdminSettingsController::index() ?>
+<?php // Scripts and styles are added in AdminSettingsController::index()?>
 <div id="cad-viewer" class="section section-cad-viewer">
     <h2>CAD Viewer</h2>
 
