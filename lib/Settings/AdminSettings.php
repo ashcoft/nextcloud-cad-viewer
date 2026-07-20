@@ -15,11 +15,13 @@ class AdminSettings implements IDelegatedSettings
     ) {
     }
 
+    #[\Override]
     public function getName(): ?string
     {
         return null;
     }
 
+    #[\Override]
     public function getAuthorizedAppConfig(): array
     {
         return [
@@ -27,16 +29,19 @@ class AdminSettings implements IDelegatedSettings
         ];
     }
 
+    #[\Override]
     public function getForm(): TemplateResponse
     {
         return $this->settingsController->index();
     }
 
+    #[\Override]
     public function getSection(): string
     {
         return 'cad_viewer';
     }
 
+    #[\Override]
     public function getPriority(): int
     {
         return 60;
