@@ -1,3 +1,12 @@
+## [0.4.6](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.4.5...v0.4.6) (2026-07-20)
+
+
+### Bug Fixes
+
+* **deps:** update mlightcad dependencies to fix CI failure ([dfc528b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/dfc528b0415030ae7a569b62b298eb1d6bb696c2)), closes [#784](https://github.com/ashcoft/nextcloud-cad-viewer/issues/784)
+* **deps:** update mlightcad-ecosystem to v1.5.8 ([613fd00](https://github.com/ashcoft/nextcloud-cad-viewer/commit/613fd00eac4a2825d5b0f24f1b785d02b86b6528))
+* **deps:** upgrade @ai-sdk/provider-utils to patch security vulnerability ([3fff38b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/3fff38b8a17386c9d8df34e7b896bc23d32c180a))
+
 ## [0.4.5](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.4.4...v0.4.5) (2026-07-19)
 
 
