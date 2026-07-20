@@ -1,4 +1,3 @@
-/* global OCA, OC */
 import { generateUrl } from '@nextcloud/router'
 import $ from 'jquery';
 import { translate as t } from '@nextcloud/l10n'
