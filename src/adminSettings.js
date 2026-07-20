@@ -1,13 +1,9 @@
-/* global OCA, OC */
 import { generateUrl } from '@nextcloud/router'
 import $ from 'jquery';
 import { translate as t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 
 $(function () {
-	if (typeof OCA === 'undefined') {
-		OCA = {};
-	}
 	OCA.CadViewer = OCA.CadViewer || {};
 	if (!OCA.CadViewer.AppName) {
 		OCA.CadViewer = {
