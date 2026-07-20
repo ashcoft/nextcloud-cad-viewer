@@ -22,7 +22,7 @@ minimumReleaseAge: 0
 
 # Version overrides for Nextcloud 33+ compatibility with mlightcad packages
 overrides:
-  '@mlightcad/data-model': '1.9.12'
+  '@mlightcad/data-model': '1.11.1'
   '@mlightcad/libredwg-converter': '3.5.38'
   '@mlightcad/mtext-input-box': '0.2.11'
   '@mlightcad/mtext-renderer': '0.10.14'
@@ -32,3 +32,4 @@ overrides:
   'three': '0.184.0'
   'vue': '3.5.38'
   'vue-i18n': '11.4.6'
+  '@ai-sdk/provider-utils': '4.0.33'
