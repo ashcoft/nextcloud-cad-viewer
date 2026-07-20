@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * SPDX-FileCopyrightText: 2024 CAD Viewer Contributors
+ * SPDX-License-Identifier: MIT
+ */
+
 namespace {
     class OC
     {

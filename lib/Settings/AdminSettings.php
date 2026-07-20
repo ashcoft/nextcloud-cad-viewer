@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * SPDX-FileCopyrightText: 2024 CAD Viewer Contributors
+ * SPDX-License-Identifier: MIT
+ */
+
 namespace OCA\CadViewer\Settings;
 
 use OCA\CadViewer\Controller\AdminSettingsController;
@@ -11,7 +16,7 @@ use OCP\Settings\IDelegatedSettings;
 class AdminSettings implements IDelegatedSettings
 {
     public function __construct(
-        private readonly AdminSettingsController $settingsController
+        private readonly AdminSettingsController $settingsController,
     ) {
     }
 

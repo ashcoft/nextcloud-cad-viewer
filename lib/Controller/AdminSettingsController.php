@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * SPDX-FileCopyrightText: 2024 CAD Viewer Contributors
+ * SPDX-License-Identifier: MIT
+ */
+
 namespace OCA\CadViewer\Controller;
 
 use OCA\CadViewer\AppInfo\Application;
@@ -16,10 +21,11 @@ use OCP\Util;
 class AdminSettingsController extends Controller
 {
     public function __construct(
+        string $appName,
         IRequest $request,
-        private readonly AppConfig $config
+        private readonly AppConfig $config,
     ) {
-        parent::__construct(Application::APP_ID, $request);
+        parent::__construct($appName, $request);
     }
 
     public function index(): TemplateResponse
