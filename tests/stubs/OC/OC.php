@@ -44,10 +44,6 @@ namespace OCP\AppFramework\Bootstrap {
     interface IRegistrationContext
     {
         public function registerEventListener(string $eventClass, string $listenerClass): void;
-
-        public function registerSettingsSection(string $sectionClass): void;
-
-        public function registerAdminSettings(string $settingsClass): void;
     }
 
     interface IBootContext

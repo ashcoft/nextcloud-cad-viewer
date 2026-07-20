@@ -10,8 +10,6 @@ declare(strict_types=1);
 namespace OCA\CadViewer\AppInfo;
 
 use OCA\CadViewer\Listener\LoadViewer;
-use OCA\CadViewer\Settings\AdminSection;
-use OCA\CadViewer\Settings\AdminSettings;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -66,10 +64,6 @@ class Application extends App implements IBootstrap
             \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
             LoadViewer::class
         );
-
-        // Register admin settings
-        $context->registerSettingsSection(AdminSection::class);
-        $context->registerAdminSettings(AdminSettings::class);
     }
 
     /**
