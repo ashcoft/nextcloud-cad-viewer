@@ -11,17 +11,27 @@ namespace OCA\CadViewer\Settings;
 
 use OCA\CadViewer\Controller\AdminSettingsController;
 use OCP\AppFramework\Http\TemplateResponse;
-use OCP\IConfig;
-use OCP\IL10N;
-use OCP\Settings\ISettings;
+use OCP\Settings\IDelegatedSettings;
 
-class AdminSettings implements ISettings
+class AdminSettings implements IDelegatedSettings
 {
     public function __construct(
-        private readonly IConfig $config,
-        private readonly IL10N $l10n,
         private readonly AdminSettingsController $settingsController,
     ) {
+    }
+
+    #[\Override]
+    public function getName(): ?string
+    {
+        return null;
+    }
+
+    #[\Override]
+    public function getAuthorizedAppConfig(): array
+    {
+        return [
+            'cad_viewer' => ['/cad_viewer.*/'],
+        ];
     }
 
     #[\Override]
