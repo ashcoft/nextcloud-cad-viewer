@@ -1,0 +1,50 @@
+import { generateUrl } from '@nextcloud/router'
+import $ from 'jquery';
+import { translate as t } from '@nextcloud/l10n'
+import axios from '@nextcloud/axios'
+import { showInfo, showSuccess, showError } from '@nextcloud/dialogs'
+import '@nextcloud/dialogs/style.css';
+
+$(function () {
+    OCA.CadViewer = OCA.CadViewer || {};
+    if (!OCA.CadViewer.AppName) {
+        OCA.CadViewer = {
+            AppName: 'cad_viewer'
+        };
+    }
+
+    $('#cad-viewer-save').click(async function () {
+        const fTheme = $('#theme option:selected').val();
+        const fAutosave = $('#autosave option:selected').val();
+        const fLibraries = $('#libraries option:selected').val();
+        const fPreviews = $('#previews option:selected').val();
+
+        const saving = showInfo(t(OCA.CadViewer.AppName, 'Saving...'));
+
+        const settings = {
+            theme: fTheme,
+            autosave: fAutosave,
+            libraries: fLibraries,
+            previews: fPreviews
+        };
+
+        const params = new URLSearchParams();
+        for (const key in settings) {
+            params.append(key, settings[key]);
+        }
+
+        try {
+            const response = await axios.post(generateUrl('apps/' + OCA.CadViewer.AppName + '/settings/save'), params);
+            saving.hideToast();
+
+            if (response.status === 200) {
+                showSuccess(t(OCA.CadViewer.AppName, 'Settings have been successfully saved'), { timeout: 2500 });
+            } else {
+                showError(t(OCA.CadViewer.AppName, 'Error when trying to save settings') + ' (' + response.data + ')', { timeout: 2500 });
+            }
+        } catch (error) {
+            saving.hideToast();
+            showError(t(OCA.CadViewer.AppName, 'Error when trying to save settings') + ': ' + error.message, { timeout: 2500 });
+        }
+    });
+});

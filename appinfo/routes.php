@@ -14,5 +14,8 @@ return [
         ['name' => 'file#getFile', 'url' => '/api/file/{fileId}', 'verb' => 'GET'],
         // Preview endpoint
         ['name' => 'file#preview', 'url' => '/api/preview/{fileId}', 'verb' => 'GET'],
+        // Admin settings endpoint
+        ['name' => 'AdminSettings#index', 'url' => '/settings/admin', 'verb' => 'GET'],
+        ['name' => 'AdminSettings#settings', 'url' => '/settings/save', 'verb' => 'POST'],
     ],
 ];

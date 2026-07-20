@@ -1,0 +1,44 @@
+<?php
+
+declare(strict_types=1);
+
+namespace OCA\CadViewer\Settings;
+
+use OCA\CadViewer\Controller\AdminSettingsController;
+use OCP\AppFramework\Http\TemplateResponse;
+use OCP\Settings\IDelegatedSettings;
+
+class AdminSettings implements IDelegatedSettings
+{
+    public function __construct(
+        private readonly AdminSettingsController $settingsController
+    ) {
+    }
+
+    public function getName(): ?string
+    {
+        return null;
+    }
+
+    public function getAuthorizedAppConfig(): array
+    {
+        return [
+            'cad_viewer' => ['/cad_viewer.*/'],
+        ];
+    }
+
+    public function getForm(): TemplateResponse
+    {
+        return $this->settingsController->index();
+    }
+
+    public function getSection(): string
+    {
+        return 'cad_viewer';
+    }
+
+    public function getPriority(): int
+    {
+        return 60;
+    }
+}
