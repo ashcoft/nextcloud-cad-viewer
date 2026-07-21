@@ -29,7 +29,7 @@
     "@mlightcad/cad-simple-viewer": "^1.5.8",
     "@mlightcad/cad-svg-plugin": "1.5.8",
     "@mlightcad/cad-viewer": "1.5.8",
-    "@mlightcad/data-model": "^1.11.2",
+    "@mlightcad/data-model": "^1.11.3",
     "@nextcloud/files": "^4.0.0",
     "@nextcloud/router": "^3.1.0",
     "element-plus": "2.14.3",
