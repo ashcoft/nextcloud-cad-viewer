@@ -13,7 +13,7 @@
 - Dark/light theme
 - Fullscreen mode
 - Responsive design]]></description>
-  <version>0.4.10</version>
+  <version>0.4.14</version>
   <licence>MIT</licence>
   <author mail="dony@dony.me">CAD Viewer Contributors</author>
   <namespace>CadViewer</namespace>
@@ -33,6 +33,7 @@
   </dependencies>
   <settings>
     <admin>OCA\CadViewer\Settings\AdminSettings</admin>
+    <admin-section>OCA\CadViewer\Settings\AdminSection</admin-section>
   </settings>
   <navigations>
     <navigation>

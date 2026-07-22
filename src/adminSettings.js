@@ -17,8 +17,6 @@ $(function () {
 		const fLibraries = $('#libraries option:selected').val();
 		const fPreviews = $('#previews option:selected').val();
 
-		OC.dialogs.info(t(OCA.CadViewer.AppName, 'Saving...'));
-
 		const settings = {
 			theme: fTheme,
 			autosave: fAutosave,
@@ -32,25 +30,21 @@ $(function () {
 		}
 
 		try {
-			const response = await axios.post(
+			await axios.post(
 				generateUrl('apps/' + OCA.CadViewer.AppName + '/settings/save'),
 				params
 			);
 
-			if (response.status === 200) {
-				OC.dialogs.info(
-					t(OCA.CadViewer.AppName, 'Settings have been successfully saved')
-				);
-			} else {
-				OC.dialogs.alert(
-					t(OCA.CadViewer.AppName, 'Error when trying to save settings')
-						+ ' (' + response.data + ')'
-				);
-			}
+			OC.dialogs.info(
+				t(OCA.CadViewer.AppName, 'Settings have been successfully saved')
+			);
 		} catch (error) {
+			const errorMessage = error.response?.data?.message
+				|| error.response?.data
+				|| error.message;
 			OC.dialogs.alert(
 				t(OCA.CadViewer.AppName, 'Error when trying to save settings')
-					+ ': ' + error.message
+					+ ': ' + errorMessage
 			);
 		}
 	});

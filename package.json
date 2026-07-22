@@ -1,6 +1,6 @@
 {
   "name": "nextcloud-cad-viewer",
-  "version": "0.4.10",
+  "version": "0.4.14",
   "private": true,
   "description": "Nextcloud app for DWG/DXF viewer integration",
   "packageManager": "pnpm@11.15.1",
@@ -29,7 +29,7 @@
     "@mlightcad/cad-simple-viewer": "^1.5.8",
     "@mlightcad/cad-svg-plugin": "1.5.8",
     "@mlightcad/cad-viewer": "1.5.8",
-    "@mlightcad/data-model": "^1.11.1",
+    "@mlightcad/data-model": "^1.11.3",
     "@nextcloud/axios": "^2.0.0",
     "@nextcloud/files": "^4.0.0",
     "@nextcloud/l10n": "^3.0.0",
@@ -39,11 +39,8 @@
     "lodash-es": "4.18.1",
     "three": "0.185.1",
     "vue": "3.5.40",
-    "vue-i18n": "11.4.6",
+    "vue-i18n": "11.4.7",
     "vue-router": "^5.2.0"
-  },
-  "overrides": {
-    "brace-expansion@<2.1.2": "2.1.2"
   },
   "devDependencies": {
     "@babel/core": "^8.0.0",
@@ -51,9 +48,9 @@
     "@babel/preset-typescript": "^8.0.0",
     "@eslint/js": "^10.0.0",
     "@playwright/test": "^1.61.0",
-    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/changelog": "^7.0.0",
     "@semantic-release/exec": "^7.0.0",
-    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/git": "^11.0.0",
     "@types/node": "^26.0.1",
     "@vue/compiler-sfc": "^3.5.38",
     "@vue/test-utils": "^2.4.11",
@@ -64,7 +61,7 @@
     "conventional-changelog-conventionalcommits": "^10.0.0",
     "css-loader": "^7.1.4",
     "eslint": "^10.7.0",
-    "eslint-plugin-vue": "^10.9.2",
+    "eslint-plugin-vue": "^10.10.0",
     "jest": "^30.0.0",
     "jest-environment-jsdom": "^30.0.0",
     "jest-transform-stub": "^2.0.0",
