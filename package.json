@@ -74,7 +74,7 @@
     "typescript-eslint": "^8.64.0",
     "vue-eslint-parser": "^10.4.1",
     "vue-loader": "^17.4.2",
-    "vue-tsc": "^3.3.6",
+    "vue-tsc": "^3.3.8",
     "webpack": "^5.108.2",
     "webpack-cli": "^7.0.3"
   }
