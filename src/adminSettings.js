@@ -18,15 +18,17 @@ $(function () {
 		const fPreviews = $('#previews option:selected').val();
 
 		const settings = {
-			theme: fTheme,
-			autosave: fAutosave,
-			libraries: fLibraries,
-			previews: fPreviews
+			theme: String(fTheme),
+			autosave: String(fAutosave),
+			libraries: String(fLibraries),
+			previews: String(fPreviews)
 		};
 
 		const params = new URLSearchParams();
-		for (const key in settings) {
-			params.append(key, String(settings[key]));
+		for (const key of Object.keys(settings)) {
+			if (typeof settings[key] === 'string') {
+				params.append(key, settings[key]);
+			}
 		}
 
 		try {
