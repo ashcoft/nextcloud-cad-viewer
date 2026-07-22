@@ -30,7 +30,7 @@ class AdminSettings implements IDelegatedSettings
     public function getAuthorizedAppConfig(): array
     {
         return [
-            'cad_viewer' => ['/cad_viewer.*/'],
+            'cad_viewer' => ['/.*/'],
         ];
     }
 
