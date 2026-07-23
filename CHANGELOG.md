@@ -1,3 +1,10 @@
+## [0.5.3](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.2...v0.5.3) (2026-07-23)
+
+
+### Bug Fixes
+
+* **deps:** update dependency jquery to v4 ([9121bb7](https://github.com/ashcoft/nextcloud-cad-viewer/commit/9121bb71675ca53a1523cc0af17b11e96a4e6529))
+
 ## [0.5.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.1...v0.5.2) (2026-07-23)
 
 ## [0.5.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.0...v0.5.1) (2026-07-23)
