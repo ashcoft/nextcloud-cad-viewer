@@ -19,7 +19,8 @@ minimumReleaseAge: 0
 
 # Version overrides for Nextcloud 33+ compatibility with mlightcad packages
 overrides:
-  '@mlightcad/data-model': '1.11.1'
+  'brace-expansion@<2.1.2': '2.1.2'
+  '@mlightcad/data-model': '1.11.3'
   '@mlightcad/libredwg-converter': '3.5.38'
   '@mlightcad/mtext-input-box': '0.2.11'
   '@mlightcad/mtext-renderer': '0.10.14'

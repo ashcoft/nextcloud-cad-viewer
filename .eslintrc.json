@@ -1,0 +1,27 @@
+{
+  "env": {
+    "browser": true,
+    "es2022": true,
+    "node": true
+  },
+  "globals": {
+    "OCA": "readonly",
+    "OC": "readonly",
+    "t": "readonly",
+    "n": "readonly",
+    "document": "readonly",
+    "window": "readonly",
+    "URLSearchParams": "readonly"
+  },
+  "extends": [
+    "eslint:recommended"
+  ],
+  "rules": {
+    "no-console": "off",
+    "no-undef": "warn"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  }
+}

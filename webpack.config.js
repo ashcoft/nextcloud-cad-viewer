@@ -3,10 +3,13 @@ const webpack = require('webpack');
 const { VueLoaderPlugin } = require('vue-loader');
 
 module.exports = {
-  entry: './src/main.ts',
+  entry: {
+    'cad-viewer': './src/main.ts',
+    'adminSettings': './src/adminSettings.js',
+  },
   output: {
     path: path.resolve(__dirname, 'js'),
-    filename: 'cad-viewer.js',
+    filename: '[name].js',
     library: 'CadViewer',
     libraryTarget: 'window',
     clean: true,

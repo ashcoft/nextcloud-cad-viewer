@@ -31,6 +31,10 @@
     <php min-version="8.4"/>
     <nextcloud min-version="33" max-version="34"/>
   </dependencies>
+  <settings>
+    <admin>OCA\CadViewer\Settings\AdminSettings</admin>
+    <admin-section>OCA\CadViewer\Settings\AdminSection</admin-section>
+  </settings>
   <navigations>
     <navigation>
       <id>cad_viewer</id>
