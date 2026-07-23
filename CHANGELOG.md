@@ -1,3 +1,32 @@
+# [0.5.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.4.14...v0.5.0) (2026-07-23)
+
+
+### Bug Fixes
+
+* add ESLint globals for Codacy and fix PHP template indentation ([26468b6](https://github.com/ashcoft/nextcloud-cad-viewer/commit/26468b642eb62490dba6e385b386d30a4063f25e))
+* add global declarations and fix template indentation for Codacy ([99a94cf](https://github.com/ashcoft/nextcloud-cad-viewer/commit/99a94cf2b15fa2b9b8a2541b84244a72c37e5563))
+* add missing npm dependencies for admin settings ([e502875](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e5028756ff500f057b755b37c90e5147bffbbd01))
+* address Codacy CI issues ([6a28511](https://github.com/ashcoft/nextcloud-cad-viewer/commit/6a285112db4f3991f4964a8a6d3c7dd25d4791d6))
+* address Codacy issues ([1f0c39f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/1f0c39f307aee4a360271617ad5e5ec9be7f67ce))
+* apply PSR-12 code style and add copyright headers ([2f7f061](https://github.com/ashcoft/nextcloud-cad-viewer/commit/2f7f0616b7d78c8664efd4430dc8bcce91eccaaa))
+* correct npm package versions and update lockfile ([1c0ef1b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/1c0ef1bbd83c26f339873915a67816c15d52efb6))
+* fix code style in template and use IDelegatedSettings ([f3d1784](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f3d1784cc05b9ee35b48456f3429f239b5c434d3))
+* move settings before navigations in info.xml ([413623f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/413623fec0e8951ed9b343c8f0dc4f3f49d80f5a))
+* override brace-expansion to address security vulnerability ([05b2c01](https://github.com/ashcoft/nextcloud-cad-viewer/commit/05b2c01f460ca3a0601f2f9985c6f5d99f3faf1a))
+* remove global comment and restore template indentation ([7fe7970](https://github.com/ashcoft/nextcloud-cad-viewer/commit/7fe7970cbd40110b439272e659641a88431c3601))
+* remove space before closing PHP tag in template ([4d7daea](https://github.com/ashcoft/nextcloud-cad-viewer/commit/4d7daea0135c2bca2ccce69c01da0e44bbd8acb9))
+* remove space before closing tag in PHP comment ([133fe86](https://github.com/ashcoft/nextcloud-cad-viewer/commit/133fe86b3fd106ddf4d6d0dfd91cdd6f7af57073))
+* resolve CI failures ([cdbcc58](https://github.com/ashcoft/nextcloud-cad-viewer/commit/cdbcc58d581e14729d138ff6fd44ede9239222f1))
+* restore proper template indentation and fix long line ([0ac286f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/0ac286ffae8d6daa9966a2997b8ee42ea815cfc3))
+* use correct regex pattern for authorized app config ([ea85f6d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/ea85f6df89623f3b82f51822882a56e127d31831))
+* use info.xml for settings registration instead of bootstrap ([2e12038](https://github.com/ashcoft/nextcloud-cad-viewer/commit/2e12038645b3f40c3b33f97dbea927425a23ec90))
+* use OC.dialogs instead of @nextcloud/dialogs ([331590b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/331590bcd2135b5cab09507b410e39494a8e6f93))
+
+
+### Features
+
+* add admin settings page for CAD viewer ([9af1e54](https://github.com/ashcoft/nextcloud-cad-viewer/commit/9af1e5469ee49fa34fb26f811ce4fb4cf743d119))
+
 ## [0.4.14](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.4.13...v0.4.14) (2026-07-22)
 
 ## [0.4.13](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.4.12...v0.4.13) (2026-07-22)
