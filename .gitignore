@@ -72,3 +72,7 @@ htmlcov/
 js/*.js
 js/*.js.map
 !js/*.LICENSE.txt
+
+# Sepo generated artifacts
+.agent/dist/
+.agent/node_modules/

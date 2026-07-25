@@ -1,0 +1,63 @@
+name: Test Scripts
+
+on:
+  pull_request:
+    paths:
+      - ".agent/**"
+      - ".github/actions/**"
+      - ".github/prompts/**"
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+jobs:
+  check:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.repository == 'self-evolving/repo' ||
+      vars.AGENT_TEST_SCRIPTS_ENABLED == 'true'
+    runs-on: ${{ fromJson(vars.AGENT_TEST_RUNS_ON || vars.AGENT_RUNS_ON || '["ubuntu-latest"]') }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          cd .agent
+          npm ci
+
+      - name: Build agent
+        run: |
+          set -euo pipefail
+          cd .agent
+          npm run build
+
+      - name: Runtime tests
+        run: |
+          set -euo pipefail
+          cd .agent
+          npm run test:runtime
+
+      - name: Workflow and action checks
+        run: |
+          set -euo pipefail
+          cd .agent
+          npm run check:workflow
+
+      - name: Docs hygiene checks
+        run: |
+          set -euo pipefail
+          cd .agent
+          npm run check:docs
+
+      - name: Shell checks
+        run: |
+          set -euo pipefail
+          cd .agent
+          npm run check:shell
+
+      - name: Diff hygiene
+        run: git diff --check

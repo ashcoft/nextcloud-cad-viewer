@@ -1,0 +1,252 @@
+// CLI: extract portal event context from GitHub webhook payload.
+// Usage: node .agent/dist/cli/extract-context.js
+// Env: GITHUB_EVENT_PATH, GITHUB_EVENT_NAME, GITHUB_REPOSITORY, INPUT_MENTION,
+//      INPUT_TRIGGER_KIND, INPUT_LABEL_NAME, INPUT_AUTHOR_ASSOCIATION,
+//      INPUT_FOLLOWUP_INTENT_MODE, INPUT_TRIAGE_MODE
+// Outputs: should_respond, association, body, source_kind, target_kind,
+//          target_number, target_url, reaction_subject_id, response_kind,
+//          source_comment_id, source_comment_url, review_comment_id,
+//          discussion_node_id, reply_to_id, requested_by, requested_route,
+//          requested_skill, implicit_followup
+
+import { readFileSync } from "node:fs";
+import { isKnownAuthorAssociation } from "../access-policy.js";
+import {
+  hasGithubRepositoryCollaborator,
+  resolveGithubActorAssociation,
+} from "../actor-association.js";
+import { ghApi } from "../github.js";
+import { setOutput } from "../output.js";
+import {
+  DEFAULT_MENTION,
+  extractEventContext,
+  getAuthorAssociation,
+  getRequestedBy,
+  shouldSkipSender,
+  shouldRespondToMention,
+} from "../context.js";
+import { isApprovalCommand } from "../approval.js";
+import { resolveDiscussionReplyTo } from "../discussion.js";
+import {
+  parseFollowupIntentMode,
+  shouldConsiderImplicitFollowup,
+} from "../followup-intent.js";
+import {
+  extractRequestedRouteDecision,
+  parseTriageMode,
+  resolveRequestedLabel,
+} from "../triage.js";
+
+const eventPath = process.env.GITHUB_EVENT_PATH;
+const eventName = process.env.GITHUB_EVENT_NAME || "";
+const mention = process.env.INPUT_MENTION || DEFAULT_MENTION;
+const triggerKind = String(process.env.INPUT_TRIGGER_KIND || "mention").trim().toLowerCase();
+const labelName = process.env.INPUT_LABEL_NAME || "";
+const authorAssociationOverride = process.env.INPUT_AUTHOR_ASSOCIATION || "";
+const followupIntentModeRaw = process.env.INPUT_FOLLOWUP_INTENT_MODE || process.env.AGENT_FOLLOWUP_INTENT_MODE || "";
+const triageModeRaw = process.env.INPUT_TRIAGE_MODE || process.env.AGENT_TRIAGE_MODE || "";
+const repository = process.env.GITHUB_REPOSITORY || "";
+const ASSOCIATIONS_TRUSTED_WITHOUT_REFRESH = new Set([
+  "OWNER",
+  "MEMBER",
+  "COLLABORATOR",
+]);
+const WEAK_ASSOCIATIONS_FOR_COLLABORATOR_FALLBACK = new Set([
+  "CONTRIBUTOR",
+  "FIRST_TIME_CONTRIBUTOR",
+  "FIRST_TIMER",
+  "NONE",
+]);
+
+function normalizeAssociation(association: string): string {
+  return String(association || "").trim().toUpperCase();
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function resolveLabelActorAssociation(payload: Record<string, any>): string {
+  const override = String(authorAssociationOverride || "").trim().toUpperCase();
+  if (override) {
+    return override;
+  }
+
+  const senderLogin = String(payload.sender?.login || "").trim();
+  const ownerLogin = String(payload.repository?.owner?.login || repository.split("/")[0] || "").trim();
+  const ownerType = String(payload.repository?.owner?.type || "").trim().toLowerCase();
+  if (!senderLogin) {
+    return "NONE";
+  }
+
+  return resolveGithubActorAssociation({
+    repo: repository,
+    actorLogin: senderLogin,
+    ownerLogin,
+    ownerType,
+    lookupOrder: "organization-first",
+  });
+}
+
+function refreshIssueAssociation(
+  association: string,
+  issueNumber: string,
+): string {
+  if (
+    eventName !== "issues" ||
+    !repository ||
+    !issueNumber
+  ) {
+    return normalizeAssociation(association) || association;
+  }
+
+  const refreshed = ghApi([
+    `repos/${repository}/issues/${issueNumber}`,
+    "--jq",
+    ".author_association // empty",
+  ]).toUpperCase();
+  return refreshed || normalizeAssociation(association) || association;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeMentionAuthorAssociation(association: string, payload: Record<string, any>): string {
+  const normalized = normalizeAssociation(association);
+  if (authorAssociationOverride || ASSOCIATIONS_TRUSTED_WITHOUT_REFRESH.has(normalized)) {
+    return normalized || association;
+  }
+
+  const resolved = refreshIssueAssociation(
+    normalized || association,
+    String(payload.issue?.number || ""),
+  );
+  const resolvedNormalized = normalizeAssociation(resolved);
+  if (ASSOCIATIONS_TRUSTED_WITHOUT_REFRESH.has(resolvedNormalized)) {
+    return resolvedNormalized;
+  }
+
+  if (
+    WEAK_ASSOCIATIONS_FOR_COLLABORATOR_FALLBACK.has(resolvedNormalized) &&
+    hasGithubRepositoryCollaborator(repository, getRequestedBy(eventName, payload))
+  ) {
+    return "COLLABORATOR";
+  }
+
+  return resolvedNormalized || resolved;
+}
+
+if (!eventPath || !eventName) {
+  console.error("Missing GITHUB_EVENT_PATH or GITHUB_EVENT_NAME");
+  process.exitCode = 2;
+} else {
+  const payload = JSON.parse(readFileSync(eventPath, "utf8"));
+
+  // Gate 1: skip bot-authored events
+  if (shouldSkipSender(payload)) {
+    setOutput("should_respond", "false");
+    console.log("Skipping bot-authored event");
+  } else {
+    // Gate 2: check author association
+    const association = triggerKind === "label"
+      ? resolveLabelActorAssociation(payload)
+      : normalizeMentionAuthorAssociation(
+        authorAssociationOverride || getAuthorAssociation(eventName, payload),
+        payload,
+      );
+    if (!isKnownAuthorAssociation(association)) {
+      setOutput("should_respond", "false");
+      console.log(`Skipping unsupported sender association: ${association}`);
+    } else {
+      const ctx = extractEventContext(eventName, payload);
+
+      // Gate 3: validate target number
+      if (!ctx.targetNumber) {
+        setOutput("should_respond", "false");
+        console.log("No target number found");
+      } else {
+        const hasMentionTrigger = triggerKind !== "label" && shouldRespondToMention(eventName, payload, mention);
+        let implicitFollowup = false;
+        if (triggerKind !== "label" && !hasMentionTrigger) {
+          try {
+            implicitFollowup = shouldConsiderImplicitFollowup(
+              eventName,
+              payload,
+              parseFollowupIntentMode(followupIntentModeRaw),
+            );
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            console.error(msg);
+            process.exitCode = 2;
+          }
+        }
+
+        // Gate 4: check for live mention or eligible implicit follow-up.
+        if (process.exitCode) {
+          // Invalid follow-up configuration was already reported above.
+        } else if (triggerKind !== "label" && !hasMentionTrigger && !implicitFollowup) {
+          setOutput("should_respond", "false");
+          console.log("No live mention or eligible implicit follow-up found");
+        }
+        // Gate 5: skip approval commands on mention triggers
+        else if (triggerKind !== "label" && hasMentionTrigger && isApprovalCommand(ctx.body, mention)) {
+          setOutput("should_respond", "false");
+          console.log("Skipping approval command (handled by agent-approve)");
+        } else {
+          // Resolve discussion reply threading if needed
+          let replyToId = "";
+          if (ctx.discussionCommentNodeId) {
+            try {
+              replyToId = resolveDiscussionReplyTo(ctx.discussionCommentNodeId);
+            } catch (err: unknown) {
+              const msg = err instanceof Error ? err.message : String(err);
+              console.warn(`Could not resolve discussion reply-to: ${msg}`);
+            }
+          }
+
+          const requestedBy =
+            (triggerKind === "label" ? payload.sender?.login : "") || getRequestedBy(eventName, payload);
+          const requestedLabel = triggerKind === "label" ? resolveRequestedLabel(labelName) : null;
+          const requestedMention = triggerKind === "label" || implicitFollowup
+            ? { route: "", skill: "" }
+            : extractRequestedRouteDecision(ctx.body, mention);
+          let requestedRoute = requestedLabel?.route || requestedMention.route;
+          const requestedSkill = requestedLabel?.skill || requestedMention.skill;
+
+          // Uncommanded explicit mentions answer directly by default. Parsing
+          // the mode only on this path keeps slash routes, labels, and
+          // unmentioned follow-ups independent from AGENT_TRIAGE_MODE. Invalid
+          // values throw, matching AGENT_FOLLOWUP_INTENT_MODE handling.
+          if (
+            !requestedRoute &&
+            triggerKind !== "label" &&
+            hasMentionTrigger &&
+            !implicitFollowup &&
+            parseTriageMode(triageModeRaw) === "commands"
+          ) {
+            requestedRoute = "answer";
+          }
+
+          if (triggerKind === "label" && !requestedLabel) {
+            setOutput("should_respond", "false");
+            console.log(`Ignoring unsupported agent label: ${labelName || "missing"}`);
+          } else {
+            setOutput("should_respond", "true");
+            setOutput("association", association);
+            setOutput("body", ctx.body);
+            setOutput("source_kind", ctx.sourceKind);
+            setOutput("target_kind", ctx.targetKind);
+            setOutput("target_number", ctx.targetNumber);
+            setOutput("target_url", ctx.targetUrl);
+            setOutput("reaction_subject_id", ctx.reactionSubjectId);
+            setOutput("response_kind", ctx.responseKind);
+            setOutput("source_comment_id", ctx.sourceCommentId || "");
+            setOutput("source_comment_url", ctx.sourceCommentUrl || "");
+            setOutput("review_comment_id", ctx.reviewCommentId || "");
+            setOutput("discussion_node_id", ctx.discussionNodeId || "");
+            setOutput("reply_to_id", replyToId);
+            setOutput("requested_by", requestedBy);
+            setOutput("requested_route", requestedRoute);
+            setOutput("requested_skill", requestedSkill);
+            setOutput("implicit_followup", implicitFollowup ? "true" : "false");
+          }
+        }
+      }
+    }
+  }
+}
