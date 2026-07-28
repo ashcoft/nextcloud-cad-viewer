@@ -12,7 +12,7 @@ overrides:
   '@mlightcad/mtext-renderer': 0.10.14
   '@mlightcad/ribbon': 0.1.9
   element-plus: 2.14.2
-  js-yaml: ^5.0.0
+  js-yaml: ^5.2.2
   three: 0.184.0
   vue: 3.5.38
   vue-i18n: 11.4.6
@@ -5048,7 +5048,7 @@ packages:
     engines: {node: '>=20.9.0'}
     hasBin: true
     peerDependencies:
-      js-yaml: ^5.0.0
+      js-yaml: ^5.2.2
       json5: ^2.2.3
       toml: ^3.0.0 || ^4.0.0
       webpack: ^5.101.0
