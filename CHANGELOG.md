@@ -1,3 +1,11 @@
+## [0.5.12](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.11...v0.5.12) (2026-07-28)
+
+
+### Bug Fixes
+
+* upgrade js-yaml to ^5.2.2 to patch DoS vulnerability ([aa1f55a](https://github.com/ashcoft/nextcloud-cad-viewer/commit/aa1f55a485683e94368db11e92daa8253528f806))
+* upgrade js-yaml to ^5.2.2 to patch DoS vulnerability ([7c19ae7](https://github.com/ashcoft/nextcloud-cad-viewer/commit/7c19ae76eed49419846f6b795638d7ac73063824))
+
 ## [0.5.11](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.10...v0.5.11) (2026-07-28)
 
 ## [0.5.10](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.9...v0.5.10) (2026-07-28)
