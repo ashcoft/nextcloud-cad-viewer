@@ -24,6 +24,10 @@ module.exports = {
     '**/tests/unit/**/*.test.(js|jsx|ts|tsx)',
     '**/__tests__/*.(js|jsx|ts|tsx)',
   ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '<rootDir>/.agent/',
+  ],
   testEnvironmentOptions: {
     url: 'http://localhost/',
   },
