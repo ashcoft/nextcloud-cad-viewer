@@ -1,3 +1,10 @@
+## [0.5.31](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.30...v0.5.31) (2026-08-07)
+
+
+### Bug Fixes
+
+* upgrade undici to 7.29.0 to patch CRLF injection vulnerability ([662c1a3](https://github.com/ashcoft/nextcloud-cad-viewer/commit/662c1a39e62e24955d19550d7782be2d52d1e9f6))
+
 ## [0.5.30](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.29...v0.5.30) (2026-08-07)
 
 ## [0.5.29](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.28...v0.5.29) (2026-08-07)
