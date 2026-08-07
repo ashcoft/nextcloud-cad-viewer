@@ -1,3 +1,10 @@
+## [0.5.34](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.33...v0.5.34) (2026-08-07)
+
+
+### Bug Fixes
+
+* upgrade postcss to 8.5.23+ to patch source map vulnerability ([ececaf9](https://github.com/ashcoft/nextcloud-cad-viewer/commit/ececaf93495be793bac0a09ec17039a06aac33e6))
+
 ## [0.5.33](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.32...v0.5.33) (2026-08-07)
 
 
