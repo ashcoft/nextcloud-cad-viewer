@@ -1,3 +1,23 @@
+## [0.5.33](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.32...v0.5.33) (2026-08-07)
+
+
+### Bug Fixes
+
+* pin pullfrog action to full SHA for Codacy compliance ([8f5fe5d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/8f5fe5d2ffbaa2fa10851c8bd62c6866075c3e98))
+
+## [0.5.32](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.31...v0.5.32) (2026-08-07)
+
+## [0.5.31](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.30...v0.5.31) (2026-08-07)
+
+
+### Bug Fixes
+
+* upgrade undici to 7.29.0 to patch CRLF injection vulnerability ([662c1a3](https://github.com/ashcoft/nextcloud-cad-viewer/commit/662c1a39e62e24955d19550d7782be2d52d1e9f6))
+
+## [0.5.30](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.29...v0.5.30) (2026-08-07)
+
+## [0.5.29](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.28...v0.5.29) (2026-08-07)
+
 ## [0.5.28](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.27...v0.5.28) (2026-08-07)
 
 ## [0.5.27](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.26...v0.5.27) (2026-08-07)
