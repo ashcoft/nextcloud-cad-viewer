@@ -26,7 +26,7 @@ overrides:
   '@mlightcad/mtext-renderer': '0.10.14'
   '@mlightcad/ribbon': '0.1.9'
   'element-plus': '2.14.2'
-  'fast-uri': '^3.1.5'
+  'fast-uri': '^4.0.0'
   'js-yaml': '^5.2.2'
   'postcss': '^8.5.23'
   'three': '0.184.0'
