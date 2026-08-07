@@ -1,3 +1,10 @@
+## [0.5.35](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.34...v0.5.35) (2026-08-07)
+
+
+### Bug Fixes
+
+* upgrade fast-uri to 3.1.5+ to patch host confusion vulnerability ([478b281](https://github.com/ashcoft/nextcloud-cad-viewer/commit/478b281181c863d2edcaead4d644ae0ddd92d2b6))
+
 ## [0.5.34](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.33...v0.5.34) (2026-08-07)
 
 
