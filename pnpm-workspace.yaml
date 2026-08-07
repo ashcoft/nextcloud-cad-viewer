@@ -27,6 +27,7 @@ overrides:
   '@mlightcad/ribbon': '0.1.9'
   'element-plus': '2.14.2'
   'js-yaml': '^5.2.2'
+  'postcss': '^8.5.23'
   'three': '0.184.0'
   'undici': '^8.0.0'
   'vue': '3.5.38'
