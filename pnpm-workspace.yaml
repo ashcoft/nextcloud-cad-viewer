@@ -35,4 +35,4 @@ overrides:
   'undici': '^8.0.0'
   'vue': '3.5.38'
   'vue-i18n': '11.4.6'
-  '@ai-sdk/provider-utils': '5.0.23'
+  '@ai-sdk/provider-utils': '5.0.25'
