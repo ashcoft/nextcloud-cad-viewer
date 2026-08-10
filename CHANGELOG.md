@@ -1,3 +1,10 @@
+## [0.5.38](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.37...v0.5.38) (2026-08-10)
+
+
+### Bug Fixes
+
+* **deps:** bump dompurify to 3.4.13 via pnpm override (XSS) ([558b62b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/558b62be69f5ff97189aeefd582457531e92dc50)), closes [#29](https://github.com/ashcoft/nextcloud-cad-viewer/issues/29)
+
 ## [0.5.37](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.36...v0.5.37) (2026-08-10)
 
 
