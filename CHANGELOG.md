@@ -1,3 +1,10 @@
+## [0.5.37](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.36...v0.5.37) (2026-08-10)
+
+
+### Bug Fixes
+
+* **deps:** bump composer platform.php to 8.4.3 ([c09de1c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/c09de1cbf2703e57544288bc14882129901fd6b5))
+
 ## [0.5.36](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.35...v0.5.36) (2026-08-07)
 
 ## [0.5.35](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.34...v0.5.35) (2026-08-07)
