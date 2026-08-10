@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'ashcoft/nextcloud-cad-viewer',
-        'pretty_version' => 'dev-symfony-php84',
-        'version' => 'dev-symfony-php84',
-        'reference' => '27e77e8b8c337a3de50469d5eeacfbbe2d1dbaee',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'bdf3e40739f0aa84f9d181f353ec904c918f28d2',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -110,9 +110,9 @@
             'dev_requirement' => true,
         ),
         'ashcoft/nextcloud-cad-viewer' => array(
-            'pretty_version' => 'dev-symfony-php84',
-            'version' => 'dev-symfony-php84',
-            'reference' => '27e77e8b8c337a3de50469d5eeacfbbe2d1dbaee',
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'bdf3e40739f0aa84f9d181f353ec904c918f28d2',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -356,9 +356,9 @@
             'dev_requirement' => true,
         ),
         'phpstan/phpstan' => array(
-            'pretty_version' => '2.2.2',
-            'version' => '2.2.2.0',
-            'reference' => 'e5cc34d491a90e79c216d824f60fe21fd4d93bd6',
+            'pretty_version' => '2.2.8',
+            'version' => '2.2.8.0',
+            'reference' => 'e285254e60f33c21902efef4a926ca0987c06804',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpstan/phpstan',
             'aliases' => array(),
