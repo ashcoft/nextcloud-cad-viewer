@@ -20,7 +20,7 @@ minimumReleaseAge: 0
 # Version overrides for Nextcloud 33+ compatibility with mlightcad packages
 overrides:
   # Security: force dompurify >= 3.4.13 to fix XSS via IN_PLACE hook subtree (GHSA / advisory #29)
-  'dompurify': '3.4.13'
+  'dompurify': '3.4.14'
   'brace-expansion@<2.1.2': '5.0.9'
   '@mlightcad/data-model': '1.11.3'
   '@mlightcad/libredwg-converter': '3.5.38'
