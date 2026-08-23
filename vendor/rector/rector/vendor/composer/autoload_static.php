@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitd39f15e0ab454d5bd1b6164e92fe7456
+class ComposerStaticInit640664dbd40b7ff859fac59f57f58953
 {
     public static $files = array (
         'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
@@ -1458,7 +1458,6 @@ class ComposerStaticInitd39f15e0ab454d5bd1b6164e92fe7456
         'Rector\\Caching\\ValueObject\\CacheFilePaths' => __DIR__ . '/../..' . '/src/Caching/ValueObject/CacheFilePaths.php',
         'Rector\\Caching\\ValueObject\\CacheItem' => __DIR__ . '/../..' . '/src/Caching/ValueObject/CacheItem.php',
         'Rector\\Caching\\ValueObject\\Storage\\FileCacheStorage' => __DIR__ . '/../..' . '/src/Caching/ValueObject/Storage/FileCacheStorage.php',
-        'Rector\\Caching\\ValueObject\\Storage\\MemoryCacheStorage' => __DIR__ . '/../..' . '/src/Caching/ValueObject/Storage/MemoryCacheStorage.php',
         'Rector\\Carbon\\NodeFactory\\CarbonCallFactory' => __DIR__ . '/../..' . '/rules/Carbon/NodeFactory/CarbonCallFactory.php',
         'Rector\\Carbon\\Rector\\FuncCall\\DateFuncCallToCarbonRector' => __DIR__ . '/../..' . '/rules/Carbon/Rector/FuncCall/DateFuncCallToCarbonRector.php',
         'Rector\\Carbon\\Rector\\FuncCall\\TimeFuncCallToCarbonRector' => __DIR__ . '/../..' . '/rules/Carbon/Rector/FuncCall/TimeFuncCallToCarbonRector.php',
@@ -1819,6 +1818,7 @@ class ComposerStaticInitd39f15e0ab454d5bd1b6164e92fe7456
         'Rector\\Doctrine\\Collection22\\Rector\\CriteriaOrderingConstantsDeprecationRector' => __DIR__ . '/..' . '/rector/rector-doctrine/rules/Collection22/Rector/CriteriaOrderingConstantsDeprecationRector.php',
         'Rector\\Doctrine\\Dbal211\\Rector\\MethodCall\\ExtractArrayArgOnQueryBuilderSelectRector' => __DIR__ . '/..' . '/rector/rector-doctrine/rules/Dbal211/Rector/MethodCall/ExtractArrayArgOnQueryBuilderSelectRector.php',
         'Rector\\Doctrine\\Dbal211\\Rector\\MethodCall\\ReplaceFetchAllMethodCallRector' => __DIR__ . '/..' . '/rector/rector-doctrine/rules/Dbal211/Rector/MethodCall/ReplaceFetchAllMethodCallRector.php',
+        'Rector\\Doctrine\\Dbal31\\Rector\\MethodCall\\QueryBuilderExecuteToExecuteQueryOrExecuteStatementRector' => __DIR__ . '/..' . '/rector/rector-doctrine/rules/Dbal31/Rector/MethodCall/QueryBuilderExecuteToExecuteQueryOrExecuteStatementRector.php',
         'Rector\\Doctrine\\Dbal36\\Rector\\MethodCall\\MigrateQueryBuilderResetQueryPartRector' => __DIR__ . '/..' . '/rector/rector-doctrine/rules/Dbal36/Rector/MethodCall/MigrateQueryBuilderResetQueryPartRector.php',
         'Rector\\Doctrine\\Dbal40\\Rector\\MethodCall\\ChangeCompositeExpressionAddMultipleWithWithRector' => __DIR__ . '/..' . '/rector/rector-doctrine/rules/Dbal40/Rector/MethodCall/ChangeCompositeExpressionAddMultipleWithWithRector.php',
         'Rector\\Doctrine\\Dbal40\\Rector\\StmtsAwareInterface\\ExecuteQueryParamsToBindValueRector' => __DIR__ . '/..' . '/rector/rector-doctrine/rules/Dbal40/Rector/StmtsAwareInterface/ExecuteQueryParamsToBindValueRector.php',
@@ -2940,6 +2940,7 @@ class ComposerStaticInitd39f15e0ab454d5bd1b6164e92fe7456
         'Rector\\Symfony\\Symfony53\\Rector\\StaticPropertyFetch\\KernelTestCaseContainerPropertyDeprecationRector' => __DIR__ . '/..' . '/rector/rector-symfony/rules/Symfony53/Rector/StaticPropertyFetch/KernelTestCaseContainerPropertyDeprecationRector.php',
         'Rector\\Symfony\\Symfony60\\Rector\\FuncCall\\ContainerInterfaceServiceToServiceContainerRector' => __DIR__ . '/..' . '/rector/rector-symfony/rules/Symfony60/Rector/FuncCall/ContainerInterfaceServiceToServiceContainerRector.php',
         'Rector\\Symfony\\Symfony60\\Rector\\MethodCall\\GetHelperControllerToServiceRector' => __DIR__ . '/..' . '/rector/rector-symfony/rules/Symfony60/Rector/MethodCall/GetHelperControllerToServiceRector.php',
+        'Rector\\Symfony\\Symfony61\\Rector\\Attribute\\RouteRequirementStringToConstantRector' => __DIR__ . '/..' . '/rector/rector-symfony/rules/Symfony61/Rector/Attribute/RouteRequirementStringToConstantRector.php',
         'Rector\\Symfony\\Symfony61\\Rector\\Class_\\CommandConfigureToAttributeRector' => __DIR__ . '/..' . '/rector/rector-symfony/rules/Symfony61/Rector/Class_/CommandConfigureToAttributeRector.php',
         'Rector\\Symfony\\Symfony61\\Rector\\Class_\\CommandPropertyToAttributeRector' => __DIR__ . '/..' . '/rector/rector-symfony/rules/Symfony61/Rector/Class_/CommandPropertyToAttributeRector.php',
         'Rector\\Symfony\\Symfony61\\Rector\\Class_\\MagicClosureTwigExtensionToNativeMethodsRector' => __DIR__ . '/..' . '/rector/rector-symfony/rules/Symfony61/Rector/Class_/MagicClosureTwigExtensionToNativeMethodsRector.php',
@@ -3288,9 +3289,9 @@ class ComposerStaticInitd39f15e0ab454d5bd1b6164e92fe7456
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitd39f15e0ab454d5bd1b6164e92fe7456::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitd39f15e0ab454d5bd1b6164e92fe7456::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitd39f15e0ab454d5bd1b6164e92fe7456::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit640664dbd40b7ff859fac59f57f58953::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit640664dbd40b7ff859fac59f57f58953::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit640664dbd40b7ff859fac59f57f58953::$classMap;
 
         }, null, ClassLoader::class);
     }
