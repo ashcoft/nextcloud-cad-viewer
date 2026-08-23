@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Symfony\Symfony62\Rector\Class_;
 
-use RectorPrefix202606\Nette\Utils\Strings;
+use RectorPrefix202608\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
@@ -19,7 +19,9 @@ use Rector\Symfony\CodeQuality\NodeAnalyzer\AttributePresenceDetector;
 use Rector\Symfony\Enum\SensioAttribute;
 use Rector\Symfony\Enum\SymfonyAttribute;
 use Rector\ValueObject\PhpVersionFeature;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -28,7 +30,7 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  *
  * @see \Rector\Symfony\Tests\Symfony62\Rector\Class_\SecurityAttributeToIsGrantedAttributeRector\SecurityAttributeToIsGrantedAttributeRectorTest
  */
-final class SecurityAttributeToIsGrantedAttributeRector extends AbstractRector implements MinPhpVersionInterface
+final class SecurityAttributeToIsGrantedAttributeRector extends AbstractRector implements MinPhpVersionInterface, ComposerPackageConstraintInterface
 {
     /**
      * @readonly
@@ -56,6 +58,10 @@ final class SecurityAttributeToIsGrantedAttributeRector extends AbstractRector i
     public function provideMinPhpVersion(): int
     {
         return PhpVersionFeature::ATTRIBUTES;
+    }
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('symfony/security-http', '>=6.2');
     }
     public function getRuleDefinition(): RuleDefinition
     {

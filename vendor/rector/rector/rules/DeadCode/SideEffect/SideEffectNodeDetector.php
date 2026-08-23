@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\DeadCode\SideEffect;
 
-use RectorPrefix202606\Nette\Utils\Strings;
+use RectorPrefix202608\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ArrayDimFetch;
@@ -94,7 +94,7 @@ final class SideEffectNodeDetector
         if (!$this->nodeTypeResolver->isObjectType($nodeCaller, $objectType)) {
             return \false;
         }
-        return $this->nodeNameResolver->isName($node->name, 'createMock');
+        return $this->nodeNameResolver->isNames($node->name, ['createMock', 'createStub']);
     }
     private function isPhpParser(New_ $new): bool
     {

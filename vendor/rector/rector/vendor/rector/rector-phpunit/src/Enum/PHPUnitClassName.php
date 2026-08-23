@@ -27,6 +27,11 @@ final class PHPUnitClassName
      */
     public const INVOCATION_MOCKER = 'PHPUnit\Framework\MockObject\Builder\InvocationMocker';
     /**
+     * PHPUnit 13 moved the interface out of the Builder namespace
+     * @var string
+     */
+    public const INVOCATION_MOCKER_INTERFACE = 'PHPUnit\Framework\MockObject\InvocationMocker';
+    /**
      * @var string
      */
     public const INVOCATION_STUBBER = 'PHPUnit\Framework\MockObject\InvocationStubber';
@@ -46,6 +51,10 @@ final class PHPUnitClassName
      * @var string
      */
     public const SYMFONY_TYPE_TEST_CASE = 'Symfony\Component\Form\Test\TypeTestCase';
+    /**
+     * @var string
+     */
+    public const TWIG_INTEGRATION_TEST_CASE = 'Twig\Test\IntegrationTestCase';
     /**
      * @var string[]
      */

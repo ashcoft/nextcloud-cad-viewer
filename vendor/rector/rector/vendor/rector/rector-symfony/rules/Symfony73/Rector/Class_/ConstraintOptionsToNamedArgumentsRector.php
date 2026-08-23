@@ -15,12 +15,14 @@ use PhpParser\Node\Name\FullyQualified;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
 use Rector\Symfony\Enum\SymfonyClass;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Symfony\Tests\Symfony73\Rector\Class_\ConstraintOptionsToNamedArgumentsRector\ConstraintOptionsToNamedArgumentsRectorTest
  */
-final class ConstraintOptionsToNamedArgumentsRector extends AbstractRector
+final class ConstraintOptionsToNamedArgumentsRector extends AbstractRector implements ComposerPackageConstraintInterface
 {
     /**
      * @readonly
@@ -29,6 +31,10 @@ final class ConstraintOptionsToNamedArgumentsRector extends AbstractRector
     public function __construct(ValueResolver $valueResolver)
     {
         $this->valueResolver = $valueResolver;
+    }
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('symfony/validator', '>=7.3');
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -48,11 +54,11 @@ CODE_SAMPLE
     {
         return [New_::class];
     }
+    /**
+     * @param New_ $node
+     */
     public function refactor(Node $node): ?Node
     {
-        if (!$node instanceof New_) {
-            return null;
-        }
         if ($node->isFirstClassCallable()) {
             return null;
         }
@@ -125,7 +131,12 @@ CODE_SAMPLE
                     return null;
                 }
             }
-            $arg = new Arg($item->value);
+            $argValue = $item->value;
+            // the "groups" constructor argument is typed as array, so a scalar option must be wrapped
+            if ($keyValue === 'groups' && !$argValue instanceof Array_) {
+                $argValue = new Array_([new ArrayItem($argValue)]);
+            }
+            $arg = new Arg($argValue);
             $arg->name = new Identifier($keyValue);
             $namedArgs[] = $arg;
         }

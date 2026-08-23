@@ -1,18 +1,17 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202606;
+namespace RectorPrefix202608;
 
 use Rector\Config\RectorConfig;
 use Rector\Symfony\CodeQuality\Rector\AttributeGroup\SingleConditionSecurityAttributeToIsGrantedRector;
 use Rector\Symfony\CodeQuality\Rector\BinaryOp\RequestIsMainRector;
 use Rector\Symfony\CodeQuality\Rector\BinaryOp\ResponseStatusCodeRector;
-use Rector\Symfony\CodeQuality\Rector\Class_\ControllerMethodInjectionToConstructorRector;
 use Rector\Symfony\CodeQuality\Rector\Class_\EventListenerToEventSubscriberRector;
+use Rector\Symfony\CodeQuality\Rector\Class_\EventSubscriberMethodReturnVoidRector;
 use Rector\Symfony\CodeQuality\Rector\Class_\InlineClassRoutePrefixRector;
-use Rector\Symfony\CodeQuality\Rector\Class_\LoadValidatorMetadataToAnnotationRector;
+use Rector\Symfony\CodeQuality\Rector\Class_\LoadValidatorMetadataToAttributeRector;
 use Rector\Symfony\CodeQuality\Rector\Class_\SplitAndSecurityAttributeToIsGrantedRector;
-use Rector\Symfony\CodeQuality\Rector\ClassMethod\ActionSuffixRemoverRector;
 use Rector\Symfony\CodeQuality\Rector\ClassMethod\ParamTypeFromRouteRequiredRegexRector;
 use Rector\Symfony\CodeQuality\Rector\ClassMethod\RemoveUnusedRequestParamRector;
 use Rector\Symfony\CodeQuality\Rector\ClassMethod\ResponseReturnTypeControllerActionRector;
@@ -27,20 +26,17 @@ return static function (RectorConfig $rectorConfig): void {
         RedirectToRouteRector::class,
         EventListenerToEventSubscriberRector::class,
         ResponseReturnTypeControllerActionRector::class,
+        EventSubscriberMethodReturnVoidRector::class,
         // int and string literals to const fetches
         ResponseStatusCodeRector::class,
         LiteralGetToRequestClassConstantRector::class,
         RemoveUnusedRequestParamRector::class,
         ParamTypeFromRouteRequiredRegexRector::class,
         // controller
-        ActionSuffixRemoverRector::class,
-        ControllerMethodInjectionToConstructorRector::class,
-        LoadValidatorMetadataToAnnotationRector::class,
+        LoadValidatorMetadataToAttributeRector::class,
         // request method
         RequestIsMainRector::class,
         ParameterBagTypedGetMethodCallRector::class,
-        // enable once tested
-        // ReturnDirectJsonResponseRector::class,
         // tests
         AssertSameResponseCodeWithDebugContentsRector::class,
         StringCastDebugResponseRector::class,

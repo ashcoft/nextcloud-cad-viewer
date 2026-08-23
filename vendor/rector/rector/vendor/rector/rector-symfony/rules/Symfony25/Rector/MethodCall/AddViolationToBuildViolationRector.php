@@ -12,6 +12,8 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Identifier;
 use PHPStan\Type\ObjectType;
 use Rector\Rector\AbstractRector;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -19,8 +21,12 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  *
  * @see \Rector\Symfony\Tests\Symfony25\Rector\MethodCall\AddViolationToBuildViolationRector\AddViolationToBuildViolationRectorTest
  */
-final class AddViolationToBuildViolationRector extends AbstractRector
+final class AddViolationToBuildViolationRector extends AbstractRector implements ComposerPackageConstraintInterface
 {
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('symfony/validator', '>=2.5');
+    }
     public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Change `$context->addViolationAt` to `$context->buildViolation` on Validator ExecutionContext', [new CodeSample(<<<'CODE_SAMPLE'
@@ -92,7 +98,7 @@ CODE_SAMPLE
     private function buildFluentWithInvalidValue(MethodCall $methodCall, array $args): MethodCall
     {
         if (isset($args[3])) {
-            $methodCall = new MethodCall($methodCall, 'setInvalidValue', [new Arg($args[3]->value)]);
+            return new MethodCall($methodCall, 'setInvalidValue', [new Arg($args[3]->value)]);
         }
         return $methodCall;
     }
@@ -102,7 +108,7 @@ CODE_SAMPLE
     private function buildFluentWithPlural(MethodCall $methodCall, array $args): MethodCall
     {
         if (isset($args[4])) {
-            $methodCall = new MethodCall($methodCall, 'setPlural', [new Arg($args[4]->value)]);
+            return new MethodCall($methodCall, 'setPlural', [new Arg($args[4]->value)]);
         }
         return $methodCall;
     }
@@ -112,7 +118,7 @@ CODE_SAMPLE
     private function buildFluentWithCode(MethodCall $methodCall, array $args): MethodCall
     {
         if (isset($args[5])) {
-            $methodCall = new MethodCall($methodCall, 'setCode', [new Arg($args[5]->value)]);
+            return new MethodCall($methodCall, 'setCode', [new Arg($args[5]->value)]);
         }
         return $methodCall;
     }

@@ -3,25 +3,20 @@
 declare (strict_types=1);
 namespace Rector\Bridge;
 
-use Rector\Doctrine\Set\SetProvider\DoctrineSetProvider;
-use Rector\PHPUnit\Set\SetProvider\PHPUnitSetProvider;
 use Rector\Set\Contract\SetInterface;
 use Rector\Set\Contract\SetProviderInterface;
-use Rector\Set\SetProvider\CoreSetProvider;
-use Rector\Set\SetProvider\PHPSetProvider;
 use Rector\Set\ValueObject\ComposerTriggeredSet;
-use Rector\Symfony\Set\SetProvider\Symfony3SetProvider;
-use Rector\Symfony\Set\SetProvider\Symfony4SetProvider;
-use Rector\Symfony\Set\SetProvider\Symfony5SetProvider;
-use Rector\Symfony\Set\SetProvider\Symfony6SetProvider;
-use Rector\Symfony\Set\SetProvider\Symfony7SetProvider;
-use Rector\Symfony\Set\SetProvider\Symfony8SetProvider;
-use Rector\Symfony\Set\SetProvider\SymfonySetProvider;
-use Rector\Symfony\Set\SetProvider\TwigSetProvider;
 /**
  * @api
  *
  * Utils class to ease building bridges by 3rd-party tools
+ *
+ * @deprecated Bond the rules themselves instead, by implementing the ComposerPackageConstraintInterface. A set
+ * described as an object only existed to be matched against the installed packages; a bonded rule states the exact
+ * package version its target API is available from and applies from there upwards, so a plain set file is enough.
+ *
+ * @see \Rector\VersionBonding\Contract\ComposerPackageConstraintInterface
+ * @see https://github.com/rectorphp/rector-src/pull/8296
  */
 final class SetProviderCollector
 {
@@ -29,28 +24,13 @@ final class SetProviderCollector
      * @var SetProviderInterface[]
      * @readonly
      */
-    private array $setProviders;
+    private array $setProviders = [];
     /**
-     * @param SetProviderInterface[] $extraSetProviders
+     * @param SetProviderInterface[] $setProviders
      */
-    public function __construct(array $extraSetProviders = [])
+    public function __construct(array $setProviders = [])
     {
-        $setProviders = [
-            // register all known set providers here
-            new PHPSetProvider(),
-            new CoreSetProvider(),
-            new PHPUnitSetProvider(),
-            new SymfonySetProvider(),
-            new Symfony3SetProvider(),
-            new Symfony4SetProvider(),
-            new Symfony5SetProvider(),
-            new Symfony6SetProvider(),
-            new Symfony7SetProvider(),
-            new Symfony8SetProvider(),
-            new DoctrineSetProvider(),
-            new TwigSetProvider(),
-        ];
-        $this->setProviders = array_merge($setProviders, $extraSetProviders);
+        $this->setProviders = $setProviders;
     }
     /**
      * @return array<SetProviderInterface>

@@ -16,6 +16,8 @@ use Rector\PHPUnit\Enum\PHPUnitClassName;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\Rector\AbstractRector;
 use Rector\ValueObject\MethodName;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -23,7 +25,7 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  *
  * @see https://github.com/sebastianbergmann/phpunit/commit/24c208d6a340c3071f28a9b5cce02b9377adfd43
  */
-final class PropertyCreateMockToCreateStubRector extends AbstractRector
+final class PropertyCreateMockToCreateStubRector extends AbstractRector implements ComposerPackageConstraintInterface
 {
     /**
      * @readonly
@@ -79,6 +81,10 @@ final class PropertyCreateMockToCreateStubRector extends AbstractRector
         }
         return $node;
     }
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('phpunit/phpunit', '>=11.0');
+    }
     public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Change mock object property that is never mocked to createStub()', [new CodeSample(<<<'CODE_SAMPLE'
@@ -133,6 +139,16 @@ CODE_SAMPLE
     {
         if (!$this->testsNodeAnalyzer->isInTestClass($class)) {
             return \true;
+        }
+        // skip abstract/base test classes, as property can be mocked in child classes
+        if ($class->isAbstract()) {
+            return \true;
+        }
+        if ($class->name instanceof Identifier) {
+            $shortClassName = $class->name->toString();
+            if (substr_compare($shortClassName, 'TestCase', -strlen('TestCase')) === 0 || strncmp($shortClassName, 'Abstract', strlen('Abstract')) === 0) {
+                return \true;
+            }
         }
         $setUpClassMethod = $class->getMethod(MethodName::SET_UP);
         // the setup class method must be here, so we have a place where the createMock() is used

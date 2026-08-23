@@ -16,14 +16,20 @@ use Rector\PHPUnit\Enum\PHPUnitAttribute;
 use Rector\PHPUnit\Enum\PHPUnitClassName;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\Rector\AbstractRector;
+use Rector\ValueObject\PhpVersionFeature;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
+use Rector\VersionBonding\Contract\MinPhpVersionInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
+ * The AllowMockObjectsWithoutExpectations attribute was added in PHPUnit 12.5.2
+ *
  * @see \Rector\PHPUnit\Tests\PHPUnit120\Rector\Class_\AllowMockObjectsWhereParentClassRector\AllowMockObjectsWhereParentClassRectorTest
  *
  * @see https://github.com/sebastianbergmann/phpunit/commit/24c208d6a340c3071f28a9b5cce02b9377adfd43
  */
-final class AllowMockObjectsWhereParentClassRector extends AbstractRector
+final class AllowMockObjectsWhereParentClassRector extends AbstractRector implements MinPhpVersionInterface, ComposerPackageConstraintInterface
 {
     /**
      * @readonly
@@ -47,9 +53,17 @@ final class AllowMockObjectsWhereParentClassRector extends AbstractRector
         $this->attributeFinder = $attributeFinder;
         $this->reflectionProvider = $reflectionProvider;
     }
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('phpunit/phpunit', '>=12.5.2');
+    }
     public function getNodeTypes(): array
     {
         return [Class_::class];
+    }
+    public function provideMinPhpVersion(): int
+    {
+        return PhpVersionFeature::ATTRIBUTES;
     }
     /**
      * @param Class_ $node
@@ -104,11 +118,13 @@ CODE_SAMPLE
         if (!$classReflection instanceof ClassReflection) {
             return \false;
         }
+        $found = \false;
         foreach (self::PARENT_CLASSES as $parentClass) {
             if ($classReflection->is($parentClass)) {
-                return \true;
+                $found = \true;
+                break;
             }
         }
-        return \false;
+        return $found;
     }
 }

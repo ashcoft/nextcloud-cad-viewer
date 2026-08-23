@@ -3,7 +3,11 @@
 declare (strict_types=1);
 namespace Rector\Doctrine\CodeQuality\Utils;
 
-use RectorPrefix202606\Nette\Utils\Strings;
+use RectorPrefix202608\Nette\Utils\Strings;
+/**
+ * @api used by rector-drupal
+ * @see \Rector\Doctrine\Tests\CodeQuality\Utils\CaseStringHelperTest
+ */
 final class CaseStringHelper
 {
     public static function camelCase(string $value): string

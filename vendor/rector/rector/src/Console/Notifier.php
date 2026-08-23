@@ -4,9 +4,9 @@ declare (strict_types=1);
 namespace Rector\Console;
 
 use Rector\Exception\Configuration\InvalidConfigurationException;
-use RectorPrefix202606\Symfony\Component\Console\Input\ArgvInput;
-use RectorPrefix202606\Symfony\Component\Console\Output\ConsoleOutput;
-use RectorPrefix202606\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202608\Symfony\Component\Console\Input\ArgvInput;
+use RectorPrefix202608\Symfony\Component\Console\Output\ConsoleOutput;
+use RectorPrefix202608\Symfony\Component\Console\Style\SymfonyStyle;
 final class Notifier
 {
     public static function notifyNotSuitableMethodForPHP74(string $calledMethod): void
@@ -24,6 +24,6 @@ final class Notifier
         if (\PHP_VERSION_ID >= 80000) {
             return;
         }
-        throw new InvalidConfigurationException('The "->withPhpSets()" method uses named arguments. Its suitable for PHP 8.0+. Use more explicit "->withPhp53Sets()" ... "->withPhp74Sets()" in lower PHP versions instead.');
+        throw new InvalidConfigurationException('The "->withPhpSets()" method uses named arguments. Its suitable for PHP 8.0+. Use "->withPhpLevel()" in lower PHP versions instead.');
     }
 }

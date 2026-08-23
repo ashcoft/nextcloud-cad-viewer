@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Symfony\Symfony43\Rector\MethodCall;
 
-use RectorPrefix202606\Nette\Utils\Strings;
+use RectorPrefix202608\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\MethodCall;
@@ -13,6 +13,8 @@ use PHPStan\Type\ThisType;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
 use Rector\Symfony\Enum\SymfonyClass;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -23,7 +25,7 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  *
  * @see \Rector\Symfony\Tests\Symfony43\Rector\MethodCall\ConvertRenderTemplateShortNotationToBundleSyntaxRector\ConvertRenderTemplateShortNotationToBundleSyntaxRectorTest
  */
-final class ConvertRenderTemplateShortNotationToBundleSyntaxRector extends AbstractRector
+final class ConvertRenderTemplateShortNotationToBundleSyntaxRector extends AbstractRector implements ComposerPackageConstraintInterface
 {
     /**
      * @readonly
@@ -32,6 +34,10 @@ final class ConvertRenderTemplateShortNotationToBundleSyntaxRector extends Abstr
     public function __construct(ValueResolver $valueResolver)
     {
         $this->valueResolver = $valueResolver;
+    }
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('symfony/framework-bundle', '>=4.3');
     }
     public function getRuleDefinition(): RuleDefinition
     {

@@ -9,8 +9,10 @@ use PhpParser\Node\Attribute;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\BinaryOp\Concat;
 use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
+use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Class_;
@@ -27,7 +29,9 @@ use Rector\Symfony\Enum\CommandMethodName;
 use Rector\Symfony\Enum\SymfonyAttribute;
 use Rector\Symfony\Enum\SymfonyClass;
 use Rector\ValueObject\PhpVersionFeature;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -35,7 +39,7 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  *
  * @see \Rector\Symfony\Tests\Symfony73\Rector\Class_\CommandHelpToAttributeRector\CommandHelpToAttributeRectorTest
  */
-final class CommandHelpToAttributeRector extends AbstractRector implements MinPhpVersionInterface
+final class CommandHelpToAttributeRector extends AbstractRector implements MinPhpVersionInterface, ComposerPackageConstraintInterface
 {
     /**
      * @readonly
@@ -53,6 +57,10 @@ final class CommandHelpToAttributeRector extends AbstractRector implements MinPh
     public function provideMinPhpVersion(): int
     {
         return PhpVersionFeature::ATTRIBUTES;
+    }
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('symfony/console', '>=7.3');
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -122,10 +130,43 @@ CODE_SAMPLE
         }
         $wrappedHelpString = new String_($helpExpr->value, [Attributekey::KIND => String_::KIND_NOWDOC, AttributeKey::DOC_LABEL => 'TXT']);
         $asCommandAttribute->args[] = new Arg($wrappedHelpString, \false, \false, [], new Identifier('help'));
-        if ($configureClassMethod->stmts === []) {
-            unset($configureClassMethod);
+        // remove now empty configure() method, only a possible parent::configure() call left
+        if ($this->isEmptyConfigureClassMethod($configureClassMethod)) {
+            foreach ($node->stmts as $key => $classStmt) {
+                if ($classStmt === $configureClassMethod) {
+                    unset($node->stmts[$key]);
+                    break;
+                }
+            }
         }
         return $node;
+    }
+    private function isEmptyConfigureClassMethod(ClassMethod $classMethod): bool
+    {
+        foreach ((array) $classMethod->stmts as $stmt) {
+            if ($this->isParentConfigureCall($stmt)) {
+                continue;
+            }
+            return \false;
+        }
+        return \true;
+    }
+    private function isParentConfigureCall(Stmt $stmt): bool
+    {
+        if (!$stmt instanceof Expression) {
+            return \false;
+        }
+        if (!$stmt->expr instanceof StaticCall) {
+            return \false;
+        }
+        $staticCall = $stmt->expr;
+        if (!$staticCall->class instanceof Name) {
+            return \false;
+        }
+        if (!$staticCall->class->isSpecialClassName() || $staticCall->class->toString() !== 'parent') {
+            return \false;
+        }
+        return $this->isName($staticCall->name, CommandMethodName::CONFIGURE);
     }
     /**
      * Returns the argument passed to setHelp() and removes the MethodCall node.

@@ -3,8 +3,6 @@
 declare (strict_types=1);
 namespace Rector\Configuration;
 
-use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
-use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 final class Option
 {
     /**
@@ -55,6 +53,14 @@ final class Option
      * @var string
      */
     public const POLYFILL_PACKAGES = 'polyfill_packages';
+    /**
+     * PHP version explicitly picked in withPhpSets(), e.g. withPhpSets(php82: true).
+     * Polyfilled rules above this version are skipped, as the version is an intended ceiling.
+     *
+     * @internal
+     * @var string
+     */
+    public const POLYFILL_CEILING_PHP_VERSION = 'polyfill_ceiling_php_version';
     /**
      * @internal Use
      * @var string @see \Rector\Config\RectorConfig::importNames() instead
@@ -151,14 +157,6 @@ final class Option
      * @var string
      */
     public const CACHE_DIR = 'cache_dir';
-    /**
-     * Cache backend. Most of the time we cache in files, but in ephemeral environment (e.g. CI), a faster `MemoryCacheStorage` can be useful.
-     * @internal Use RectorConfig::cacheClass() instead
-     *
-     * @var class-string<CacheStorageInterface>
-     * @internal
-     */
-    public const CACHE_CLASS = FileCacheStorage::class;
     /**
      * @var string
      */
@@ -264,6 +262,31 @@ final class Option
      */
     public const SKIPPED_RECTOR_RULES = 'skipped_rector_rules';
     /**
+     * @internal For reporting skipped classes that are not Rector rules
+     * @var string
+     */
+    public const SKIPPED_NON_RECTOR_CLASSES = 'skipped_non_rector_classes';
+    /**
+     * @internal For reporting deprecated cache meta extensions
+     * @var string
+     */
+    public const CACHE_META_EXTENSIONS = 'cache_meta_extensions';
+    /**
+     * @internal For reporting deprecated withPhp53Sets() ... withPhp74Sets() methods
+     * @var string
+     */
+    public const DEPRECATED_PHP_SETS_METHODS = 'deprecated_php_sets_methods';
+    /**
+     * @internal For reporting deprecated withAttributesSets() arguments
+     * @var string
+     */
+    public const DEPRECATED_ATTRIBUTES_SETS_ARGS = 'deprecated_attributes_sets_args';
+    /**
+     * @internal For reporting deprecated withComposerBased() arguments
+     * @var string
+     */
+    public const DEPRECATED_COMPOSER_BASED_ARGS = 'deprecated_composer_based_args';
+    /**
      * @internal For collect skipped start with short open tag files to be reported
      * @var string
      */
@@ -293,6 +316,22 @@ final class Option
      */
     public const COMPOSER_BASED_SETS = 'composer_based_sets';
     /**
+     * @internal To report rule configuration bound to an installed package version
+     * @see \Rector\Config\RectorConfig::ruleWithConfigurationComposerVersionBound()
+     * @var string
+     */
+    public const COMPOSER_BOUND_RULE_CONFIGURATIONS = 'composer_bound_rule_configurations';
+    /**
+     * Run only rules bound to an installed composer package version
+     * @var string
+     */
+    public const COMPOSER_BASED = 'composer-based';
+    /**
+     * Run only rules bound to a minimal PHP version
+     * @var string
+     */
+    public const PHP = 'php';
+    /**
      * @internal To filter files by specific suffix
      * @var string
      */
@@ -318,4 +357,10 @@ final class Option
      * @var string
      */
     public const FILES_WITHOUT_EXTENSION = 'files_without_extension';
+    /**
+     * @internal Use
+     * @var string @see \Rector\Config\RectorConfig::typeGuardedClasses() instead
+     * @var string
+     */
+    public const TYPE_GUARDED_CLASSES = 'type_guarded_classes';
 }

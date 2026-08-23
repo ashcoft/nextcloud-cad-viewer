@@ -1,6 +1,6 @@
 <?php
 
-namespace RectorPrefix202606\Illuminate\Contracts\Database\Eloquent;
+namespace RectorPrefix202608\Illuminate\Contracts\Database\Eloquent;
 
 interface Castable
 {

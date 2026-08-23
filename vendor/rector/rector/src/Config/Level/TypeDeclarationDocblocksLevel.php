@@ -5,24 +5,20 @@ namespace Rector\Config\Level;
 
 use Rector\Contract\Rector\RectorInterface;
 use Rector\TypeDeclaration\Rector\ClassMethod\AddParamArrayDocblockBasedOnCallableNativeFuncCallRector;
-use Rector\TypeDeclaration\Rector\ClassMethod\AddReturnArrayDocblockBasedOnArrayMapRector;
 use Rector\TypeDeclaration\Rector\ClassMethod\AddReturnDocblockForScalarArrayFromAssignsRector;
-use Rector\TypeDeclarationDocblocks\Rector\Class_\AddReturnDocblockDataProviderRector;
 use Rector\TypeDeclarationDocblocks\Rector\Class_\AddVarArrayDocblockFromDimFetchAssignRector;
 use Rector\TypeDeclarationDocblocks\Rector\Class_\ClassMethodArrayDocblockParamFromLocalCallsRector;
 use Rector\TypeDeclarationDocblocks\Rector\Class_\DocblockVarArrayFromGetterReturnRector;
 use Rector\TypeDeclarationDocblocks\Rector\Class_\DocblockVarArrayFromPropertyDefaultsRector;
 use Rector\TypeDeclarationDocblocks\Rector\Class_\DocblockVarFromParamDocblockInConstructorRector;
-use Rector\TypeDeclarationDocblocks\Rector\ClassMethod\AddParamArrayDocblockBasedOnArrayMapRector;
 use Rector\TypeDeclarationDocblocks\Rector\ClassMethod\AddParamArrayDocblockFromAssignsParamToParamReferenceRector;
-use Rector\TypeDeclarationDocblocks\Rector\ClassMethod\AddParamArrayDocblockFromDataProviderRector;
 use Rector\TypeDeclarationDocblocks\Rector\ClassMethod\AddParamArrayDocblockFromDimFetchAccessRector;
 use Rector\TypeDeclarationDocblocks\Rector\ClassMethod\AddReturnDocblockForArrayDimAssignedObjectRector;
 use Rector\TypeDeclarationDocblocks\Rector\ClassMethod\AddReturnDocblockForCommonObjectDenominatorRector;
-use Rector\TypeDeclarationDocblocks\Rector\ClassMethod\AddReturnDocblockForDimFetchArrayFromAssignsRector;
 use Rector\TypeDeclarationDocblocks\Rector\ClassMethod\AddReturnDocblockForJsonArrayRector;
 use Rector\TypeDeclarationDocblocks\Rector\ClassMethod\DocblockGetterReturnArrayFromPropertyDocblockVarRector;
 use Rector\TypeDeclarationDocblocks\Rector\ClassMethod\DocblockReturnArrayFromDirectArrayInstanceRector;
+use Rector\TypeDeclarationDocblocks\Rector\ClassMethod\NarrowArrayCollectionUnionReturnDocblockRector;
 final class TypeDeclarationDocblocksLevel
 {
     /**
@@ -32,18 +28,13 @@ final class TypeDeclarationDocblocksLevel
         // start with rules based on native code
         // property var
         DocblockVarArrayFromPropertyDefaultsRector::class,
-        // tests
-        AddParamArrayDocblockFromDataProviderRector::class,
-        AddReturnDocblockDataProviderRector::class,
         // param
         AddParamArrayDocblockFromDimFetchAccessRector::class,
         ClassMethodArrayDocblockParamFromLocalCallsRector::class,
-        AddParamArrayDocblockBasedOnArrayMapRector::class,
         AddParamArrayDocblockFromAssignsParamToParamReferenceRector::class,
         AddParamArrayDocblockBasedOnCallableNativeFuncCallRector::class,
         // return
         AddReturnDocblockForCommonObjectDenominatorRector::class,
-        AddReturnArrayDocblockBasedOnArrayMapRector::class,
         AddReturnDocblockForScalarArrayFromAssignsRector::class,
         DocblockReturnArrayFromDirectArrayInstanceRector::class,
         AddReturnDocblockForArrayDimAssignedObjectRector::class,
@@ -55,7 +46,6 @@ final class TypeDeclarationDocblocksLevel
         AddVarArrayDocblockFromDimFetchAssignRector::class,
         // return
         DocblockGetterReturnArrayFromPropertyDocblockVarRector::class,
-        // run latter after other rules, as more generic
-        AddReturnDocblockForDimFetchArrayFromAssignsRector::class,
+        NarrowArrayCollectionUnionReturnDocblockRector::class,
     ];
 }

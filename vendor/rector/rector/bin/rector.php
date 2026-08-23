@@ -1,9 +1,9 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202606;
+namespace RectorPrefix202608;
 
-use RectorPrefix202606\Nette\Utils\Json;
+use RectorPrefix202608\Nette\Utils\Json;
 use Rector\Bootstrap\AutoloadFileParameterResolver;
 use Rector\Bootstrap\RectorConfigsResolver;
 use Rector\ChangesReporting\Output\JsonOutputFormatter;
@@ -12,9 +12,9 @@ use Rector\Console\Style\SymfonyStyleFactory;
 use Rector\DependencyInjection\LazyContainerFactory;
 use Rector\DependencyInjection\RectorContainerFactory;
 use Rector\Util\Reflection\PrivatesAccessor;
-use RectorPrefix202606\Symfony\Component\Console\Application;
-use RectorPrefix202606\Symfony\Component\Console\Command\Command;
-use RectorPrefix202606\Symfony\Component\Console\Input\ArgvInput;
+use RectorPrefix202608\Symfony\Component\Console\Application;
+use RectorPrefix202608\Symfony\Component\Console\Command\Command;
+use RectorPrefix202608\Symfony\Component\Console\Input\ArgvInput;
 // @ intentionally: continue anyway
 @\ini_set('memory_limit', '-1');
 // Performance boost
@@ -94,7 +94,7 @@ final class AutoloadIncluder
         require_once $filePath;
     }
 }
-\class_alias('RectorPrefix202606\AutoloadIncluder', 'AutoloadIncluder', \false);
+\class_alias('RectorPrefix202608\AutoloadIncluder', 'AutoloadIncluder', \false);
 if (\file_exists(__DIR__ . '/../preload.php') && \is_dir(__DIR__ . '/../vendor')) {
     require_once __DIR__ . '/../preload.php';
 }
@@ -118,12 +118,18 @@ try {
     $outputFormat = $argvInput->getParameterOption('--' . Option::OUTPUT_FORMAT);
     // report fatal error in json format
     if ($outputFormat === JsonOutputFormatter::NAME) {
-        echo Json::encode(['fatal_errors' => [$throwable->getMessage()]]);
+        $errors = [];
+        do {
+            $errors[] = $throwable->getMessage();
+        } while ($throwable = $throwable->getPrevious());
+        echo Json::encode(['fatal_errors' => $errors]);
     } else {
         // report fatal errors in console format
         $symfonyStyleFactory = new SymfonyStyleFactory(new PrivatesAccessor());
         $symfonyStyle = $symfonyStyleFactory->create();
-        $symfonyStyle->error(\str_replace("\r\n", "\n", $throwable->getMessage()));
+        do {
+            $symfonyStyle->error(\str_replace("\r\n", "\n", $throwable->getMessage()));
+        } while ($throwable = $throwable->getPrevious());
     }
     exit(Command::FAILURE);
 }

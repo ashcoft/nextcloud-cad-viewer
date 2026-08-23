@@ -19,12 +19,14 @@ use PhpParser\NodeVisitor;
 use PHPStan\Type\ObjectType;
 use Rector\Rector\AbstractRector;
 use Rector\Symfony\Enum\SymfonyClass;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Symfony\Tests\Symfony73\Rector\Class_\AuthorizationCheckerToAccessDecisionManagerInVoterRector\AuthorizationCheckerToAccessDecisionManagerInVoterRectorTest
  */
-final class AuthorizationCheckerToAccessDecisionManagerInVoterRector extends AbstractRector
+final class AuthorizationCheckerToAccessDecisionManagerInVoterRector extends AbstractRector implements ComposerPackageConstraintInterface
 {
     /**
      * @var string
@@ -34,6 +36,10 @@ final class AuthorizationCheckerToAccessDecisionManagerInVoterRector extends Abs
      * @var string
      */
     private const ACCESS_DECISION_MANAGER_PROPERTY = 'accessDecisionManager';
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('symfony/security-core', '>=7.3');
+    }
     public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Replaces AuthorizationCheckerInterface with AccessDecisionManagerInterface inside Symfony Voters', [new CodeSample(<<<'CODE_SAMPLE'
@@ -49,7 +55,7 @@ final class AuthorizationCheckerVoter extends Voter
 
     protected function voteOnAttribute(string $attribute, $subject, TokenInterface $token): bool
     {
-        return $this->authorizationChecker->isGranted('ROLE_ADMIN');
+        return $this->authorizationChecker->isGranted('ROLE_ADMIN', $subject);
     }
 }
 CODE_SAMPLE
@@ -66,7 +72,7 @@ final class AuthorizationCheckerVoter extends Voter
 
     protected function voteOnAttribute(string $attribute, $subject, TokenInterface $token): bool
     {
-        return $this->accessDecisionManager->decide($token, ['ROLE_ADMIN']);
+        return $this->accessDecisionManager->decide($token, ['ROLE_ADMIN'], $subject);
     }
 }
 CODE_SAMPLE
@@ -153,7 +159,12 @@ CODE_SAMPLE
                     return null;
                 }
                 $attributeExpr = $attributeArg->value;
-                $node->args = [new Arg($tokenVariable), new Arg(new Array_([new ArrayItem($attributeExpr)]))];
+                $args = [new Arg($tokenVariable), new Arg(new Array_([new ArrayItem($attributeExpr)]))];
+                $subjectArg = $node->args[1] ?? null;
+                if ($subjectArg instanceof Arg) {
+                    $args[] = new Arg($subjectArg->value);
+                }
+                $node->args = $args;
                 $hasChanged = \true;
                 return $node;
             });
