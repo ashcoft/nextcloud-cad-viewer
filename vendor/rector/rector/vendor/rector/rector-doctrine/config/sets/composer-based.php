@@ -12,6 +12,7 @@ use Rector\Doctrine\Bundle230\Rector\Class_\AddAnnotationToRepositoryRector;
 use Rector\Doctrine\Collection22\Rector\CriteriaOrderingConstantsDeprecationRector;
 use Rector\Doctrine\Dbal211\Rector\MethodCall\ExtractArrayArgOnQueryBuilderSelectRector;
 use Rector\Doctrine\Dbal211\Rector\MethodCall\ReplaceFetchAllMethodCallRector;
+use Rector\Doctrine\Dbal31\Rector\MethodCall\QueryBuilderExecuteToExecuteQueryOrExecuteStatementRector;
 use Rector\Doctrine\Dbal36\Rector\MethodCall\MigrateQueryBuilderResetQueryPartRector;
 use Rector\Doctrine\Dbal40\Rector\MethodCall\ChangeCompositeExpressionAddMultipleWithWithRector;
 use Rector\Doctrine\Dbal40\Rector\StmtsAwareInterface\ExecuteQueryParamsToBindValueRector;
@@ -62,6 +63,8 @@ return static function (RectorConfig $rectorConfig): void {
         ReplaceFetchAllMethodCallRector::class,
         // doctrine/dbal 3.8
         MigrateQueryBuilderResetQueryPartRector::class,
+        // doctrine/dbal 3.1
+        QueryBuilderExecuteToExecuteQueryOrExecuteStatementRector::class,
         // doctrine/dbal 4.0 and 4.2
         ChangeCompositeExpressionAddMultipleWithWithRector::class,
         ExecuteQueryParamsToBindValueRector::class,
@@ -140,6 +143,13 @@ return static function (RectorConfig $rectorConfig): void {
         // @see https://github.com/doctrine/orm/pull/9906
         'Doctrine\ORM\Event\LifecycleEventArgs' => 'Doctrine\Persistence\Event\LifecycleEventArgs',
     ], 'doctrine/orm', '>=2.13');
+    // doctrine/orm 3.5
+    $rectorConfig->ruleWithConfigurationComposerVersionBound(RenameMethodRector::class, [
+        // @see https://github.com/doctrine/orm/pull/12022
+        new MethodCallRename('Doctrine\ORM\ORMSetup', 'createAttributeMetadataConfiguration', 'createAttributeMetadataConfig'),
+        new MethodCallRename('Doctrine\ORM\ORMSetup', 'createXMLMetadataConfiguration', 'createXMLMetadataConfig'),
+        new MethodCallRename('Doctrine\ORM\ORMSetup', 'createConfiguration', 'createConfig'),
+    ], 'doctrine/orm', '>=3.5');
     $rectorConfig->ruleWithConfigurationComposerVersionBound(RenameMethodRector::class, [
         // @see https://github.com/doctrine/orm/pull/9876
         new MethodCallRename('Doctrine\ORM\Event\LifecycleEventArgs', 'getEntityManager', 'getObjectManager'),
@@ -170,6 +180,10 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->ruleWithConfigurationComposerVersionBound(RenameClassConstFetchRector::class, [
         // @see https://github.com/doctrine/dbal/blob/4.0.x/UPGRADE.md#bc-break-removed-connectionparam__array-constants
         new RenameClassAndConstFetch('Doctrine\DBAL\Connection', 'PARAM_INT_ARRAY', 'Doctrine\DBAL\ArrayParameterType', 'INTEGER'),
+    ], 'doctrine/dbal', '>=4.0');
+    $rectorConfig->ruleWithConfigurationComposerVersionBound(RenameClassConstFetchRector::class, [
+        // @see https://github.com/doctrine/dbal/blob/4.4.x/UPGRADE.md#bc-break-removed-array-and-object-column-types
+        new RenameClassAndConstFetch('Doctrine\DBAL\Types\Types', 'ARRAY', 'Doctrine\DBAL\Types\Types', 'SIMPLE_ARRAY'),
     ], 'doctrine/dbal', '>=4.0');
     $rectorConfig->ruleWithConfigurationComposerVersionBound(RenameClassRector::class, [
         // @see https://github.com/doctrine/dbal/blob/4.0.x/UPGRADE.md#bc-break-renamed-sqlite-platform-classes
