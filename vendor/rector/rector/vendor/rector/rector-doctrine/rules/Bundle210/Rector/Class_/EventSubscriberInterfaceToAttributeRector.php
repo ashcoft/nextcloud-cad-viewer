@@ -10,6 +10,7 @@ use PhpParser\Node\AttributeGroup;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Identifier;
+use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
@@ -18,7 +19,9 @@ use PHPStan\Reflection\ReflectionProvider;
 use Rector\Doctrine\Enum\DoctrineClass;
 use Rector\Rector\AbstractRector;
 use Rector\ValueObject\PhpVersionFeature;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -26,7 +29,7 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  *
  * @see \Rector\Doctrine\Tests\Bundle210\Rector\Class_\EventSubscriberInterfaceToAttributeRector\EventSubscriberInterfaceToAttributeRectorTest
  */
-final class EventSubscriberInterfaceToAttributeRector extends AbstractRector implements MinPhpVersionInterface
+final class EventSubscriberInterfaceToAttributeRector extends AbstractRector implements MinPhpVersionInterface, ComposerPackageConstraintInterface
 {
     /**
      * @readonly
@@ -39,6 +42,10 @@ final class EventSubscriberInterfaceToAttributeRector extends AbstractRector imp
     public function provideMinPhpVersion(): int
     {
         return PhpVersionFeature::ATTRIBUTES;
+    }
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('doctrine/doctrine-bundle', '>=2.8');
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -168,12 +175,14 @@ CODE_SAMPLE
     }
     private function hasImplements(Class_ $class, string $interfaceFQN): bool
     {
-        foreach ($class->implements as $implement) {
-            if ($this->isName($implement, $interfaceFQN)) {
-                return \true;
+        $found = \false;
+        foreach ($class->implements as $name) {
+            if ($this->isName($name, $interfaceFQN)) {
+                $found = \true;
+                break;
             }
         }
-        return \false;
+        return $found;
     }
     /**
      * @param array<string> $interfaceFQNS

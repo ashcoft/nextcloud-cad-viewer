@@ -6,8 +6,8 @@ namespace Rector\Configuration;
 use Rector\ChangesReporting\Output\ConsoleOutputFormatter;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
 use Rector\ValueObject\Configuration;
-use RectorPrefix202606\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202606\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202608\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202608\Symfony\Component\Console\Style\SymfonyStyle;
 /**
  * @see \Rector\Tests\Configuration\ConfigurationFactoryTest
  */
@@ -70,7 +70,17 @@ final class ConfigurationFactory
         $isReportingWithRealPath = SimpleParameterProvider::provideBoolParameter(\Rector\Configuration\Option::ABSOLUTE_FILE_PATH);
         $levelOverflows = SimpleParameterProvider::provideArrayParameter(\Rector\Configuration\Option::LEVEL_OVERFLOWS);
         $showRulesSummary = (bool) $input->getOption(\Rector\Configuration\Option::RULES_SUMMARY);
-        return new Configuration($isDryRun, $showProgressBar, $shouldClearCache, $outputFormat, $fileExtensions, $paths, $showDiffs, $parallelPort, $parallelIdentifier, $isParallel, $memoryLimit, $isDebug, $isReportingWithRealPath, $onlyRule, $onlySuffix, $levelOverflows, $showRulesSummary);
+        $isComposerBased = (bool) $input->getOption(\Rector\Configuration\Option::COMPOSER_BASED);
+        // "--composer-based" narrows the run the same way "--only" does
+        if ($isComposerBased) {
+            SimpleParameterProvider::setParameter(\Rector\Configuration\Option::IS_RUN_NARROWED, \true);
+        }
+        $isPhpOnly = (bool) $input->getOption(\Rector\Configuration\Option::PHP);
+        // "--php" narrows the run the same way "--only" does
+        if ($isPhpOnly) {
+            SimpleParameterProvider::setParameter(\Rector\Configuration\Option::IS_RUN_NARROWED, \true);
+        }
+        return new Configuration($isDryRun, $showProgressBar, $shouldClearCache, $outputFormat, $fileExtensions, $paths, $showDiffs, $parallelPort, $parallelIdentifier, $isParallel, $memoryLimit, $isDebug, $isReportingWithRealPath, $onlyRule, $onlySuffix, $levelOverflows, $showRulesSummary, $isComposerBased, $isPhpOnly);
     }
     private function shouldShowProgressBar(InputInterface $input, string $outputFormat): bool
     {

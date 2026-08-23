@@ -12,6 +12,7 @@ use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\Node\Stmt\Nop;
 use PhpParser\Node\Stmt\Return_;
 use PhpParser\NodeVisitor;
 use PHPStan\Type\IntegerType;
@@ -19,13 +20,15 @@ use PHPStan\Type\ObjectType;
 use Rector\NodeAnalyzer\TerminatedNodeAnalyzer;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @changelog https://github.com/symfony/symfony/pull/33775/files
  * @see \Rector\Symfony\Tests\Symfony44\Rector\ClassMethod\ConsoleExecuteReturnIntRector\ConsoleExecuteReturnIntRectorTest
  */
-final class ConsoleExecuteReturnIntRector extends AbstractRector
+final class ConsoleExecuteReturnIntRector extends AbstractRector implements ComposerPackageConstraintInterface
 {
     /**
      * @readonly
@@ -40,6 +43,10 @@ final class ConsoleExecuteReturnIntRector extends AbstractRector
     {
         $this->terminatedNodeAnalyzer = $terminatedNodeAnalyzer;
         $this->valueResolver = $valueResolver;
+    }
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('symfony/console', '>=4.4');
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -134,7 +141,7 @@ CODE_SAMPLE
         }
         if ($expr instanceof Expr) {
             $returnedType = $this->getType($expr);
-            if ($returnedType instanceof IntegerType) {
+            if ($returnedType->isInteger()->yes()) {
                 return \true;
             }
         }
@@ -153,9 +160,14 @@ CODE_SAMPLE
     }
     private function processReturn0ToMethod(ClassMethod $classMethod): void
     {
-        $lastKey = array_key_last((array) $classMethod->stmts);
+        $stmts = (array) $classMethod->stmts;
+        // trailing comments are parsed as Nop stmts, skip them to get the real last stmt
+        while ($stmts !== [] && end($stmts) instanceof Nop) {
+            array_pop($stmts);
+        }
+        $lastKey = array_key_last($stmts);
         $return = new Return_(new \PhpParser\Node\Scalar\Int_(0));
-        if ($lastKey !== null && (isset($classMethod->stmts[$lastKey]) && $this->terminatedNodeAnalyzer->isAlwaysTerminated($classMethod, $classMethod->stmts[$lastKey], $return))) {
+        if ($lastKey !== null && $this->terminatedNodeAnalyzer->isAlwaysTerminated($classMethod, $stmts[$lastKey], $return)) {
             return;
         }
         $classMethod->stmts[] = $return;
@@ -170,6 +182,11 @@ CODE_SAMPLE
             $return->expr = new \PhpParser\Node\Scalar\Int_(0);
             return;
         }
+        // false means the command failed, that is the 1 exit code
+        if ($this->valueResolver->isFalse($return->expr)) {
+            $return->expr = new \PhpParser\Node\Scalar\Int_(1);
+            return;
+        }
         if ($return->expr instanceof Coalesce && $this->valueResolver->isNull($return->expr->right)) {
             $return->expr->right = new \PhpParser\Node\Scalar\Int_(0);
             return;
@@ -181,7 +198,7 @@ CODE_SAMPLE
             }
         }
         $staticType = $this->getType($return->expr);
-        if (!$staticType instanceof IntegerType) {
+        if (!$staticType->isInteger()->yes()) {
             $return->expr = new Int_($return->expr);
         }
     }

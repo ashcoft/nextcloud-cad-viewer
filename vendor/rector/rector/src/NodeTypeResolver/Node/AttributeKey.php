@@ -179,6 +179,10 @@ final class AttributeKey
     /**
      * @var string
      */
+    public const IS_UNPACKED_ARG_VALUE = 'is_unpacked_arg_value';
+    /**
+     * @var string
+     */
     public const IS_PARAM_VAR = 'is_param_var';
     /**
      * @var string
@@ -225,9 +229,11 @@ final class AttributeKey
      */
     public const IS_CLASS_CONST_VALUE = 'is_default_class_const_value';
     /**
+     * Array callable kept as data, not converted to first class callable,
+     * e.g. 'callback'/'factory' keyed array item, or Definition::setFactory() argument
      * @var string
      */
-    public const IS_INSIDE_SYMFONY_PHP_CLOSURE = 'is_inside_symfony_php_closure';
+    public const IS_ARRAY_AS_STRING_CALLABLE = 'is_array_as_string_callable';
     /**
      * @var string
      */
@@ -256,4 +262,10 @@ final class AttributeKey
      * @var string
      */
     public const NEWLINE_ON_FLUENT_CALL = 'newline_on_fluent_call';
+    /**
+     * The arg value is passed to a parameter whose type does not accept a Closure,
+     * e.g. an array callable passed to a "string|array|null" parameter
+     * @var string
+     */
+    public const IS_ARG_NOT_ACCEPTING_CLOSURE = 'is_arg_not_accepting_closure';
 }

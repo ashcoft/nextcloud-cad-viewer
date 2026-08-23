@@ -3,10 +3,12 @@
 declare (strict_types=1);
 namespace Rector\Config;
 
-use RectorPrefix202606\Illuminate\Container\Container;
+use RectorPrefix202608\Composer\Semver\Semver;
+use Deprecated;
+use RectorPrefix202608\Illuminate\Container\Container;
 use Override;
-use Rector\Caching\Contract\CacheMetaExtensionInterface;
 use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
+use Rector\Composer\InstalledPackageResolver;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
 use Rector\Configuration\RectorConfigBuilder;
@@ -22,8 +24,9 @@ use Rector\Validation\RectorConfigValidator;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\PhpVersion;
 use Rector\ValueObject\PolyfillPackage;
-use RectorPrefix202606\Symfony\Component\Console\Command\Command;
-use RectorPrefix202606\Webmozart\Assert\Assert;
+use Rector\VersionBonding\ValueObject\ComposerBoundRuleConfiguration;
+use RectorPrefix202608\Symfony\Component\Console\Command\Command;
+use RectorPrefix202608\Webmozart\Assert\Assert;
 /**
  * @api
  * @see \Rector\Tests\Config\RectorConfigTest
@@ -35,9 +38,18 @@ final class RectorConfig extends Container
      */
     private array $ruleConfigurations = [];
     /**
+     * @var array<class-string<RectorInterface>, true>
+     */
+    private array $registeredRectorClasses = [];
+    /**
+     * @var array<string, true>
+     */
+    private array $registeredComposerBoundRuleConfigurations = [];
+    /**
      * @var string[]
      */
     private array $autotagInterfaces = [Command::class, ResettableInterface::class];
+    private ?InstalledPackageResolver $installedPackageResolver = null;
     private static ?bool $recreated = null;
     public static function configure(): RectorConfigBuilder
     {
@@ -153,8 +165,30 @@ final class RectorConfig extends Container
             $ruleConfiguration = $this->ruleConfigurations[$rectorClass];
             $configurableRector->configure($ruleConfiguration);
         });
-        // for cache invalidation in case of sets change
-        SimpleParameterProvider::addParameter(Option::REGISTERED_RECTOR_RULES, $rectorClass);
+    }
+    /**
+     * Register the rule configuration only if the package version installed in the analysed project satisfies
+     * the version constraint. Useful for configuration valid since a specific package version,
+     * e.g. an attribute added in PHPUnit 11.
+     *
+     * @param class-string<ConfigurableRectorInterface> $rectorClass
+     * @param mixed[] $configuration
+     */
+    public function ruleWithConfigurationComposerVersionBound(string $rectorClass, array $configuration, string $packageName, string $versionConstraint): void
+    {
+        $packageVersion = $this->resolveInstalledPackageVersion($packageName);
+        $isActive = $packageVersion !== null && Semver::satisfies($packageVersion, $versionConstraint);
+        // the same rule configuration can be registered by multiple sets, report it only once
+        $configurationKey = $rectorClass . '|' . $packageName . '|' . $versionConstraint . '|' . serialize($configuration);
+        if (!isset($this->registeredComposerBoundRuleConfigurations[$configurationKey])) {
+            $this->registeredComposerBoundRuleConfigurations[$configurationKey] = \true;
+            // reported by the "composer-based" command, the inactive ones as well
+            SimpleParameterProvider::addParameter(Option::COMPOSER_BOUND_RULE_CONFIGURATIONS, [new ComposerBoundRuleConfiguration($rectorClass, $packageName, $versionConstraint, $configuration, $isActive)]);
+        }
+        if (!$isActive) {
+            return;
+        }
+        $this->ruleWithConfiguration($rectorClass, $configuration);
     }
     /**
      * @param class-string<RectorInterface> $rectorClass
@@ -164,9 +198,14 @@ final class RectorConfig extends Container
         Assert::classExists($rectorClass);
         Assert::isAOf($rectorClass, RectorInterface::class);
         $this->singleton($rectorClass);
-        $this->tag($rectorClass, RectorInterface::class);
-        // for cache invalidation in case of change
-        SimpleParameterProvider::addParameter(Option::REGISTERED_RECTOR_RULES, $rectorClass);
+        // the same rule can be registered by multiple sets, tag it only once,
+        // otherwise it is run twice on every node and listed twice in the reports
+        if (!isset($this->registeredRectorClasses[$rectorClass])) {
+            $this->registeredRectorClasses[$rectorClass] = \true;
+            $this->tag($rectorClass, RectorInterface::class);
+            // for cache invalidation in case of change
+            SimpleParameterProvider::addParameter(Option::REGISTERED_RECTOR_RULES, $rectorClass);
+        }
         if (is_a($rectorClass, RelatedConfigInterface::class, \true)) {
             $configFile = $rectorClass::getConfigFile();
             Assert::file($configFile, sprintf('The config path "%s" in "%s::getConfigFile()" could not be found', $configFile, $rectorClass));
@@ -258,6 +297,18 @@ final class RectorConfig extends Container
         SimpleParameterProvider::setParameter(Option::TREAT_CLASSES_AS_FINAL, $treatClassesAsFinal);
     }
     /**
+     * Guard the listed classes and their descendants against method signature changes that would
+     * break child classes - e.g. adding a return type or a param type. Only non-final classes are
+     * guarded, as final classes cannot be extended.
+     *
+     * @param string[] $classes
+     */
+    public function typeGuardedClasses(array $classes): void
+    {
+        Assert::allString($classes);
+        SimpleParameterProvider::setParameter(Option::TYPE_GUARDED_CLASSES, $classes);
+    }
+    /**
      * @param string[] $extensions
      */
     public function fileExtensions(array $extensions): void
@@ -283,16 +334,13 @@ final class RectorConfig extends Container
     public function cacheClass(string $cacheClass): void
     {
         Assert::isAOf($cacheClass, CacheStorageInterface::class);
-        SimpleParameterProvider::setParameter(Option::CACHE_CLASS, $cacheClass);
     }
     /**
-     * @param class-string<CacheMetaExtensionInterface> $cacheMetaExtensionClass
+     * @param class-string $cacheMetaExtensionClass
      */
     public function cacheMetaExtension(string $cacheMetaExtensionClass): void
     {
-        Assert::isAOf($cacheMetaExtensionClass, CacheMetaExtensionInterface::class);
-        $this->singleton($cacheMetaExtensionClass);
-        $this->tag($cacheMetaExtensionClass, CacheMetaExtensionInterface::class);
+        SimpleParameterProvider::addParameter(Option::CACHE_META_EXTENSIONS, $cacheMetaExtensionClass);
     }
     /**
      * @see https://github.com/nikic/PHP-Parser/issues/723#issuecomment-712401963
@@ -309,6 +357,8 @@ final class RectorConfig extends Container
     public function resetRuleConfigurations(): void
     {
         $this->ruleConfigurations = [];
+        $this->registeredRectorClasses = [];
+        $this->registeredComposerBoundRuleConfigurations = [];
     }
     /**
      * Compiler passes-like method
@@ -382,5 +432,10 @@ final class RectorConfig extends Container
     public function setOverflowLevels(array $levelOverflows): void
     {
         SimpleParameterProvider::addParameter(Option::LEVEL_OVERFLOWS, $levelOverflows);
+    }
+    private function resolveInstalledPackageVersion(string $packageName): ?string
+    {
+        $this->installedPackageResolver ??= new InstalledPackageResolver();
+        return $this->installedPackageResolver->resolvePackageVersion($packageName);
     }
 }

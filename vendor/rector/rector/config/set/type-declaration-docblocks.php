@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202606;
+namespace RectorPrefix202608;
 
 use Rector\Config\Level\TypeDeclarationDocblocksLevel;
 use Rector\Config\RectorConfig;

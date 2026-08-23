@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Symfony\CodeQuality\Rector\Class_;
 
-use RectorPrefix202606\Nette\Utils\Strings;
+use RectorPrefix202608\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Attribute;
@@ -13,15 +13,21 @@ use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use Rector\Rector\AbstractRector;
-use RectorPrefix202606\Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use RectorPrefix202606\Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
+use RectorPrefix202608\Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use RectorPrefix202608\Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Symfony\Tests\CodeQuality\Rector\Class_\SplitAndSecurityAttributeToIsGrantedRector\SplitAndSecurityAttributeToIsGrantedRectorTest
  */
-final class SplitAndSecurityAttributeToIsGrantedRector extends AbstractRector
+final class SplitAndSecurityAttributeToIsGrantedRector extends AbstractRector implements ComposerPackageConstraintInterface
 {
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('symfony/security-http', '>=6.2');
+    }
     public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Split #[Security] attribute with "and" condition string to multiple #[IsGranted] attributes with sole values', [new CodeSample(<<<'CODE_SAMPLE'

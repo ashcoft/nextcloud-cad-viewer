@@ -5,9 +5,9 @@ namespace Rector\Console;
 
 use Rector\ChangesReporting\Output\ConsoleOutputFormatter;
 use Rector\Configuration\Option;
-use RectorPrefix202606\Symfony\Component\Console\Command\Command;
-use RectorPrefix202606\Symfony\Component\Console\Input\InputArgument;
-use RectorPrefix202606\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202608\Symfony\Component\Console\Command\Command;
+use RectorPrefix202608\Symfony\Component\Console\Input\InputArgument;
+use RectorPrefix202608\Symfony\Component\Console\Input\InputOption;
 final class ProcessConfigureDecorator
 {
     public static function decorate(Command $command): void
@@ -20,6 +20,8 @@ final class ProcessConfigureDecorator
         $command->addOption(Option::OUTPUT_FORMAT, null, InputOption::VALUE_REQUIRED, 'Select output format', ConsoleOutputFormatter::NAME);
         // filter by rule and path
         $command->addOption(Option::ONLY, null, InputOption::VALUE_REQUIRED, 'Fully qualified rule class name');
+        $command->addOption(Option::COMPOSER_BASED, null, InputOption::VALUE_NONE, 'Run only rules bound to an installed composer package version');
+        $command->addOption(Option::PHP, null, InputOption::VALUE_NONE, 'Run only PHP rules, e.g. rules bound to a minimal PHP version');
         $command->addOption(Option::ONLY_SUFFIX, null, InputOption::VALUE_REQUIRED, 'Filter only files with specific suffix in name, e.g. "Controller"');
         $command->addOption(Option::DEBUG, null, InputOption::VALUE_NONE, 'Display debug output.');
         $command->addOption(Option::MEMORY_LIMIT, null, InputOption::VALUE_REQUIRED, 'Memory limit for process');

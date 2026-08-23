@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202606;
+namespace RectorPrefix202608;
 
 use Rector\Config\RectorConfig;
 use Rector\Php80\Rector\Class_\AnnotationToAttributeRector;
@@ -47,8 +47,8 @@ return static function (RectorConfig $rectorConfig): void {
         new AnnotationToAttribute('doesNotPerformAssertions', 'PHPUnit\Framework\Attributes\DoesNotPerformAssertions'),
         new AnnotationToAttribute('large', 'PHPUnit\Framework\Attributes\Large'),
         new AnnotationToAttribute('medium', 'PHPUnit\Framework\Attributes\Medium'),
-        new AnnotationToAttribute('preCondition', 'PHPUnit\Framework\Attributes\PostCondition'),
-        new AnnotationToAttribute('postCondition', 'PHPUnit\Framework\Attributes\PreCondition'),
+        new AnnotationToAttribute('preCondition', 'PHPUnit\Framework\Attributes\PreCondition'),
+        new AnnotationToAttribute('postCondition', 'PHPUnit\Framework\Attributes\PostCondition'),
         new AnnotationToAttribute('runInSeparateProcess', 'PHPUnit\Framework\Attributes\RunInSeparateProcess'),
         new AnnotationToAttribute('runTestsInSeparateProcesses', 'PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses'),
         new AnnotationToAttribute('small', 'PHPUnit\Framework\Attributes\Small'),

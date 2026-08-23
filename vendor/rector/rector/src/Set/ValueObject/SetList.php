@@ -3,7 +3,6 @@
 declare (strict_types=1);
 namespace Rector\Set\ValueObject;
 
-use Deprecated;
 /**
  * @api
  */
@@ -27,11 +26,8 @@ final class SetList
      */
     public const DEAD_CODE = __DIR__ . '/../../../config/set/dead-code.php';
     /**
-     * @var string
-     */
-    #[Deprecated(message: 'As too strict and not practical. Use code quality and coding style sets instead.')]
-    public const STRICT_BOOLEANS = __DIR__ . '/../../../config/set/strict-booleans.php';
-    /**
+     * @deprecated Niche set for a rarely used extension, it is empty now and will be removed.
+     * Register RenameClassRector and RenameMethodRector with your own configuration instead.
      * @var string
      */
     public const GMAGICK_TO_IMAGICK = __DIR__ . '/../../../config/set/gmagick-to-imagick.php';
@@ -139,14 +135,13 @@ final class SetList
     /**
      * @var string
      */
+    public const IF = __DIR__ . '/../../../config/set/if.php';
+    /**
+     * @var string
+     */
     public const CARBON = __DIR__ . '/../../../config/set/datetime-to-carbon.php';
     /**
      * @var string
      */
     public const BEHAT_ANNOTATIONS_TO_ATTRIBUTES = __DIR__ . '/../../../config/set/behat-annotations-to-attributes.php';
-    /**
-     * @experimental Check generic types in runtime with assert. Generics for impatient people.
-     * @var string
-     */
-    public const ASSERT = __DIR__ . '/../../../config/set/assert.php';
 }

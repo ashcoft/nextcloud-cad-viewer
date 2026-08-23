@@ -5,10 +5,13 @@ namespace Rector\Symfony\Symfony80\Rector\Class_;
 
 use PhpParser\Modifiers;
 use PhpParser\Node;
+use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use Rector\Rector\AbstractRector;
 use Rector\Symfony\Enum\SymfonyClass;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -16,8 +19,12 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  *
  * @see \Rector\Symfony\Tests\Symfony80\Rector\Class_\RemoveEraseCredentialsRector\RemoveEraseCredentialsRectorTest
  */
-final class RemoveEraseCredentialsRector extends AbstractRector
+final class RemoveEraseCredentialsRector extends AbstractRector implements ComposerPackageConstraintInterface
 {
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('symfony/security-core', '>=8.0');
+    }
     public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Remove unused UserInterface::eraseCredentials() method, make it part of serialize if needed', [new CodeSample(<<<'CODE_SAMPLE'
@@ -84,12 +91,14 @@ CODE_SAMPLE
     }
     private function doesImplementUserInterface(Class_ $class): bool
     {
-        foreach ($class->implements as $implementedInterface) {
-            if ($this->isName($implementedInterface, SymfonyClass::USER_INTERFACE)) {
-                return \true;
+        $found = \false;
+        foreach ($class->implements as $name) {
+            if ($this->isName($name, SymfonyClass::USER_INTERFACE)) {
+                $found = \true;
+                break;
             }
         }
-        return \false;
+        return $found;
     }
     /**
      * @param mixed $classMethodStmts

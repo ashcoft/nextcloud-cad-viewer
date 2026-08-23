@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\PHPUnit\AnnotationsToAttributes\Rector\Class_;
 
-use RectorPrefix202606\Nette\Utils\Strings;
+use RectorPrefix202608\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\AttributeGroup;
 use PhpParser\Node\Stmt\Class_;
@@ -18,13 +18,15 @@ use Rector\PhpAttribute\NodeFactory\PhpAttributeGroupFactory;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\Rector\AbstractRector;
 use Rector\ValueObject\PhpVersionFeature;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\PHPUnit\Tests\AnnotationsToAttributes\Rector\Class_\CoversAnnotationWithValueToAttributeRector\CoversAnnotationWithValueToAttributeRectorTest
  */
-final class CoversAnnotationWithValueToAttributeRector extends AbstractRector implements MinPhpVersionInterface
+final class CoversAnnotationWithValueToAttributeRector extends AbstractRector implements MinPhpVersionInterface, ComposerPackageConstraintInterface
 {
     /**
      * @readonly
@@ -116,6 +118,10 @@ CODE_SAMPLE
     {
         return [Class_::class, ClassMethod::class];
     }
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('phpunit/phpunit', '>=10.0');
+    }
     public function provideMinPhpVersion(): int
     {
         return PhpVersionFeature::ATTRIBUTES;
@@ -128,7 +134,8 @@ CODE_SAMPLE
         if (!$this->testsNodeAnalyzer->isInTestClass($node)) {
             return null;
         }
-        if (!$this->reflectionProvider->hasClass(self::COVERS_FUNCTION_ATTRIBUTE)) {
+        // avoid partial apply that may cause error
+        if (!$this->reflectionProvider->hasClass(self::COVERS_FUNCTION_ATTRIBUTE) || !$this->reflectionProvider->hasClass(self::COVERTS_CLASS_ATTRIBUTE) || !$this->reflectionProvider->hasClass(self::COVERTS_TRAIT_ATTRIBUTE) || !$this->reflectionProvider->hasClass(self::COVERS_METHOD_ATTRIBUTE)) {
             return null;
         }
         if ($node instanceof Class_) {
@@ -154,9 +161,6 @@ CODE_SAMPLE
             $attributeValue = [trim($annotationValue, ':()')];
         } elseif (strpos($annotationValue, '::') !== \false) {
             $attributeClass = self::COVERS_METHOD_ATTRIBUTE;
-            if (!$this->reflectionProvider->hasClass($attributeClass)) {
-                return null;
-            }
             $attributeValue = [$this->getClass($annotationValue) . '::class', $this->getMethod($annotationValue)];
         } else {
             $attributeClass = self::COVERTS_CLASS_ATTRIBUTE;
@@ -284,9 +288,6 @@ CODE_SAMPLE
         $desiredTagValueNodes = $phpDocInfo->getTagsByName('covers');
         foreach ($desiredTagValueNodes as $desiredTagValueNode) {
             if (!$desiredTagValueNode->value instanceof GenericTagValueNode) {
-                continue;
-            }
-            if (strpos($desiredTagValueNode->value->value, '::') !== \false && !$this->reflectionProvider->hasClass(self::COVERS_METHOD_ATTRIBUTE)) {
                 continue;
             }
             $this->phpDocTagRemover->removeTagValueFromNode($phpDocInfo, $desiredTagValueNode);

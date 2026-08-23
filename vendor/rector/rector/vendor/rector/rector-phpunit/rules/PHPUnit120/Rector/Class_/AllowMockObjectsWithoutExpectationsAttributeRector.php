@@ -23,14 +23,20 @@ use Rector\PHPUnit\Enum\PHPUnitClassName;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\Rector\AbstractRector;
 use Rector\ValueObject\MethodName;
+use Rector\ValueObject\PhpVersionFeature;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
+use Rector\VersionBonding\Contract\MinPhpVersionInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
+ * The AllowMockObjectsWithoutExpectations attribute was added in PHPUnit 12.5.2
+ *
  * @see \Rector\PHPUnit\Tests\PHPUnit120\Rector\Class_\AllowMockObjectsWithoutExpectationsAttributeRector\AllowMockObjectsWithoutExpectationsAttributeRectorTest
  *
  * @see https://github.com/sebastianbergmann/phpunit/commit/24c208d6a340c3071f28a9b5cce02b9377adfd43
  */
-final class AllowMockObjectsWithoutExpectationsAttributeRector extends AbstractRector
+final class AllowMockObjectsWithoutExpectationsAttributeRector extends AbstractRector implements MinPhpVersionInterface, ComposerPackageConstraintInterface
 {
     /**
      * @readonly
@@ -55,9 +61,17 @@ final class AllowMockObjectsWithoutExpectationsAttributeRector extends AbstractR
         $this->reflectionProvider = $reflectionProvider;
         $this->betterNodeFinder = $betterNodeFinder;
     }
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('phpunit/phpunit', '>=12.5.2');
+    }
     public function getNodeTypes(): array
     {
         return [Class_::class];
+    }
+    public function provideMinPhpVersion(): int
+    {
+        return PhpVersionFeature::ATTRIBUTES;
     }
     /**
      * @param Class_ $node
@@ -233,12 +247,14 @@ CODE_SAMPLE
      */
     private function isAtLeastOneMockPropertyMockedOnce(array $usingTestMethodsByMockPropertyName): bool
     {
+        $found = \false;
         foreach ($usingTestMethodsByMockPropertyName as $usingTestMethods) {
-            if (count($usingTestMethods) !== 0) {
-                return \true;
+            if ($usingTestMethods !== []) {
+                $found = \true;
+                break;
             }
         }
-        return \false;
+        return $found;
     }
     private function isMissingExpectsOnMockObjectMethodCallInSetUp(Class_ $class): bool
     {

@@ -20,12 +20,14 @@ use Rector\Symfony\Enum\SensioAnnotation;
 use Rector\Symfony\Enum\SymfonyAnnotation;
 use Rector\Symfony\Enum\SymfonyClass;
 use Rector\Symfony\TypeAnalyzer\ControllerAnalyzer;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Symfony\Tests\Symfony30\Rector\ClassMethod\GetRequestRector\GetRequestRectorTest
  */
-final class GetRequestRector extends AbstractRector
+final class GetRequestRector extends AbstractRector implements ComposerPackageConstraintInterface
 {
     /**
      * @readonly
@@ -46,6 +48,10 @@ final class GetRequestRector extends AbstractRector
         $this->controllerAnalyzer = $controllerAnalyzer;
         $this->betterNodeFinder = $betterNodeFinder;
     }
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('symfony/framework-bundle', '>=2.5');
+    }
     public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Turns fetching of Request via `$this->getRequest()` to action injection', [new CodeSample(<<<'CODE_SAMPLE'
@@ -53,7 +59,7 @@ class SomeController
 {
     public function someAction()
     {
-        $this->getRequest()->...();
+        return $this->getRequest()->getContent();
     }
 }
 CODE_SAMPLE
@@ -64,7 +70,7 @@ class SomeController
 {
     public function someAction(Request $request)
     {
-        $request->...();
+        return $request->getContent();
     }
 }
 CODE_SAMPLE
@@ -116,6 +122,10 @@ CODE_SAMPLE
             return \false;
         }
         if (!$this->controllerMethodAnalyzer->isAction($classMethod)) {
+            return \false;
+        }
+        // an action always returns a response; without any return, this is a setter/hook method
+        if ($this->betterNodeFinder->findReturnsScoped($classMethod) === []) {
             return \false;
         }
         $containsGetRequestMethod = $this->containsGetRequestMethod($classMethod);

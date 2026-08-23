@@ -24,6 +24,14 @@ final class SymfonyClass
     /**
      * @var string
      */
+    public const PSR_CONTAINER_INTERFACE = 'Psr\Container\ContainerInterface';
+    /**
+     * @var string
+     */
+    public const DEPENDENCY_INJECTION_CONTAINER_INTERFACE = 'Symfony\Component\DependencyInjection\ContainerInterface';
+    /**
+     * @var string
+     */
     public const EVENT_DISPATCHER_INTERFACE = 'Symfony\Contracts\EventDispatcher\EventDispatcherInterface';
     /**
      * @var string
@@ -120,10 +128,6 @@ final class SymfonyClass
     /**
      * @var string
      */
-    public const PARAMETER_BAG_INTERFACE = 'Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface';
-    /**
-     * @var string
-     */
     public const SYMFONY_STYLE = 'Symfony\Component\Console\Style\SymfonyStyle';
     /**
      * @var string
@@ -180,10 +184,6 @@ final class SymfonyClass
     /**
      * @var string
      */
-    public const UUID = 'Symfony\Component\Uid\AbstractUid';
-    /**
-     * @var string
-     */
     public const ROUTE_COLLECTION_BUILDER = 'Symfony\Component\Routing\RouteCollectionBuilder';
     /**
      * @var string
@@ -193,10 +193,6 @@ final class SymfonyClass
      * @var string
      */
     public const KERNEL = 'Symfony\Component\HttpKernel\Kernel';
-    /**
-     * @var string
-     */
-    public const CONTAINER = 'Symfony\Component\DependencyInjection\Container';
     /**
      * @var string
      */

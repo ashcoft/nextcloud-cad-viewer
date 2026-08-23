@@ -11,39 +11,7 @@ final class PHPUnitSetList
     /**
      * @var string
      */
-    public const PHPUNIT_40 = __DIR__ . '/../../config/sets/phpunit40.php';
-    /**
-     * @var string
-     */
-    public const PHPUNIT_50 = __DIR__ . '/../../config/sets/phpunit50.php';
-    /**
-     * @var string
-     */
-    public const PHPUNIT_60 = __DIR__ . '/../../config/sets/phpunit60.php';
-    /**
-     * @var string
-     */
-    public const PHPUNIT_70 = __DIR__ . '/../../config/sets/phpunit70.php';
-    /**
-     * @var string
-     */
-    public const PHPUNIT_80 = __DIR__ . '/../../config/sets/phpunit80.php';
-    /**
-     * @var string
-     */
-    public const PHPUNIT_90 = __DIR__ . '/../../config/sets/phpunit90.php';
-    /**
-     * @var string
-     */
-    public const PHPUNIT_100 = __DIR__ . '/../../config/sets/phpunit100.php';
-    /**
-     * @var string
-     */
-    public const PHPUNIT_110 = __DIR__ . '/../../config/sets/phpunit110.php';
-    /**
-     * @var string
-     */
-    public const PHPUNIT_120 = __DIR__ . '/../../config/sets/phpunit120.php';
+    public const PHPUNIT_MOCK_TO_STUB = __DIR__ . '/../../config/sets/phpunit-mock-to-stub.php';
     /**
      * @var string
      */
@@ -51,5 +19,13 @@ final class PHPUnitSetList
     /**
      * @var string
      */
+    public const PHPUNIT_NARROW_ASSERTS = __DIR__ . '/../../config/sets/phpunit-narrow-asserts.php';
+    /**
+     * @var string
+     */
     public const ANNOTATIONS_TO_ATTRIBUTES = __DIR__ . '/../../config/sets/annotations-to-attributes.php';
+    /**
+     * @var string
+     */
+    public const COMPOSER_BASED = __DIR__ . '/../../config/sets/composer-based.php';
 }

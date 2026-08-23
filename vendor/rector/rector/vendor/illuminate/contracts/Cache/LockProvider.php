@@ -1,6 +1,6 @@
 <?php
 
-namespace RectorPrefix202606\Illuminate\Contracts\Cache;
+namespace RectorPrefix202608\Illuminate\Contracts\Cache;
 
 interface LockProvider
 {

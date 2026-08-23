@@ -9,11 +9,14 @@ use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\BinaryOp\BooleanOr;
 use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Expr\Variable;
 use PHPStan\Type\ObjectType;
 use Rector\NodeAnalyzer\ArgsAnalyzer;
 use Rector\Rector\AbstractRector;
 use Rector\Symfony\Enum\SymfonyClass;
 use Rector\Symfony\TypeAnalyzer\ControllerAnalyzer;
+use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
+use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -21,7 +24,7 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  *
  * @see \Rector\Symfony\Tests\Symfony44\Rector\MethodCall\AuthorizationCheckerIsGrantedExtractorRector\AuthorizationCheckerIsGrantedExtractorRectorTest
  */
-final class AuthorizationCheckerIsGrantedExtractorRector extends AbstractRector
+final class AuthorizationCheckerIsGrantedExtractorRector extends AbstractRector implements ComposerPackageConstraintInterface
 {
     /**
      * @readonly
@@ -35,6 +38,10 @@ final class AuthorizationCheckerIsGrantedExtractorRector extends AbstractRector
     {
         $this->argsAnalyzer = $argsAnalyzer;
         $this->controllerAnalyzer = $controllerAnalyzer;
+    }
+    public function provideComposerPackageConstraint(): ComposerPackageConstraint
+    {
+        return new ComposerPackageConstraint('symfony/security-core', '>=4.4');
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -93,8 +100,12 @@ CODE_SAMPLE
      */
     public function refactor(Node $node)
     {
-        if ($this->controllerAnalyzer->isInsideController($node)) {
-            return $this->processControllerMethods($node);
+        // native AbstractController::isGranted() call, any other object must be resolved by its type
+        if ($node->var instanceof Variable && $this->isName($node->var, 'this')) {
+            if ($this->controllerAnalyzer->isInsideController($node)) {
+                return $this->processControllerMethods($node);
+            }
+            return null;
         }
         $objectType = $this->nodeTypeResolver->getType($node->var);
         if (!$objectType instanceof ObjectType) {

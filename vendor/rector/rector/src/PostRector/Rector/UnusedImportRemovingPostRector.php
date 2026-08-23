@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\PostRector\Rector;
 
-use RectorPrefix202606\Nette\Utils\Strings;
+use RectorPrefix202608\Nette\Utils\Strings;
 use PhpParser\Comment;
 use PhpParser\Comment\Doc;
 use PhpParser\Node;
@@ -139,6 +139,8 @@ final class UnusedImportRemovingPostRector extends \Rector\PostRector\Rector\Abs
                 $names = array_merge($names, $constFetchNodeNames);
                 $genericTagClassNames = $phpDocInfo->getGenericTagClassNames();
                 $names = array_merge($names, $genericTagClassNames);
+                $inlineGenericUsesTagClassNames = $phpDocInfo->getInlineGenericUsesTagClassNames();
+                $names = array_merge($names, $inlineGenericUsesTagClassNames);
                 $arrayItemTagClassNames = $phpDocInfo->getArrayItemNodeClassNames();
                 $names = array_merge($names, $arrayItemTagClassNames);
             }
