@@ -89,6 +89,15 @@ module.exports = {
       '@mlightcad/cad-pdf-plugin': path.resolve(__dirname, 'src/polyfills/cad-pdf-plugin-register.cjs'),
       '@mlightcad/cad-svg-plugin': path.resolve(__dirname, 'src/polyfills/cad-svg-plugin-register.cjs'),
       '@mlightcad/cad-html-plugin': path.resolve(__dirname, 'src/polyfills/cad-html-plugin-register.cjs'),
+      // @mlightcad/cad-simple-viewer's "./icons" subpath ships raw .ts source
+      // under its "import" export condition (a packaging bug), which babel-loader
+      // can't transpile because node_modules is excluded. Redirect the bare
+      // import to the compiled "lib/ui/icons.js" target (the package's "default"
+      // condition) so webpack gets valid transpiled JS.
+      '@mlightcad/cad-simple-viewer/icons$': path.resolve(
+        __dirname,
+        'node_modules/@mlightcad/cad-simple-viewer/lib/ui/icons.js',
+      ),
     },
     fallback: {
       stream: false,
