@@ -1,20 +1,23 @@
 ---
-exclude:
-  - path: js/
-    patterns:
-      - "*.js"
-  - pattern: "*.min.js"
-  - path: templates/
-  # Vendored third-party "Sepo" agent infrastructure (analogous to vendor/ and
-  # node_modules/): its own runtime under .agent/ and the agent-* GitHub
-  # workflows/actions/prompts/assets. Not the project's own application code.
-  - path: .agent/
-  - path: .github/actions/
-  - path: .github/prompts/
-  - path: .github/assets/
-  - pattern: ".github/workflows/agent-*.yml"
-  - pattern: ".github/workflows/test-scripts.yml"
-  - pattern: ".github/ISSUE_TEMPLATE/agent-goal.yml"
-  - pattern: ".github/ISSUE_TEMPLATE/ask-sepo.md"
-  - pattern: ".github/ISSUE_TEMPLATE/install-sepo.md"
+# Codacy uses `exclude_paths` with Java-glob patterns (not `exclude`/`path`/`pattern`).
+# https://docs.codacy.com/repositories-configure/codacy-configuration-file
+exclude_paths:
+  # Compiled webpack output and minified assets
+  - "js/**"
+  - "**/*.min.js"
+  - "templates/**"
+  # Vendored third-party "Sepo" agent infrastructure, analogous to vendor/
+  # and node_modules/ (already ignored by Codacy by default). .agent/ ships its
+  # own package.json/node_modules/tests; the agent-* GitHub workflows, actions,
+  # prompts and assets are part of the same vendored runtime, not the project's
+  # own application code (lib/, src/).
+  - ".agent/**"
+  - ".github/actions/**"
+  - ".github/prompts/**"
+  - ".github/assets/**"
+  - ".github/workflows/agent-*.yml"
+  - ".github/workflows/test-scripts.yml"
+  - ".github/ISSUE_TEMPLATE/agent-goal.yml"
+  - ".github/ISSUE_TEMPLATE/ask-sepo.md"
+  - ".github/ISSUE_TEMPLATE/install-sepo.md"
 ---
