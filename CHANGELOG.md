@@ -1,3 +1,11 @@
+## [0.5.72](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.71...v0.5.72) (2026-08-25)
+
+
+### Bug Fixes
+
+* **deps:** align data-model override and resolve icons source import for mlightcad 1.6.3 ([becc709](https://github.com/ashcoft/nextcloud-cad-viewer/commit/becc7092d8f85a1b4809adb3cd704fc6b20f9c1d))
+* **deps:** update mlightcad-ecosystem to v1.6.3 ([3486504](https://github.com/ashcoft/nextcloud-cad-viewer/commit/3486504d19f5b0c3faec166b05fe121e45285a15))
+
 ## [0.5.71](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.70...v0.5.71) (2026-08-25)
 
 ## [0.5.70](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.69...v0.5.70) (2026-08-25)
