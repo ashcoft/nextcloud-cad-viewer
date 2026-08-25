@@ -1,3 +1,10 @@
+## [0.5.69](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.68...v0.5.69) (2026-08-25)
+
+
+### Bug Fixes
+
+* force nanoid 3.3.18 to resolve DoS advisory [#30](https://github.com/ashcoft/nextcloud-cad-viewer/issues/30) ([7b18621](https://github.com/ashcoft/nextcloud-cad-viewer/commit/7b186218a09bdbee97212059e3ed37ede6c2e5d9))
+
 ## [0.5.68](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.67...v0.5.68) (2026-08-24)
 
 ## [0.5.67](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.66...v0.5.67) (2026-08-23)
