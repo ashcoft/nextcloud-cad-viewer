@@ -38,4 +38,4 @@ overrides:
   '@ai-sdk/provider-utils': '5.0.30'
   # Security: force nanoid >= 3.3.18 to fix infinite loop in customAlphabet/
   # customRandom when size is 0 (DoS via unvalidated attacker-controlled size, advisory #30)
-  'nanoid': '3.3.18'
+  'nanoid': '6.0.1'
