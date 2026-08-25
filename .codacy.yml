@@ -5,4 +5,16 @@ exclude:
       - "*.js"
   - pattern: "*.min.js"
   - path: templates/
+  # Vendored third-party "Sepo" agent infrastructure (analogous to vendor/ and
+  # node_modules/): its own runtime under .agent/ and the agent-* GitHub
+  # workflows/actions/prompts/assets. Not the project's own application code.
+  - path: .agent/
+  - path: .github/actions/
+  - path: .github/prompts/
+  - path: .github/assets/
+  - pattern: ".github/workflows/agent-*.yml"
+  - pattern: ".github/workflows/test-scripts.yml"
+  - pattern: ".github/ISSUE_TEMPLATE/agent-goal.yml"
+  - pattern: ".github/ISSUE_TEMPLATE/ask-sepo.md"
+  - pattern: ".github/ISSUE_TEMPLATE/install-sepo.md"
 ---
