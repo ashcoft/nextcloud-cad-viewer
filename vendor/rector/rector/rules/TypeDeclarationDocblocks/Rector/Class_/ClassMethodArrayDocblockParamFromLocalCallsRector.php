@@ -4,12 +4,14 @@ declare (strict_types=1);
 namespace Rector\TypeDeclarationDocblocks\Rector\Class_;
 
 use PhpParser\Node;
+use PhpParser\Node\Expr;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\Class_;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
+use Rector\NodeManipulator\ClassMethodManipulator;
 use Rector\PhpParser\NodeFinder\LocalMethodCallFinder;
 use Rector\Rector\AbstractRector;
 use Rector\TypeDeclaration\NodeAnalyzer\CallTypesResolver;
@@ -42,13 +44,18 @@ final class ClassMethodArrayDocblockParamFromLocalCallsRector extends AbstractRe
      * @readonly
      */
     private NodeDocblockTypeDecorator $nodeDocblockTypeDecorator;
-    public function __construct(PhpDocInfoFactory $phpDocInfoFactory, CallTypesResolver $callTypesResolver, LocalMethodCallFinder $localMethodCallFinder, UsefulArrayTagNodeAnalyzer $usefulArrayTagNodeAnalyzer, NodeDocblockTypeDecorator $nodeDocblockTypeDecorator)
+    /**
+     * @readonly
+     */
+    private ClassMethodManipulator $classMethodManipulator;
+    public function __construct(PhpDocInfoFactory $phpDocInfoFactory, CallTypesResolver $callTypesResolver, LocalMethodCallFinder $localMethodCallFinder, UsefulArrayTagNodeAnalyzer $usefulArrayTagNodeAnalyzer, NodeDocblockTypeDecorator $nodeDocblockTypeDecorator, ClassMethodManipulator $classMethodManipulator)
     {
         $this->phpDocInfoFactory = $phpDocInfoFactory;
         $this->callTypesResolver = $callTypesResolver;
         $this->localMethodCallFinder = $localMethodCallFinder;
         $this->usefulArrayTagNodeAnalyzer = $usefulArrayTagNodeAnalyzer;
         $this->nodeDocblockTypeDecorator = $nodeDocblockTypeDecorator;
+        $this->classMethodManipulator = $classMethodManipulator;
     }
     public function getNodeTypes(): array
     {
@@ -97,6 +104,10 @@ CODE_SAMPLE
             if ($classMethod->getParams() === []) {
                 continue;
             }
+            // parent/interface method may declare a wider @param contract; local calls are narrower, so skip to keep LSP
+            if ($this->classMethodManipulator->hasParentMethodOrInterfaceMethod($node, $this->getName($classMethod))) {
+                continue;
+            }
             $classMethodPhpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($classMethod);
             $methodCalls = $this->localMethodCallFinder->match($node, $classMethod);
             $classMethodParameterTypes = $this->callTypesResolver->resolveTypesFromCalls($methodCalls);
@@ -120,6 +131,13 @@ CODE_SAMPLE
                 }
                 // in case of array type declaration, null cannot be passed or is already casted
                 $resolvedParameterType = TypeCombinator::removeNull($resolvedParameterType);
+                // the param default value must always be accepted; a locally inferred, flow-narrowed type such as
+                // "non-empty-array" would otherwise contradict an "= []" default - unite with the default type so
+                // the resulting @param never conflicts with the method signature
+                if ($param->default instanceof Expr) {
+                    $defaultType = $this->nodeTypeResolver->getType($param->default);
+                    $resolvedParameterType = TypeCombinator::union($resolvedParameterType, $defaultType);
+                }
                 $hasClassMethodChanged = $this->nodeDocblockTypeDecorator->decorateGenericIterableParamType($resolvedParameterType, $classMethodPhpDocInfo, $classMethod, $param, $parameterName);
                 if ($hasClassMethodChanged) {
                     $hasChanged = \true;
