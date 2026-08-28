@@ -13,22 +13,33 @@ final class PhpParserNodeMapper
      * @var PhpParserNodeMapperInterface[]
      * @readonly
      */
-    private iterable $phpParserNodeMappers;
+    private array $phpParserNodeMappers;
     /**
      * @param PhpParserNodeMapperInterface[] $phpParserNodeMappers
      */
-    public function __construct(iterable $phpParserNodeMappers)
+    public function __construct(array $phpParserNodeMappers)
     {
         $this->phpParserNodeMappers = $phpParserNodeMappers;
     }
     public function mapToPHPStanType(Node $node): Type
     {
+        $matchedNodeMapper = null;
+        $matchedNodeType = null;
         foreach ($this->phpParserNodeMappers as $phpParserNodeMapper) {
-            if (!is_a($node, $phpParserNodeMapper->getNodeType())) {
+            $nodeType = $phpParserNodeMapper->getNodeType();
+            if (!$node instanceof $nodeType) {
                 continue;
             }
-            return $phpParserNodeMapper->mapToPHPStan($node);
+            // pick the most specific mapper: a mapper for a child node wins over one for its
+            // parent node, regardless of registration order
+            if ($matchedNodeType === null || is_a($nodeType, $matchedNodeType, \true)) {
+                $matchedNodeType = $nodeType;
+                $matchedNodeMapper = $phpParserNodeMapper;
+            }
         }
-        throw new NotImplementedYetException(get_class($node));
+        if (!$matchedNodeMapper instanceof PhpParserNodeMapperInterface) {
+            throw new NotImplementedYetException(get_class($node));
+        }
+        return $matchedNodeMapper->mapToPHPStan($node);
     }
 }
