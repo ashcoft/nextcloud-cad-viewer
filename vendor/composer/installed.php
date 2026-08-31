@@ -3,7 +3,7 @@
         'name' => 'ashcoft/nextcloud-cad-viewer',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '66e4b4374d7bddc4f51d020f29e714c44347df1e',
+        'reference' => 'f13f9145e6c148c0077d0faa974601a013d90c74',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -112,7 +112,7 @@
         'ashcoft/nextcloud-cad-viewer' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '66e4b4374d7bddc4f51d020f29e714c44347df1e',
+            'reference' => 'f13f9145e6c148c0077d0faa974601a013d90c74',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -778,8 +778,8 @@
             'dev_requirement' => true,
         ),
         'symfony/process' => array(
-            'pretty_version' => 'v8.1.5',
-            'version' => '8.1.5.0',
+            'pretty_version' => 'v8.1.6',
+            'version' => '8.1.6.0',
             'reference' => 'd863f5e70d7c87abb906ac11b61f83036093000b',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/process',
