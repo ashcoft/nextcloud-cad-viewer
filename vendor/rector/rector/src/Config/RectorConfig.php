@@ -6,17 +6,16 @@ namespace Rector\Config;
 use RectorPrefix202608\Composer\Semver\Semver;
 use Deprecated;
 use RectorPrefix202608\Entropy\Container\Container;
-use Override;
 use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
 use Rector\Composer\InstalledPackageResolver;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
 use Rector\Configuration\RectorConfigBuilder;
-use Rector\Contract\DependencyInjection\RelatedConfigInterface;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Contract\Rector\RectorInterface;
 use Rector\Enum\Config\Defaults;
 use Rector\Exception\ShouldNotHappenException;
+use Rector\Php\PhpVersionResolver\ComposerJsonPhpVersionResolver;
 use Rector\Skipper\SkipCriteriaResolver\SkippedClassResolver;
 use Rector\Validation\RectorConfigValidator;
 use Rector\ValueObject\Configuration\LevelOverflow;
@@ -178,6 +177,8 @@ final class RectorConfig extends Container
         Assert::isAOf($rectorClass, ConfigurableRectorInterface::class);
         // store configuration to cache
         $this->ruleConfigurations[$rectorClass] = array_merge($this->ruleConfigurations[$rectorClass] ?? [], $configuration);
+        // feed values into the cache hash, so a changed configuration invalidates the cache
+        SimpleParameterProvider::setParameter(Option::RULE_CONFIGURATIONS, $this->ruleConfigurations);
         $this->rule($rectorClass);
         $this->afterResolving($rectorClass, function (ConfigurableRectorInterface $configurableRector) use ($rectorClass): void {
             // the rule may have been re-registered without configuration since this callback was
@@ -213,6 +214,21 @@ final class RectorConfig extends Container
         $this->ruleWithConfiguration($rectorClass, $configuration);
     }
     /**
+     * Register the rule configuration only if the target PHP version is at least $phpVersion.
+     * Useful for a configuration valid from a specific PHP version, e.g. a function renamed in PHP 8.0.
+     *
+     * @param class-string<ConfigurableRectorInterface> $rectorClass
+     * @param mixed[] $configuration
+     * @param PhpVersion::* $phpVersion
+     */
+    public function ruleWithConfigurationPhpVersionBound(string $rectorClass, array $configuration, int $phpVersion): void
+    {
+        if ($this->resolveTargetPhpVersion() < $phpVersion) {
+            return;
+        }
+        $this->ruleWithConfiguration($rectorClass, $configuration);
+    }
+    /**
      * @param class-string<RectorInterface> $rectorClass
      */
     public function rule(string $rectorClass): void
@@ -226,11 +242,6 @@ final class RectorConfig extends Container
             $this->registeredRectorClasses[$rectorClass] = \true;
             // for cache invalidation in case of change
             SimpleParameterProvider::addParameter(Option::REGISTERED_RECTOR_RULES, $rectorClass);
-        }
-        if (is_a($rectorClass, RelatedConfigInterface::class, \true)) {
-            $configFile = $rectorClass::getConfigFile();
-            Assert::file($configFile, sprintf('The config path "%s" in "%s::getConfigFile()" could not be found', $configFile, $rectorClass));
-            $this->import($configFile);
         }
     }
     /**
@@ -350,6 +361,7 @@ final class RectorConfig extends Container
     }
     /**
      * @param class-string<CacheStorageInterface> $cacheClass
+     * @deprecated Cache storage is selected automatically: file cache locally, in-memory cache in CI, where the ephemeral workspace makes writing a cache that is never re-read wasted IO. The passed value is ignored.
      */
     public function cacheClass(string $cacheClass): void
     {
@@ -357,6 +369,7 @@ final class RectorConfig extends Container
     }
     /**
      * @param class-string $cacheMetaExtensionClass
+     * @deprecated Niche mechanism, no longer applied. Let Rector handle cache on its own. If custom invalidation is needed, handle it in CI in a more generic way, e.g. by clearing the cache directory.
      */
     public function cacheMetaExtension(string $cacheMetaExtensionClass): void
     {
@@ -442,7 +455,6 @@ final class RectorConfig extends Container
      *
      * @param class-string $contract
      */
-    #[Override]
     public function forgetByContract(string $contract): void
     {
         parent::forgetByContract($contract);
@@ -498,5 +510,20 @@ final class RectorConfig extends Container
             $this->installedPackageResolver = $this->bound(InstalledPackageResolver::class) ? $this->make(InstalledPackageResolver::class) : new InstalledPackageResolver();
         }
         return $this->installedPackageResolver->resolvePackageVersion($packageName);
+    }
+    private function resolveTargetPhpVersion(): int
+    {
+        // an explicitly picked withPhpSets(phpXX: true) version is the target for its sets,
+        // even when it is above the project composer.json PHP version
+        if (SimpleParameterProvider::hasParameter(Option::POLYFILL_CEILING_PHP_VERSION)) {
+            $ceilingPhpVersion = SimpleParameterProvider::provideIntParameter(Option::POLYFILL_CEILING_PHP_VERSION);
+            if ($ceilingPhpVersion > 0) {
+                return $ceilingPhpVersion;
+            }
+        }
+        if (SimpleParameterProvider::hasParameter(Option::PHP_VERSION_FEATURES)) {
+            return SimpleParameterProvider::provideIntParameter(Option::PHP_VERSION_FEATURES);
+        }
+        return ComposerJsonPhpVersionResolver::resolve(getcwd() . '/composer.json') ?? \PHP_VERSION_ID;
     }
 }

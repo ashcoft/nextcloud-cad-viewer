@@ -9,7 +9,7 @@
     ],
     "require": {
         "php": "^7.4|^8.0",
-        "phpstan/phpstan": "^2.2.6"
+        "phpstan/phpstan": "^2.2.10"
     },
     "autoload": {
         "files": [
@@ -23,8 +23,5 @@
         "rector/rector-downgrade-php": "*"
     },
     "minimum-stability": "dev",
-    "prefer-stable": true,
-    "suggest": {
-        "ext-dom": "To manipulate phpunit.xml via the custom-rule command"
-    }
+    "prefer-stable": true
 }

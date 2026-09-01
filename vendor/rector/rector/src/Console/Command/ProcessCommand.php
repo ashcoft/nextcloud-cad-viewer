@@ -11,7 +11,6 @@ use Rector\Configuration\ConfigInitializer;
 use Rector\Configuration\ConfigurationFactory;
 use Rector\Configuration\ConfigurationRuleFilter;
 use Rector\Configuration\Option;
-use Rector\Configuration\Parameter\SimpleParameterProvider;
 use Rector\Console\ExitCode;
 use Rector\Console\Output\OutputFormatterCollector;
 use Rector\Console\ProcessConfigureDecorator;
@@ -148,7 +147,7 @@ EOF
         }
         // 0. warn about skipped rules that are deprecated
         if ($this->skippedClassResolver->resolveDeprecatedSkippedClasses() !== []) {
-            $this->symfonyStyle->warning(sprintf('These rules are skipped, but are deprecated. Most likely you do not need to skip them anymore as not part of any set and remove them: %s* %s', "\n\n", implode(' * ', $this->skippedClassResolver->resolveDeprecatedSkippedClasses()) . "\n"));
+            $this->symfonyStyle->warning(sprintf('These rules are skipped, but are deprecated. Most likely you do not need to skip them anymore as not part of any set and remove them: %s%s', "\n\n", '* ' . implode("\n* ", $this->skippedClassResolver->resolveDeprecatedSkippedClasses()) . "\n"));
         }
         // 1. warn about rules registered in both withRules() and sets to avoid bloated rector.php configs
         $setAndRulesDuplicatedRegistrations = $configuration->getBothSetAndRulesDuplicatedRegistrations();
@@ -174,10 +173,6 @@ EOF
         if (!$configuration->isParallel()) {
             $this->additionalAutoloader->autoloadPaths();
         }
-        // show debug info
-        if ($configuration->isDebug()) {
-            $this->reportLoadedComposerBasedSets();
-        }
         // MAIN PHASE
         // 2. run Rector
         $processResult = $this->applicationFileProcessor->run($configuration, $input);
@@ -185,6 +180,10 @@ EOF
         // 3. reporting phaseRunning 2nd time with collectors data
         // report diffs and errors
         $outputFormat = $configuration->getOutputFormat();
+        // warn about deprecated static-analysis-oriented output formats, to be removed in next minor version
+        if (in_array($outputFormat, ['github', 'gitlab'], \true)) {
+            $this->symfonyStyle->getErrorStyle()->warning(sprintf('The "%s" output format is deprecated and will be removed in the next minor version, as Rector is not a static analysis tool.', $outputFormat));
+        }
         $outputFormatter = $this->outputFormatterCollector->getByName($outputFormat);
         $outputFormatter->report($processResult, $configuration);
         // 4. Deprecations reporter
@@ -233,18 +232,6 @@ EOF
             return ExitCode::CHANGED_CODE;
         }
         return ExitCode::SUCCESS;
-    }
-    private function reportLoadedComposerBasedSets(): void
-    {
-        if (!SimpleParameterProvider::hasParameter(Option::COMPOSER_BASED_SETS)) {
-            return;
-        }
-        $composerBasedSets = SimpleParameterProvider::provideArrayParameter(Option::COMPOSER_BASED_SETS);
-        if ($composerBasedSets === []) {
-            return;
-        }
-        $this->symfonyStyle->writeln('[info] Sets loaded based on installed packages:');
-        $this->symfonyStyle->listing($composerBasedSets);
     }
     private function reportLevelOverflow(LevelOverflow $levelOverflow): void
     {

@@ -11,12 +11,18 @@ use PhpParser\Node\Expr\BinaryOp\Identical;
 use PhpParser\Node\Expr\BooleanNot;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\Isset_;
+use PhpParser\Node\Expr\PropertyFetch;
+use PhpParser\Node\Expr\StaticPropertyFetch;
 use PhpParser\Node\Stmt\Else_;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\If_;
+use PHPStan\Reflection\Php\PhpPropertyReflection;
+use PHPStan\Type\MixedType;
+use PHPStan\Type\TypeCombinator;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
+use Rector\Reflection\ReflectionResolver;
 use Rector\ValueObject\PhpVersionFeature;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -34,10 +40,15 @@ final class IfToNullCoalescingAssignRector extends AbstractRector implements Min
      * @readonly
      */
     private ValueResolver $valueResolver;
-    public function __construct(BetterNodeFinder $betterNodeFinder, ValueResolver $valueResolver)
+    /**
+     * @readonly
+     */
+    private ReflectionResolver $reflectionResolver;
+    public function __construct(BetterNodeFinder $betterNodeFinder, ValueResolver $valueResolver, ReflectionResolver $reflectionResolver)
     {
         $this->betterNodeFinder = $betterNodeFinder;
         $this->valueResolver = $valueResolver;
+        $this->reflectionResolver = $reflectionResolver;
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -87,16 +98,37 @@ CODE_SAMPLE
         if (!$this->nodeComparator->areNodesEqual($assign->var, $testedExpr)) {
             return null;
         }
+        // a typed non-nullable property can never be null on the left of ??=
+        if ($this->isNonNullableProperty($testedExpr)) {
+            return null;
+        }
         // the assigned value must not reference the target, e.g. $x = $x + 1
         $selfReference = $this->betterNodeFinder->findFirst($assign->expr, fn(Node $subNode): bool => $this->nodeComparator->areNodesEqual($subNode, $assign->var));
         if ($selfReference instanceof Node) {
             return null;
         }
-        return new Expression(new AssignCoalesce($assign->var, $assign->expr));
+        $expression = new Expression(new AssignCoalesce($assign->var, $assign->expr));
+        $this->mirrorComments($expression, $node);
+        return $expression;
     }
     public function provideMinPhpVersion(): int
     {
         return PhpVersionFeature::NULL_COALESCE_ASSIGN;
+    }
+    private function isNonNullableProperty(Expr $expr): bool
+    {
+        if (!$expr instanceof PropertyFetch && !$expr instanceof StaticPropertyFetch) {
+            return \false;
+        }
+        $phpPropertyReflection = $this->reflectionResolver->resolvePropertyReflectionFromPropertyFetch($expr);
+        if (!$phpPropertyReflection instanceof PhpPropertyReflection) {
+            return \false;
+        }
+        $propertyType = $phpPropertyReflection->getReadableType();
+        if ($propertyType instanceof MixedType) {
+            return \false;
+        }
+        return !TypeCombinator::containsNull($propertyType);
     }
     private function matchNullGuardedExpr(Expr $expr): ?Expr
     {
