@@ -4,11 +4,11 @@ declare (strict_types=1);
 namespace Rector\Configuration;
 
 use Deprecated;
+use RectorPrefix202608\DrupalRector\Set\DrupalSetList;
+use RectorPrefix202608\Nette\Utils\Strings;
 use PhpParser\NodeVisitor;
-use Rector\Bridge\SetProviderCollector;
 use Rector\Bridge\SetRectorsResolver;
 use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
-use Rector\Composer\InstalledPackageResolver;
 use Rector\Config\Level\CodeQualityLevel;
 use Rector\Config\Level\CodingStyleLevel;
 use Rector\Config\Level\DeadCodeLevel;
@@ -25,9 +25,6 @@ use Rector\Enum\Config\Defaults;
 use Rector\Exception\Configuration\InvalidConfigurationException;
 use Rector\Php\PhpVersionResolver\ComposerJsonPhpVersionResolver;
 use Rector\PHPUnit\Set\PHPUnitSetList;
-use Rector\Set\Contract\SetProviderInterface;
-use Rector\Set\Enum\SetGroup;
-use Rector\Set\SetManager;
 use Rector\Set\ValueObject\DowngradeLevelSetList;
 use Rector\Set\ValueObject\SetList;
 use Rector\Symfony\Set\SymfonyInternalSetList;
@@ -35,6 +32,7 @@ use Rector\Symfony\Set\SymfonySetList;
 use Rector\Symfony\Set\TwigSetList;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\PhpVersion;
+use RectorLaravel\Set\LaravelSetList;
 use RectorPrefix202608\Symfony\Component\Finder\Finder;
 use RectorPrefix202608\Webmozart\Assert\Assert;
 /**
@@ -47,19 +45,17 @@ final class RectorConfigBuilder
      */
     private const MAX_LEVEL_GAP = 10;
     /**
+     * Matches the deprecated per-version PHP set files, e.g. .../config/set/php82.php
+     * @var string
+     */
+    private const DEPRECATED_PHP_SET_REGEX = '#/config/set/php\d+\.php$#';
+    /**
      * A level method and the set that contains the very same rules,
      * so they are never enabled both at once
      *
      * @var array<string, array{string, string}> level method name => [set file path, set title]
      */
     private const LEVEL_METHOD_TO_SET = ['withTypeCoverageLevel' => [SetList::TYPE_DECLARATION, 'type declarations'], 'withTypeCoverageDocblockLevel' => [SetList::TYPE_DECLARATION_DOCBLOCKS, 'type declaration docblocks'], 'withDeadCodeLevel' => [SetList::DEAD_CODE, 'dead code'], 'withCodeQualityLevel' => [SetList::CODE_QUALITY, 'code quality'], 'withCodingStyleLevel' => [SetList::CODING_STYLE, 'coding style']];
-    /**
-     * The composer-based set of the extensions that rector-src does not require, so their set list class cannot be
-     * imported here. Resolved at run-time; an extension that ships no such set falls back to its set group.
-     *
-     * @var array<SetGroup::*, string>
-     */
-    private const EXTENSION_COMPOSER_BASED_SET_LISTS = [SetGroup::LARAVEL => 'RectorLaravel\Set\LaravelSetList::COMPOSER_BASED', SetGroup::DRUPAL => 'DrupalRector\Set\DrupalSetList::COMPOSER_BASED'];
     /**
      * @var string[]
      */
@@ -133,45 +129,30 @@ final class RectorConfigBuilder
      * @var array<class-string>
      */
     private array $registerServices = [];
-    /**
-     * @var array<SetGroup::*>
-     */
-    private array $setGroups = [];
     private ?bool $reportingRealPath = null;
     private ?bool $reportUnusedSkips = null;
-    /**
-     * @var string[]
-     */
-    private array $groupLoadedSets = [];
     private ?string $editorUrl = null;
     private ?bool $isWithPhpSetsUsed = null;
     private ?bool $isWithPhpLevelUsed = null;
     private ?int $pickedPhpSetsVersion = null;
     /**
-     * @var array<class-string<SetProviderInterface>,bool>
+     * Only an explicitly picked withPhpSets(phpXX) version acts as a ceiling; the composer.json
+     * fallback must not, so polyfilled rules can still be raised above the project PHP version
      */
-    private array $setProviders = [];
+    private bool $isPhpSetsVersionPicked = \false;
     /**
      * @var LevelOverflow[]
      */
     private array $levelOverflows = [];
     public function __invoke(RectorConfig $rectorConfig): void
     {
-        if ($this->setGroups !== [] || $this->setProviders !== []) {
-            $setProviderCollector = new SetProviderCollector(array_map(\Closure::fromCallable([$rectorConfig, 'make']), \array_keys($this->setProviders)));
-            $setManager = new SetManager($setProviderCollector, new InstalledPackageResolver(getcwd()));
-            $this->groupLoadedSets = $setManager->matchBySetGroups($this->setGroups);
-            SimpleParameterProvider::addParameter(\Rector\Configuration\Option::COMPOSER_BASED_SETS, $this->groupLoadedSets);
-        }
         // not to miss it by accident
         if ($this->isWithPhpSetsUsed === \true) {
             $this->sets[] = SetList::PHP_POLYFILLS;
         }
-        if ($this->pickedPhpSetsVersion !== null) {
+        if ($this->isPhpSetsVersionPicked && $this->pickedPhpSetsVersion !== null) {
             SimpleParameterProvider::setParameter(\Rector\Configuration\Option::POLYFILL_CEILING_PHP_VERSION, $this->pickedPhpSetsVersion);
         }
-        // merge sets together
-        $this->sets = array_merge($this->sets, $this->groupLoadedSets);
         $uniqueSets = array_unique($this->sets);
         if ($this->isWithPhpLevelUsed && $this->isWithPhpSetsUsed) {
             throw new InvalidConfigurationException(sprintf('Your config uses "withPhp*()" and "withPhpLevel()" methods at the same time.%sPick one of them to avoid rule conflicts.', \PHP_EOL));
@@ -322,6 +303,12 @@ final class RectorConfigBuilder
      */
     public function withSets(array $sets): self
     {
+        foreach ($sets as $set) {
+            if (Strings::match($set, self::DEPRECATED_PHP_SET_REGEX) === null) {
+                continue;
+            }
+            Notifier::notifyDeprecatedPhpSet($set);
+        }
         $this->sets = array_merge($this->sets, $sets);
         return $this;
     }
@@ -408,52 +395,84 @@ final class RectorConfigBuilder
         if (count($pickedPhpVersions) > 1) {
             throw new InvalidConfigurationException(sprintf('Pick only one version target in "withPhpSets()". All rules up to this version will be used.%sTo use your composer.json PHP version, keep arguments empty.', \PHP_EOL));
         }
-        // no version picked, resolve it from the project composer.json
+        // no version picked, target the project composer.json PHP version
         if ($pickedPhpVersions === []) {
             return $this->addPhpLevelSets(ComposerJsonPhpVersionResolver::resolveFromCwdOrFail());
         }
         // explicitly picked version is a ceiling, even for polyfilled rules
-        $this->pickedPhpSetsVersion = $pickedPhpVersions[0];
+        $this->isPhpSetsVersionPicked = \true;
         return $this->addPhpLevelSets($pickedPhpVersions[0]);
     }
+    /**
+     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
+     */
     public function withPhp53Sets(): self
     {
         return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
     }
+    /**
+     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
+     */
     public function withPhp54Sets(): self
     {
         return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
     }
+    /**
+     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
+     */
     public function withPhp55Sets(): self
     {
         return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
     }
+    /**
+     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
+     */
     public function withPhp56Sets(): self
     {
         return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
     }
+    /**
+     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
+     */
     public function withPhp70Sets(): self
     {
         return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
     }
+    /**
+     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
+     */
     public function withPhp71Sets(): self
     {
         return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
     }
+    /**
+     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
+     */
     public function withPhp72Sets(): self
     {
         return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
     }
+    /**
+     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
+     */
     public function withPhp73Sets(): self
     {
         return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
     }
+    /**
+     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
+     */
     public function withPhp74Sets(): self
     {
         return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
     }
     // there is no withPhp80Sets() and above,
     // as we already use PHP 8.0 and should go with withPhpSets() instead
+    /**
+     * @param bool $instanceOf @deprecated Use $codeQuality instead, as most instanceof rules were moved there
+     * @param bool $if @deprecated Use $codeQuality and $codingStyle instead, as the if rules were moved there or deprecated
+     * @param bool $earlyReturn @deprecated Use $codeQuality instead, as all early return rules were moved there
+     */
     public function withPreparedSets(bool $deadCode = \false, bool $codeQuality = \false, bool $codingStyle = \false, bool $typeDeclarations = \false, bool $typeDeclarationDocblocks = \false, bool $privatization = \false, bool $naming = \false, bool $namedArgs = \false, bool $instanceOf = \false, bool $if = \false, bool $earlyReturn = \false, bool $carbon = \false, bool $rectorPreset = \false, bool $phpunitCodeQuality = \false, bool $phpunitNarrowAsserts = \false, bool $phpunitMockToStub = \false, bool $doctrineCodeQuality = \false, bool $symfonyCodeQuality = \false, bool $symfonyConfigs = \false): self
     {
         Notifier::notifyNotSuitableMethodForPHP74(__METHOD__);
@@ -467,22 +486,12 @@ final class RectorConfigBuilder
     }
     public function withComposerBased(bool $twig = \false, bool $doctrine = \false, bool $phpunit = \false, bool $symfony = \false, bool $netteUtils = \false, bool $laravel = \false, bool $drupal = \false): self
     {
-        $setMap = [SetGroup::LARAVEL => $laravel, SetGroup::DRUPAL => $drupal];
-        foreach ($setMap as $setGroup => $isEnabled) {
-            if (!$isEnabled) {
-                continue;
-            }
-            $setListConstant = self::EXTENSION_COMPOSER_BASED_SET_LISTS[$setGroup];
-            if (defined($setListConstant)) {
-                $setFilePath = constant($setListConstant);
-                Assert::string($setFilePath);
-                // single set, as every rule inside is bound to the installed package version on its own
-                $this->sets[] = $setFilePath;
-                continue;
-            }
-            // @deprecated fallback for extensions that still describe their sets as objects,
-            // instead of bonding the rules themselves
-            $this->setGroups[] = $setGroup;
+        if ($laravel && class_exists('RectorLaravel\Set\LaravelSetList') && constant('RectorLaravel\Set\LaravelSetList::COMPOSER_BASED')) {
+            $this->sets[] = LaravelSetList::COMPOSER_BASED;
+        }
+        if ($drupal && class_exists('DrupalRector\Set\DrupalSetList') && constant('DrupalRector\Set\DrupalSetList::COMPOSER_BASED')) {
+            // waits on https://github.com/palantirnet/drupal-rector/pull/419/files#diff-c6bd4ee854830efc1363a7d99c1b6a2e7e64f2499a51e503174ab777de7e64e5
+            $this->sets[] = DrupalSetList::COMPOSER_BASED;
         }
         if ($phpunit) {
             // single set, as every rule inside is bound to the installed PHPUnit version on its own
@@ -540,6 +549,8 @@ final class RectorConfigBuilder
     }
     /**
      * @param class-string $cacheMetaExtensionClass
+     * @deprecated Niche mechanism, no longer applied. Let Rector handle cache on its own.
+     * @deprecated Niche mechanism, no longer applied. Let Rector handle cache on its own. If custom invalidation is needed, handle it in CI in a more generic way, e.g. by clearing the cache directory.
      */
     public function withCacheMetaExtension(string $cacheMetaExtensionClass): self
     {
@@ -677,10 +688,8 @@ final class RectorConfigBuilder
     {
         Assert::natural($level);
         $this->isWithPhpLevelUsed = \true;
-        $phpVersion = ComposerJsonPhpVersionResolver::resolveFromCwdOrFail();
         $setRectorsResolver = new SetRectorsResolver();
-        $setFilePaths = \Rector\Configuration\PhpLevelSetResolver::resolveFromPhpVersion($phpVersion);
-        $rectorRulesWithConfiguration = $setRectorsResolver->resolveFromFilePathsIncludingConfiguration($setFilePaths);
+        $rectorRulesWithConfiguration = $setRectorsResolver->resolveFromFilePathIncludingConfiguration(SetList::PHP_VERSION_BASED_SET);
         foreach ($rectorRulesWithConfiguration as $position => $rectorRuleWithConfiguration) {
             // add rules until level is reached
             if ($position > $level) {
@@ -790,19 +799,11 @@ final class RectorConfigBuilder
         return $this;
     }
     /**
-     * @param class-string<SetProviderInterface> ...$setProviders
+     * @deprecated Set providers are now loaded internally. Use withComposerBased() instead.
      */
-    public function withSetProviders(string ...$setProviders): self
+    public function withSetProviders(): self
     {
-        foreach ($setProviders as $setProvider) {
-            if (\array_key_exists($setProvider, $this->setProviders)) {
-                continue;
-            }
-            if (!is_a($setProvider, SetProviderInterface::class, \true)) {
-                throw new InvalidConfigurationException(sprintf('Set provider "%s" must implement "%s"', $setProvider, SetProviderInterface::class));
-            }
-            $this->setProviders[$setProvider] = \true;
-        }
+        trigger_error('The withSetProviders() method is deprecated and no longer applied. Set providers are now loaded internally - use "withComposerBased()" instead.', \E_USER_DEPRECATED);
         return $this;
     }
     /**
@@ -811,7 +812,8 @@ final class RectorConfigBuilder
     private function addPhpLevelSets(int $phpVersion): self
     {
         $this->isWithPhpSetsUsed = \true;
-        $this->sets = array_merge($this->sets, \Rector\Configuration\PhpLevelSetResolver::resolveFromPhpVersion($phpVersion));
+        $this->pickedPhpSetsVersion = $phpVersion;
+        $this->sets[] = SetList::PHP_VERSION_BASED_SET;
         return $this;
     }
     private function reportDeprecatedPhpSetsMethod(string $methodName): self
