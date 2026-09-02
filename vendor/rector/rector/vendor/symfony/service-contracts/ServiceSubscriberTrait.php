@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202608\Symfony\Contracts\Service;
+namespace RectorPrefix202609\Symfony\Contracts\Service;
 
-use RectorPrefix202608\Psr\Container\ContainerInterface;
-use RectorPrefix202608\Symfony\Contracts\Service\Attribute\Required;
-use RectorPrefix202608\Symfony\Contracts\Service\Attribute\SubscribedService;
+use RectorPrefix202609\Psr\Container\ContainerInterface;
+use RectorPrefix202609\Symfony\Contracts\Service\Attribute\Required;
+use RectorPrefix202609\Symfony\Contracts\Service\Attribute\SubscribedService;
 trigger_deprecation('symfony/contracts', 'v3.5', '"%s" is deprecated, use "ServiceMethodsSubscriberTrait" instead.', ServiceSubscriberTrait::class);
 /**
  * Implementation of ServiceSubscriberInterface that determines subscribed services
@@ -33,6 +33,9 @@ trait ServiceSubscriberTrait
     {
         $services = method_exists(get_parent_class(self::class) ?: '', __FUNCTION__) ? parent::getSubscribedServices() : [];
         foreach ((new \ReflectionClass(self::class))->getMethods() as $method) {
+            if (\PHP_VERSION_ID < 80100) {
+                $method->setAccessible(\true);
+            }
             if (self::class !== $method->class) {
                 continue;
             }
