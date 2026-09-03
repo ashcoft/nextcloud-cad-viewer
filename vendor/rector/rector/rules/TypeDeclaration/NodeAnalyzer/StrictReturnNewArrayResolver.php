@@ -16,9 +16,9 @@ use PHPStan\Type\ArrayType;
 use PHPStan\Type\Constant\ConstantArrayType;
 use PHPStan\Type\IntersectionType;
 use PHPStan\Type\MixedType;
-use PHPStan\Type\NeverType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
+use PHPStan\Type\TypeTraverser;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTypeChanger;
 use Rector\NodeNameResolver\NodeNameResolver;
@@ -210,15 +210,19 @@ final class StrictReturnNewArrayResolver
     }
     private function shouldAddReturnArrayDocType(Type $arrayType): bool
     {
-        if ($arrayType instanceof ConstantArrayType) {
-            if ($arrayType->getIterableValueType() instanceof NeverType) {
-                return \false;
+        // only plain list<> and generic array<> doc types are worth adding;
+        // array shapes produce noisy, fragile doc types, skip them
+        return !$this->hasArrayShape($arrayType);
+    }
+    private function hasArrayShape(Type $type): bool
+    {
+        $hasArrayShape = \false;
+        TypeTraverser::map($type, function (Type $currentType, callable $traverse) use (&$hasArrayShape): Type {
+            if ($currentType instanceof ConstantArrayType && $currentType->getKeyTypes() !== [] && !$currentType->isList()->yes()) {
+                $hasArrayShape = \true;
             }
-            // handle only simple arrays
-            if (!$arrayType->getIterableKeyType()->isInteger()->yes()) {
-                return \false;
-            }
-        }
-        return \true;
+            return $traverse($currentType);
+        });
+        return $hasArrayShape;
     }
 }
