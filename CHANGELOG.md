@@ -1,3 +1,10 @@
+## [0.5.117](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.116...v0.5.117) (2026-09-03)
+
+
+### Bug Fixes
+
+* **deps:** update fast-uri to 4.1.4 ([de35f35](https://github.com/ashcoft/nextcloud-cad-viewer/commit/de35f35f6bda48f59697a6d0ea7bbd6d1480b806))
+
 ## [0.5.116](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.115...v0.5.116) (2026-09-03)
 
 ## [0.5.115](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.114...v0.5.115) (2026-09-03)
