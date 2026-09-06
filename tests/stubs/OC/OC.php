@@ -117,7 +117,7 @@ namespace OCP\AppFramework\Http\Events {
         }
 
         /**
-         * @internal Test-only method — does not exist in real Nextcloud 33 API.
+         * @internal Test-only method — does not exist in real Nextcloud 34 API.
          *
          * @param object $response The response object to set
          *

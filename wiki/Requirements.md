@@ -19,11 +19,11 @@ This document outlines the system requirements and dependencies for running Next
 
 | Requirement | Details |
 |-------------|---------|
-| **Minimum Version** | Nextcloud 33 |
-| **Maximum Version** | Nextcloud 34 |
-| **Recommended** | Latest stable release of Nextcloud 34 |
+| **Minimum Version** | Nextcloud 34 |
+| **Maximum Version** | Nextcloud 35 |
+| **Recommended** | Latest stable release of Nextcloud 35 |
 
-> ⚠️ **Note**: The app is specifically tested and optimized for Nextcloud 33-34.
+> ⚠️ **Note**: The app is specifically tested and optimized for Nextcloud 34-35.
 
 ### PHP Requirements
 
@@ -292,9 +292,9 @@ The app uses the following major libraries:
 
 | Nextcloud | PHP | CAD Viewer Version | Status |
 |-----------|-----|-------------------|--------|
-| 33 | 8.3+ | 1.0.0 | ✅ Fully Supported |
-| 32 | 8.3 | - | ❌ Not Supported |
-| 31 | 8.2 | - | ❌ Not Supported |
+| 35 |8.4+ | 1.0.0 | ✅ Fully Supported |
+| 34 |8.4 | 1.0.0 | ✅ Fully Supported |
+| 33 |8.3 | - | ❌ Not Supported |
 
 ---
 
@@ -303,8 +303,8 @@ The app uses the following major libraries:
 When upgrading from previous versions:
 
 1. Backup your Nextcloud installation
-2. Update to Nextcloud 33 (if not already)
-3. Update PHP to 8.3+
+2. Update to Nextcloud 34 (if not already)
+3. Update PHP to 8.4+
 4. Install/update CAD Viewer app
 5. Clear caches
 6. Test with sample CAD files

@@ -23,7 +23,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Environment (please complete the following information):**
-- Nextcloud version: [e.g. 33.0.0]
+- Nextcloud version: [e.g. 34.0.0]
 - PHP version: [e.g. 8.3]
 - Browser: [e.g. Chrome, Firefox]
 - CAD Viewer version: [e.g. 1.0.0]

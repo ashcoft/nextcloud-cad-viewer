@@ -23,7 +23,7 @@ Before installing the CAD Viewer, ensure your system meets the following require
 
 | Component | Minimum Version | Recommended Version |
 |-----------|----------------|---------------------|
-| Nextcloud | 33 | 33 |
+| Nextcloud | 34 | 35 |
 | PHP | 8.3 | 8.3+ |
 | Node.js (development only) | 24 | 24+ |
 | Web Server | Apache/Nginx | Latest stable |

@@ -57,7 +57,7 @@ refactor: improve Vue component structure
 - Bug fixes should include regression tests
 - Ensure all existing tests pass
 - Test on PHP 8.5
-- Test on Nextcloud 33
+- Test on Nextcloud 34
 - Test on multiple databases (SQLite, MySQL, PostgreSQL)
 
 ## Pull Request Process
