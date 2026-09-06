@@ -4,7 +4,7 @@ This document provides instructions and tips for AI agents working on this repos
 
 ## Project Overview
 
-This is a Nextcloud app called `cad_viewer` that integrates the `@mlightcad/cad-viewer` library to view DWG and DXF files entirely in Nextcloud 34+.
+This is a Nextcloud app called `cad_viewer` that integrates the `@mlightcad/cad-viewer` library to view DWG and DXF files entirely in Nextcloud 34-35.
 
 ## Technical Stack
 

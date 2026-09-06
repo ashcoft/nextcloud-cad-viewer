@@ -29,7 +29,7 @@ This document outlines the system requirements and dependencies for running Next
 
 | Component | Version | Notes |
 |-----------|---------|-------|
-| **PHP Version** | 8.3+ | Required |
+| **PHP Version** | 8.4+ | Required |
 | **Memory Limit** | 512MB minimum, 1GB recommended | For large files |
 | **Max Execution Time** | 120 seconds minimum | For file processing |
 | **Upload Max Filesize** | 100MB minimum, 500MB+ recommended | For CAD file uploads |
@@ -107,7 +107,7 @@ Tested on:
 - ✅ Debian 11/12
 - ✅ CentOS 8/Rocky Linux 8
 - ✅ RHEL 8/9
-- ✅ Other Linux distributions with PHP 8.3+
+- ✅ Other Linux distributions with PHP 8.4+
 
 ---
 

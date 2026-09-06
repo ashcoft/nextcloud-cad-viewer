@@ -18,13 +18,13 @@ A native Nextcloud app providing DWG and DXF file viewing capabilities based on 
 - 📱 **Responsive design** that works on desktop and mobile
 - 🔒 **Secure integration** with Nextcloud's file permissions
 - 🔄 **Easy updates** from upstream cad-viewer
-- 🧪 **Fully tested** and compatible with Nextcloud 34
+- 🧪 **Fully tested** and compatible with Nextcloud 34-35
 
 ## 📋 Requirements
 
 | Component | Version |
 |-----------|---------|
-| Nextcloud | 34+     |
+| Nextcloud | 34-35     |
 | PHP       | 8.4+    |
 | Node.js   | 24+ (dev. only) |
 | pnpm      | 11+ (dev. only) |

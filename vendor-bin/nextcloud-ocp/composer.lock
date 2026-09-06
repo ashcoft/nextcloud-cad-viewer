@@ -4,9 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0f8eafb312c37a7ed977736f31ba87fb",
-    "packages": [],
-    "packages-dev": [
+    "content-hash": "4363f1bf2f88663cf5fc1c585606b377",
+    "packages": [
         {
             "name": "nextcloud/ocp",
             "version": "dev-stable34",
@@ -363,6 +362,7 @@
             "time": "2024-09-11T13:17:53+00:00"
         }
     ],
+    "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
