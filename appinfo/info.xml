@@ -29,7 +29,7 @@
   <screenshot>https://raw.githubusercontent.com/ashcoft/nextcloud-cad-viewer/main/docs/screenshot.png</screenshot>
   <dependencies>
     <php min-version="8.4"/>
-    <nextcloud min-version="33" max-version="34"/>
+    <nextcloud min-version="34" max-version="35"/>
   </dependencies>
   <settings>
     <admin>OCA\CadViewer\Settings\AdminSettings</admin>
