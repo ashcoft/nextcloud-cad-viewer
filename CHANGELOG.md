@@ -1,3 +1,10 @@
+## [0.5.135](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.134...v0.5.135) (2026-09-07)
+
+
+### Bug Fixes
+
+* **deps:** refresh pnpm lockfile for eslint-plugin-vue 10.11.0 ([de22ed8](https://github.com/ashcoft/nextcloud-cad-viewer/commit/de22ed8324004d0f19bc2a04e74348fa5f8c598d))
+
 ## [0.5.134](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.133...v0.5.134) (2026-09-07)
 
 ## [0.5.133](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.132...v0.5.133) (2026-09-07)
