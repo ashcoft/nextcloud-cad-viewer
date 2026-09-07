@@ -1,3 +1,10 @@
+## [0.5.133](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.132...v0.5.133) (2026-09-07)
+
+
+### Bug Fixes
+
+* address review feedback on Nextcloud 34-35 update ([f23bdca](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f23bdca8d9131607438a3d8b8642120a567c16d7))
+
 ## [0.5.132](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.131...v0.5.132) (2026-09-06)
 
 ## [0.5.131](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.130...v0.5.131) (2026-09-06)
