@@ -18,6 +18,9 @@ node_modules/
 .pytest_cache/
 .gradle/
 
+# Vendor bin (nextcloud/ocp dependencies)
+/vendor-bin/nextcloud-ocp/vendor/
+
 # Logs and temp files
 *.log
 *.tmp
