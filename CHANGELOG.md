@@ -1,3 +1,10 @@
+## [0.5.137](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.136...v0.5.137) (2026-09-08)
+
+
+### Bug Fixes
+
+* **deps:** refresh pnpm lockfile for @types/node 26.5.0 ([19bb261](https://github.com/ashcoft/nextcloud-cad-viewer/commit/19bb2613ce3f2973f7c9110e7a5992fd6347460d))
+
 ## [0.5.136](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.135...v0.5.136) (2026-09-07)
 
 ## [0.5.135](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.134...v0.5.135) (2026-09-07)
