@@ -1,3 +1,12 @@
+## [0.5.138](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.137...v0.5.138) (2026-09-09)
+
+
+### Bug Fixes
+
+* **deps:** align version overrides with mlightcad 1.7.0 peer requirements ([f1d3ec8](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f1d3ec87aa7f1c8d24a525550e8c2c814b90a3bb))
+* **deps:** restore overrides-consistent specifiers in pnpm-lock.yaml ([4c51cb0](https://github.com/ashcoft/nextcloud-cad-viewer/commit/4c51cb0cec1a25b08807f2d7fb064bdf155d224e))
+* **deps:** update mlightcad-ecosystem to v1.7.0 ([250e484](https://github.com/ashcoft/nextcloud-cad-viewer/commit/250e484932b49e1a1ed6f2877eeb9e18784e274e))
+
 ## [0.5.137](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.136...v0.5.137) (2026-09-08)
 
 
