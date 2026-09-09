@@ -1,3 +1,10 @@
+## [0.5.140](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.139...v0.5.140) (2026-09-09)
+
+
+### Bug Fixes
+
+* **deps:** restore overrides-consistent specifiers in pnpm-lock.yaml ([fc8d75f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/fc8d75f431f438103cfb05ca3374238fb0982400))
+
 ## [0.5.139](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.138...v0.5.139) (2026-09-09)
 
 ## [0.5.138](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.137...v0.5.138) (2026-09-09)
