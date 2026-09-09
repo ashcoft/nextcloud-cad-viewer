@@ -147,7 +147,7 @@ importers:
         specifier: 1.7.0
         version: 1.7.0(e67e2378fa061990f989aca7c5c0bdde)
       '@mlightcad/data-model':
-        specifier: ^1.12.1
+        specifier: 1.14.5
         version: 1.14.5
       '@nextcloud/axios':
         specifier: ^2.0.0
@@ -162,7 +162,7 @@ importers:
         specifier: ^3.1.0
         version: 3.1.0
       element-plus:
-        specifier: 2.14.3
+        specifier: 2.14.2
         version: 2.14.2(vue@3.5.38(typescript@6.0.3))
       jquery:
         specifier: ^4.0.0
@@ -171,13 +171,13 @@ importers:
         specifier: 4.18.1
         version: 4.18.1
       three:
-        specifier: 0.185.1
+        specifier: 0.184.0
         version: 0.184.0
       vue:
-        specifier: 3.5.42
+        specifier: 3.5.38
         version: 3.5.38(typescript@6.0.3)
       vue-i18n:
-        specifier: 11.4.10
+        specifier: 11.4.6
         version: 11.4.6(vue@3.5.38(typescript@6.0.3))
       vue-router:
         specifier: ^5.2.0
