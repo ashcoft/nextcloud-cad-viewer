@@ -7,10 +7,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace PHPUnit\Framework;
+namespace PHPUnit\Framework\TestRunner;
 
 use function assert;
 use function hash_equals;
+use function is_int;
+use function property_exists;
 use function strlen;
 use function substr;
 use function trim;
@@ -18,9 +20,18 @@ use function unserialize;
 use PHPUnit\Event\Code\TestMethodBuilder;
 use PHPUnit\Event\Code\ThrowableBuilder;
 use PHPUnit\Event\Emitter;
+use PHPUnit\Event\EventCollection;
 use PHPUnit\Event\Facade;
+use PHPUnit\Event\TestRunner\ChildProcessReason;
+use PHPUnit\Framework\AssertionFailedError;
+use PHPUnit\Framework\Exception;
+use PHPUnit\Framework\Test;
+use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestStatus\TestStatus;
 use PHPUnit\Runner\CodeCoverage;
+use PHPUnit\TestRunner\TestResult\Facade as TestResultFacade;
 use PHPUnit\TestRunner\TestResult\PassedTests;
+use stdClass;
 
 /**
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
@@ -45,10 +56,23 @@ final readonly class ChildProcessResultProcessor
      */
     public function process(Test $test, string $serializedProcessResult, string $stderr, ?string $processResultNonce = null): void
     {
+        if (TestResultFacade::wasInterrupted()) {
+            assert($test instanceof TestCase);
+
+            $this->emitter->testFinished(
+                TestMethodBuilder::fromTestCase($test),
+                0,
+            );
+
+            return;
+        }
+
         if ($stderr !== '') {
             $exception = new Exception(trim($stderr));
 
             assert($test instanceof TestCase);
+
+            $test->setStatus(TestStatus::error($exception->getMessage()));
 
             $this->emitter->testErrored(
                 TestMethodBuilder::fromTestCase($test),
@@ -63,13 +87,15 @@ final readonly class ChildProcessResultProcessor
 
             if (strlen($serializedProcessResult) < $nonceLength ||
                 !hash_equals($processResultNonce, substr($serializedProcessResult, 0, $nonceLength))) {
-                $this->emitter->childProcessErrored();
+                $message = 'Test was run in child process and the result file was tampered with or written by an unexpected process';
 
-                $exception = new AssertionFailedError(
-                    'Test was run in child process and the result file was tampered with or written by an unexpected process',
-                );
+                $this->emitter->childProcessErrored(ChildProcessReason::TestRequiringProcessIsolation, $message);
+
+                $exception = new AssertionFailedError($message);
 
                 assert($test instanceof TestCase);
+
+                $test->setStatus(TestStatus::error($exception->getMessage()));
 
                 $this->emitter->testErrored(
                     TestMethodBuilder::fromTestCase($test),
@@ -89,12 +115,26 @@ final readonly class ChildProcessResultProcessor
 
         $childResult = @unserialize($serializedProcessResult);
 
-        if ($childResult === false) {
-            $this->emitter->childProcessErrored();
+        if (!$childResult instanceof stdClass ||
+            !property_exists($childResult, 'events') ||
+            !property_exists($childResult, 'passedTests') ||
+            !property_exists($childResult, 'testResult') ||
+            !property_exists($childResult, 'status') ||
+            !property_exists($childResult, 'numAssertions') ||
+            !$childResult->events instanceof EventCollection ||
+            !$childResult->passedTests instanceof PassedTests ||
+            !$childResult->status instanceof TestStatus ||
+            !is_int($childResult->numAssertions) ||
+            $childResult->numAssertions < 0) {
+            $message = 'Test was run in child process and ended unexpectedly';
 
-            $exception = new AssertionFailedError('Test was run in child process and ended unexpectedly');
+            $this->emitter->childProcessErrored(ChildProcessReason::TestRequiringProcessIsolation, $message);
+
+            $exception = new AssertionFailedError($message);
 
             assert($test instanceof TestCase);
+
+            $test->setStatus(TestStatus::error($exception->getMessage()));
 
             $this->emitter->testErrored(
                 TestMethodBuilder::fromTestCase($test),
@@ -115,6 +155,7 @@ final readonly class ChildProcessResultProcessor
         assert($test instanceof TestCase);
 
         $test->setResult($childResult->testResult);
+        $test->setStatus($childResult->status);
         $test->addToAssertionCount($childResult->numAssertions);
 
         if (!$this->codeCoverage->isActive()) {
@@ -122,7 +163,7 @@ final readonly class ChildProcessResultProcessor
         }
 
         // @codeCoverageIgnoreStart
-        if (!$childResult->codeCoverage instanceof \SebastianBergmann\CodeCoverage\CodeCoverage) {
+        if (!isset($childResult->codeCoverage) || !$childResult->codeCoverage instanceof \SebastianBergmann\CodeCoverage\CodeCoverage) {
             return;
         }
 

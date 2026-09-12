@@ -118,12 +118,27 @@ final readonly class PharLoader
                 continue;
             }
 
-            $loadedExtensions[] = $manifest->getName()->asString() . ' ' . $manifest->getVersion()->getVersionString();
+            $name    = $manifest->getName()->asString();
+            $version = $manifest->getVersion()->getVersionString();
+
+            if ($name === '') {
+                // @codeCoverageIgnoreStart
+                $name = 'unknown';
+                // @codeCoverageIgnoreEnd
+            }
+
+            if ($version === '') {
+                // @codeCoverageIgnoreStart
+                $version = 'unknown';
+                // @codeCoverageIgnoreEnd
+            }
+
+            $loadedExtensions[] = $name . ' ' . $version;
 
             Event\Facade::emitter()->testRunnerLoadedExtensionFromPhar(
                 $file,
-                $manifest->getName()->asString(),
-                $manifest->getVersion()->getVersionString(),
+                $name,
+                $version,
             );
         }
 

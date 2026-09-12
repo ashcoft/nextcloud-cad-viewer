@@ -23,8 +23,6 @@ use PHPUnit\Framework\ExpectationFailedException;
 final class LogicalNot extends UnaryOperator
 {
     /**
-     * @param non-empty-string $string
-     *
      * @return non-empty-string
      */
     public static function negate(string $string): string
@@ -73,6 +71,12 @@ final class LogicalNot extends UnaryOperator
             PREG_SPLIT_DELIM_CAPTURE,
         );
 
+        if ($segments === false) {
+            // @codeCoverageIgnoreStart
+            $segments = [$string];
+            // @codeCoverageIgnoreEnd
+        }
+
         $negatedString = '';
 
         foreach ($segments as $index => $segment) {
@@ -118,7 +122,7 @@ final class LogicalNot extends UnaryOperator
      */
     protected function matches(mixed $other): bool
     {
-        return !$this->constraint()->evaluate($other, '', true);
+        return $this->constraint()->evaluate($other, '', true) === false;
     }
 
     /**

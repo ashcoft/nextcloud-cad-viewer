@@ -11,6 +11,8 @@ namespace PHPUnit\Framework\Constraint;
 
 use function array_key_exists;
 use function is_array;
+use function is_int;
+use function is_string;
 use ArrayAccess;
 use PHPUnit\Util\Exporter;
 
@@ -41,6 +43,10 @@ final class ArrayHasKey extends Constraint
     protected function matches(mixed $other): bool
     {
         if (is_array($other)) {
+            if (!is_int($this->key) && !is_string($this->key)) {
+                return false;
+            }
+
             return array_key_exists($this->key, $other);
         }
 
@@ -60,5 +66,30 @@ final class ArrayHasKey extends Constraint
     protected function failureDescription(mixed $other): string
     {
         return 'an array ' . $this->toString();
+    }
+
+    /**
+     * Returns the negated description when this constraint is wrapped in a
+     * LogicalNot operator. The guard ensures that LogicalAnd, LogicalOr, and
+     * LogicalXor keep using the affirmative toString().
+     */
+    protected function toStringInContext(Operator $operator, mixed $role): string
+    {
+        if (!$operator instanceof LogicalNot) {
+            return '';
+        }
+
+        return 'does not have the key ' . Exporter::export($this->key);
+    }
+
+    protected function failureDescriptionInContext(Operator $operator, mixed $role, mixed $other): string
+    {
+        // @codeCoverageIgnoreStart
+        if (!$operator instanceof LogicalNot) {
+            return '';
+        }
+        // @codeCoverageIgnoreEnd
+
+        return 'an array ' . $this->toStringInContext($operator, $role);
     }
 }

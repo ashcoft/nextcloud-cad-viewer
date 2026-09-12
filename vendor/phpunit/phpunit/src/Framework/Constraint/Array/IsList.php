@@ -48,4 +48,29 @@ final class IsList extends Constraint
     {
         return $this->valueToTypeStringFragment($other) . $this->toString();
     }
+
+    /**
+     * Returns the negated description when this constraint is wrapped in a
+     * LogicalNot operator. The guard ensures that LogicalAnd, LogicalOr, and
+     * LogicalXor keep using the affirmative toString().
+     */
+    protected function toStringInContext(Operator $operator, mixed $role): string
+    {
+        if (!$operator instanceof LogicalNot) {
+            return '';
+        }
+
+        return 'is not a list';
+    }
+
+    protected function failureDescriptionInContext(Operator $operator, mixed $role, mixed $other): string
+    {
+        // @codeCoverageIgnoreStart
+        if (!$operator instanceof LogicalNot) {
+            return '';
+        }
+        // @codeCoverageIgnoreEnd
+
+        return $this->valueToTypeStringFragment($other) . $this->toStringInContext($operator, $role);
+    }
 }

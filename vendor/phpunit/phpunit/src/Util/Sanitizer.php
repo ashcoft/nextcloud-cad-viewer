@@ -30,10 +30,16 @@ final readonly class Sanitizer
      */
     public static function sanitizeBidirectionalControlCharacters(string $value): string
     {
-        return preg_replace_callback(
+        $sanitized = preg_replace_callback(
             '/\xE2\x80[\xAA-\xAE]|\xE2\x81[\xA6-\xA9]/',
             static fn (array $matches) => sprintf('\u{%04X}', mb_ord($matches[0], 'UTF-8')),
             $value,
         );
+
+        if ($sanitized === null) {
+            return $value;
+        }
+
+        return $sanitized;
     }
 }

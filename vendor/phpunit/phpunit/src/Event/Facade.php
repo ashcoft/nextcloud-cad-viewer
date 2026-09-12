@@ -102,6 +102,7 @@ final class Facade
                 new Telemetry\SystemStopWatchWithOffset($offset),
                 new Telemetry\SystemMemoryMeter,
                 new SystemGarbageCollectorStatusProvider,
+                new Telemetry\SystemCpuTimeMeter,
             ),
         );
 
@@ -117,6 +118,22 @@ final class Facade
         foreach ($events as $event) {
             $dispatcher->dispatch($event);
         }
+    }
+
+    /**
+     * @throws EventsAreAlreadyBeingCollectedException
+     */
+    public function startCollectingEvents(): void
+    {
+        $this->deferredDispatcher()->startCollectingEvents();
+    }
+
+    /**
+     * @throws EventsAreNotBeingCollectedException
+     */
+    public function stopCollectingEvents(): EventCollection
+    {
+        return $this->deferredDispatcher()->stopCollectingEvents();
     }
 
     public function seal(): void
@@ -142,6 +159,7 @@ final class Facade
             new Telemetry\SystemStopWatch,
             new Telemetry\SystemMemoryMeter,
             new SystemGarbageCollectorStatusProvider,
+            new Telemetry\SystemCpuTimeMeter,
         );
     }
 
@@ -198,6 +216,8 @@ final class Facade
             Test\ComparatorRegistered::class,
             Test\CustomTestMethodInvocationUsed::class,
             Test\ConsideredRisky::class,
+            Test\AttemptErrored::class,
+            Test\AttemptFailed::class,
             Test\DeprecationTriggered::class,
             Test\Errored::class,
             Test\ErrorTriggered::class,
@@ -247,6 +267,13 @@ final class Facade
             TestRunner\DeprecationTriggered::class,
             TestRunner\NoticeTriggered::class,
             TestRunner\WarningTriggered::class,
+            TestRunner\Issue\DeprecationTriggered::class,
+            TestRunner\ErrorTriggered::class,
+            TestRunner\Issue\NoticeTriggered::class,
+            TestRunner\PhpDeprecationTriggered::class,
+            TestRunner\PhpNoticeTriggered::class,
+            TestRunner\PhpWarningTriggered::class,
+            TestRunner\Issue\WarningTriggered::class,
             TestRunner\GarbageCollectionDisabled::class,
             TestRunner\GarbageCollectionTriggered::class,
             TestRunner\GarbageCollectionEnabled::class,

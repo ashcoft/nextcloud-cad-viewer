@@ -14,6 +14,7 @@ use PHPUnit\Event\Code\ComparisonFailure;
 use PHPUnit\Event\Code\IssueTrigger\IssueTrigger;
 use PHPUnit\Event\Code\TestMethod;
 use PHPUnit\Event\Code\Throwable;
+use PHPUnit\Event\TestRunner\ChildProcessReason;
 use PHPUnit\Event\TestSuite\TestSuite;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\TextUI\Configuration\Configuration;
@@ -155,6 +156,10 @@ interface Emitter
 
     public function testFailed(Code\Test $test, Throwable $throwable, ?ComparisonFailure $comparisonFailure): void;
 
+    public function testAttemptErrored(Code\Test $test, Throwable $throwable, Telemetry\Duration $duration): void;
+
+    public function testAttemptFailed(Code\Test $test, Throwable $throwable, ?ComparisonFailure $comparisonFailure, Telemetry\Duration $duration): void;
+
     public function testPassed(Code\Test $test): void;
 
     /**
@@ -184,7 +189,7 @@ interface Emitter
      * @param non-empty-string $file
      * @param positive-int     $line
      */
-    public function testTriggeredPhpDeprecation(Code\Test $test, string $message, string $file, int $line, bool $suppressed, bool $ignoredByBaseline, bool $ignoredByTest, IssueTrigger $trigger): void;
+    public function testTriggeredPhpDeprecation(Code\Test $test, string $message, string $file, int $line, bool $suppressed, bool $ignoredByBaseline, bool $ignoredByTest, bool $ignoredByFilter, IssueTrigger $trigger): void;
 
     /**
      * @param non-empty-string $message
@@ -192,7 +197,7 @@ interface Emitter
      * @param positive-int     $line
      * @param non-empty-string $stackTrace
      */
-    public function testTriggeredDeprecation(Code\Test $test, string $message, string $file, int $line, bool $suppressed, bool $ignoredByBaseline, bool $ignoredByTest, IssueTrigger $trigger, string $stackTrace): void;
+    public function testTriggeredDeprecation(Code\Test $test, string $message, string $file, int $line, bool $suppressed, bool $ignoredByBaseline, bool $ignoredByTest, bool $ignoredByFilter, IssueTrigger $trigger, string $stackTrace): void;
 
     /**
      * @param non-empty-string $message
@@ -292,11 +297,14 @@ interface Emitter
 
     public function testSuiteFinished(TestSuite $testSuite): void;
 
-    public function childProcessStarted(): void;
+    public function childProcessStarted(ChildProcessReason $reason): void;
 
-    public function childProcessErrored(): void;
+    /**
+     * @param non-empty-string $message
+     */
+    public function childProcessErrored(ChildProcessReason $reason, string $message): void;
 
-    public function childProcessFinished(string $stdout, string $stderr): void;
+    public function childProcessFinished(ChildProcessReason $reason, string $stdout, string $stderr): void;
 
     public function testRunnerStartedStaticAnalysisForCodeCoverage(): void;
 
@@ -320,6 +328,56 @@ interface Emitter
      * @param non-empty-string $message
      */
     public function testRunnerTriggeredPhpunitWarning(string $message): void;
+
+    /**
+     * @param non-empty-string $message
+     * @param non-empty-string $file
+     * @param positive-int     $line
+     */
+    public function testRunnerTriggeredPhpNotice(string $message, string $file, int $line, bool $suppressed, bool $ignoredByBaseline): void;
+
+    /**
+     * @param non-empty-string $message
+     * @param non-empty-string $file
+     * @param positive-int     $line
+     */
+    public function testRunnerTriggeredNotice(string $message, string $file, int $line, bool $suppressed, bool $ignoredByBaseline): void;
+
+    /**
+     * @param non-empty-string $message
+     * @param non-empty-string $file
+     * @param positive-int     $line
+     */
+    public function testRunnerTriggeredPhpWarning(string $message, string $file, int $line, bool $suppressed, bool $ignoredByBaseline): void;
+
+    /**
+     * @param non-empty-string $message
+     * @param non-empty-string $file
+     * @param positive-int     $line
+     */
+    public function testRunnerTriggeredWarning(string $message, string $file, int $line, bool $suppressed, bool $ignoredByBaseline): void;
+
+    /**
+     * @param non-empty-string $message
+     * @param non-empty-string $file
+     * @param positive-int     $line
+     */
+    public function testRunnerTriggeredPhpDeprecation(string $message, string $file, int $line, bool $suppressed, bool $ignoredByBaseline, bool $ignoredByFilter, IssueTrigger $trigger): void;
+
+    /**
+     * @param non-empty-string $message
+     * @param non-empty-string $file
+     * @param positive-int     $line
+     * @param non-empty-string $stackTrace
+     */
+    public function testRunnerTriggeredDeprecation(string $message, string $file, int $line, bool $suppressed, bool $ignoredByBaseline, bool $ignoredByFilter, IssueTrigger $trigger, string $stackTrace): void;
+
+    /**
+     * @param non-empty-string $message
+     * @param non-empty-string $file
+     * @param positive-int     $line
+     */
+    public function testRunnerTriggeredError(string $message, string $file, int $line, bool $suppressed): void;
 
     public function testRunnerEnabledGarbageCollection(): void;
 

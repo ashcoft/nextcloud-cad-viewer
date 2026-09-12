@@ -7,7 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace PHPUnit\Framework;
+namespace PHPUnit\Framework\TestRunner;
 
 use function assert;
 use function bin2hex;
@@ -15,6 +15,7 @@ use function defined;
 use function get_include_path;
 use function hrtime;
 use function random_bytes;
+use function register_shutdown_function;
 use function serialize;
 use function sprintf;
 use function sys_get_temp_dir;
@@ -23,6 +24,10 @@ use function unlink;
 use function var_export;
 use PHPUnit\Event\Facade as EventFacade;
 use PHPUnit\Event\NoPreviousThrowableException;
+use PHPUnit\Event\TestRunner\ChildProcessReason;
+use PHPUnit\Framework\Exception;
+use PHPUnit\Framework\ProcessIsolationException;
+use PHPUnit\Framework\TestCase;
 use PHPUnit\Runner\CodeCoverage;
 use PHPUnit\TextUI\Configuration\Registry as ConfigurationRegistry;
 use PHPUnit\TextUI\Configuration\SourceMapper;
@@ -85,14 +90,22 @@ final class SeparateProcessTestRunner
 
         $coverage = CodeCoverage::instance()->isActive() ? 'true' : 'false';
 
+        // the branches below that are excluded from code coverage are only
+        // taken when PHPUnit is used from its PHAR distribution, whereas code
+        // coverage is only collected when PHPUnit is used from a Composer
+        // installation
         if (defined('PHPUNIT_COMPOSER_INSTALL')) {
             $composerAutoload = var_export(PHPUNIT_COMPOSER_INSTALL, true);
         } else {
+            // @codeCoverageIgnoreStart
             $composerAutoload = '\'\'';
+            // @codeCoverageIgnoreEnd
         }
 
         if (defined('__PHPUNIT_PHAR__')) {
+            // @codeCoverageIgnoreStart
             $phar = var_export(__PHPUNIT_PHAR__, true);
+            // @codeCoverageIgnoreEnd
         } else {
             $phar = '\'\'';
         }
@@ -103,15 +116,22 @@ final class SeparateProcessTestRunner
         $includePath     = var_export(get_include_path(), true);
         // must do these fixes because TestCaseMethod.tpl has unserialize('{data}') in it, and we can't break BC
         // the lines above used to use addcslashes() rather than var_export(), which breaks null byte escape sequences
+        // $dataName is not quoted in the template so that an integer data set name does not become a string
         $data                    = "'." . $data . ".'";
-        $dataName                = "'.(" . $dataName . ").'";
         $dependencyInput         = "'." . $dependencyInput . ".'";
         $includePath             = "'." . $includePath . ".'";
         $offset                  = hrtime();
         $serializedConfiguration = $this->saveConfigurationForChildProcess();
-        $processResultFile       = $this->pathForCachedSourceMap();
-        $processResultNonce      = bin2hex(random_bytes(16));
-        $sourceMapFile           = $this->sourceMapFileForChildProcess();
+        $processResultFile       = $this->createTemporaryFile();
+
+        if ($processResultFile === false || $processResultFile === '') {
+            // @codeCoverageIgnoreStart
+            throw new ProcessIsolationException;
+            // @codeCoverageIgnoreEnd
+        }
+
+        $processResultNonce = bin2hex(random_bytes(16));
+        $sourceMapFile      = $this->sourceMapFileForChildProcess();
 
         $file = $class->getFileName();
 
@@ -128,6 +148,10 @@ final class SeparateProcessTestRunner
             'data'                           => $data,
             'dataName'                       => $dataName,
             'dependencyInput'                => $dependencyInput,
+            'repetition'                     => (string) $test->repetition(),
+            'totalRepetitions'               => (string) $test->totalRepetitions(),
+            'attempt'                        => (string) $test->attempt(),
+            'maxAttempts'                    => (string) $test->maxAttempts(),
             'constants'                      => $constants,
             'globals'                        => $globals,
             'include_path'                   => $includePath,
@@ -150,7 +174,7 @@ final class SeparateProcessTestRunner
 
         assert($code !== '');
 
-        JobRunnerRegistry::runTestJob(new Job($code, requiresXdebug: $requiresXdebug), $processResultFile, $test, $processResultNonce);
+        JobRunnerRegistry::runTestJob(new Job($code, ChildProcessReason::TestRequiringProcessIsolation, requiresXdebug: $requiresXdebug), $processResultFile, $test, $processResultNonce);
 
         @unlink($serializedConfiguration);
     }
@@ -167,7 +191,16 @@ final class SeparateProcessTestRunner
             return self::$sourceMapFile;
         }
 
-        $path = $this->pathForCachedSourceMap();
+        // the child process only needs the source map for the identification of
+        // issue triggers and for the code coverage filter
+        if (!ConfigurationRegistry::get()->source()->identifyIssueTrigger() &&
+            !CodeCoverage::instance()->isActive()) {
+            self::$sourceMapFile = '';
+
+            return self::$sourceMapFile;
+        }
+
+        $path = $this->createTemporaryFile();
 
         if ($path === false) {
             // @codeCoverageIgnoreStart
@@ -185,6 +218,19 @@ final class SeparateProcessTestRunner
             // @codeCoverageIgnoreEnd
         }
 
+        // the source map is written once per test run and shared by all child
+        // processes, so it can only be removed when the test run has ended
+        register_shutdown_function(
+            static function () use ($path): void
+            {
+                // this runs during PHP's shutdown sequence, after code coverage
+                // data has been collected
+                // @codeCoverageIgnoreStart
+                @unlink($path);
+                // @codeCoverageIgnoreEnd
+            },
+        );
+
         self::$sourceMapFile = $path;
 
         return self::$sourceMapFile;
@@ -195,7 +241,7 @@ final class SeparateProcessTestRunner
      */
     private function saveConfigurationForChildProcess(): string
     {
-        $path = $this->pathForCachedSourceMap();
+        $path = $this->createTemporaryFile();
 
         if ($path === false) {
             // @codeCoverageIgnoreStart
@@ -212,7 +258,7 @@ final class SeparateProcessTestRunner
         return $path;
     }
 
-    private function pathForCachedSourceMap(): false|string
+    private function createTemporaryFile(): false|string
     {
         return tempnam(sys_get_temp_dir(), 'phpunit_');
     }
