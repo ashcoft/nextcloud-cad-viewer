@@ -129,6 +129,30 @@ abstract readonly class Metadata
         return new CoversFunction(Level::CLASS_LEVEL, $functionName);
     }
 
+    /**
+     * @param non-empty-string $path
+     */
+    public static function coversFile(string $path): CoversFile
+    {
+        return new CoversFile(Level::CLASS_LEVEL, $path);
+    }
+
+    /**
+     * @param non-empty-string $directory
+     */
+    public static function coversDirectory(string $directory): CoversDirectory
+    {
+        return new CoversDirectory(Level::CLASS_LEVEL, $directory);
+    }
+
+    /**
+     * @param non-empty-string $directory
+     */
+    public static function coversDirectoryRecursively(string $directory): CoversDirectoryRecursively
+    {
+        return new CoversDirectoryRecursively(Level::CLASS_LEVEL, $directory);
+    }
+
     public static function coversNothingOnClass(): CoversNothing
     {
         return new CoversNothing(Level::CLASS_LEVEL);
@@ -143,9 +167,9 @@ abstract readonly class Metadata
      * @param class-string     $className
      * @param non-empty-string $methodName
      */
-    public static function dataProvider(string $className, string $methodName, bool $validateArgumentCount): DataProvider
+    public static function dataProvider(string $className, string $methodName, bool $validateArgumentCount, bool $skipWhenEmpty): DataProvider
     {
-        return new DataProvider(Level::METHOD_LEVEL, $className, $methodName, $validateArgumentCount);
+        return new DataProvider(Level::METHOD_LEVEL, $className, $methodName, $validateArgumentCount, $skipWhenEmpty);
     }
 
     public static function dataProviderClosure(Closure $callable, bool $validateArgumentCount): DataProviderClosure
@@ -265,6 +289,22 @@ abstract readonly class Metadata
     public static function ignorePhpunitDeprecationsOnMethod(): IgnorePhpunitDeprecations
     {
         return new IgnorePhpunitDeprecations(Level::METHOD_LEVEL);
+    }
+
+    /**
+     * @param non-empty-string $message
+     */
+    public static function invalidAttributeOnClass(string $message): InvalidAttribute
+    {
+        return new InvalidAttribute(Level::CLASS_LEVEL, $message);
+    }
+
+    /**
+     * @param non-empty-string $message
+     */
+    public static function invalidAttributeOnMethod(string $message): InvalidAttribute
+    {
+        return new InvalidAttribute(Level::METHOD_LEVEL, $message);
     }
 
     public static function postCondition(int $priority): PostCondition
@@ -405,21 +445,33 @@ abstract readonly class Metadata
         return new RequiresPhpunitExtension(Level::METHOD_LEVEL, $extensionClass);
     }
 
+    /**
+     * @param non-empty-string $environmentVariableName
+     */
     public static function requiresEnvironmentVariableOnClass(string $environmentVariableName, null|string $value): RequiresEnvironmentVariable
     {
         return new RequiresEnvironmentVariable(Level::CLASS_LEVEL, $environmentVariableName, $value);
     }
 
+    /**
+     * @param non-empty-string $environmentVariableName
+     */
     public static function requiresEnvironmentVariableOnMethod(string $environmentVariableName, null|string $value): RequiresEnvironmentVariable
     {
         return new RequiresEnvironmentVariable(Level::METHOD_LEVEL, $environmentVariableName, $value);
     }
 
+    /**
+     * @param non-empty-string $environmentVariableName
+     */
     public static function withEnvironmentVariableOnClass(string $environmentVariableName, null|string $value): WithEnvironmentVariable
     {
         return new WithEnvironmentVariable(Level::CLASS_LEVEL, $environmentVariableName, $value);
     }
 
+    /**
+     * @param non-empty-string $environmentVariableName
+     */
     public static function withEnvironmentVariableOnMethod(string $environmentVariableName, null|string $value): WithEnvironmentVariable
     {
         return new WithEnvironmentVariable(Level::METHOD_LEVEL, $environmentVariableName, $value);
@@ -446,6 +498,23 @@ abstract readonly class Metadata
     public static function runTestsInSeparateProcesses(): RunTestsInSeparateProcesses
     {
         return new RunTestsInSeparateProcesses(Level::CLASS_LEVEL);
+    }
+
+    /**
+     * @param positive-int $times
+     * @param positive-int $failureThreshold
+     */
+    public static function repeat(int $times, int $failureThreshold): Repeat
+    {
+        return new Repeat(Level::METHOD_LEVEL, $times, $failureThreshold);
+    }
+
+    /**
+     * @param positive-int $maxAttempts
+     */
+    public static function retry(int $maxAttempts): Retry
+    {
+        return new Retry(Level::METHOD_LEVEL, $maxAttempts);
     }
 
     public static function runInSeparateProcess(): RunInSeparateProcess
@@ -546,6 +615,30 @@ abstract readonly class Metadata
     public static function usesMethod(string $className, string $methodName): UsesMethod
     {
         return new UsesMethod(Level::CLASS_LEVEL, $className, $methodName);
+    }
+
+    /**
+     * @param non-empty-string $path
+     */
+    public static function usesFile(string $path): UsesFile
+    {
+        return new UsesFile(Level::CLASS_LEVEL, $path);
+    }
+
+    /**
+     * @param non-empty-string $directory
+     */
+    public static function usesDirectory(string $directory): UsesDirectory
+    {
+        return new UsesDirectory(Level::CLASS_LEVEL, $directory);
+    }
+
+    /**
+     * @param non-empty-string $directory
+     */
+    public static function usesDirectoryRecursively(string $directory): UsesDirectoryRecursively
+    {
+        return new UsesDirectoryRecursively(Level::CLASS_LEVEL, $directory);
     }
 
     public static function withoutErrorHandler(): WithoutErrorHandler
@@ -689,6 +782,30 @@ abstract readonly class Metadata
     }
 
     /**
+     * @phpstan-assert-if-true CoversFile $this
+     */
+    public function isCoversFile(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @phpstan-assert-if-true CoversDirectory $this
+     */
+    public function isCoversDirectory(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @phpstan-assert-if-true CoversDirectoryRecursively $this
+     */
+    public function isCoversDirectoryRecursively(): bool
+    {
+        return false;
+    }
+
+    /**
      * @phpstan-assert-if-true CoversNothing $this
      */
     public function isCoversNothing(): bool
@@ -782,6 +899,30 @@ abstract readonly class Metadata
      * @internal This method is not covered by the backward compatibility promise for PHPUnit
      */
     public function isIgnorePhpunitDeprecations(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @phpstan-assert-if-true InvalidAttribute $this
+     */
+    public function isInvalidAttribute(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @phpstan-assert-if-true Repeat $this
+     */
+    public function isRepeat(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @phpstan-assert-if-true Retry $this
+     */
+    public function isRetry(): bool
     {
         return false;
     }
@@ -998,6 +1139,30 @@ abstract readonly class Metadata
      * @phpstan-assert-if-true UsesMethod $this
      */
     public function isUsesMethod(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @phpstan-assert-if-true UsesFile $this
+     */
+    public function isUsesFile(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @phpstan-assert-if-true UsesDirectory $this
+     */
+    public function isUsesDirectory(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @phpstan-assert-if-true UsesDirectoryRecursively $this
+     */
+    public function isUsesDirectoryRecursively(): bool
     {
         return false;
     }

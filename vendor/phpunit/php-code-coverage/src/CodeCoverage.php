@@ -72,7 +72,7 @@ final class CodeCoverage
     {
         $this->driver = $driver;
         $this->filter = $filter;
-        $this->data   = new ProcessedCodeCoverageData;
+        $this->data   = new ProcessedCodeCoverageData($driver->collectsHitCounts());
     }
 
     /**
@@ -94,7 +94,7 @@ final class CodeCoverage
     {
         $this->currentId    = null;
         $this->currentSize  = null;
-        $this->data         = new ProcessedCodeCoverageData;
+        $this->data         = new ProcessedCodeCoverageData($this->driver->collectsHitCounts());
         $this->tests        = [];
         $this->cachedReport = null;
     }
@@ -151,6 +151,21 @@ final class CodeCoverage
     public function setTests(array $tests): void
     {
         $this->tests = $tests;
+    }
+
+    /**
+     * Returns the files that could not be parsed for static analysis,
+     * mapped to the parser's error message.
+     *
+     * Code coverage for these files is based on the raw data reported by the
+     * driver: no refinement of executable lines, no dead code detection, and
+     * no information about code units.
+     *
+     * @return array<non-empty-string, non-empty-string>
+     */
+    public function parseErrors(): array
+    {
+        return $this->analyser()->parseErrors();
     }
 
     /**
@@ -240,29 +255,38 @@ final class CodeCoverage
         }
 
         $linesToBeCovered = false;
-        $linesToBeUsed    = [];
 
         if ($covers !== false) {
-            $linesToBeCovered = $this->targetMapper()->mapTargets($covers);
+            $linesToBeCovered = [];
+
+            if ($covers->isNotEmpty()) {
+                $linesToBeCovered = $this->targetMapper()->mapTargets($covers);
+            }
         } else {
             $covers = TargetCollection::fromArray([]);
         }
 
-        if ($linesToBeCovered !== false) {
+        $linesToBeUsed = [];
+
+        if ($linesToBeCovered !== false && $linesToBeCovered !== [] && $uses->isNotEmpty()) {
             $linesToBeUsed = $this->targetMapper()->mapTargets($uses);
         }
 
-        $filterProcessor->applyCoversAndUsesFilter(
-            $rawData,
-            $linesToBeCovered,
-            $linesToBeUsed,
-            $size,
-            $this->checkForUnintentionallyCoveredCode,
-            $this->targetMapper(),
-            $this->parentClassesExcludedFromUnintentionallyCoveredCodeCheck,
-            $covers,
-            $uses,
-        );
+        if ($linesToBeCovered === false) {
+            $rawData->clear();
+        } elseif ($linesToBeCovered !== []) {
+            $filterProcessor->applyCoversAndUsesFilter(
+                $rawData,
+                $linesToBeCovered,
+                $linesToBeUsed,
+                $size,
+                $this->checkForUnintentionallyCoveredCode,
+                $this->targetMapper(),
+                $this->parentClassesExcludedFromUnintentionallyCoveredCodeCheck,
+                $covers,
+                $uses,
+            );
+        }
 
         if ($rawData->lineCoverage() === []) {
             return;
@@ -404,6 +428,10 @@ final class CodeCoverage
 
     public function validate(TargetCollection $targets): ValidationResult
     {
+        if ($targets->isEmpty()) {
+            return ValidationResult::success();
+        }
+
         return (new TargetCollectionValidator)->validate($this->targetMapper(), $targets);
     }
 

@@ -9,9 +9,11 @@
  */
 namespace PHPUnit\Logging\TestDox;
 
+use function array_keys;
 use function array_merge;
 use function assert;
 use function is_subclass_of;
+use function strnatcasecmp;
 use function uasort;
 use function uksort;
 use function usort;
@@ -85,9 +87,9 @@ final class TestResultCollector
                 $testsByDeclaringClass[$declaringClassName][] = $test;
             }
 
-            foreach ($testsByDeclaringClass as $declaringClassName) {
+            foreach (array_keys($testsByDeclaringClass) as $declaringClassName) {
                 usort(
-                    $declaringClassName,
+                    $testsByDeclaringClass[$declaringClassName],
                     static function (TestDoxTestMethod $a, TestDoxTestMethod $b): int
                     {
                         return $a->test()->line() <=> $b->test()->line();
@@ -103,15 +105,7 @@ final class TestResultCollector
                  */
                 static function (string $a, string $b): int
                 {
-                    if (is_subclass_of($b, $a)) {
-                        return -1;
-                    }
-
-                    if (is_subclass_of($a, $b)) {
-                        return 1;
-                    }
-
-                    return 0;
+                    return is_subclass_of($a, $b) <=> is_subclass_of($b, $a);
                 },
             );
 
@@ -128,8 +122,15 @@ final class TestResultCollector
             $result,
             static function (TestResultCollection $a, TestResultCollection $b): int
             {
-                return $a->asArray()[0]->test()->testDox()->prettifiedClassName()
-                    <=> $b->asArray()[0]->test()->testDox()->prettifiedClassName();
+                $aList = $a->asArray();
+                $bList = $b->asArray();
+
+                assert($aList !== [] && $bList !== []);
+
+                return strnatcasecmp(
+                    $aList[0]->test()->testDox()->prettifiedClassName(),
+                    $bList[0]->test()->testDox()->prettifiedClassName(),
+                );
             },
         );
 
@@ -380,6 +381,8 @@ final class TestResultCollector
         if (!isset($this->tests[$test->className()])) {
             $this->tests[$test->className()] = [];
         }
+
+        assert($this->status !== null);
 
         $this->tests[$test->className()][] = new TestDoxTestMethod(
             $test,

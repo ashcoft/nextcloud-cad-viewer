@@ -248,6 +248,36 @@ final readonly class MetadataCollection implements Countable, IteratorAggregate
         );
     }
 
+    public function isCoversFile(): self
+    {
+        return new self(
+            ...array_filter(
+                $this->metadata,
+                static fn (Metadata $metadata): bool => $metadata->isCoversFile(),
+            ),
+        );
+    }
+
+    public function isCoversDirectory(): self
+    {
+        return new self(
+            ...array_filter(
+                $this->metadata,
+                static fn (Metadata $metadata): bool => $metadata->isCoversDirectory(),
+            ),
+        );
+    }
+
+    public function isCoversDirectoryRecursively(): self
+    {
+        return new self(
+            ...array_filter(
+                $this->metadata,
+                static fn (Metadata $metadata): bool => $metadata->isCoversDirectoryRecursively(),
+            ),
+        );
+    }
+
     public function isExcludeGlobalVariableFromBackup(): self
     {
         return new self(
@@ -387,6 +417,36 @@ final readonly class MetadataCollection implements Countable, IteratorAggregate
             ...array_filter(
                 $this->metadata,
                 static fn (Metadata $metadata): bool => $metadata->isIgnorePhpunitWarnings(),
+            ),
+        );
+    }
+
+    public function isInvalidAttribute(): self
+    {
+        return new self(
+            ...array_filter(
+                $this->metadata,
+                static fn (Metadata $metadata): bool => $metadata->isInvalidAttribute(),
+            ),
+        );
+    }
+
+    public function isRepeat(): self
+    {
+        return new self(
+            ...array_filter(
+                $this->metadata,
+                static fn (Metadata $metadata): bool => $metadata->isRepeat(),
+            ),
+        );
+    }
+
+    public function isRetry(): self
+    {
+        return new self(
+            ...array_filter(
+                $this->metadata,
+                static fn (Metadata $metadata): bool => $metadata->isRetry(),
             ),
         );
     }
@@ -657,6 +717,36 @@ final readonly class MetadataCollection implements Countable, IteratorAggregate
             ...array_filter(
                 $this->metadata,
                 static fn (Metadata $metadata): bool => $metadata->isUsesMethod(),
+            ),
+        );
+    }
+
+    public function isUsesFile(): self
+    {
+        return new self(
+            ...array_filter(
+                $this->metadata,
+                static fn (Metadata $metadata): bool => $metadata->isUsesFile(),
+            ),
+        );
+    }
+
+    public function isUsesDirectory(): self
+    {
+        return new self(
+            ...array_filter(
+                $this->metadata,
+                static fn (Metadata $metadata): bool => $metadata->isUsesDirectory(),
+            ),
+        );
+    }
+
+    public function isUsesDirectoryRecursively(): self
+    {
+        return new self(
+            ...array_filter(
+                $this->metadata,
+                static fn (Metadata $metadata): bool => $metadata->isUsesDirectoryRecursively(),
             ),
         );
     }

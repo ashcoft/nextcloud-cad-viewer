@@ -12,7 +12,7 @@ namespace PHPUnit\TextUI;
 use function mt_srand;
 use PHPUnit\Event;
 use PHPUnit\Framework\TestSuite;
-use PHPUnit\Runner\ResultCache\ResultCache;
+use PHPUnit\Runner\TestRunHistory\TestRunHistory;
 use PHPUnit\Runner\TestSuiteSorter;
 use PHPUnit\TextUI\Configuration\Configuration;
 use Throwable;
@@ -27,7 +27,7 @@ final class TestRunner
     /**
      * @throws RuntimeException
      */
-    public function run(Configuration $configuration, ResultCache $resultCache, TestSuite $suite): void
+    public function run(Configuration $configuration, TestRunHistory $testRunHistory, TestSuite $suite): void
     {
         try {
             Event\Facade::emitter()->testRunnerStarted();
@@ -36,12 +36,12 @@ final class TestRunner
                 mt_srand($configuration->randomOrderSeed());
             }
 
+            $testRunHistory->load();
+
             if ($configuration->executionOrder() !== TestSuiteSorter::ORDER_DEFAULT ||
                 $configuration->executionOrderDefects() !== TestSuiteSorter::ORDER_DEFAULT ||
                 $configuration->resolveDependencies()) {
-                $resultCache->load();
-
-                new TestSuiteSorter($resultCache)->reorderTestsInSuite(
+                new TestSuiteSorter($testRunHistory)->reorderTestsInSuite(
                     $suite,
                     $configuration->executionOrder(),
                     $configuration->resolveDependencies(),
