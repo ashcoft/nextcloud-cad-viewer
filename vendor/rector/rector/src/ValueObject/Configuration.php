@@ -68,9 +68,10 @@ final class Configuration
      */
     private bool $reportingWithRealPath = \false;
     /**
+     * @var string[]
      * @readonly
      */
-    private ?string $onlyRule = null;
+    private array $onlyRules = [];
     /**
      * @readonly
      */
@@ -98,12 +99,17 @@ final class Configuration
      */
     private array $filters = [];
     /**
+     * @readonly
+     */
+    private ?int $maxChanges = null;
+    /**
      * @param string[] $fileExtensions
      * @param string[] $paths
+     * @param string[] $onlyRules
      * @param LevelOverflow[] $levelOverflows
      * @param string[] $filters
      */
-    public function __construct(bool $isDryRun = \false, bool $showProgressBar = \true, bool $shouldClearCache = \false, string $outputFormat = ConsoleOutputFormatter::NAME, array $fileExtensions = ['php'], array $paths = [], bool $showDiffs = \true, ?string $parallelPort = null, ?string $parallelIdentifier = null, bool $isParallel = \false, ?string $memoryLimit = null, bool $isDebug = \false, bool $reportingWithRealPath = \false, ?string $onlyRule = null, ?string $onlySuffix = null, array $levelOverflows = [], bool $showRulesSummary = \false, bool $isComposerBased = \false, bool $isPhpOnly = \false, array $filters = [])
+    public function __construct(bool $isDryRun = \false, bool $showProgressBar = \true, bool $shouldClearCache = \false, string $outputFormat = ConsoleOutputFormatter::NAME, array $fileExtensions = ['php'], array $paths = [], bool $showDiffs = \true, ?string $parallelPort = null, ?string $parallelIdentifier = null, bool $isParallel = \false, ?string $memoryLimit = null, bool $isDebug = \false, bool $reportingWithRealPath = \false, array $onlyRules = [], ?string $onlySuffix = null, array $levelOverflows = [], bool $showRulesSummary = \false, bool $isComposerBased = \false, bool $isPhpOnly = \false, array $filters = [], ?int $maxChanges = null)
     {
         $this->isDryRun = $isDryRun;
         $this->showProgressBar = $showProgressBar;
@@ -118,13 +124,18 @@ final class Configuration
         $this->memoryLimit = $memoryLimit;
         $this->isDebug = $isDebug;
         $this->reportingWithRealPath = $reportingWithRealPath;
-        $this->onlyRule = $onlyRule;
+        $this->onlyRules = $onlyRules;
         $this->onlySuffix = $onlySuffix;
         $this->levelOverflows = $levelOverflows;
         $this->showRulesSummary = $showRulesSummary;
         $this->isComposerBased = $isComposerBased;
         $this->isPhpOnly = $isPhpOnly;
         $this->filters = $filters;
+        $this->maxChanges = $maxChanges;
+    }
+    public function getMaxChanges(): ?int
+    {
+        return $this->maxChanges;
     }
     public function isComposerBased(): bool
     {
@@ -154,9 +165,12 @@ final class Configuration
         Assert::notEmpty($this->fileExtensions);
         return $this->fileExtensions;
     }
-    public function getOnlyRule(): ?string
+    /**
+     * @return string[]
+     */
+    public function getOnlyRules(): array
     {
-        return $this->onlyRule;
+        return $this->onlyRules;
     }
     /**
      * @return string[]

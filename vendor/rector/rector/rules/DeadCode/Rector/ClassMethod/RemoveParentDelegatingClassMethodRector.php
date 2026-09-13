@@ -11,6 +11,8 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Return_;
 use PhpParser\NodeVisitor;
+use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocChildNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ExtendedMethodReflection;
 use PHPStan\Reflection\ExtendedParameterReflection;
@@ -102,7 +104,14 @@ CODE_SAMPLE
     private function hasRefiningDocblock(ClassMethod $classMethod): bool
     {
         $phpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($classMethod);
-        return $phpDocInfo->hasByNames(['@param', '@phpstan-param', '@psalm-param', '@return', '@phpstan-return', '@psalm-return', '@deprecated']);
+        $found = \false;
+        foreach ($phpDocInfo->getPhpDocNode()->children as $phpDocChildNode) {
+            if ($phpDocChildNode instanceof PhpDocTagNode) {
+                $found = \true;
+                break;
+            }
+        }
+        return $found;
     }
     private function matchParentMethodReflection(ClassMethod $classMethod): ?ExtendedMethodReflection
     {

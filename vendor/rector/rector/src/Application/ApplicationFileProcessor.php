@@ -99,7 +99,7 @@ final class ApplicationFileProcessor
     public function run(Configuration $configuration, InputInterface $input): ProcessResult
     {
         // scope the cache to this run's --only / --only-suffix selection before any cache read/write
-        $this->changedFilesDetector->setActiveScope($configuration->getOnlyRule(), $configuration->getOnlySuffix(), $configuration->getFilters());
+        $this->changedFilesDetector->setActiveScope($configuration->getOnlyRules(), $configuration->getOnlySuffix(), $configuration->getFilters());
         $filePaths = $this->filesFinder->findFilesInPaths($configuration->getPaths(), $configuration);
         // no files found
         if ($filePaths === []) {
@@ -150,12 +150,13 @@ final class ApplicationFileProcessor
     public function processFiles(array $filePaths, Configuration $configuration, ?callable $preFileCallback = null, ?callable $postFileCallback = null): ProcessResult
     {
         // also set here: parallel workers reach processFiles() via WorkerCommand, bypassing run()
-        $this->changedFilesDetector->setActiveScope($configuration->getOnlyRule(), $configuration->getOnlySuffix(), $configuration->getFilters());
+        $this->changedFilesDetector->setActiveScope($configuration->getOnlyRules(), $configuration->getOnlySuffix(), $configuration->getFilters());
         /** @var SystemError[] $systemErrors */
         $systemErrors = [];
         /** @var FileDiff[] $fileDiffs */
         $fileDiffs = [];
         $totalChanged = 0;
+        $totalChangeCount = 0;
         foreach ($filePaths as $filePath) {
             if ($preFileCallback !== null) {
                 $preFileCallback($filePath);
@@ -167,6 +168,7 @@ final class ApplicationFileProcessor
                 $currentFileDiff = $fileProcessResult->getFileDiff();
                 if ($currentFileDiff instanceof FileDiff) {
                     $fileDiffs[] = $currentFileDiff;
+                    $totalChangeCount += count($currentFileDiff->getRectorChanges());
                 }
                 // progress bar on parallel handled on runParallel()
                 if (is_callable($postFileCallback)) {
@@ -174,6 +176,11 @@ final class ApplicationFileProcessor
                 }
                 if ($fileProcessResult->hasChanged()) {
                     ++$totalChanged;
+                }
+                // stop once the requested number of changes is reached, leaving the rest untouched
+                $maxChanges = $configuration->getMaxChanges();
+                if ($maxChanges !== null && $totalChangeCount >= $maxChanges) {
+                    break;
                 }
             } catch (Throwable $throwable) {
                 $this->changedFilesDetector->invalidateFile($filePath);

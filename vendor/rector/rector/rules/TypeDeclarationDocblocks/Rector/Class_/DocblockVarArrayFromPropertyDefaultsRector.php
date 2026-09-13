@@ -80,6 +80,10 @@ CODE_SAMPLE
             if (!$this->isName($property->type, 'array')) {
                 continue;
             }
+            // only private properties are safe; a protected/public one can be reassigned with a wider type by a child class we cannot see here
+            if (!$property->isPrivate()) {
+                continue;
+            }
             if (count($property->props) > 1) {
                 continue;
             }

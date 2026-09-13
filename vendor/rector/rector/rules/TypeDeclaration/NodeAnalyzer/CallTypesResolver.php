@@ -4,6 +4,7 @@ declare (strict_types=1);
 namespace Rector\TypeDeclaration\NodeAnalyzer;
 
 use PhpParser\Node\Arg;
+use PhpParser\Node\ArgPlaceholder;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\MethodCall;
@@ -44,7 +45,7 @@ final class CallTypesResolver
     }
     /**
      * @param MethodCall[]|StaticCall[] $calls
-     * @return array<int, Type>
+     * @return array<int|string, Type>
      */
     public function resolveStrictTypesFromCalls(array $calls): array
     {
@@ -53,6 +54,10 @@ final class CallTypesResolver
             foreach ($call->args as $position => $arg) {
                 if ($this->shouldSkipArg($arg)) {
                     return [];
+                }
+                // must be int
+                if (!is_int($position)) {
+                    continue;
                 }
                 /** @var Arg $arg */
                 $staticTypesByArgumentPosition[$position][] = $this->resolveStrictArgValueType($arg);
@@ -103,8 +108,8 @@ final class CallTypesResolver
         return $argValueType;
     }
     /**
-     * @param array<int, Type[]> $staticTypesByArgumentPosition
-     * @return array<int, Type>
+     * @param array<int|string, Type[]> $staticTypesByArgumentPosition
+     * @return array<int|string, Type>
      */
     private function unionToSingleType(array $staticTypesByArgumentPosition, bool $removeMixedArray = \false): array
     {
@@ -175,11 +180,11 @@ final class CallTypesResolver
     /**
      * There is first class callable usage, or argument unpack, or named expr
      * simply returns array marks as unknown as can be anything and in any position
-     * @param \PhpParser\Node\Arg|\PhpParser\Node\VariadicPlaceholder $arg
+     * @param \PhpParser\Node\Arg|\PhpParser\Node\ArgPlaceholder|\PhpParser\Node\VariadicPlaceholder $arg
      */
     private function shouldSkipArg($arg): bool
     {
-        if ($arg instanceof VariadicPlaceholder) {
+        if (!$arg instanceof Arg) {
             return \true;
         }
         return $arg->unpack;

@@ -43,6 +43,6 @@ final class ClassNameResolver
         if (!is_string($className)) {
             return null;
         }
-        return new ClassNames($className, $classNameNodeVisitor->hasParentClassOrInterface(), $classNameNodeVisitor->getAttributes());
+        return new ClassNames($className, $classNameNodeVisitor->hasParentClassOrInterface(), $classNameNodeVisitor->getAttributes(), $classNameNodeVisitor->getInterfaceNames());
     }
 }
