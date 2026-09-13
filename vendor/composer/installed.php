@@ -3,7 +3,7 @@
         'name' => 'ashcoft/nextcloud-cad-viewer',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '7ca287b1fdf9481e82ce0ace3f1935a1f811d9bc',
+        'reference' => '7d8ba4d5bea68a7e939b29678a66e0cd430e5ddc',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -112,7 +112,7 @@
         'ashcoft/nextcloud-cad-viewer' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '7ca287b1fdf9481e82ce0ace3f1935a1f811d9bc',
+            'reference' => '7d8ba4d5bea68a7e939b29678a66e0cd430e5ddc',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
