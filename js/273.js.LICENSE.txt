@@ -14,3 +14,9 @@
  * @internal
  * @license Modernizr 3.0.0pre (Custom Build) | MIT
  */
+
+/**
+* @vue/shared v3.5.42
+* (c) 2018-present Yuxi (Evan) You and Vue contributors
+* @license MIT
+**/
