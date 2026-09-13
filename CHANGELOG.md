@@ -1,3 +1,10 @@
+## [0.5.152](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.151...v0.5.152) (2026-09-13)
+
+
+### Bug Fixes
+
+* **deps:** Fix pnpm audit ([078a728](https://github.com/ashcoft/nextcloud-cad-viewer/commit/078a728df88ddf1b304ad5e67673b6deca4977f7))
+
 ## [0.5.151](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.150...v0.5.151) (2026-09-13)
 
 ## [0.5.150](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.149...v0.5.150) (2026-09-13)
