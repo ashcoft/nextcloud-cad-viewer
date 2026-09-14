@@ -3,12 +3,14 @@
 declare (strict_types=1);
 namespace Rector\Configuration;
 
+use Rector\Agentic\TerminalDetector;
 use Rector\ChangesReporting\Output\ConsoleOutputFormatter;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
 use Rector\FileSystem\FilePathFilter;
 use Rector\ValueObject\Configuration;
 use RectorPrefix202609\Symfony\Component\Console\Input\InputInterface;
 use RectorPrefix202609\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202609\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Configuration\ConfigurationFactoryTest
  */
@@ -54,10 +56,9 @@ final class ConfigurationFactory
         $paths = $this->resolvePaths($input);
         $fileExtensions = SimpleParameterProvider::provideArrayParameter(\Rector\Configuration\Option::FILE_EXTENSIONS);
         // filter rule and path
-        $onlyRule = $input->getOption(\Rector\Configuration\Option::ONLY);
-        if ($onlyRule !== null) {
-            $onlyRule = $this->onlyRuleResolver->resolve($onlyRule);
-        }
+        /** @var string[] $onlyRuleInputs */
+        $onlyRuleInputs = (array) $input->getOption(\Rector\Configuration\Option::ONLY);
+        $onlyRules = array_map(\Closure::fromCallable([$this->onlyRuleResolver, 'resolve']), $onlyRuleInputs);
         $onlySuffix = $input->getOption(\Rector\Configuration\Option::ONLY_SUFFIX);
         if ($onlySuffix !== null) {
             $this->symfonyStyle->warning('The "--only-suffix" option is deprecated and will be removed. Use "--filter" instead, e.g. --filter="*Controller.php"');
@@ -66,7 +67,7 @@ final class ConfigurationFactory
         $filters = $rawFilter !== null ? $this->filePathFilter->parsePatterns((string) $rawFilter) : [];
         // "--only"/"--only-suffix"/"--filter" narrow the run, so skips outside the scope look falsely unused;
         // mark the run as narrowed to disable unused skip reporting and avoid false positives
-        if ($onlyRule !== null || $onlySuffix !== null || $filters !== []) {
+        if ($onlyRules !== [] || $onlySuffix !== null || $filters !== []) {
             SimpleParameterProvider::setParameter(\Rector\Configuration\Option::IS_RUN_NARROWED, \true);
         }
         $isParallel = SimpleParameterProvider::provideBoolParameter(\Rector\Configuration\Option::PARALLEL);
@@ -75,6 +76,11 @@ final class ConfigurationFactory
         $isDebug = (bool) $input->getOption(\Rector\Configuration\Option::DEBUG);
         // using debug disables parallel, so emitting exception is straightforward and easier to debug
         if ($isDebug) {
+            $isParallel = \false;
+        }
+        $maxChanges = $this->resolveMaxChanges($input);
+        // a global change counter cannot be shared across parallel workers, so enforce the limit in a single process
+        if ($maxChanges !== null) {
             $isParallel = \false;
         }
         $memoryLimit = $this->resolveMemoryLimit($input);
@@ -91,12 +97,26 @@ final class ConfigurationFactory
         if ($isPhpOnly) {
             SimpleParameterProvider::setParameter(\Rector\Configuration\Option::IS_RUN_NARROWED, \true);
         }
-        return new Configuration($isDryRun, $showProgressBar, $shouldClearCache, $outputFormat, $fileExtensions, $paths, $showDiffs, $parallelPort, $parallelIdentifier, $isParallel, $memoryLimit, $isDebug, $isReportingWithRealPath, $onlyRule, $onlySuffix, $levelOverflows, $showRulesSummary, $isComposerBased, $isPhpOnly, $filters);
+        return new Configuration($isDryRun, $showProgressBar, $shouldClearCache, $outputFormat, $fileExtensions, $paths, $showDiffs, $parallelPort, $parallelIdentifier, $isParallel, $memoryLimit, $isDebug, $isReportingWithRealPath, $onlyRules, $onlySuffix, $levelOverflows, $showRulesSummary, $isComposerBased, $isPhpOnly, $filters, $maxChanges);
+    }
+    private function resolveMaxChanges(InputInterface $input): ?int
+    {
+        $maxChanges = $input->getOption(\Rector\Configuration\Option::MAX_CHANGES);
+        if ($maxChanges === null) {
+            return null;
+        }
+        $maxChanges = (int) $maxChanges;
+        Assert::positiveInteger($maxChanges);
+        return $maxChanges;
     }
     private function shouldShowProgressBar(InputInterface $input, string $outputFormat): bool
     {
         $noProgressBar = (bool) $input->getOption(\Rector\Configuration\Option::NO_PROGRESS_BAR);
         if ($noProgressBar) {
+            return \false;
+        }
+        // no interactive terminal, e.g. piped output, CI or an agent - the redraws are just noise
+        if (!TerminalDetector::isOutputTty()) {
             return \false;
         }
         if ($this->symfonyStyle->isVerbose()) {
@@ -123,13 +143,16 @@ final class ConfigurationFactory
         if ($commandLinePaths !== []) {
             // mark the run as narrowed, so unused skip reporting can be disabled to avoid false positives
             SimpleParameterProvider::setParameter(\Rector\Configuration\Option::IS_RUN_NARROWED, \true);
-            $this->setFilesWithoutExtensionParameter($commandLinePaths);
-            return $commandLinePaths;
+            $paths = $commandLinePaths;
+        } else {
+            // fallback to parameter
+            $paths = SimpleParameterProvider::provideArrayParameter(\Rector\Configuration\Option::PATHS);
         }
-        // fallback to parameter
-        $configPaths = SimpleParameterProvider::provideArrayParameter(\Rector\Configuration\Option::PATHS);
-        $this->setFilesWithoutExtensionParameter($configPaths);
-        return $configPaths;
+        $this->setFilesWithoutExtensionParameter($paths);
+        // extensions read the processed paths from here; without this only the test harness
+        // sets it, so the parameter is empty in a real run
+        SimpleParameterProvider::setParameter(\Rector\Configuration\Option::SOURCE, $paths);
+        return $paths;
     }
     /**
      * @param string[] $paths

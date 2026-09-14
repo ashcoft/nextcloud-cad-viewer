@@ -9,11 +9,12 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Function_;
 use PhpParser\Node\Stmt\Return_;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode;
-use PHPStan\PhpDocParser\Ast\Type\ArrayTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\Type\Constant\ConstantArrayType;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTypeChanger;
+use Rector\BetterPhpDocParser\ValueObject\Type\SpacingAwareArrayTypeNode;
 use Rector\Rector\AbstractRector;
 use Rector\TypeDeclarationDocblocks\NodeFinder\ReturnNodeFinder;
 use Rector\TypeDeclarationDocblocks\TagNodeAnalyzer\UsefulArrayTagNodeAnalyzer;
@@ -115,8 +116,13 @@ CODE_SAMPLE
         if (!$soleReturn->expr instanceof Array_) {
             return null;
         }
-        if ($this->shouldSkipReturnMixedAndEmptyArray($phpDocInfo, $soleReturn->expr)) {
+        if ($this->shouldSkipEmptyArray($phpDocInfo, $soleReturn->expr)) {
             return null;
+        }
+        // bare "@return array" with "return []" -> "mixed[]", better than "array{}"
+        if ($soleReturn->expr->items === [] && $this->hasBareArrayReturnTag($phpDocInfo)) {
+            $this->phpDocTypeChanger->changeReturnTypeNode($node, $phpDocInfo, new SpacingAwareArrayTypeNode(new IdentifierTypeNode('mixed')));
+            return $node;
         }
         // resolve simple type
         $returnedType = $this->getType($soleReturn->expr);
@@ -131,16 +137,20 @@ CODE_SAMPLE
         $this->phpDocTypeChanger->changeReturnTypeNode($node, $phpDocInfo, $genericTypeNode);
         return $node;
     }
-    private function shouldSkipReturnMixedAndEmptyArray(PhpDocInfo $phpDocInfo, Array_ $array): bool
+    private function shouldSkipEmptyArray(PhpDocInfo $phpDocInfo, Array_ $array): bool
     {
         if ($array->items !== []) {
             return \false;
         }
+        // skip empty array; @return array{} is too narrow, except refining bare "array" to "mixed[]" is still useful
+        return !$this->hasBareArrayReturnTag($phpDocInfo);
+    }
+    private function hasBareArrayReturnTag(PhpDocInfo $phpDocInfo): bool
+    {
         $returnTagValueNode = $phpDocInfo->getReturnTagValue();
         if (!$returnTagValueNode instanceof ReturnTagValueNode) {
             return \false;
         }
-        // better than array{}
-        return $returnTagValueNode->type instanceof ArrayTypeNode;
+        return $returnTagValueNode->type instanceof IdentifierTypeNode && $returnTagValueNode->type->name === 'array';
     }
 }

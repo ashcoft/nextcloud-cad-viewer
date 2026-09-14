@@ -390,17 +390,17 @@
         },
         {
             "name": "entropy\/entropy",
-            "version": "0.4.12",
-            "version_normalized": "0.4.12.0",
+            "version": "0.4.13",
+            "version_normalized": "0.4.13.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/TomasVotruba\/entropy.git",
-                "reference": "fa763e4fc4271658e9a7e1f41279ed2a4911765c"
+                "reference": "b2c703a93350f49ce67d150bb8560e886be01027"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/TomasVotruba\/entropy\/zipball\/fa763e4fc4271658e9a7e1f41279ed2a4911765c",
-                "reference": "fa763e4fc4271658e9a7e1f41279ed2a4911765c",
+                "url": "https:\/\/api.github.com\/repos\/TomasVotruba\/entropy\/zipball\/b2c703a93350f49ce67d150bb8560e886be01027",
+                "reference": "b2c703a93350f49ce67d150bb8560e886be01027",
                 "shasum": ""
             },
             "require": {
@@ -422,7 +422,7 @@
                 "tomasvotruba\/unused-public": "^2.2",
                 "tracy\/tracy": "^2.12"
             },
-            "time": "2026-08-25T15:38:26+00:00",
+            "time": "2026-09-03T19:53:04+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -437,7 +437,7 @@
             "description": "Entropy framework",
             "support": {
                 "issues": "https:\/\/github.com\/TomasVotruba\/entropy\/issues",
-                "source": "https:\/\/github.com\/TomasVotruba\/entropy\/tree\/0.4.12"
+                "source": "https:\/\/github.com\/TomasVotruba\/entropy\/tree\/0.4.13"
             },
             "install-path": "..\/entropy\/entropy"
         },
@@ -651,17 +651,17 @@
         },
         {
             "name": "nikic\/php-parser",
-            "version": "v5.8.0",
-            "version_normalized": "5.8.0.0",
+            "version": "v5.9.0",
+            "version_normalized": "5.9.0.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/nikic\/PHP-Parser.git",
-                "reference": "044a6a392ff8ad0d61f14370a5fbbd0a0107152f"
+                "reference": "9e33da9553fe7786f0962b35f4e4ecf01be89def"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/nikic\/PHP-Parser\/zipball\/044a6a392ff8ad0d61f14370a5fbbd0a0107152f",
-                "reference": "044a6a392ff8ad0d61f14370a5fbbd0a0107152f",
+                "url": "https:\/\/api.github.com\/repos\/nikic\/PHP-Parser\/zipball\/9e33da9553fe7786f0962b35f4e4ecf01be89def",
+                "reference": "9e33da9553fe7786f0962b35f4e4ecf01be89def",
                 "shasum": ""
             },
             "require": {
@@ -673,7 +673,7 @@
                 "ircmaxell\/php-yacc": "^0.0.7",
                 "phpunit\/phpunit": "^9.0"
             },
-            "time": "2026-07-04T14:30:18+00:00",
+            "time": "2026-09-13T18:51:52+00:00",
             "bin": [
                 "bin\/php-parse"
             ],
@@ -705,7 +705,7 @@
             ],
             "support": {
                 "issues": "https:\/\/github.com\/nikic\/PHP-Parser\/issues",
-                "source": "https:\/\/github.com\/nikic\/PHP-Parser\/tree\/v5.8.0"
+                "source": "https:\/\/github.com\/nikic\/PHP-Parser\/tree\/v5.9.0"
             },
             "install-path": "..\/nikic\/php-parser"
         },
@@ -1556,12 +1556,12 @@
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/rectorphp\/rector-doctrine.git",
-                "reference": "b997d3fa0f1a131c206b16c7b9708f05ec0a27fd"
+                "reference": "bacd0fd462cd1e346d33548bdef9a2d0cccc3aa6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-doctrine\/zipball\/b997d3fa0f1a131c206b16c7b9708f05ec0a27fd",
-                "reference": "b997d3fa0f1a131c206b16c7b9708f05ec0a27fd",
+                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-doctrine\/zipball\/bacd0fd462cd1e346d33548bdef9a2d0cccc3aa6",
+                "reference": "bacd0fd462cd1e346d33548bdef9a2d0cccc3aa6",
                 "shasum": ""
             },
             "require": {
@@ -1584,7 +1584,7 @@
                 "tomasvotruba\/type-coverage": "^2.3",
                 "tracy\/tracy": "^2.12"
             },
-            "time": "2026-08-29T17:32:02+00:00",
+            "time": "2026-09-08T19:21:34+00:00",
             "default-branch": true,
             "type": "rector-extension",
             "installation-source": "dist",
@@ -1613,12 +1613,12 @@
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/rectorphp\/rector-downgrade-php.git",
-                "reference": "1beef93a7e2771e0d0fc42e6d1d22ecb9321e8e8"
+                "reference": "f75508770f5817c615fead7157cfa8c7c1816444"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-downgrade-php\/zipball\/1beef93a7e2771e0d0fc42e6d1d22ecb9321e8e8",
-                "reference": "1beef93a7e2771e0d0fc42e6d1d22ecb9321e8e8",
+                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-downgrade-php\/zipball\/f75508770f5817c615fead7157cfa8c7c1816444",
+                "reference": "f75508770f5817c615fead7157cfa8c7c1816444",
                 "shasum": ""
             },
             "require": {
@@ -1642,7 +1642,7 @@
                 "tomasvotruba\/unused-public": "^2.2",
                 "tracy\/tracy": "^2.12"
             },
-            "time": "2026-09-02T08:46:17+00:00",
+            "time": "2026-09-10T18:31:59+00:00",
             "default-branch": true,
             "type": "rector-extension",
             "installation-source": "dist",
@@ -1671,12 +1671,12 @@
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/rectorphp\/rector-phpunit.git",
-                "reference": "d1e3dc130ad4ca9c2fab2b3b6816c6f4fff92e84"
+                "reference": "c9cbc660a72a7865c01b52be6c5dbca947c43880"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-phpunit\/zipball\/d1e3dc130ad4ca9c2fab2b3b6816c6f4fff92e84",
-                "reference": "d1e3dc130ad4ca9c2fab2b3b6816c6f4fff92e84",
+                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-phpunit\/zipball\/c9cbc660a72a7865c01b52be6c5dbca947c43880",
+                "reference": "c9cbc660a72a7865c01b52be6c5dbca947c43880",
                 "shasum": ""
             },
             "require": {
@@ -1702,7 +1702,7 @@
                 "tomasvotruba\/unused-public": "^2.2",
                 "tracy\/tracy": "^2.12"
             },
-            "time": "2026-09-02T09:04:39+00:00",
+            "time": "2026-09-11T18:53:04+00:00",
             "default-branch": true,
             "type": "rector-extension",
             "installation-source": "dist",
@@ -1731,12 +1731,12 @@
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/rectorphp\/rector-symfony.git",
-                "reference": "2529e11b25a4c4521626aa7fd024d567d82619fc"
+                "reference": "3b5d6251c7a6561e30170f58d1e5d29e8a16b6e1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-symfony\/zipball\/2529e11b25a4c4521626aa7fd024d567d82619fc",
-                "reference": "2529e11b25a4c4521626aa7fd024d567d82619fc",
+                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-symfony\/zipball\/3b5d6251c7a6561e30170f58d1e5d29e8a16b6e1",
+                "reference": "3b5d6251c7a6561e30170f58d1e5d29e8a16b6e1",
                 "shasum": ""
             },
             "require": {
@@ -1768,7 +1768,7 @@
                 "tracy\/tracy": "^2.12",
                 "twig\/twig": "^3.21"
             },
-            "time": "2026-08-29T17:32:13+00:00",
+            "time": "2026-09-13T06:41:52+00:00",
             "default-branch": true,
             "type": "rector-extension",
             "installation-source": "dist",
@@ -2525,17 +2525,17 @@
         },
         {
             "name": "tomasvotruba\/class-leak",
-            "version": "2.2.0",
-            "version_normalized": "2.2.0.0",
+            "version": "2.2.4",
+            "version_normalized": "2.2.4.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/TomasVotruba\/class-leak.git",
-                "reference": "cdc1c116f3deaa68ebd338fa2f791a0b4a52ad87"
+                "reference": "bc56eb6d4940e250f959a5a5ee7dcb2f064c2725"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/TomasVotruba\/class-leak\/zipball\/cdc1c116f3deaa68ebd338fa2f791a0b4a52ad87",
-                "reference": "cdc1c116f3deaa68ebd338fa2f791a0b4a52ad87",
+                "url": "https:\/\/api.github.com\/repos\/TomasVotruba\/class-leak\/zipball\/bc56eb6d4940e250f959a5a5ee7dcb2f064c2725",
+                "reference": "bc56eb6d4940e250f959a5a5ee7dcb2f064c2725",
                 "shasum": ""
             },
             "require": {
@@ -2561,7 +2561,7 @@
                 "symplify\/phpstan-extensions": "^12",
                 "tracy\/tracy": "^2.12"
             },
-            "time": "2026-08-29T20:55:33+00:00",
+            "time": "2026-09-03T08:44:47+00:00",
             "bin": [
                 "bin\/class-leak",
                 "bin\/class-leak.php"
@@ -2581,7 +2581,7 @@
             "description": "Detect leaking classes",
             "support": {
                 "issues": "https:\/\/github.com\/TomasVotruba\/class-leak\/issues",
-                "source": "https:\/\/github.com\/TomasVotruba\/class-leak\/tree\/2.2.0"
+                "source": "https:\/\/github.com\/TomasVotruba\/class-leak\/tree\/2.2.4"
             },
             "funding": [
                 {

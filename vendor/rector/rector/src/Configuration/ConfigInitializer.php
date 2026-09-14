@@ -4,6 +4,7 @@ declare (strict_types=1);
 namespace Rector\Configuration;
 
 use RectorPrefix202609\Nette\Utils\FileSystem;
+use Rector\Agentic\TerminalDetector;
 use Rector\Bootstrap\RectorConfigsResolver;
 use Rector\Contract\Rector\RectorInterface;
 use Rector\FileSystem\InitFilePathsResolver;
@@ -53,6 +54,12 @@ final class ConfigInitializer
         $mainConfigFile = $this->rectorConfigsResolver->provide()->getMainConfigFile();
         if ($mainConfigFile !== null && file_exists($mainConfigFile)) {
             $this->symfonyStyle->warning('Register rules or sets in your "' . basename($mainConfigFile) . '" config');
+            return;
+        }
+        // non-interactive terminal, e.g. piped output, CI or an agent: never prompt or silently write a
+        // config, just say what to do - Symfony still treats a closed STDIN as interactive here
+        if (!TerminalDetector::isInputTty()) {
+            $this->symfonyStyle->warning(sprintf('No "%s" config found. Create one, or pass "--config <path>".', RectorConfigsResolver::DEFAULT_CONFIG_FILE));
             return;
         }
         $response = $this->symfonyStyle->ask('No "' . RectorConfigsResolver::DEFAULT_CONFIG_FILE . '" config found. Should we generate it for you?', 'yes');
