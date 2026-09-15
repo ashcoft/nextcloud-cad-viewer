@@ -1,3 +1,10 @@
+## [0.5.155](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.154...v0.5.155) (2026-09-15)
+
+
+### Bug Fixes
+
+* **deps:** align lockfile specifiers with pnpm-workspace overrides ([aca20cb](https://github.com/ashcoft/nextcloud-cad-viewer/commit/aca20cbaa6a1b7c1977b4c3c4c747f2cd41e5024))
+
 ## [0.5.154](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.153...v0.5.154) (2026-09-14)
 
 ## [0.5.153](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.152...v0.5.153) (2026-09-14)
