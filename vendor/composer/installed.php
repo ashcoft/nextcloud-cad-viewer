@@ -3,7 +3,7 @@
         'name' => 'ashcoft/nextcloud-cad-viewer',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '7d8ba4d5bea68a7e939b29678a66e0cd430e5ddc',
+        'reference' => 'da448dd1eaeed3cdeabb97e6e73fd8b7ad5500c7',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -112,7 +112,7 @@
         'ashcoft/nextcloud-cad-viewer' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '7d8ba4d5bea68a7e939b29678a66e0cd430e5ddc',
+            'reference' => 'da448dd1eaeed3cdeabb97e6e73fd8b7ad5500c7',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -284,9 +284,9 @@
             'dev_requirement' => true,
         ),
         'nikic/php-parser' => array(
-            'pretty_version' => 'v5.8.0',
-            'version' => '5.8.0.0',
-            'reference' => '044a6a392ff8ad0d61f14370a5fbbd0a0107152f',
+            'pretty_version' => 'v5.9.0',
+            'version' => '5.9.0.0',
+            'reference' => '9e33da9553fe7786f0962b35f4e4ecf01be89def',
             'type' => 'library',
             'install_path' => __DIR__ . '/../nikic/php-parser',
             'aliases' => array(),
@@ -410,9 +410,9 @@
             'dev_requirement' => true,
         ),
         'phpunit/phpunit' => array(
-            'pretty_version' => '13.3.2',
-            'version' => '13.3.2.0',
-            'reference' => '22104a5ceb8d642e6b30ab00211d53d88e2db368',
+            'pretty_version' => '13.3.3',
+            'version' => '13.3.3.0',
+            'reference' => '0d8711067516c1f6ba1a66f762e16c2fb1a8ccd1',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpunit/phpunit',
             'aliases' => array(),
@@ -421,7 +421,7 @@
         'psalm/psalm' => array(
             'dev_requirement' => true,
             'provided' => array(
-                0 => '6.17.1',
+                0 => '6.17.2',
             ),
         ),
         'psr/container' => array(
@@ -832,9 +832,9 @@
             'dev_requirement' => true,
         ),
         'vimeo/psalm' => array(
-            'pretty_version' => '6.17.1',
-            'version' => '6.17.1.0',
-            'reference' => 'ecdb39e1d470a661f423d08ec8d2db8bdc043ba7',
+            'pretty_version' => '6.17.2',
+            'version' => '6.17.2.0',
+            'reference' => 'dd625545733d24633e5d386a26c13004dae80e19',
             'type' => 'project',
             'install_path' => __DIR__ . '/../vimeo/psalm',
             'aliases' => array(),
