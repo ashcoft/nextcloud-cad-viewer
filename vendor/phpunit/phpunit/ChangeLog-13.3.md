@@ -2,6 +2,16 @@
 
 All notable changes of the PHPUnit 13.3 release series are documented in this file using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## [13.3.3] - 2026-09-09
+
+### Fixed
+
+* Paths of included files are now escaped when generating the code that is executed in a separate process, so that a path containing special characters no longer produces broken code
+* Tests of a test class that is skipped as a whole are missing from the TestDox output
+* A test that is skipped or marked incomplete before it started is missing from the TestDox output
+* A test that is marked incomplete before it started is not counted in the number of tests that ran
+* No progress is printed for a test that is marked incomplete before it started
+
 ## [13.3.2] - 2026-08-27
 
 ### Fixed
@@ -77,6 +87,7 @@ All notable changes of the PHPUnit 13.3 release series are documented in this fi
 * The test runner no longer aborts with an uncaught `PHPUnit\Runner\Phpt\InvalidPhptFileException` when a PHPT test file has an empty `--FILE--` or `--FILEEOF--` section or a `--FILE_EXTERNAL--` section that references an empty file; such a file is now rejected while it is parsed and reported as an errored test
 * `PHPUnit\Runner\Phpt\InvalidPhptFileException` now has a message that explains why the PHPT test file was rejected
 
+[13.3.3]: https://github.com/sebastianbergmann/phpunit/compare/13.3.2...13.3.3
 [13.3.2]: https://github.com/sebastianbergmann/phpunit/compare/13.3.1...13.3.2
 [13.3.1]: https://github.com/sebastianbergmann/phpunit/compare/13.3.0...13.3.1
 [13.3.0]: https://github.com/sebastianbergmann/phpunit/compare/13.2.6...13.3.0
