@@ -217,7 +217,7 @@ importers:
         version: 3.4.1
       '@nextcloud/router':
         specifier: ^3.1.0
-        version: 3.1.0
+        version: 3.2.0
       element-plus:
         specifier: 2.14.2
         version: 2.14.2(vue@3.5.38(typescript@6.0.3))
@@ -1643,8 +1643,8 @@ packages:
     resolution: {integrity: sha512-vtFYA/kthaUDzu6KejTOL1OwnOy7/yynq5zdB/UBpYacAWjUX5Ddh4OMWx3rEavkBJ9/QGhrFryNJLjNfe8OQA==}
     engines: {node: ^20.0.0 || ^22.0.0 || ^24.0.0}
 
-  '@nextcloud/router@3.1.0':
-    resolution: {integrity: sha512-e4dkIaxRSwdZJlZFpn9x03QgBn/Sa2hN1hp/BA7+AbzykmSAlKuWfdmX8j/8ewrLpQwYmZR23IZO9XwpJXq2Uw==}
+  '@nextcloud/router@3.2.0':
+    resolution: {integrity: sha512-an4gJ7mlDZGtYq8zTxp4Sg+iLlKKGvQ9ZH3Dp6ga/IlDNAP7VeMVGphsY798ORjncAp9+sEf370L5zpsnuxgng==}
     engines: {node: ^20.0.0 || ^22.0.0 || ^24.0.0}
 
   '@nextcloud/sharing@0.3.0':
@@ -7105,7 +7105,7 @@ snapshots:
     dependencies:
       '@nextcloud/browser-storage': 0.5.0
       '@nextcloud/event-bus': 3.3.3
-      '@nextcloud/router': 3.1.0
+      '@nextcloud/router': 3.2.0
 
   '@nextcloud/axios@2.6.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)':
     dependencies:
@@ -7133,7 +7133,7 @@ snapshots:
       '@nextcloud/l10n': 3.4.1
       '@nextcloud/logger': 3.0.3
       '@nextcloud/paths': 3.1.0
-      '@nextcloud/router': 3.1.0
+      '@nextcloud/router': 3.2.0
       '@nextcloud/sharing': 0.3.0
       cancelable-promise: 4.3.1
       is-svg: 6.1.0
@@ -7148,7 +7148,7 @@ snapshots:
       '@nextcloud/l10n': 3.4.1
       '@nextcloud/logger': 3.0.3
       '@nextcloud/paths': 3.1.0
-      '@nextcloud/router': 3.1.0
+      '@nextcloud/router': 3.2.0
       '@nextcloud/sharing': 0.3.0
       is-svg: 6.1.0
       typescript-event-target: 1.1.2
@@ -7158,7 +7158,7 @@ snapshots:
 
   '@nextcloud/l10n@3.4.1':
     dependencies:
-      '@nextcloud/router': 3.1.0
+      '@nextcloud/router': 3.2.0
       '@nextcloud/typings': 1.10.0
       '@types/escape-html': 1.0.4
       dompurify: 3.4.15
@@ -7170,7 +7170,7 @@ snapshots:
 
   '@nextcloud/paths@3.1.0': {}
 
-  '@nextcloud/router@3.1.0':
+  '@nextcloud/router@3.2.0':
     dependencies:
       '@nextcloud/typings': 1.10.0
 
