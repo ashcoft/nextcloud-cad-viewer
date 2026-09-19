@@ -238,7 +238,7 @@ importers:
         version: 11.4.6(vue@3.5.38(typescript@6.0.3))
       vue-router:
         specifier: ^5.2.0
-        version: 5.3.1(@vue/compiler-sfc@3.5.43)(vue@3.5.38(typescript@6.0.3))(webpack@5.111.0)
+        version: 5.3.1(@vue/compiler-sfc@3.5.43)(vue@3.5.38(typescript@6.0.3))(webpack@5.111.1)
     devDependencies:
       '@babel/core':
         specifier: ^8.0.0
@@ -284,13 +284,13 @@ importers:
         version: 30.5.2(@babel/core@8.0.6)(supports-color@10.2.2)
       babel-loader:
         specifier: ^10.1.1
-        version: 10.1.1(@babel/core@8.0.6)(webpack@5.111.0)
+        version: 10.1.1(@babel/core@8.0.6)(webpack@5.111.1)
       conventional-changelog-conventionalcommits:
         specifier: ^10.0.0
         version: 10.4.0
       css-loader:
         specifier: ^7.1.4
-        version: 7.1.5(webpack@5.111.0)
+        version: 7.1.5(webpack@5.111.1)
       eslint:
         specifier: ^10.9.1
         version: 10.10.0(supports-color@10.2.2)
@@ -317,7 +317,7 @@ importers:
         version: 25.0.9(supports-color@10.2.2)(typescript@6.0.3)
       style-loader:
         specifier: ^4.0.0
-        version: 4.0.0(webpack@5.111.0)
+        version: 4.0.0(webpack@5.111.1)
       stylelint:
         specifier: ^17.13.0
         version: 17.15.0(supports-color@10.2.2)(typescript@6.0.3)
@@ -329,7 +329,7 @@ importers:
         version: 2.0.0(postcss-html@2.0.0(postcss@8.5.26))(stylelint-config-html@2.0.0(postcss-html@2.0.0(postcss@8.5.26))(stylelint@17.15.0(supports-color@10.2.2)(typescript@6.0.3)))(stylelint-config-recommended-vue@2.0.0(postcss-html@2.0.0(postcss@8.5.26))(stylelint-config-html@2.0.0(postcss-html@2.0.0(postcss@8.5.26))(stylelint@17.15.0(supports-color@10.2.2)(typescript@6.0.3)))(stylelint-config-recommended@18.0.0(stylelint@17.15.0(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.15.0(supports-color@10.2.2)(typescript@6.0.3)))(stylelint-config-standard@40.0.0(stylelint@17.15.0(supports-color@10.2.2)(typescript@6.0.3)))(stylelint@17.15.0(supports-color@10.2.2)(typescript@6.0.3))
       ts-loader:
         specifier: ^9.6.2
-        version: 9.6.2(typescript@6.0.3)(webpack@5.111.0)
+        version: 9.6.2(typescript@6.0.3)(webpack@5.111.1)
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -341,16 +341,16 @@ importers:
         version: 10.4.1(eslint@10.10.0(supports-color@10.2.2))(supports-color@10.2.2)
       vue-loader:
         specifier: ^17.4.2
-        version: 17.4.2(@vue/compiler-sfc@3.5.43)(vue@3.5.38(typescript@6.0.3))(webpack@5.111.0)
+        version: 17.4.2(@vue/compiler-sfc@3.5.43)(vue@3.5.38(typescript@6.0.3))(webpack@5.111.1)
       vue-tsc:
         specifier: ^3.3.8
         version: 3.3.11(typescript@6.0.3)
       webpack:
         specifier: ^5.110.2
-        version: 5.111.0(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
+        version: 5.111.1(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
       webpack-cli:
         specifier: ^7.0.3
-        version: 7.2.3(js-yaml@5.2.3)(json5@2.2.3)(webpack@5.111.0)
+        version: 7.2.3(js-yaml@5.2.3)(json5@2.2.3)(webpack@5.111.1)
 
 packages:
 
@@ -2472,14 +2472,6 @@ packages:
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
-
-  ajv-formats@2.1.1:
-    resolution: {integrity: sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA==}
-    peerDependencies:
-      ajv: ^8.0.0
-    peerDependenciesMeta:
-      ajv:
-        optional: true
 
   ajv-formats@3.0.1:
     resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
@@ -4777,10 +4769,6 @@ packages:
     resolution: {integrity: sha512-xAg7SOnEhrm5zI3puOOKyy1OMcMlIJZYNJY7xLBwSze0UjhPLnWfj2GF2EpT0jmzaJKIWKHLsaSSajf35bcYnA==}
     engines: {node: '>=v12.22.7'}
 
-  schema-utils@4.3.3:
-    resolution: {integrity: sha512-eflK8wEtyOE6+hsaRVPxvUKYCpRgzLqDTb8krvAsRIwOGlHoSgYLgBXoubGgLd2fT41/OUYdb48v4k4WWHQurA==}
-    engines: {node: '>= 10.13.0'}
-
   schema-utils@4.5.0:
     resolution: {integrity: sha512-zJlMCZ0cAR5p/Y4oVpRoqioDMJcGxaXRrQ/4rP4WyR84vc5z/DolXdbvXeDpTwbtocDFr2rhPqHPErDCUtz2kA==}
     engines: {node: '>= 10.13.0'}
@@ -5471,8 +5459,8 @@ packages:
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
 
-  webpack@5.111.0:
-    resolution: {integrity: sha512-A2R74kfE6b3eLKS91iZiol03Ebx7avmJJBOyiP+4LePW9NNeNJGQkKeSQos4dk6R4H0YAMYlv+aOrs1CyWT3eA==}
+  webpack@5.111.1:
+    resolution: {integrity: sha512-cNypaz0RP+S4cvQVi1M/3bRUkvNP0xZpL0TjFx+c6jg64VbxD+2weWDgY9UnjRI6dhZgtaj8DU76GGFcJ79xPQ==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     peerDependencies:
@@ -8229,10 +8217,6 @@ snapshots:
       '@opentelemetry/api': 1.9.0
       zod: 3.25.76
 
-  ajv-formats@2.1.1(ajv@8.20.0):
-    optionalDependencies:
-      ajv: 8.20.0
-
   ajv-formats@3.0.1(ajv@8.20.0):
     optionalDependencies:
       ajv: 8.20.0
@@ -8355,12 +8339,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  babel-loader@10.1.1(@babel/core@8.0.6)(webpack@5.111.0):
+  babel-loader@10.1.1(@babel/core@8.0.6)(webpack@5.111.1):
     dependencies:
       '@babel/core': 8.0.6
       find-up: 5.0.0
     optionalDependencies:
-      webpack: 5.111.0(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
+      webpack: 5.111.1(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
 
   babel-plugin-istanbul@8.0.0(supports-color@10.2.2):
     dependencies:
@@ -8667,7 +8651,7 @@ snapshots:
 
   css-functions-list@3.3.3: {}
 
-  css-loader@7.1.5(webpack@5.111.0):
+  css-loader@7.1.5(webpack@5.111.1):
     dependencies:
       icss-utils: 5.1.0(postcss@8.5.26)
       postcss: 8.5.26
@@ -8678,7 +8662,7 @@ snapshots:
       postcss-value-parser: 4.2.0
       semver: 7.8.5
     optionalDependencies:
-      webpack: 5.111.0(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
+      webpack: 5.111.1(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
 
   css-tree@2.3.1:
     dependencies:
@@ -10115,13 +10099,13 @@ snapshots:
 
   minimist@1.2.8: {}
 
-  minimizer-webpack-plugin@5.8.0(postcss@8.5.26)(uglify-js@3.19.3)(webpack@5.111.0):
+  minimizer-webpack-plugin@5.8.0(postcss@8.5.26)(uglify-js@3.19.3)(webpack@5.111.1):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
-      schema-utils: 4.3.3
+      schema-utils: 4.5.0
       terser: 5.51.2
-      webpack: 5.111.0(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
+      webpack: 5.111.1(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
     optionalDependencies:
       postcss: 8.5.26
       uglify-js: 3.19.3
@@ -10619,13 +10603,6 @@ snapshots:
     dependencies:
       xmlchars: 2.2.0
 
-  schema-utils@4.3.3:
-    dependencies:
-      '@types/json-schema': 7.0.15
-      ajv: 8.20.0
-      ajv-formats: 2.1.1(ajv@8.20.0)
-      ajv-keywords: 5.1.0(ajv@8.20.0)
-
   schema-utils@4.5.0:
     dependencies:
       '@types/json-schema': 7.0.15
@@ -10818,9 +10795,9 @@ snapshots:
     dependencies:
       '@tokenizer/token': 0.3.0
 
-  style-loader@4.0.0(webpack@5.111.0):
+  style-loader@4.0.0(webpack@5.111.1):
     dependencies:
-      webpack: 5.111.0(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
+      webpack: 5.111.1(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
 
   stylelint-config-html@2.0.0(postcss-html@2.0.0(postcss@8.5.26))(stylelint@17.15.0(supports-color@10.2.2)(typescript@6.0.3)):
     dependencies:
@@ -11019,13 +10996,13 @@ snapshots:
     dependencies:
       typescript: 6.0.3
 
-  ts-loader@9.6.2(typescript@6.0.3)(webpack@5.111.0):
+  ts-loader@9.6.2(typescript@6.0.3)(webpack@5.111.1):
     dependencies:
       chalk: 4.1.2
       picomatch: 4.0.5
       source-map: 0.7.6
       typescript: 6.0.3
-      webpack: 5.111.0(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
+      webpack: 5.111.1(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
 
   tsconfig@7.0.0:
     dependencies:
@@ -11118,13 +11095,13 @@ snapshots:
       pathe: 2.0.3
       picomatch: 4.0.5
 
-  unplugin@3.3.0(webpack@5.111.0):
+  unplugin@3.3.0(webpack@5.111.1):
     dependencies:
       '@jridgewell/remapping': 2.3.5
       picomatch: 4.0.5
       webpack-virtual-modules: 0.6.2
     optionalDependencies:
-      webpack: 5.111.0(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
+      webpack: 5.111.1(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
 
   unrs-resolver@1.12.2:
     dependencies:
@@ -11213,17 +11190,17 @@ snapshots:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.38(typescript@6.0.3)
 
-  vue-loader@17.4.2(@vue/compiler-sfc@3.5.43)(vue@3.5.38(typescript@6.0.3))(webpack@5.111.0):
+  vue-loader@17.4.2(@vue/compiler-sfc@3.5.43)(vue@3.5.38(typescript@6.0.3))(webpack@5.111.1):
     dependencies:
       chalk: 4.1.2
       hash-sum: 2.0.0
       watchpack: 2.5.2
-      webpack: 5.111.0(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
+      webpack: 5.111.1(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
     optionalDependencies:
       '@vue/compiler-sfc': 3.5.43
       vue: 3.5.38(typescript@6.0.3)
 
-  vue-router@5.3.1(@vue/compiler-sfc@3.5.43)(vue@3.5.38(typescript@6.0.3))(webpack@5.111.0):
+  vue-router@5.3.1(@vue/compiler-sfc@3.5.43)(vue@3.5.38(typescript@6.0.3))(webpack@5.111.1):
     dependencies:
       '@vue-macros/common': 3.1.4(vue@3.5.38(typescript@6.0.3))
       '@vue/devtools-api': 8.1.5
@@ -11239,7 +11216,7 @@ snapshots:
       picomatch: 4.0.5
       scule: 1.3.0
       tinyglobby: 0.2.17
-      unplugin: 3.3.0(webpack@5.111.0)
+      unplugin: 3.3.0(webpack@5.111.1)
       unplugin-utils: 0.3.2
       vue: 3.5.38(typescript@6.0.3)
     optionalDependencies:
@@ -11301,7 +11278,7 @@ snapshots:
 
   webidl-conversions@7.0.0: {}
 
-  webpack-cli@7.2.3(js-yaml@5.2.3)(json5@2.2.3)(webpack@5.111.0):
+  webpack-cli@7.2.3(js-yaml@5.2.3)(json5@2.2.3)(webpack@5.111.1):
     dependencies:
       '@discoveryjs/json-ext': 1.1.0
       commander: 14.0.3
@@ -11310,7 +11287,7 @@ snapshots:
       import-local: 3.2.0
       interpret: 3.1.1
       rechoir: 0.8.0
-      webpack: 5.111.0(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
+      webpack: 5.111.1(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
       webpack-merge: 6.0.1
     optionalDependencies:
       js-yaml: 5.2.3
@@ -11326,7 +11303,7 @@ snapshots:
 
   webpack-virtual-modules@0.6.2: {}
 
-  webpack@5.111.0(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3):
+  webpack@5.111.1(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3):
     dependencies:
       '@types/estree': 1.0.9
       '@types/json-schema': 7.0.15
@@ -11340,13 +11317,13 @@ snapshots:
       events: 3.3.0
       graceful-fs: 4.2.11
       mime-db: 1.54.0
-      minimizer-webpack-plugin: 5.8.0(postcss@8.5.26)(uglify-js@3.19.3)(webpack@5.111.0)
+      minimizer-webpack-plugin: 5.8.0(postcss@8.5.26)(uglify-js@3.19.3)(webpack@5.111.1)
       schema-utils: 4.5.0
       tapable: 2.3.3
       watchpack: 2.5.2
       webpack-sources: 3.5.1
     optionalDependencies:
-      webpack-cli: 7.2.3(js-yaml@5.2.3)(json5@2.2.3)(webpack@5.111.0)
+      webpack-cli: 7.2.3(js-yaml@5.2.3)(json5@2.2.3)(webpack@5.111.1)
     transitivePeerDependencies:
       - '@minify-html/node'
       - '@swc/core'
