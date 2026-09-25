@@ -11,8 +11,13 @@ name: Auto approve Dependabot PRs
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+# Uses pull_request rather than pull_request_target: the job only calls the API
+# (it never checks out or executes PR code), and GitHub will block
+# pull_request_target on public repositories by default from 2026-11-02.
+# Dependabot-triggered pull_request runs get a read-only GITHUB_TOKEN by default;
+# the job-level `permissions` block below restores the write access this needs.
 on:
-  pull_request_target: # zizmor: ignore[dangerous-triggers]
+  pull_request:
     branches:
       - main
       - stable*
