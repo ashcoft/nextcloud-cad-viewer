@@ -1,0 +1,16 @@
+name: Runner label probe
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  probe-low:
+    runs-on: ubuntu-latest-low
+    steps:
+      - run: echo "ubuntu-latest-low runner is available"
+
+  probe-standard:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "ubuntu-latest runner is available"
