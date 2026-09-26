@@ -5,8 +5,7 @@
   ],
   "labels": [
     "dependencies",
-    "renovate",
-    "createChangeset"
+    "renovate"
   ],
   "description": "Renovate configuration for nextcloud-cad-viewer",
   "packageRules": [
