@@ -2,6 +2,20 @@
 
 All notable changes are documented in this file using the [Keep a CHANGELOG](http://keepachangelog.com/) principles.
 
+## [14.3.5] - 2026-09-25
+
+### Changed
+
+* The serialization format for `.cov` files was bumped from version 3 to version 4; files serialized with previous versions cannot be loaded or merged any more
+
+## [14.3.4] - 2026-09-25
+
+### Fixed
+
+* [#1331](https://github.com/sebastianbergmann/php-code-coverage/issues/1331): Single-file source is reported as 0/0 lines when the report is built from serialised data
+* [#1335](https://github.com/sebastianbergmann/php-code-coverage/issues/1335): Merged coverage counts lines as uncovered when no driver reports them as executable
+* The summary of the text report was misaligned when path and branch coverage was reported
+
 ## [14.3.3] - 2026-09-10
 
 ### Fixed
@@ -48,6 +62,8 @@ All notable changes are documented in this file using the [Keep a CHANGELOG](htt
 
 * [#1258](https://github.com/sebastianbergmann/php-code-coverage/issues/1258): Coverage of less than 100% can be displayed as 100.00% due to rounding
 
+[14.3.5]: https://github.com/sebastianbergmann/php-code-coverage/compare/14.3.4...14.3.5
+[14.3.4]: https://github.com/sebastianbergmann/php-code-coverage/compare/14.3.3...14.3.4
 [14.3.3]: https://github.com/sebastianbergmann/php-code-coverage/compare/14.3.2...14.3.3
 [14.3.2]: https://github.com/sebastianbergmann/php-code-coverage/compare/14.3.1...14.3.2
 [14.3.1]: https://github.com/sebastianbergmann/php-code-coverage/compare/14.3.0...14.3.1
