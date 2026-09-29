@@ -3570,6 +3570,7 @@ return array(
     'Psalm\\Internal\\Analyzer\\Statements\\Expression\\Call\\Method\\MissingMethodCallHandler' => $vendorDir . '/vimeo/psalm/src/Psalm/Internal/Analyzer/Statements/Expression/Call/Method/MissingMethodCallHandler.php',
     'Psalm\\Internal\\Analyzer\\Statements\\Expression\\Call\\NamedFunctionCallHandler' => $vendorDir . '/vimeo/psalm/src/Psalm/Internal/Analyzer/Statements/Expression/Call/NamedFunctionCallHandler.php',
     'Psalm\\Internal\\Analyzer\\Statements\\Expression\\Call\\NewAnalyzer' => $vendorDir . '/vimeo/psalm/src/Psalm/Internal/Analyzer/Statements/Expression/Call/NewAnalyzer.php',
+    'Psalm\\Internal\\Analyzer\\Statements\\Expression\\Call\\NoDiscardAnalyzer' => $vendorDir . '/vimeo/psalm/src/Psalm/Internal/Analyzer/Statements/Expression/Call/NoDiscardAnalyzer.php',
     'Psalm\\Internal\\Analyzer\\Statements\\Expression\\Call\\StaticCallAnalyzer' => $vendorDir . '/vimeo/psalm/src/Psalm/Internal/Analyzer/Statements/Expression/Call/StaticCallAnalyzer.php',
     'Psalm\\Internal\\Analyzer\\Statements\\Expression\\Call\\StaticMethod\\AtomicStaticCallAnalyzer' => $vendorDir . '/vimeo/psalm/src/Psalm/Internal/Analyzer/Statements/Expression/Call/StaticMethod/AtomicStaticCallAnalyzer.php',
     'Psalm\\Internal\\Analyzer\\Statements\\Expression\\Call\\StaticMethod\\ExistingAtomicStaticCallAnalyzer' => $vendorDir . '/vimeo/psalm/src/Psalm/Internal/Analyzer/Statements/Expression/Call/StaticMethod/ExistingAtomicStaticCallAnalyzer.php',
