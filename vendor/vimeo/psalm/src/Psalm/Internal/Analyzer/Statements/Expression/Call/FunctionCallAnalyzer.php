@@ -13,6 +13,7 @@ use Psalm\Internal\Algebra\FormulaGenerator;
 use Psalm\Internal\Analyzer\AlgebraAnalyzer;
 use Psalm\Internal\Analyzer\FunctionLikeAnalyzer;
 use Psalm\Internal\Analyzer\Statements\Expression\CallAnalyzer;
+use Psalm\Internal\Analyzer\Statements\Expression\CloneAnalyzer;
 use Psalm\Internal\Analyzer\Statements\ExpressionAnalyzer;
 use Psalm\Internal\Analyzer\StatementsAnalyzer;
 use Psalm\Internal\Analyzer\TraitAnalyzer;
@@ -106,6 +107,11 @@ final class FunctionCallAnalyzer extends CallAnalyzer
             && !$stmt->getArgs()[0]->unpack
         ) {
             $original_function_id = implode('\\', $function_name->getParts());
+
+            // PHP 8.5 clone(...) form: parsed as a FuncCall, not Clone_, so route it in.
+            if (strtolower($original_function_id) === 'clone') {
+                return CloneAnalyzer::analyzeFuncCall($statements_analyzer, $stmt, $context);
+            }
 
             if ($original_function_id === 'call_user_func') {
                 $other_args = array_slice($stmt->getArgs(), 1);
@@ -508,6 +514,7 @@ final class FunctionCallAnalyzer extends CallAnalyzer
                     $function_call_info->function_id,
                     $code_location,
                     $is_maybe_root_function,
+                    $context,
                 ) === false) {
                     if ($args) {
                         ArgumentsAnalyzer::analyze(
@@ -1144,7 +1151,6 @@ final class FunctionCallAnalyzer extends CallAnalyzer
         if ($function_call_info->function_id === null
             || $function_call_info->function_storage === null
             || !NoDiscardAnalyzer::isDiscardReported(
-                $statements_analyzer->getCodebase(),
                 $context,
                 $function_call_info->function_storage,
                 $stmt->isFirstClassCallable(),
