@@ -1591,6 +1591,9 @@ packages:
       '@mlightcad/common': 1.14.5
       '@mlightcad/geometry-engine': 3.14.5
 
+  '@mlightcad/mtext-parser@1.5.2':
+    resolution: {integrity: sha512-1uzDBaSMgHJsJXLnXmYmTusf/twgDbKvQdz9VZiF9Fn3mb0zPrnIiwrRXOwtIcBcZUQR2IIHx0+6iQTpVXB6XA==}
+
   '@mlightcad/mtext-parser@1.5.3':
     resolution: {integrity: sha512-RLI9szHHTWbphy2qkYSGSMXh8bsuOCAOZnew8tbYmQepQZvnAoKV7CtSyuwlo8GGfYCMAJARHORFLtLBFmtQhg==}
 
@@ -7160,11 +7163,13 @@ snapshots:
       '@mlightcad/common': 1.14.5
       '@mlightcad/geometry-engine': 3.14.5(@mlightcad/common@1.14.5)
 
+  '@mlightcad/mtext-parser@1.5.2': {}
+
   '@mlightcad/mtext-parser@1.5.3': {}
 
   '@mlightcad/mtext-renderer@0.12.7(three@0.184.0)':
     dependencies:
-      '@mlightcad/mtext-parser': 1.5.3
+      '@mlightcad/mtext-parser': 1.5.2
       '@mlightcad/shx-parser': 1.4.5
       iconv-lite: 0.7.3
       idb: 8.0.3
