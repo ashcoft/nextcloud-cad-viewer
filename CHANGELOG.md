@@ -1,3 +1,10 @@
+## [0.5.216](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.215...v0.5.216) (2026-10-01)
+
+
+### Bug Fixes
+
+* **deps:** sync three override to 0.186.1 so the bump takes effect ([34650bf](https://github.com/ashcoft/nextcloud-cad-viewer/commit/34650bfedc096ad6ae5185f9dac1127ab96981c6)), closes [#1234](https://github.com/ashcoft/nextcloud-cad-viewer/issues/1234)
+
 ## [0.5.215](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.214...v0.5.215) (2026-10-01)
 
 ## [0.5.214](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.213...v0.5.214) (2026-10-01)
