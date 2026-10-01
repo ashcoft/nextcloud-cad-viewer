@@ -31,7 +31,7 @@ overrides:
   'fast-uri': '^4.0.0'
   'js-yaml': '^5.2.2'
   'postcss': '^8.5.23'
-  'three': '0.184.0'
+  'three': '0.186.1'
   'undici': '^8.0.0'
   'vue': '3.5.38'
   'vue-i18n': '11.4.6'
