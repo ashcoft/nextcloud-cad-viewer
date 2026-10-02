@@ -33,14 +33,20 @@ describe('CAD Viewer file action behavior', () => {
     expect(cadAction.enabled({ nodes: [{ mime: 'application/dwg' }, { mime: 'application/dwg' }] })).toBe(false)
   })
 
-  it('passes the selected file id to the viewer opener', async () => {
-    await cadAction.exec({ nodes: [{ id: 42, mime: 'application/dwg' }] })
+  it('passes the selected file path to the viewer opener', async () => {
+    await cadAction.exec({ nodes: [{ id: 42, path: '/Documents/plan.dwg', mime: 'application/dwg' }] })
 
-    expect(mockViewerOpen).toHaveBeenCalledWith(42)
+    expect(mockViewerOpen).toHaveBeenCalledWith({ id: 42, path: '/Documents/plan.dwg' })
   })
 
-  it('ignores CAD actions without a file id', async () => {
-    await cadAction.exec({ nodes: [{ mime: 'application/dwg' }] })
+  it('passes the file id along for the standalone fallback', async () => {
+    await cadAction.exec({ nodes: [{ id: '12345', path: '/plan.dxf', mime: 'image/vnd.dxf' }] })
+
+    expect(mockViewerOpen).toHaveBeenCalledWith({ id: '12345', path: '/plan.dxf' })
+  })
+
+  it('ignores CAD actions without a path', async () => {
+    await cadAction.exec({ nodes: [{ id: 42, mime: 'application/dwg' }] })
 
     expect(mockViewerOpen).not.toHaveBeenCalled()
   })
