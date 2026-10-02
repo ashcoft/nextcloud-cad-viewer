@@ -1,3 +1,11 @@
+## [0.5.221](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.220...v0.5.221) (2026-10-02)
+
+
+### Bug Fixes
+
+* avoid open-redirect finding in the Viewer fallback ([08e3998](https://github.com/ashcoft/nextcloud-cad-viewer/commit/08e399856399f9a26cc1683de48ab252ba6a2456)), closes [#768](https://github.com/ashcoft/nextcloud-cad-viewer/issues/768)
+* open CAD files in the Viewer using their DAV path ([f4a0d86](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f4a0d86233d654f0080ed1329d0cf7a7e030797a)), closes [#768](https://github.com/ashcoft/nextcloud-cad-viewer/issues/768)
+
 ## [0.5.220](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.219...v0.5.220) (2026-10-02)
 
 ## [0.5.219](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.218...v0.5.219) (2026-10-02)
