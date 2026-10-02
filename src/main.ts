@@ -381,9 +381,12 @@ function registerViewerHandler(): boolean {
  * is unavailable.
  */
 function openInViewer(target: CadFileTarget): void {
-  const fallbackUrl = openCadFile(target, OCA?.Viewer, OC)
-  if (fallbackUrl !== null) {
-    window.location.href = fallbackUrl
+  if (openCadFile(target, OCA?.Viewer)) {
+    return
+  }
+
+  if (OC !== undefined && target.id !== undefined) {
+    window.location.href = `${OC.generateUrl('/apps/cad_viewer/view')}?fileIds=${encodeURIComponent(String(target.id))}`
   }
 }
 

@@ -4,9 +4,9 @@ describe('openCadFile', () => {
   it('opens the Viewer with the DAV path, never a bare file id', () => {
     const open = jest.fn()
 
-    const fallback = openCadFile({ id: 42, path: '/Documents/plan.dwg' }, { open }, undefined)
+    const handled = openCadFile({ id: 42, path: '/Documents/plan.dwg' }, { open })
 
-    expect(fallback).toBeNull()
+    expect(handled).toBe(true)
     expect(open).toHaveBeenCalledTimes(1)
     expect(open).toHaveBeenCalledWith({ path: '/Documents/plan.dwg' })
   })
@@ -20,21 +20,10 @@ describe('openCadFile', () => {
       }
     })
 
-    expect(() => openCadFile({ id: 42, path: '/plan.dwg' }, { open }, undefined)).not.toThrow()
+    expect(() => openCadFile({ id: 42, path: '/plan.dwg' }, { open })).not.toThrow()
   })
 
-  it('falls back to the standalone app route when the Viewer is unavailable', () => {
-    const generateUrl = jest.fn((path: string) => path)
-
-    const fallback = openCadFile({ id: 7, path: '/plan.dwg' }, undefined, { generateUrl })
-
-    expect(fallback).toBe('/apps/cad_viewer/view?fileIds=7')
-    expect(generateUrl).toHaveBeenCalledWith('/apps/cad_viewer/view')
-  })
-
-  it('returns null when neither the Viewer nor a file id is available', () => {
-    const fallback = openCadFile({ path: '/plan.dwg' }, undefined, { generateUrl: (p) => p })
-
-    expect(fallback).toBeNull()
+  it('reports that the Viewer did not handle the request when unavailable', () => {
+    expect(openCadFile({ id: 7, path: '/plan.dwg' }, undefined)).toBe(false)
   })
 })
