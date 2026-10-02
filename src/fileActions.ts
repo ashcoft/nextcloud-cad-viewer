@@ -1,7 +1,15 @@
 import { DefaultType, type IFileAction } from '@nextcloud/files'
 
 type TranslateFn = (app: string, text: string) => string
-type OpenCadFileFn = (fileId: number | string) => void
+
+export interface CadFileTarget {
+  /** Nextcloud file id, used as a fallback when the Viewer API is unavailable */
+  id?: number | string
+  /** Path relative to the user root, as required by OCA.Viewer.open() */
+  path: string
+}
+
+type OpenCadFileFn = (target: CadFileTarget) => void
 
 export const SUPPORTED_MIMES = [
   'application/acad',
@@ -35,9 +43,11 @@ export function createCadFileAction({
     iconSvgInline: () => iconSvgInline,
     enabled: ({ nodes }) => nodes.length === 1 && nodes.some((node) => isSupportedCadMime(node.mime)),
     exec: async ({ nodes }) => {
-      const fileId = nodes[0]?.id
-      if (fileId !== undefined) {
-        openFile(fileId)
+      const node = nodes[0]
+      if (node?.path) {
+        // The Nextcloud Viewer resolves and fetches files from a DAV path,
+        // so pass the path rather than the file id.
+        openFile({ id: node.id, path: node.path })
       }
       return null
     },

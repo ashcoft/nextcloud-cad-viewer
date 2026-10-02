@@ -3,9 +3,10 @@ import { registerFileAction } from '@nextcloud/files'
 import type { IFileAction } from '@nextcloud/files'
 import { generateUrl } from '@nextcloud/router'
 import CadViewerApp from './App.vue'
-import { createCadFileAction, SUPPORTED_MIMES } from './fileActions'
+import { createCadFileAction, SUPPORTED_MIMES, type CadFileTarget } from './fileActions'
 import router from './router'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
+import { openCadFile } from './utils/openCadFile'
 import type { LoadResponse } from './types/loadResponse'
 
 // Type alias for file ID
@@ -68,7 +69,7 @@ interface FileInfoType {
 }
 
 interface NextcloudOCAViewer {
-  id?: string
+  id: string
   group?: string
   mimes: string[]
   component: unknown
@@ -77,7 +78,7 @@ interface NextcloudOCAViewer {
 interface NextcloudOCA {
   Viewer?: {
     registerHandler: (handler: NextcloudOCAViewer) => void
-    open: (options: { path?: string; fileId?: number | string }) => boolean
+    open: (options: { path?: string }) => boolean
   }
   Files?: {
     registerFileAction: (action: {
@@ -332,36 +333,60 @@ const CadViewerHandlerComponent = defineComponent({
 })
 
 /**
+ * The CAD viewer handler definition, shared between direct registration and
+ * the queue used when the Nextcloud Viewer has not initialized yet.
+ */
+const CAD_VIEWER_HANDLER: NextcloudOCAViewer = {
+  id: 'cad-viewer',
+  group: 'cad',
+  mimes: SUPPORTED_MIMES,
+  component: CadViewerHandlerComponent,
+}
+
+type QueuedViewerHandlers = Map<string, NextcloudOCAViewer>
+
+function getHandlerQueue(): QueuedViewerHandlers {
+  const nextcloudGlobal = globalThis as unknown as { _oca_viewer_handlers?: QueuedViewerHandlers }
+  nextcloudGlobal._oca_viewer_handlers ??= new Map<string, NextcloudOCAViewer>()
+  return nextcloudGlobal._oca_viewer_handlers
+}
+
+/**
  * Register the CAD viewer handler with the Nextcloud Viewer API.
  * This enables clicking on DWG/DXF files to open them directly in the CAD viewer.
+ *
+ * The Nextcloud Viewer only picks up handlers registered before it initializes.
+ * When OCA.Viewer is not available yet, queue the handler in the
+ * `_oca_viewer_handlers` map the Viewer drains during its own init.
  */
 function registerViewerHandler(): boolean {
   if (isRegistered) return false
 
   if (OCA?.Viewer !== undefined) {
-    OCA.Viewer.registerHandler({
-      id: 'cad-viewer',
-      group: 'cad',
-      mimes: SUPPORTED_MIMES,
-      component: CadViewerHandlerComponent,
-    })
+    OCA.Viewer.registerHandler(CAD_VIEWER_HANDLER)
     isRegistered = true
     return true
   }
-  return false
+
+  // The Viewer init script may not have run yet; it drains this queue on load.
+  getHandlerQueue().set(CAD_VIEWER_HANDLER.id, CAD_VIEWER_HANDLER)
+  isRegistered = true
+  return true
 }
 
 /**
  * Open the CAD viewer inline for a file using the Nextcloud Viewer API.
+ *
+ * Falls back to the standalone app route with the file id when the Viewer API
+ * is unavailable.
  */
-function openInViewer(fileId: number | string): void {
-  if (OCA?.Viewer?.open !== undefined) {
-    OCA.Viewer.open({ fileId })
+function openInViewer(target: CadFileTarget): void {
+  if (openCadFile(target, OCA?.Viewer)) {
     return
   }
 
-  if (OC !== undefined) {
-    window.location.href = OC.generateUrl('/apps/cad_viewer/view') + '?fileIds=' + fileId
+  if (OC !== undefined && target.id !== undefined) {
+    window.location.href = `${OC.generateUrl('/apps/cad_viewer/view')}?fileIds=${encodeURIComponent(String(target.id))}`
   }
 }
 
