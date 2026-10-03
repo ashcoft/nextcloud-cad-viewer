@@ -171,7 +171,7 @@ composer test:unit
 The `Makefile` wraps the common flows:
 
 ```bash
-make dev-setup          # clean, install and build for development
+make dev-setup          # clean, install and build the production bundle
 make production-setup   # clean, install and build for production
 make appstore           # build the installable tar.gz/zip archives
 make test               # run PHPUnit and Jest suites
