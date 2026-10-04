@@ -9,22 +9,11 @@
  */
 namespace SebastianBergmann\CodeCoverage;
 
-use function dirname;
-use SebastianBergmann\Version as VersionId;
+use RuntimeException;
 
 /**
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise for phpunit/php-code-coverage
  */
-final class Version
+final class JsonException extends RuntimeException implements Exception
 {
-    private static string $version = '';
-
-    public static function id(): string
-    {
-        if (self::$version === '') {
-            self::$version = new VersionId('14.4.0', dirname(__DIR__))->asString();
-        }
-
-        return self::$version;
-    }
 }
