@@ -187,7 +187,7 @@ importers:
     dependencies:
       '@mlightcad/cad-agent-plugin':
         specifier: ^1.5.8
-        version: 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(vue@3.5.38(typescript@6.0.3))
+        version: 1.7.3(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(vue@3.5.38(typescript@6.0.3))
       '@mlightcad/cad-html-plugin':
         specifier: 1.7.4
         version: 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(three@0.186.1)
@@ -202,7 +202,7 @@ importers:
         version: 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))
       '@mlightcad/cad-viewer':
         specifier: 1.7.4
-        version: 1.7.4(e0a8682736f79aa322acbe1098dff83b)
+        version: 1.7.4(bb18f44350eef4b8143183355759b6e9)
       '@mlightcad/data-model':
         specifier: 1.14.5
         version: 1.14.5
@@ -272,7 +272,7 @@ importers:
         version: 3.5.43
       '@vue/test-utils':
         specifier: ^2.4.11
-        version: 2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.42)(vue@3.5.38(typescript@6.0.3))
+        version: 2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.38(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))
       '@vue/vue3-jest':
         specifier: ^29.2.6
         version: 29.2.6(@babel/core@8.0.6)(babel-jest@30.5.2(@babel/core@8.0.6)(supports-color@10.2.2))(jest@30.5.2(@types/node@26.6.4)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)(vue@3.5.38(typescript@6.0.3))
@@ -1503,10 +1503,10 @@ packages:
     resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
     engines: {node: '>=8'}
 
-  '@mlightcad/cad-agent-plugin@1.7.4':
-    resolution: {integrity: sha512-BM1HKKGk4AFYPOsDtTuTNOOu+7VB4DO7a+/WLvhN0Dx/MqSPTwTGUVisSs7X6We73SIfFsv3L9aDA0uETJMrUg==}
+  '@mlightcad/cad-agent-plugin@1.7.3':
+    resolution: {integrity: sha512-ni004MP8TszbnPuwge5rSI3w0ZzuGN5WZjtFzJoXOtFd81Ohpm6gR4WeQcye9ifd0oiSeipe5yBWyRFKfGMaWw==}
     peerDependencies:
-      '@mlightcad/cad-simple-viewer': 1.7.4
+      '@mlightcad/cad-simple-viewer': 1.7.3
       '@mlightcad/data-model': 1.14.5
       vue: 3.5.38
 
@@ -2254,17 +2254,11 @@ packages:
   '@vue/compiler-core@3.5.38':
     resolution: {integrity: sha512-s99aGxWYig9ErHbct27KXEGhrBYlRI6c4MwAgXErOAbX9xiW37/uMa+XUDO69zLz83dng8UUZ70CTOJrLrYrEQ==}
 
-  '@vue/compiler-core@3.5.42':
-    resolution: {integrity: sha512-2Ye1ilMtKXxl8qZUrQ5j0CdgenFp/HFQmta6rfRyfEsTG69L6Wk+tWuNoHYHMx9E8tF2Slvdg1FuwDvAXdy1LQ==}
-
   '@vue/compiler-core@3.5.43':
     resolution: {integrity: sha512-zdiLhnbe1QQqgDT8xZMpNmyqZ3qlI+/Q/FHQco57Kwl/b05HhCzN6eVGN9QU9rbga4CrS0H5SYY8VGHZCt/1Hg==}
 
   '@vue/compiler-dom@3.5.38':
     resolution: {integrity: sha512-JTqp25l8aFfJYF7/KmsXZjAxJz7T+SjmTJLoXVjHtc2BrSgSiW2n9Aem/cWq1OPe68A8JL06B3eVdhlP0H4TVw==}
-
-  '@vue/compiler-dom@3.5.42':
-    resolution: {integrity: sha512-qbhQZEFmycr+ni/qyuccS4sucNN7VAbDfbkvNxWOX2VfgFm90MNs3/UhRNKoPMEIVn0F8gdlYjLPvqxHwHeQOA==}
 
   '@vue/compiler-dom@3.5.43':
     resolution: {integrity: sha512-PEZoAk3NQmsn/ejMzSOCyTYqwGqczrWm70PuhBKjjv1+TCoQAaO/zOqNwjV+honlNstT5ILxtc+8r8UUfj+iEQ==}
@@ -2277,9 +2271,6 @@ packages:
 
   '@vue/compiler-ssr@3.5.38':
     resolution: {integrity: sha512-7s+W5Gc42FGxZMcuwl8H5B29T8BJPMdBT7KHFE+BbAuZ/iTEdTtv7z2XiMjiaUUw4w3ZcCEdHs36RuYJ2VA7bA==}
-
-  '@vue/compiler-ssr@3.5.42':
-    resolution: {integrity: sha512-xmLk3wLkbizPAiLyomjgFFosf2ys9b5Ghb+oh/k2tnvipNz8OFrQOiTcWCzyK7MpBp9KkyGtfvgfLUivbmuGYA==}
 
   '@vue/compiler-ssr@3.5.43':
     resolution: {integrity: sha512-GF62orf7KiJX9RqrHNGrYBudsQGD0OhJ5nDs90O8UiDuS40+YMYomiXu6w6EuvtXuRDc3MSNis3EaaSKAVSWpg==}
@@ -2302,34 +2293,19 @@ packages:
   '@vue/reactivity@3.5.38':
     resolution: {integrity: sha512-pG6LV/NDNRbKizcUjFFLAfjaL8mcv4DmR9avNcUw2gDHBzZneuS2TWCmp633ynzxz9YYKNeEPK2I8Wraqy2HUQ==}
 
-  '@vue/reactivity@3.5.42':
-    resolution: {integrity: sha512-TzNNfKpb7hDxbQltwAut8VDQA5YP+BuRlxntHUuRjyKwlMvmAPbs3unhCvieijifY6vFfVBwsS7wG/C7uq+bEQ==}
-
   '@vue/runtime-core@3.5.38':
     resolution: {integrity: sha512-iyW8WVfF1CpCXxncZY5Ei6rSd6oZr5DgEom//fUjRBRl56AXPD+s9ATvukRt77ZFTuYlnVA1bxY+dJB94tWVYw==}
 
-  '@vue/runtime-core@3.5.42':
-    resolution: {integrity: sha512-9uACtuHs7vJGkm5Bp3xu4xRDLFTIYy5DgxpToVjqGIAhAEKwQfsaLvKINhM6nFVp6bZPRFGdDqd1g52MqKsotA==}
-
   '@vue/runtime-dom@3.5.38':
     resolution: {integrity: sha512-apX2wt9sdfDshS+a2xueFZLVpt0GkRJZSoPmrW/SA4yzXTznhfcMVW59gr7h4YQeY0vJhdJkk2rsIDwgfFgC5A==}
-
-  '@vue/runtime-dom@3.5.42':
-    resolution: {integrity: sha512-rsCmhiWLaRxGltLwhlCWyYkFn7WAbKRh0q17eZ1A6Dq6eqc2ACQ61IIryxz0LrsvCzHSilLA9JHovVwM8CNE2g==}
 
   '@vue/server-renderer@3.5.38':
     resolution: {integrity: sha512-vue8vbf2QlV4quHqzwmJy6dWfmRhP1J8l4wtZg60CL6VoKqcPY2oe7may3+1d9qfpedjK5PRLFqd5k3Isj9mUw==}
     peerDependencies:
       vue: 3.5.38
 
-  '@vue/server-renderer@3.5.42':
-    resolution: {integrity: sha512-2++5dUyYS4gvo7xQXSECUDhB7TS0aOl5SeVfC5qSq1Jgfhjvegw1zqhwTIR3imZ+QYPJQw9gfcFvXGAjGZ7ajQ==}
-
   '@vue/shared@3.5.38':
     resolution: {integrity: sha512-FTW0AFZNaK5/mOqvGBwVfUlNLU38TiQn4+DQgIFUnrBBJQ1crMJ82yeGQLV5jyKFsO8yRukpbuP7x+nRbH6aug==}
-
-  '@vue/shared@3.5.42':
-    resolution: {integrity: sha512-2rPxex1jQf4jvl9MOHl6YaXCPcrNqz/FstMOEh3QWY+/OME9nQTvl9WYeCwhW7AFjaR0SnngZGlp/wkR6rkI6g==}
 
   '@vue/shared@3.5.43':
     resolution: {integrity: sha512-uksS7YGMR5NZyr4JNq0Rp+QyLns0ueaz20KwzIPW9R0LH1Vnt4E+XUM29PNseEbf1www2gOuhuDi5AKOIXag9Q==}
@@ -7079,7 +7055,7 @@ snapshots:
 
   '@lukeed/csprng@1.1.0': {}
 
-  '@mlightcad/cad-agent-plugin@1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(vue@3.5.38(typescript@6.0.3))':
+  '@mlightcad/cad-agent-plugin@1.7.3(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(vue@3.5.38(typescript@6.0.3))':
     dependencies:
       '@ai-sdk/anthropic': 2.0.87(zod@3.25.76)
       '@ai-sdk/openai': 2.0.114(zod@3.25.76)
@@ -7121,7 +7097,7 @@ snapshots:
       '@mlightcad/mtext-parser': 1.5.3
       '@mlightcad/mtext-renderer': 0.12.7(three@0.186.1)
 
-  '@mlightcad/cad-viewer@1.7.4(e0a8682736f79aa322acbe1098dff83b)':
+  '@mlightcad/cad-viewer@1.7.4(bb18f44350eef4b8143183355759b6e9)':
     dependencies:
       '@mlightcad/cad-simple-viewer': 1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1)
       '@mlightcad/data-model': 1.14.5
@@ -7133,7 +7109,7 @@ snapshots:
       vue: 3.5.38(typescript@6.0.3)
       vue-i18n: 11.4.6(vue@3.5.38(typescript@6.0.3))
     optionalDependencies:
-      '@mlightcad/cad-agent-plugin': 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(vue@3.5.38(typescript@6.0.3))
+      '@mlightcad/cad-agent-plugin': 1.7.3(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(vue@3.5.38(typescript@6.0.3))
       '@mlightcad/cad-html-plugin': 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(three@0.186.1)
       '@mlightcad/cad-pdf-plugin': 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/pdf-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))
       '@mlightcad/cad-svg-plugin': 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))
@@ -7871,15 +7847,6 @@ snapshots:
       estree-walker: 2.0.2
       source-map-js: 1.2.1
 
-  '@vue/compiler-core@3.5.42':
-    dependencies:
-      '@babel/parser': 7.29.8
-      '@vue/shared': 3.5.42
-      entities: 7.0.1
-      estree-walker: 2.0.2
-      source-map-js: 1.2.1
-    optional: true
-
   '@vue/compiler-core@3.5.43':
     dependencies:
       '@babel/parser': 7.29.8
@@ -7892,12 +7859,6 @@ snapshots:
     dependencies:
       '@vue/compiler-core': 3.5.38
       '@vue/shared': 3.5.38
-
-  '@vue/compiler-dom@3.5.42':
-    dependencies:
-      '@vue/compiler-core': 3.5.42
-      '@vue/shared': 3.5.42
-    optional: true
 
   '@vue/compiler-dom@3.5.43':
     dependencies:
@@ -7933,12 +7894,6 @@ snapshots:
       '@vue/compiler-dom': 3.5.38
       '@vue/shared': 3.5.38
 
-  '@vue/compiler-ssr@3.5.42':
-    dependencies:
-      '@vue/compiler-dom': 3.5.42
-      '@vue/shared': 3.5.42
-    optional: true
-
   '@vue/compiler-ssr@3.5.43':
     dependencies:
       '@vue/compiler-dom': 3.5.43
@@ -7973,21 +7928,10 @@ snapshots:
     dependencies:
       '@vue/shared': 3.5.38
 
-  '@vue/reactivity@3.5.42':
-    dependencies:
-      '@vue/shared': 3.5.42
-    optional: true
-
   '@vue/runtime-core@3.5.38':
     dependencies:
       '@vue/reactivity': 3.5.38
       '@vue/shared': 3.5.38
-
-  '@vue/runtime-core@3.5.42':
-    dependencies:
-      '@vue/reactivity': 3.5.42
-      '@vue/shared': 3.5.42
-    optional: true
 
   '@vue/runtime-dom@3.5.38':
     dependencies:
@@ -7996,42 +7940,24 @@ snapshots:
       '@vue/shared': 3.5.38
       csstype: 3.2.3
 
-  '@vue/runtime-dom@3.5.42':
-    dependencies:
-      '@vue/reactivity': 3.5.42
-      '@vue/runtime-core': 3.5.42
-      '@vue/shared': 3.5.42
-      csstype: 3.2.3
-    optional: true
-
   '@vue/server-renderer@3.5.38(vue@3.5.38(typescript@6.0.3))':
     dependencies:
       '@vue/compiler-ssr': 3.5.38
       '@vue/shared': 3.5.38
       vue: 3.5.38(typescript@6.0.3)
 
-  '@vue/server-renderer@3.5.42':
-    dependencies:
-      '@vue/compiler-ssr': 3.5.42
-      '@vue/runtime-dom': 3.5.42
-      '@vue/shared': 3.5.42
-    optional: true
-
   '@vue/shared@3.5.38': {}
-
-  '@vue/shared@3.5.42':
-    optional: true
 
   '@vue/shared@3.5.43': {}
 
-  '@vue/test-utils@2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.42)(vue@3.5.38(typescript@6.0.3))':
+  '@vue/test-utils@2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.38(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))':
     dependencies:
       '@vue/compiler-dom': 3.5.43
       js-beautify: 2.0.3
       vue: 3.5.38(typescript@6.0.3)
       vue-component-type-helpers: 3.3.8
     optionalDependencies:
-      '@vue/server-renderer': 3.5.42
+      '@vue/server-renderer': 3.5.38(vue@3.5.38(typescript@6.0.3))
 
   '@vue/vue3-jest@29.2.6(@babel/core@8.0.6)(babel-jest@30.5.2(@babel/core@8.0.6)(supports-color@10.2.2))(jest@30.5.2(@types/node@26.6.4)(supports-color@10.2.2))(supports-color@10.2.2)(typescript@6.0.3)(vue@3.5.38(typescript@6.0.3))':
     dependencies:
