@@ -7,20 +7,19 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace PHPUnit\Runner\TestRunHistory;
-
-use PHPUnit\Event\TestSuite\Finished;
-use PHPUnit\Event\TestSuite\FinishedSubscriber;
+namespace PHPUnit\Framework\MockObject;
 
 /**
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
  *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
-final readonly class TestSuiteFinishedSubscriber extends Subscriber implements FinishedSubscriber
+final class EmptyInvocationJournalLabelException extends \PHPUnit\Framework\Exception implements Exception
 {
-    public function notify(Finished $event): void
+    public function __construct()
     {
-        $this->handler()->testSuiteFinished();
+        parent::__construct(
+            'The label for recording invocations in an invocation journal must not be empty',
+        );
     }
 }

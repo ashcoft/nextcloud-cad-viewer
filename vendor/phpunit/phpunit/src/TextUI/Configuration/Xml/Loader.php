@@ -32,7 +32,7 @@ use DOMElement;
 use DOMNode;
 use DOMNodeList;
 use DOMXPath;
-use PHPUnit\Event\Facade as EventFacade;
+use PHPUnit\Event\Emitter;
 use PHPUnit\Runner\TestSuiteSorter;
 use PHPUnit\Runner\Version;
 use PHPUnit\TextUI\Configuration\Configuration;
@@ -40,6 +40,8 @@ use PHPUnit\TextUI\Configuration\Constant;
 use PHPUnit\TextUI\Configuration\ConstantCollection;
 use PHPUnit\TextUI\Configuration\Directory;
 use PHPUnit\TextUI\Configuration\DirectoryCollection;
+use PHPUnit\TextUI\Configuration\ExecutionOrderParser;
+use PHPUnit\TextUI\Configuration\ExecutionOrderSource;
 use PHPUnit\TextUI\Configuration\ExtensionBootstrap;
 use PHPUnit\TextUI\Configuration\ExtensionBootstrapCollection;
 use PHPUnit\TextUI\Configuration\File;
@@ -67,6 +69,7 @@ use PHPUnit\TextUI\XmlConfiguration\CodeCoverage\Report\Clover;
 use PHPUnit\TextUI\XmlConfiguration\CodeCoverage\Report\Cobertura;
 use PHPUnit\TextUI\XmlConfiguration\CodeCoverage\Report\Crap4j;
 use PHPUnit\TextUI\XmlConfiguration\CodeCoverage\Report\Html as CodeCoverageHtml;
+use PHPUnit\TextUI\XmlConfiguration\CodeCoverage\Report\Jsonl;
 use PHPUnit\TextUI\XmlConfiguration\CodeCoverage\Report\OpenClover;
 use PHPUnit\TextUI\XmlConfiguration\CodeCoverage\Report\Php as CodeCoveragePhp;
 use PHPUnit\TextUI\XmlConfiguration\CodeCoverage\Report\Text as CodeCoverageText;
@@ -91,6 +94,13 @@ use Throwable;
  */
 final readonly class Loader
 {
+    private Emitter $emitter;
+
+    public function __construct(Emitter $emitter)
+    {
+        $this->emitter = $emitter;
+    }
+
     /**
      * @throws Exception
      */
@@ -586,6 +596,20 @@ final readonly class Loader
             );
         }
 
+        $jsonl   = null;
+        $element = $this->element($xpath, 'coverage/report/jsonl');
+
+        if ($element !== null) {
+            $jsonl = new Jsonl(
+                new Directory(
+                    $this->toAbsolutePath(
+                        $filename,
+                        (string) $this->parseStringAttribute($element, 'outputDirectory'),
+                    ),
+                ),
+            );
+        }
+
         $openClover = null;
         $element    = $this->element($xpath, 'coverage/report/openclover');
 
@@ -656,6 +680,7 @@ final readonly class Loader
             $cobertura,
             $crap4j,
             $html,
+            $jsonl,
             $openClover,
             $php,
             $text,
@@ -809,7 +834,7 @@ final readonly class Loader
         }
 
         if ($element->hasAttribute('cacheResult')) {
-            EventFacade::emitter()->testRunnerTriggeredPhpunitDeprecation(
+            $this->emitter->testRunnerTriggeredPhpunitDeprecation(
                 'The "cacheResult" attribute is deprecated and will be removed in PHPUnit 14. Use "recordTestRunHistory" instead.',
             );
 
@@ -1102,80 +1127,32 @@ final readonly class Loader
         $defectsFirst        = false;
         $resolveDependencies = $this->parseBooleanAttribute($documentElement, 'resolveDependencies', true);
 
-        if ($documentElement->hasAttribute('executionOrder')) {
-            foreach (explode(',', $documentElement->getAttribute('executionOrder')) as $order) {
-                switch ($order) {
-                    case 'default':
-                        $executionOrder      = TestSuiteSorter::ORDER_DEFAULT;
-                        $defectsFirst        = false;
-                        $resolveDependencies = true;
+        $configuredExecutionOrder = $this->parseStringAttribute($documentElement, 'executionOrder');
 
-                        break;
+        if ($configuredExecutionOrder !== null) {
+            $parsedExecutionOrder = new ExecutionOrderParser($this->emitter)->parse(
+                $configuredExecutionOrder,
+                ExecutionOrderSource::XmlAttribute,
+                $executionOrder,
+                TestSuiteSorter::ORDER_DEFAULT,
+                $resolveDependencies,
+            );
 
-                    case 'depends':
-                        $resolveDependencies = true;
-
-                        break;
-
-                    case 'no-depends':
-                        $resolveDependencies = false;
-
-                        break;
-
-                    case 'defects':
-                        $defectsFirst = true;
-
-                        break;
-
-                    case 'duration':
-                        $executionOrder = TestSuiteSorter::ORDER_DURATION_ASCENDING;
-
-                        EventFacade::emitter()->testRunnerTriggeredPhpunitDeprecation(
-                            'Using "duration" for the executionOrder attribute is deprecated and will be removed in PHPUnit 14. Use "duration-ascending" instead.',
-                        );
-
-                        break;
-
-                    case 'duration-ascending':
-                        $executionOrder = TestSuiteSorter::ORDER_DURATION_ASCENDING;
-
-                        break;
-
-                    case 'duration-descending':
-                        $executionOrder = TestSuiteSorter::ORDER_DURATION_DESCENDING;
-
-                        break;
-
-                    case 'random':
-                        $executionOrder = TestSuiteSorter::ORDER_RANDOMIZED;
-
-                        break;
-
-                    case 'reverse':
-                        $executionOrder = TestSuiteSorter::ORDER_REVERSED;
-
-                        break;
-
-                    case 'size':
-                        $executionOrder = TestSuiteSorter::ORDER_SIZE_ASCENDING;
-
-                        EventFacade::emitter()->testRunnerTriggeredPhpunitDeprecation(
-                            'Using "size" for the executionOrder attribute is deprecated and will be removed in PHPUnit 14. Use "size-ascending" instead.',
-                        );
-
-                        break;
-
-                    case 'size-ascending':
-                        $executionOrder = TestSuiteSorter::ORDER_SIZE_ASCENDING;
-
-                        break;
-
-                    case 'size-descending':
-                        $executionOrder = TestSuiteSorter::ORDER_SIZE_DESCENDING;
-
-                        break;
-                }
+            foreach ($parsedExecutionOrder->unknownTokens() as $unknownToken) {
+                $this->emitter->testRunnerTriggeredPhpunitDeprecation(
+                    sprintf(
+                        'Using "%s" for the executionOrder attribute is deprecated and will be an error in PHPUnit 14. The value is ignored.',
+                        $unknownToken,
+                    ),
+                );
             }
+
+            $executionOrder      = $parsedExecutionOrder->executionOrder();
+            $defectsFirst        = $parsedExecutionOrder->executionOrderDefects() === TestSuiteSorter::ORDER_DEFECTS_FIRST;
+            $resolveDependencies = $parsedExecutionOrder->resolveDependencies();
+
+            assert($executionOrder !== null);
+            assert($resolveDependencies !== null);
         }
 
         $cacheDirectory = $this->parseStringAttribute($documentElement, 'cacheDirectory');
@@ -1206,6 +1183,24 @@ final readonly class Loader
 
         if ($documentElement->hasAttribute('requireCoverageMetadata')) {
             $requireCoverageMetadata = $this->parseBooleanAttribute($documentElement, 'requireCoverageMetadata', false);
+        }
+
+        $requireCoverageMetadataOnSmallTests = $requireCoverageMetadata;
+
+        if ($documentElement->hasAttribute('requireCoverageMetadataOnSmallTests')) {
+            $requireCoverageMetadataOnSmallTests = $this->parseBooleanAttribute($documentElement, 'requireCoverageMetadataOnSmallTests', false);
+        }
+
+        $requireCoverageMetadataOnMediumTests = $requireCoverageMetadata;
+
+        if ($documentElement->hasAttribute('requireCoverageMetadataOnMediumTests')) {
+            $requireCoverageMetadataOnMediumTests = $this->parseBooleanAttribute($documentElement, 'requireCoverageMetadataOnMediumTests', false);
+        }
+
+        $requireCoverageMetadataOnLargeTests = $requireCoverageMetadata;
+
+        if ($documentElement->hasAttribute('requireCoverageMetadataOnLargeTests')) {
+            $requireCoverageMetadataOnLargeTests = $this->parseBooleanAttribute($documentElement, 'requireCoverageMetadataOnLargeTests', false);
         }
 
         $requireSealedMockObjects = false;
@@ -1249,6 +1244,9 @@ final readonly class Loader
             $this->parseBooleanAttribute($documentElement, 'displayDetailsOnTestsThatTriggerWarnings', false),
             $this->parseBooleanAttribute($documentElement, 'reverseDefectList', false),
             $requireCoverageMetadata,
+            $requireCoverageMetadataOnSmallTests,
+            $requireCoverageMetadataOnMediumTests,
+            $requireCoverageMetadataOnLargeTests,
             $requireSealedMockObjects,
             $bootstrap,
             $this->bootstrapForTestSuite($filename, $xpath),
@@ -1313,6 +1311,7 @@ final readonly class Loader
             $shortenArraysForExportThreshold,
             $this->parsePositiveIntegerAttribute($documentElement, 'diffContext', 3),
             $this->parseBooleanAttribute($documentElement, 'warnWhenPhpIsNotConfiguredForDevelopment', false),
+            $this->parseBooleanAttribute($documentElement, 'cacheTestIndex', false),
         );
     }
 

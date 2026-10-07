@@ -16,6 +16,7 @@ use function addcslashes;
 use function array_column;
 use function array_key_exists;
 use function assert;
+use function class_exists;
 use function extension_loaded;
 use function function_exists;
 use function in_array;
@@ -25,8 +26,9 @@ use function phpversion;
 use function preg_match;
 use function sprintf;
 use function substr_count;
-use PHPUnit\Event\Facade;
+use PHPUnit\Event\Emitter;
 use PHPUnit\Metadata\Parser\Registry;
+use PHPUnit\Metadata\RequiresClass;
 use PHPUnit\Metadata\RequiresEnvironmentVariable;
 use PHPUnit\Metadata\RequiresFunction;
 use PHPUnit\Metadata\RequiresMethod;
@@ -51,6 +53,13 @@ use Throwable;
  */
 final readonly class Requirements
 {
+    private Emitter $emitter;
+
+    public function __construct(Emitter $emitter)
+    {
+        $this->emitter = $emitter;
+    }
+
     /**
      * @param class-string     $className
      * @param non-empty-string $methodName
@@ -221,6 +230,25 @@ final readonly class Requirements
                 }
             }
 
+            if ($metadata->isRequiresClass()) {
+                assert($metadata instanceof RequiresClass);
+
+                try {
+                    if (!class_exists($metadata->className())) {
+                        $notSatisfied[] = sprintf(
+                            'Class %s is required.',
+                            $metadata->className(),
+                        );
+                    }
+                } catch (Throwable $t) {
+                    $notSatisfied[] = sprintf(
+                        'Class %s is required, but it cannot be loaded: %s',
+                        $metadata->className(),
+                        $t->getMessage(),
+                    );
+                }
+            }
+
             if ($metadata->isRequiresSetting()) {
                 assert($metadata instanceof RequiresSetting);
 
@@ -305,7 +333,7 @@ final readonly class Requirements
             return;
         }
 
-        Facade::emitter()->testRunnerTriggeredPhpunitWarning(
+        $this->emitter->testRunnerTriggeredPhpunitWarning(
             sprintf(
                 'Version requirement "%s" used by %s::%s() is incomplete, expected a version that consists of major, minor, and patch level ("8.5.0" instead of "8.5", for example)',
                 $versionRequirement->asString(),

@@ -24,7 +24,7 @@ use function realpath;
 use function sprintf;
 use function time;
 use LogicException;
-use PHPUnit\Event\Facade as EventFacade;
+use PHPUnit\Event\Emitter;
 use PHPUnit\Runner\TestSuiteSorter;
 use PHPUnit\TextUI\CliArguments\Configuration as CliConfiguration;
 use PHPUnit\TextUI\CliArguments\Exception;
@@ -44,6 +44,13 @@ use SebastianBergmann\Invoker\Invoker;
  */
 final readonly class Merger
 {
+    private Emitter $emitter;
+
+    public function __construct(Emitter $emitter)
+    {
+        $this->emitter = $emitter;
+    }
+
     /**
      * @throws \PHPUnit\TextUI\XmlConfiguration\Exception
      * @throws Exception
@@ -77,6 +84,12 @@ final readonly class Merger
             $recordTestRunHistory = $cliConfiguration->recordTestRunHistory();
         } else {
             $recordTestRunHistory = $xmlConfiguration->phpunit()->recordTestRunHistory();
+        }
+
+        if ($cliConfiguration->hasCacheTestIndex()) {
+            $cacheTestIndex = $cliConfiguration->cacheTestIndex();
+        } else {
+            $cacheTestIndex = $xmlConfiguration->phpunit()->cacheTestIndex();
         }
 
         if ($cliConfiguration->hasWarnWhenPhpIsNotConfiguredForDevelopment()) {
@@ -458,7 +471,7 @@ final readonly class Merger
         if ($columns < 16) {
             $columns = 16;
 
-            EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+            $this->emitter->testRunnerTriggeredPhpunitWarning(
                 'Less than 16 columns requested, number of columns set to 16',
             );
         }
@@ -482,7 +495,7 @@ final readonly class Merger
         if ($cliConfiguration->hasExtensions()) {
             foreach ($cliConfiguration->extensions() as $extension) {
                 if (array_key_exists($extension, $extensionBootstrappers)) {
-                    EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+                    $this->emitter->testRunnerTriggeredPhpunitWarning(
                         sprintf(
                             'Extension "%s" is configured more than once on the command line',
                             $extension,
@@ -499,7 +512,7 @@ final readonly class Merger
 
         foreach ($xmlConfiguration->extensions() as $extension) {
             if (array_key_exists($extension->className(), $extensionBootstrappers)) {
-                EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+                $this->emitter->testRunnerTriggeredPhpunitWarning(
                     sprintf(
                         'Extension "%s" is configured more than once',
                         $extension->className(),
@@ -562,6 +575,7 @@ final readonly class Merger
         $coverageHtmlColorBreadcrumbs       = $defaultColors->breadcrumbs();
         $coverageHtmlColorBreadcrumbsDark   = $defaultColors->breadcrumbsDark();
         $coverageHtmlCustomCssFile          = null;
+        $coverageJsonl                      = null;
         $coverageOpenClover                 = null;
         $coveragePhp                        = null;
         $coverageText                       = null;
@@ -649,12 +663,18 @@ final readonly class Merger
         }
 
         if (!$coverageHtmlClassView && !$coverageHtmlFileView) {
-            EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+            $this->emitter->testRunnerTriggeredPhpunitWarning(
                 'The class view and the file view of the code coverage report in HTML format cannot both be disabled, rendering both',
             );
 
             $coverageHtmlClassView = true;
             $coverageHtmlFileView  = true;
+        }
+
+        if ($cliConfiguration->hasCoverageJsonl()) {
+            $coverageJsonl = $cliConfiguration->coverageJsonl();
+        } elseif ($coverageFromXmlConfiguration && $xmlConfiguration->codeCoverage()->hasJsonl()) {
+            $coverageJsonl = $xmlConfiguration->codeCoverage()->jsonl()->target()->path();
         }
 
         if ($cliConfiguration->hasCoverageOpenClover()) {
@@ -731,7 +751,7 @@ final readonly class Merger
         }
 
         if ($enforceTimeLimit && !(new Invoker)->canInvokeWithTimeout()) {
-            EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+            $this->emitter->testRunnerTriggeredPhpunitWarning(
                 'The pcntl extension is required for enforcing time limits',
             );
         }
@@ -836,8 +856,11 @@ final readonly class Merger
             $reverseDefectList = $xmlConfiguration->phpunit()->reverseDefectList();
         }
 
-        $requireCoverageMetadata  = $xmlConfiguration->phpunit()->requireCoverageMetadata();
-        $requireSealedMockObjects = $xmlConfiguration->phpunit()->requireSealedMockObjects();
+        $requireCoverageMetadata              = $xmlConfiguration->phpunit()->requireCoverageMetadata();
+        $requireCoverageMetadataOnSmallTests  = $xmlConfiguration->phpunit()->requireCoverageMetadataOnSmallTests();
+        $requireCoverageMetadataOnMediumTests = $xmlConfiguration->phpunit()->requireCoverageMetadataOnMediumTests();
+        $requireCoverageMetadataOnLargeTests  = $xmlConfiguration->phpunit()->requireCoverageMetadataOnLargeTests();
+        $requireSealedMockObjects             = $xmlConfiguration->phpunit()->requireSealedMockObjects();
 
         if ($cliConfiguration->hasExecutionOrder()) {
             $executionOrder = $cliConfiguration->executionOrder();
@@ -1065,13 +1088,19 @@ final readonly class Merger
             $retry = $cliConfiguration->retry();
         }
 
+        $timeout = 0;
+
+        if ($cliConfiguration->hasTimeout()) {
+            $timeout = $cliConfiguration->timeout();
+        }
+
         if ($xmlConfiguration->wasLoadedFromFile() && $xmlConfiguration->hasValidationErrors()) {
             if ((new SchemaDetector)->detect($xmlConfiguration->filename())->detected()) {
-                EventFacade::emitter()->testRunnerTriggeredPhpunitDeprecation(
+                $this->emitter->testRunnerTriggeredPhpunitDeprecation(
                     'Your XML configuration validates against a deprecated schema. Migrate your XML configuration using "--migrate-configuration"!',
                 );
             } else {
-                EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+                $this->emitter->testRunnerTriggeredPhpunitWarning(
                     "Test results may not be as expected because the XML configuration file did not pass validation:\n" .
                     $xmlConfiguration->validationErrors(),
                 );
@@ -1207,7 +1236,7 @@ final readonly class Merger
         $issueTriggerIdentificationNeeded = $xmlConfiguration->source()->ignoreSelfDeprecations() || $xmlConfiguration->source()->ignoreDirectDeprecations() || $xmlConfiguration->source()->ignoreIndirectDeprecations();
 
         if ($issueTriggerIdentificationNeeded && !$xmlConfiguration->source()->identifyIssueTrigger()) {
-            EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+            $this->emitter->testRunnerTriggeredPhpunitWarning(
                 'The identification of issue triggers is disabled. However, ignoring self-deprecations, direct deprecations, or indirect deprecations is requested.',
             );
         }
@@ -1238,6 +1267,7 @@ final readonly class Merger
         $coverageHtmlColorDangerBarDark     = $this->requireNonEmptyString($coverageHtmlColorDangerBarDark, 'coverage HTML color "danger bar dark"');
         $coverageHtmlColorBreadcrumbs       = $this->requireNonEmptyString($coverageHtmlColorBreadcrumbs, 'coverage HTML color "breadcrumbs"');
         $coverageHtmlColorBreadcrumbsDark   = $this->requireNonEmptyString($coverageHtmlColorBreadcrumbsDark, 'coverage HTML color "breadcrumbs dark"');
+        $coverageJsonl                      = $this->nullableNonEmptyString($coverageJsonl);
         $coverageOpenClover                 = $this->nullableNonEmptyString($coverageOpenClover);
         $coveragePhp                        = $this->nullableNonEmptyString($coveragePhp);
         $coverageText                       = $this->nullableNonEmptyString($coverageText);
@@ -1350,6 +1380,7 @@ final readonly class Merger
             $coverageHtmlColorBreadcrumbs,
             $coverageHtmlColorBreadcrumbsDark,
             $coverageHtmlCustomCssFile,
+            $coverageJsonl,
             $coverageOpenClover,
             $coveragePhp,
             $coverageText,
@@ -1431,6 +1462,9 @@ final readonly class Merger
             $displayDetailsOnTestsThatTriggerWarnings,
             $reverseDefectList,
             $requireCoverageMetadata,
+            $requireCoverageMetadataOnSmallTests,
+            $requireCoverageMetadataOnMediumTests,
+            $requireCoverageMetadataOnLargeTests,
             $requireSealedMockObjects,
             $noProgress,
             $noResults,
@@ -1463,6 +1497,7 @@ final readonly class Merger
             $randomOrderSeed,
             $repeat,
             $retry,
+            $timeout,
             $includeUncoveredFiles,
             $xmlConfiguration->testSuite(),
             $includeTestSuite,
@@ -1490,6 +1525,7 @@ final readonly class Merger
             $cliConfiguration->withTelemetry(),
             $xmlConfiguration->phpunit()->shortenArraysForExportThreshold(),
             $warnWhenPhpIsNotConfiguredForDevelopment,
+            $cacheTestIndex,
         );
     }
 
@@ -1581,7 +1617,7 @@ final readonly class Merger
      */
     private function warnAboutFailOnSettingThatHasNoEffect(string $attribute, string $enablingSetting, string $cliOption): void
     {
-        EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+        $this->emitter->testRunnerTriggeredPhpunitWarning(
             sprintf(
                 '%s="false" has no effect because %s is enabled. Use the %s CLI option instead',
                 $attribute,

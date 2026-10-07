@@ -59,7 +59,10 @@ interface Emitter
 
     public function testSuiteFiltered(TestSuite $testSuite): void;
 
-    public function testSuiteSorted(int $executionOrder, int $executionOrderDefects, bool $resolveDependencies): void;
+    /**
+     * @param list<non-empty-string> $pipeline
+     */
+    public function testSuiteSorted(int $executionOrder, int $executionOrderDefects, bool $resolveDependencies, array $pipeline): void;
 
     public function testRunnerEventFacadeSealed(): void;
 
@@ -386,6 +389,11 @@ interface Emitter
     public function testRunnerExecutionFinished(): void;
 
     public function testRunnerFinished(): void;
+
+    /**
+     * @param positive-int $timeLimit
+     */
+    public function testRunnerTimeLimitExceeded(int $timeLimit): void;
 
     public function applicationFinished(int $shellExitCode): void;
 }

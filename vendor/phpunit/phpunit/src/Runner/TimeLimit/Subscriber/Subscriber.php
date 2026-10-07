@@ -7,20 +7,24 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace PHPUnit\Runner\TestRunHistory;
-
-use PHPUnit\Event\TestSuite\Started;
-use PHPUnit\Event\TestSuite\StartedSubscriber;
+namespace PHPUnit\Runner\TimeLimit;
 
 /**
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
  *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
-final readonly class TestSuiteStartedSubscriber extends Subscriber implements StartedSubscriber
+abstract readonly class Subscriber
 {
-    public function notify(Started $event): void
+    private TimeLimitHandler $handler;
+
+    public function __construct(TimeLimitHandler $handler)
     {
-        $this->handler()->testSuiteStarted();
+        $this->handler = $handler;
+    }
+
+    protected function handler(): TimeLimitHandler
+    {
+        return $this->handler;
     }
 }

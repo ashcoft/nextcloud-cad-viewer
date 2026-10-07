@@ -209,10 +209,12 @@ final class DispatchingEmitter implements Emitter
     }
 
     /**
+     * @param list<non-empty-string> $pipeline
+     *
      * @throws InvalidArgumentException
      * @throws UnknownEventTypeException
      */
-    public function testSuiteSorted(int $executionOrder, int $executionOrderDefects, bool $resolveDependencies): void
+    public function testSuiteSorted(int $executionOrder, int $executionOrderDefects, bool $resolveDependencies, array $pipeline): void
     {
         $this->dispatcher->dispatch(
             new TestSuiteSorted(
@@ -220,6 +222,7 @@ final class DispatchingEmitter implements Emitter
                 $executionOrder,
                 $executionOrderDefects,
                 $resolveDependencies,
+                $pipeline,
             ),
         );
     }
@@ -1636,6 +1639,19 @@ final class DispatchingEmitter implements Emitter
     {
         $this->dispatcher->dispatch(
             new TestRunner\Finished($this->telemetryInfo()),
+        );
+    }
+
+    /**
+     * @param positive-int $timeLimit
+     *
+     * @throws InvalidArgumentException
+     * @throws UnknownEventTypeException
+     */
+    public function testRunnerTimeLimitExceeded(int $timeLimit): void
+    {
+        $this->dispatcher->dispatch(
+            new TestRunner\TimeLimitExceeded($this->telemetryInfo(), $timeLimit),
         );
     }
 
