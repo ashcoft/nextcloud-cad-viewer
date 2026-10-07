@@ -9,9 +9,8 @@
  * file that was distributed with this source code.
  */
 declare (strict_types=1);
-namespace RectorPrefix202609\Fidry\CpuCoreCounter\Finder;
+namespace RectorPrefix202610\Fidry\CpuCoreCounter\Finder;
 
-use function preg_match;
 /**
  * Find the number of physical CPU cores for Windows.
  *
@@ -19,10 +18,11 @@ use function preg_match;
  */
 final class CmiCmdletPhysicalFinder extends ProcOpenBasedFinder
 {
-    private const CPU_CORE_COUNT_REGEX = '/NumberOfCores[\s\n]-+[\s\n]+(?<count>\d+)/';
     protected function getCommand(): string
     {
-        return 'Get-CimInstance -ClassName Win32_Processor | Select-Object -Property NumberOfCores';
+        // proc_open() runs commands through cmd.exe on Windows, so PowerShell
+        // must be called explicitly.
+        return 'powershell -NoProfile -NonInteractive -Command "(Get-CimInstance -ClassName Win32_Processor).NumberOfCores"';
     }
     public function toString(): string
     {
@@ -30,11 +30,6 @@ final class CmiCmdletPhysicalFinder extends ProcOpenBasedFinder
     }
     protected function countCpuCores(string $process): ?int
     {
-        if (0 === preg_match(self::CPU_CORE_COUNT_REGEX, $process, $matches)) {
-            return parent::countCpuCores($process);
-        }
-        /** @phpstan-ignore offsetAccess.notFound */
-        $count = $matches['count'];
-        return parent::countCpuCores($count);
+        return $this->sumCpuCoresPerLine($process);
     }
 }

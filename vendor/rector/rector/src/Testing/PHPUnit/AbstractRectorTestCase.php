@@ -4,8 +4,8 @@ declare (strict_types=1);
 namespace Rector\Testing\PHPUnit;
 
 use Iterator;
-use RectorPrefix202609\Nette\Utils\FileSystem;
-use RectorPrefix202609\Nette\Utils\Strings;
+use RectorPrefix202610\Nette\Utils\FileSystem;
+use RectorPrefix202610\Nette\Utils\Strings;
 use PHPUnit\Framework\ExpectationFailedException;
 use Rector\Application\ApplicationFileProcessor;
 use Rector\Autoloading\AdditionalAutoloader;
@@ -106,6 +106,8 @@ abstract class AbstractRectorTestCase extends \Rector\Testing\PHPUnit\AbstractLa
         if (is_string($this->inputFilePath)) {
             FileSystem::delete($this->inputFilePath);
         }
+        // a next test that does not set its own paths would still locate the deleted file
+        $this->dynamicSourceLocatorProvider->reset();
     }
     protected static function yieldFilesFromDirectory(string $directory, string $suffix = '*.php.inc'): Iterator
     {

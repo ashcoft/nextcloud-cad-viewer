@@ -9,9 +9,10 @@
  * file that was distributed with this source code.
  */
 declare (strict_types=1);
-namespace RectorPrefix202609\Fidry\CpuCoreCounter\Finder;
+namespace RectorPrefix202610\Fidry\CpuCoreCounter\Finder;
 
 use function implode;
+use function in_array;
 use function sprintf;
 use const PHP_OS_FAMILY;
 final class OnlyOnOSFamilyFinder implements CpuCoreFinder

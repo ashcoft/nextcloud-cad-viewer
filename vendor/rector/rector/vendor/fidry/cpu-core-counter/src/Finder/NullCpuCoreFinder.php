@@ -9,11 +9,8 @@
  * file that was distributed with this source code.
  */
 declare (strict_types=1);
-namespace RectorPrefix202609\Fidry\CpuCoreCounter\Finder;
+namespace RectorPrefix202610\Fidry\CpuCoreCounter\Finder;
 
-/**
- * This finder returns whatever value you gave to it. This is useful for testing.
- */
 final class NullCpuCoreFinder implements CpuCoreFinder
 {
     public function diagnose(): string

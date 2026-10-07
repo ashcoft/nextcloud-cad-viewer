@@ -1,27 +1,23 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609\Entropy\Console\ConsoleTable;
+namespace RectorPrefix202610\Entropy\Console\ConsoleTable;
 
-use RectorPrefix202609\Entropy\Attributes\RelatedTest;
-use RectorPrefix202609\Entropy\Console\Output\OutputPrinter;
-use RectorPrefix202609\Entropy\Tests\Console\ConsoleTable\ConsoleTableTest;
+use RectorPrefix202610\Entropy\Attribute\RelatedTest;
+use RectorPrefix202610\Entropy\Console\Output\OutputPrinter;
+use RectorPrefix202610\Entropy\Tests\Console\ConsoleTable\ConsoleTableTest;
+/**
+ * @see \Entropy\Tests\Console\ConsoleTable\ConsoleTableTest
+ */
 final class ConsoleTable
 {
     /**
-     * @readonly
-     */
-    private OutputPrinter $outputPrinter;
-    /**
      * @api used in tests
      * Marks a separator line between table rows.
-     * @var string
      */
     public const SEPARATOR = '__separator__';
-    /**
-     * @var int
-     */
     private const COLUMN_PADDING = 2;
+    private OutputPrinter $outputPrinter;
     public function __construct(OutputPrinter $outputPrinter)
     {
         $this->outputPrinter = $outputPrinter;

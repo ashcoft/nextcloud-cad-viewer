@@ -9,7 +9,7 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202609\Webmozart\Assert;
+namespace RectorPrefix202610\Webmozart\Assert;
 
 use ArrayAccess;
 use Closure;
@@ -1648,11 +1648,12 @@ class Assert
     /**
      * @psalm-pure
      *
+     * @template T as class-string|object
      * @param mixed $classOrObject
      * @param string|callable():string $message
      *
+     * @return T
      * @throws InvalidArgumentException
-     * @return object|string
      * @param mixed $property
      */
     public static function propertyExists($classOrObject, $property, $message = '')
@@ -1738,6 +1739,32 @@ class Assert
         if (!(isset($array[$key]) || \array_key_exists($key, $array))) {
             $message = self::resolveMessage($message);
             static::reportInvalidArgument(\sprintf($message ?: 'Expected the key %s to exist.', static::valueToString($key)));
+        }
+        return $array;
+    }
+    /**
+     * @psalm-pure
+     *
+     * @param mixed $keys
+     * @param string|callable():string $message
+     *
+     * @throws InvalidArgumentException
+     * @param mixed $array
+     */
+    public static function keysExist($array, $keys, $message = ''): array
+    {
+        static::isArray($array, $message);
+        static::isIterable($keys);
+        $missing = [];
+        foreach ($keys as $key) {
+            static::validArrayKey($key, 'Expected an array key. Got: %s');
+            if (!(isset($array[$key]) || \array_key_exists($key, $array))) {
+                $missing[] = $key;
+            }
+        }
+        if ([] !== $missing) {
+            $message = self::resolveMessage($message);
+            static::reportInvalidArgument(\sprintf($message ?: 'Expected the keys %s to exist.', \implode(', ', \array_map(\Closure::fromCallable([static::class, 'valueToString']), $missing))));
         }
         return $array;
     }
@@ -2125,7 +2152,7 @@ class Assert
     }
     protected static function strlen(string $value): int
     {
-        if (!\function_exists('mb_detect_encoding') && !\function_exists('RectorPrefix202609\mb_detect_encoding')) {
+        if (!\function_exists('mb_detect_encoding') && !\function_exists('RectorPrefix202610\mb_detect_encoding')) {
             return \strlen($value);
         }
         if (\false === $encoding = \mb_detect_encoding($value)) {

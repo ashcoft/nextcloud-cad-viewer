@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609;
+namespace RectorPrefix202610;
 
 use PhpParser\Node\Expr\Cast\Bool_;
 use PhpParser\Node\Expr\Cast\Double;
@@ -101,6 +101,7 @@ use Rector\Php80\Rector\Identical\StrStartsWithRector;
 use Rector\Php80\Rector\NotIdentical\StrContainsRector;
 use Rector\Php80\Rector\Switch_\ChangeSwitchToMatchRector;
 use Rector\Php80\Rector\Ternary\GetDebugTypeRector;
+use Rector\Php80\Rector\Ternary\TernaryToNullsafeCoalesceRector;
 use Rector\Php81\Rector\Array_\ArrayToFirstClassCallableRector;
 use Rector\Php81\Rector\Class_\MyCLabsClassToEnumRector;
 use Rector\Php81\Rector\Class_\SpatieEnumClassToEnumRector;
@@ -139,6 +140,7 @@ use Rector\Php85\Rector\FuncCall\RemoveFinfoBufferContextArgRector;
 use Rector\Php85\Rector\Property\AddOverrideAttributeToOverriddenPropertiesRector;
 use Rector\Php85\Rector\ShellExec\ShellExecFunctionCallOverBackticksRector;
 use Rector\Php85\Rector\Switch_\ColonAfterSwitchCaseRector;
+use Rector\Php86\Rector\Class_\ConstructorReadonlyAssignToDefaultRector;
 use Rector\Php86\Rector\FuncCall\MinMaxToClampRector;
 use Rector\Removing\Rector\FuncCall\RemoveFuncCallArgRector;
 use Rector\Removing\Rector\FuncCall\RemoveFuncCallRector;
@@ -247,6 +249,7 @@ return static function (RectorConfig $rectorConfig): void {
         StringableForToStringRector::class,
         ClassOnObjectRector::class,
         GetDebugTypeRector::class,
+        TernaryToNullsafeCoalesceRector::class,
         RemoveUnusedVariableInCatchRector::class,
         ClassPropertyAssignToConstructorPromotionRector::class,
         ChangeSwitchToMatchRector::class,
@@ -307,6 +310,7 @@ return static function (RectorConfig $rectorConfig): void {
         AddOverrideAttributeToOverriddenPropertiesRector::class,
         // PHP 8.6
         MinMaxToClampRector::class,
+        ConstructorReadonlyAssignToDefaultRector::class,
     ]);
     // configured rules, each bound to the PHP version its configuration targets
     // PHP 5.2

@@ -1,16 +1,13 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609\Entropy\Console\Output;
+namespace RectorPrefix202610\Entropy\Console\Output;
 
-use RectorPrefix202609\Entropy\Attributes\RelatedTest;
-use RectorPrefix202609\Entropy\Console\Enum\Color;
-use RectorPrefix202609\Entropy\Tests\Console\Output\OutputColozierTest;
+use RectorPrefix202610\Entropy\Attribute\RelatedTest;
+use RectorPrefix202610\Entropy\Console\Enum\Color;
+use RectorPrefix202610\Entropy\Tests\Console\Output\OutputColozierTest;
 final class OutputColorizer
 {
-    /**
-     * @readonly
-     */
     private bool $useColors;
     public function __construct()
     {
@@ -40,7 +37,39 @@ final class OutputColorizer
                 $text = str_replace($match[0], $this->background($content, $color), $text);
             }
         }
+        // underscore: <options=underscore>text</>
+        if (preg_match_all('#<options=underscore>(.*?)</>#su', $text, $matches, \PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $text = str_replace($match[0], $this->underscore($match[1]), $text);
+            }
+        }
+        // bold: <options=bold>text</>
+        if (preg_match_all('#<options=bold>(.*?)</>#su', $text, $matches, \PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $text = str_replace($match[0], $this->bold($match[1]), $text);
+            }
+        }
         return $text;
+    }
+    /**
+     * @api used in tests
+     */
+    public function underscore(string $text): string
+    {
+        if (!$this->useColors) {
+            return $text;
+        }
+        return "\x1b[4m" . $text . "\x1b[0m";
+    }
+    /**
+     * @api used in tests
+     */
+    public function bold(string $text): string
+    {
+        if (!$this->useColors) {
+            return $text;
+        }
+        return "\x1b[1m" . $text . "\x1b[0m";
     }
     /**
      * @param Color::* $color
@@ -50,18 +79,23 @@ final class OutputColorizer
         if (!$this->useColors) {
             return $text;
         }
-        switch ($color) {
-            case Color::GREEN:
-                return "\x1b[32m{$text}\x1b[0m";
-            case Color::YELLOW:
-                return "\x1b[33m{$text}\x1b[0m";
-            case Color::RED:
-                return "\x1b[31m{$text}\x1b[0m";
-            case Color::CYAN:
-                return "\x1b[36m{$text}\x1b[0m";
-            case Color::GREY:
-                return "\x1b[37m{$text}\x1b[0m";
+        if ($color === Color::GREEN) {
+            return "\x1b[32m" . $text . "\x1b[0m";
         }
+        if ($color === Color::YELLOW) {
+            return "\x1b[33m" . $text . "\x1b[0m";
+        }
+        if ($color === Color::RED) {
+            return "\x1b[31m" . $text . "\x1b[0m";
+        }
+        if ($color === Color::CYAN) {
+            return "\x1b[36m" . $text . "\x1b[0m";
+        }
+        if ($color === Color::GREY) {
+            // use light grey
+            return "\x1b[37m" . $text . "\x1b[0m";
+        }
+        throw new \RuntimeException('Unhandled color value');
     }
     /**
      * @param Color::* $color
@@ -72,17 +106,21 @@ final class OutputColorizer
         if (!$this->useColors) {
             return $text;
         }
-        switch ($color) {
-            case Color::GREEN:
-                return "\x1b[42;30m{$text}\x1b[0m";
-            case Color::YELLOW:
-            case 'orange':
-                return "\x1b[43;30m{$text}\x1b[0m";
-            case Color::RED:
-                return "\x1b[41;30m{$text}\x1b[0m";
-            case Color::CYAN:
-                return "\x1b[46;30m{$text}\x1b[0m";
+        if ($color === Color::GREEN) {
+            // background ; foreground
+            return "\x1b[42;30m" . $text . "\x1b[0m";
         }
+        if ($color === Color::YELLOW || $color === 'orange') {
+            return "\x1b[43;30m" . $text . "\x1b[0m";
+        }
+        if ($color === Color::RED) {
+            // WHITE on red (important)
+            return "\x1b[41;30m" . $text . "\x1b[0m";
+        }
+        if ($color === Color::CYAN) {
+            return "\x1b[46;30m" . $text . "\x1b[0m";
+        }
+        throw new \RuntimeException('Unhandled color value');
     }
     private function padding(string $text): string
     {
@@ -90,8 +128,8 @@ final class OutputColorizer
     }
     private function isTty(): bool
     {
-        if (function_exists('stream_isatty')) {
-            return @stream_isatty(\STDOUT);
+        if (function_exists('stream_isatty') && defined('STDOUT')) {
+            return stream_isatty(\STDOUT);
         }
         // Fallback: respect NO_COLOR if present
         return getenv('NO_COLOR') === \false;

@@ -8,13 +8,13 @@
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  */
-namespace RectorPrefix202609\Composer\Semver;
+namespace RectorPrefix202610\Composer\Semver;
 
-use RectorPrefix202609\Composer\Semver\Constraint\Constraint;
-use RectorPrefix202609\Composer\Semver\Constraint\ConstraintInterface;
-use RectorPrefix202609\Composer\Semver\Constraint\MatchAllConstraint;
-use RectorPrefix202609\Composer\Semver\Constraint\MatchNoneConstraint;
-use RectorPrefix202609\Composer\Semver\Constraint\MultiConstraint;
+use RectorPrefix202610\Composer\Semver\Constraint\Constraint;
+use RectorPrefix202610\Composer\Semver\Constraint\ConstraintInterface;
+use RectorPrefix202610\Composer\Semver\Constraint\MatchAllConstraint;
+use RectorPrefix202610\Composer\Semver\Constraint\MatchNoneConstraint;
+use RectorPrefix202610\Composer\Semver\Constraint\MultiConstraint;
 /**
  * Helper class generating intervals from constraints
  *
@@ -126,15 +126,29 @@ class Intervals
             $constraints[] = $intervals['numeric'][0]->getStart();
             $hasNumericMatchAll = \true;
         } else {
+            // A bare != N matches all dev-* versions, so if the numeric part is the whole line minus some points,
+            // only compact it into unbounded != constraints when the branches already match all dev versions
+            $numeric = $intervals['numeric'];
+            $count = \count($numeric);
+            $skipNotEqual = \false;
+            if (!$intervals['branches']['exclude'] && $count > 1 && (string) $numeric[0]->getStart() === (string) Interval::fromZero() && (string) $numeric[$count - 1]->getEnd() === (string) Interval::untilPositiveInfinity()) {
+                $skipNotEqual = \true;
+                for ($i = 0; $i < $count - 1; $i++) {
+                    if ($numeric[$i]->getEnd()->getOperator() !== '<' || $numeric[$i + 1]->getStart()->getOperator() !== '>' || $numeric[$i]->getEnd()->getVersion() !== $numeric[$i + 1]->getStart()->getVersion()) {
+                        $skipNotEqual = \false;
+                        break;
+                    }
+                }
+            }
             $unEqualConstraints = array();
-            for ($i = 0, $count = \count($intervals['numeric']); $i < $count; $i++) {
-                $interval = $intervals['numeric'][$i];
+            for ($i = 0; $i < $count; $i++) {
+                $interval = $numeric[$i];
                 // if current interval ends with < N and next interval begins with > N we can swap this out for != N
                 // but this needs to happen as a conjunctive expression together with the start of the current interval
                 // and end of next interval, so [>=M, <N] || [>N, <P] => [>=M, !=N, <P] but M/P can be skipped if
                 // they are zero/+inf
-                if ($interval->getEnd()->getOperator() === '<' && $i + 1 < $count) {
-                    $nextInterval = $intervals['numeric'][$i + 1];
+                if (!$skipNotEqual && $interval->getEnd()->getOperator() === '<' && $i + 1 < $count) {
+                    $nextInterval = $numeric[$i + 1];
                     if ($interval->getEnd()->getVersion() === $nextInterval->getStart()->getVersion() && $nextInterval->getStart()->getOperator() === '>') {
                         // only add a start if we didn't already do so, can be skipped if we're looking at second
                         // interval in [>=M, <N] || [>N, <P] || [>P, <Q] where unEqualConstraints currently contains
@@ -383,6 +397,10 @@ class Intervals
         }
         if ($op[0] === '<') {
             // < & <=
+            // filter out the invalid interval >= 0.0.0.0-dev - < 0.0.0.0-dev
+            if ($op === '<' && $constraint->getVersion() === '0.0.0.0-dev') {
+                return array('numeric' => array(), 'branches' => Interval::noDev());
+            }
             return array('numeric' => array(new Interval(Interval::fromZero(), $constraint)), 'branches' => Interval::noDev());
         }
         if ($op === '!=') {

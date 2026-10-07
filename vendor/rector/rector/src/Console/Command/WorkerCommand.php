@@ -3,11 +3,11 @@
 declare (strict_types=1);
 namespace Rector\Console\Command;
 
-use RectorPrefix202609\Clue\React\NDJson\Decoder;
-use RectorPrefix202609\Clue\React\NDJson\Encoder;
-use RectorPrefix202609\React\EventLoop\StreamSelectLoop;
-use RectorPrefix202609\React\Socket\ConnectionInterface;
-use RectorPrefix202609\React\Socket\TcpConnector;
+use RectorPrefix202610\Clue\React\NDJson\Decoder;
+use RectorPrefix202610\Clue\React\NDJson\Encoder;
+use RectorPrefix202610\React\EventLoop\StreamSelectLoop;
+use RectorPrefix202610\React\Socket\ConnectionInterface;
+use RectorPrefix202610\React\Socket\TcpConnector;
 use Rector\Application\ApplicationFileProcessor;
 use Rector\Autoloading\AdditionalAutoloader;
 use Rector\Configuration\ConfigurationFactory;
@@ -17,16 +17,17 @@ use Rector\Console\ProcessConfigureDecorator;
 use Rector\Parallel\Enum\Action;
 use Rector\Parallel\Enum\ReactCommand;
 use Rector\Parallel\Enum\ReactEvent;
+use Rector\Parallel\Enum\StreamFormat;
 use Rector\Parallel\ValueObject\Bridge;
 use Rector\StaticReflection\DynamicSourceLocatorDecorator;
 use Rector\Util\MemoryLimiter;
 use Rector\ValueObject\Configuration;
 use Rector\ValueObject\Error\SystemError;
-use RectorPrefix202609\Symfony\Component\Console\Command\Command;
-use RectorPrefix202609\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202609\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202610\Symfony\Component\Console\Command\Command;
+use RectorPrefix202610\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202610\Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
-use RectorPrefix202609\Webmozart\Assert\Assert;
+use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * Inspired at: https://github.com/phpstan/phpstan-src/commit/9124c66dcc55a222e21b1717ba5f60771f7dda92
  * https://github.com/phpstan/phpstan-src/blob/c471c7b050e0929daf432288770de673b394a983/src/Command/WorkerCommand.php
@@ -91,7 +92,7 @@ final class WorkerCommand extends Command
         $tcpConnector = new TcpConnector($streamSelectLoop);
         $promise = $tcpConnector->connect('127.0.0.1:' . $configuration->getParallelPort());
         $promise->then(function (ConnectionInterface $connection) use ($parallelIdentifier, $configuration, $input, $output): void {
-            $inDecoder = new Decoder($connection, \true, 512, \JSON_INVALID_UTF8_IGNORE);
+            $inDecoder = new Decoder($connection, \true, StreamFormat::DEPTH, \JSON_INVALID_UTF8_IGNORE, StreamFormat::MAX_LENGTH);
             $outEncoder = new Encoder($connection, \JSON_INVALID_UTF8_IGNORE);
             $outEncoder->write([ReactCommand::ACTION => Action::HELLO, ReactCommand::IDENTIFIER => $parallelIdentifier]);
             $this->runWorker($outEncoder, $inDecoder, $configuration, $input, $output);

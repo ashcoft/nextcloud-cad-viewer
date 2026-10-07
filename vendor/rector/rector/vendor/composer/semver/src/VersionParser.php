@@ -8,12 +8,12 @@
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  */
-namespace RectorPrefix202609\Composer\Semver;
+namespace RectorPrefix202610\Composer\Semver;
 
-use RectorPrefix202609\Composer\Semver\Constraint\ConstraintInterface;
-use RectorPrefix202609\Composer\Semver\Constraint\MatchAllConstraint;
-use RectorPrefix202609\Composer\Semver\Constraint\MultiConstraint;
-use RectorPrefix202609\Composer\Semver\Constraint\Constraint;
+use RectorPrefix202610\Composer\Semver\Constraint\ConstraintInterface;
+use RectorPrefix202610\Composer\Semver\Constraint\MatchAllConstraint;
+use RectorPrefix202610\Composer\Semver\Constraint\MultiConstraint;
+use RectorPrefix202610\Composer\Semver\Constraint\Constraint;
 /**
  * Version parser.
  *
@@ -81,6 +81,20 @@ class VersionParser
             throw new \InvalidArgumentException('Invalid stability string "' . $stability . '", expected one of stable, RC, beta, alpha or dev');
         }
         return $stability === 'rc' ? 'RC' : $stability;
+    }
+    /**
+     * @param string $version
+     *
+     * @return bool
+     */
+    public function isValid($version)
+    {
+        try {
+            $this->normalize($version);
+        } catch (\UnexpectedValueException $e) {
+            return \false;
+        }
+        return \true;
     }
     /**
      * Normalizes a version string to be able to perform comparisons on it.
@@ -415,7 +429,7 @@ class VersionParser
                 if ($op !== '==' && $op !== '=' && !empty($stabilityModifier) && self::parseStability($version) === 'stable') {
                     $version .= '-' . $stabilityModifier;
                 } elseif ('<' === $op || '>=' === $op) {
-                    if (!preg_match('/-' . self::$modifierRegex . '$/', strtolower($matches[2]))) {
+                    if (!preg_match('/-' . self::$modifierRegex . '$/i', $matches[2])) {
                         if (strpos($matches[2], 'dev-') !== 0) {
                             $version .= '-dev';
                         }
