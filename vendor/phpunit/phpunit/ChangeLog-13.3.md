@@ -2,6 +2,14 @@
 
 All notable changes of the PHPUnit 13.3 release series are documented in this file using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## [13.3.6] - 2026-09-29
+
+### Fixed
+
+* The first attempt of a test that is retried is reported as attempt 1 of 1 in events, instead of attempt 1 of the configured maximum number of attempts
+* The class name argument of `#[RequiresMethod]` is declared as `class-string`, so static analysis reports an error when it refers to a class that does not exist
+* A `#[RequiresMethod]` attribute that refers to a class which cannot be loaded, for instance because its parent class does not exist, aborts the test run instead of skipping the test
+
 ## [13.3.5] - 2026-09-25
 
 ### Changed
@@ -103,6 +111,7 @@ All notable changes of the PHPUnit 13.3 release series are documented in this fi
 * The test runner no longer aborts with an uncaught `PHPUnit\Runner\Phpt\InvalidPhptFileException` when a PHPT test file has an empty `--FILE--` or `--FILEEOF--` section or a `--FILE_EXTERNAL--` section that references an empty file; such a file is now rejected while it is parsed and reported as an errored test
 * `PHPUnit\Runner\Phpt\InvalidPhptFileException` now has a message that explains why the PHPT test file was rejected
 
+[13.3.6]: https://github.com/sebastianbergmann/phpunit/compare/13.3.5...13.3.6
 [13.3.5]: https://github.com/sebastianbergmann/phpunit/compare/13.3.4...13.3.5
 [13.3.4]: https://github.com/sebastianbergmann/phpunit/compare/13.3.3...13.3.4
 [13.3.3]: https://github.com/sebastianbergmann/phpunit/compare/13.3.2...13.3.3

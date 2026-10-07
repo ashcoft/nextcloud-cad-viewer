@@ -9,7 +9,6 @@
  */
 namespace SebastianBergmann\CodeCoverage\Report\Html;
 
-use const JSON_THROW_ON_ERROR;
 use const PHP_INT_MAX;
 use function array_key_exists;
 use function array_keys;
@@ -22,7 +21,6 @@ use function count;
 use function explode;
 use function htmlspecialchars;
 use function implode;
-use function json_encode;
 use function min;
 use function range;
 use function sprintf;
@@ -36,6 +34,7 @@ use SebastianBergmann\CodeCoverage\Data\ProcessedPathCoverageData;
 use SebastianBergmann\CodeCoverage\Data\ProcessedTraitType;
 use SebastianBergmann\CodeCoverage\FileCouldNotBeWrittenException;
 use SebastianBergmann\CodeCoverage\Node\File as FileNode;
+use SebastianBergmann\CodeCoverage\Util\Json;
 use SebastianBergmann\CodeCoverage\Util\Percentage;
 use SebastianBergmann\Template\Exception;
 use SebastianBergmann\Template\Template;
@@ -45,6 +44,7 @@ use SebastianBergmann\Template\Template;
  *
  * @no-named-arguments Parameter names are not covered by the backward compatibility promise for phpunit/php-code-coverage
  *
+ * @phpstan-import-type TestIndexType from \SebastianBergmann\CodeCoverage\Data\ProcessedCodeCoverageData
  * @phpstan-import-type TestDataType from \SebastianBergmann\CodeCoverage\Node\Builder
  * @phpstan-import-type CoverageItemData from \SebastianBergmann\CodeCoverage\Report\Html\Renderer
  */
@@ -506,7 +506,7 @@ final class File extends Renderer
                     }
 
                     $lineCss        = 'covered-by-large-tests';
-                    $popoverContent = '<ul>';
+                    $popoverContent = '&lt;ul&gt;';
 
                     foreach (array_keys($coverageData[$i]) as $test) {
                         if (!isset($testData[$test])) {
@@ -524,7 +524,7 @@ final class File extends Renderer
                         $popoverContent .= $this->createPopoverContentForTest($test, $testData[$test]);
                     }
 
-                    $popoverContent .= '</ul>';
+                    $popoverContent .= '&lt;/ul&gt;';
                     $trClass = $lineCss . ' popin';
                 }
             }
@@ -661,7 +661,7 @@ final class File extends Renderer
                     $coverageCount = $markers;
                 }
 
-                $popoverContent = '<ul>';
+                $popoverContent = '&lt;ul&gt;';
 
                 if (count($currentLineData['tests']) === 1) {
                     $popoverTitle = '1 test covers line ' . $i;
@@ -680,7 +680,7 @@ final class File extends Renderer
                     $popoverContent .= $this->createPopoverContentForTest($test, $testData[$test]);
                 }
 
-                $popoverContent .= '</ul>';
+                $popoverContent .= '&lt;/ul&gt;';
                 $trClass = $lineCss . ' popin';
 
                 $popover = $this->popoverAttributes($popoverTitle, $popoverContent);
@@ -703,36 +703,60 @@ final class File extends Renderer
         $testData             = $node->testData();
         $codeLines            = $this->highlightedSourceFor($node);
 
-        $lineData = [];
+        $numberOfLines = count($codeLines);
 
-        foreach (array_keys($codeLines) as $line) {
-            $lineData[$line + 1] = [
-                'includedInPaths'    => [],
-                'includedInHitPaths' => [],
-                'tests'              => [],
-            ];
-        }
+        /** @var array<int, int> $pathsPerLine */
+        $pathsPerLine = [];
+
+        /** @var array<int, int> $hitPathsPerLine */
+        $hitPathsPerLine = [];
+
+        /** @var array<int, array<TestIndexType, true>> $testsPerLine */
+        $testsPerLine = [];
 
         /** @var ProcessedFunctionCoverageData $method */
         foreach ($functionCoverageData as $method) {
+            /** @var array<int, list<int>> $linesOfBranch */
+            $linesOfBranch = [];
+
+            /** @var ProcessedBranchCoverageData $branch */
+            foreach ($method->branches as $branchId => $branch) {
+                $linesOfBranch[$branchId] = [];
+
+                foreach (range($branch->line_start, $branch->line_end) as $line) {
+                    if ($line >= 1 && $line <= $numberOfLines) {
+                        $linesOfBranch[$branchId][] = $line;
+                    }
+                }
+            }
+
             /** @var ProcessedPathCoverageData $path */
-            foreach ($method->paths as $pathId => $path) {
+            foreach ($method->paths as $path) {
+                /** @var array<int, true> $linesOfPath */
+                $linesOfPath = [];
+
                 foreach ($path->path as $branchTaken) {
-                    if (!isset($method->branches[$branchTaken])) {
+                    if (!isset($linesOfBranch[$branchTaken])) {
                         // @codeCoverageIgnoreStart
                         continue;
                         // @codeCoverageIgnoreEnd
                     }
 
-                    foreach (range($method->branches[$branchTaken]->line_start, $method->branches[$branchTaken]->line_end) as $line) {
-                        if (!isset($lineData[$line])) {
-                            continue;
-                        }
-                        $lineData[$line]['includedInPaths'][] = $pathId;
+                    foreach ($linesOfBranch[$branchTaken] as $line) {
+                        $linesOfPath[$line] = true;
+                    }
+                }
 
-                        if ($path->hit !== []) {
-                            $lineData[$line]['includedInHitPaths'][] = $pathId;
-                            $lineData[$line]['tests']                = array_unique(array_merge($lineData[$line]['tests'], array_keys($path->hit)));
+                $hit = $path->hit !== [];
+
+                foreach (array_keys($linesOfPath) as $line) {
+                    $pathsPerLine[$line] = ($pathsPerLine[$line] ?? 0) + 1;
+
+                    if ($hit) {
+                        $hitPathsPerLine[$line] = ($hitPathsPerLine[$line] ?? 0) + 1;
+
+                        foreach (array_keys($path->hit) as $test) {
+                            $testsPerLine[$line][$test] = true;
                         }
                     }
                 }
@@ -747,14 +771,12 @@ final class File extends Renderer
             $trClass = '';
             $popover = '';
 
-            $currentLineData = $lineData[$i] ?? [
-                'includedInPaths'    => [],
-                'includedInHitPaths' => [],
-                'tests'              => [],
+            $currentLineData = [
+                'tests' => array_keys($testsPerLine[$i] ?? []),
             ];
 
-            $includedInPathsCount    = count(array_unique($currentLineData['includedInPaths']));
-            $includedInHitPathsCount = count(array_unique($currentLineData['includedInHitPaths']));
+            $includedInPathsCount    = $pathsPerLine[$i] ?? 0;
+            $includedInHitPathsCount = $hitPathsPerLine[$i] ?? 0;
 
             if ($includedInPathsCount > 0) {
                 $lineCss = 'success';
@@ -765,7 +787,7 @@ final class File extends Renderer
                     $lineCss = 'warning';
                 }
 
-                $popoverContent = '<ul>';
+                $popoverContent = '&lt;ul&gt;';
 
                 if (count($currentLineData['tests']) === 1) {
                     $popoverTitle = '1 test covers line ' . $i;
@@ -784,7 +806,7 @@ final class File extends Renderer
                     $popoverContent .= $this->createPopoverContentForTest($test, $testData[$test]);
                 }
 
-                $popoverContent .= '</ul>';
+                $popoverContent .= '&lt;/ul&gt;';
                 $trClass = $lineCss . ' popin';
 
                 $popover = $this->popoverAttributes($popoverTitle, $popoverContent);
@@ -853,7 +875,7 @@ final class File extends Renderer
                     $statusClass = 'success';
                     $statusLabel = 'Covered';
 
-                    $popoverContent = '<ul>';
+                    $popoverContent = '&lt;ul&gt;';
 
                     foreach (array_keys($branch->hit) as $test) {
                         if (!isset($testData[$test])) {
@@ -865,7 +887,7 @@ final class File extends Renderer
                         $popoverContent .= $this->createPopoverContentForTest($test, $testData[$test]);
                     }
 
-                    $popoverContent .= '</ul>';
+                    $popoverContent .= '&lt;/ul&gt;';
 
                     $label = $numTests === 1 ? '1 test' : $numTests . ' tests';
 
@@ -971,7 +993,7 @@ final class File extends Renderer
                     $statusClass = 'success';
                     $statusLabel = 'Covered';
 
-                    $popoverContent = '<ul>';
+                    $popoverContent = '&lt;ul&gt;';
 
                     foreach (array_keys($path->hit) as $test) {
                         if (!isset($testData[$test])) {
@@ -983,7 +1005,7 @@ final class File extends Renderer
                         $popoverContent .= $this->createPopoverContentForTest($test, $testData[$test]);
                     }
 
-                    $popoverContent .= '</ul>';
+                    $popoverContent .= '&lt;/ul&gt;';
 
                     $label = $numTests === 1 ? '1 test' : $numTests . ' tests';
 
@@ -1038,11 +1060,11 @@ final class File extends Renderer
                 $pathIdx++;
             }
 
-            $svg = $this->controlFlowGraph()->renderSvg($methodData, $renderedPaths);
+            $svg = $this->controlFlowGraph()->renderSvg($methodName, $methodData, $renderedPaths);
 
             $paths .= sprintf(
                 '   <div class="cfg-graph" data-paths="%s">%s</div>' . "\n",
-                htmlspecialchars(json_encode($pathsJson, JSON_THROW_ON_ERROR), self::HTML_SPECIAL_CHARS_FLAGS),
+                htmlspecialchars(Json::encode($pathsJson), self::HTML_SPECIAL_CHARS_FLAGS),
                 $svg,
             );
 
