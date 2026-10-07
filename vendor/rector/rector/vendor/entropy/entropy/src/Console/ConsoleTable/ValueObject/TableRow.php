@@ -1,25 +1,13 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609\Entropy\Console\ConsoleTable\ValueObject;
+namespace RectorPrefix202610\Entropy\Console\ConsoleTable\ValueObject;
 
 final class TableRow
 {
-    /**
-     * @readonly
-     */
     private string $name;
-    /**
-     * @readonly
-     */
     private string $count;
-    /**
-     * @readonly
-     */
     private ?string $percent;
-    /**
-     * @readonly
-     */
     private bool $isChild;
     public function __construct(string $name, string $count, ?string $percent, bool $isChild)
     {

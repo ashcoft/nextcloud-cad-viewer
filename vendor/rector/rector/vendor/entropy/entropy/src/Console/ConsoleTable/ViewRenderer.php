@@ -1,27 +1,24 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609\Entropy\Console\ConsoleTable;
+namespace RectorPrefix202610\Entropy\Console\ConsoleTable;
 
-use RectorPrefix202609\Entropy\Attributes\RelatedTest;
-use RectorPrefix202609\Entropy\Console\ConsoleTable\ValueObject\TableRow;
-use RectorPrefix202609\Entropy\Console\ConsoleTable\ValueObject\TableView;
-use RectorPrefix202609\Entropy\Console\Output\OutputPrinter;
-use RectorPrefix202609\Entropy\Tests\Console\ConsoleTable\ViewRendererTest;
+use RectorPrefix202610\Entropy\Attribute\RelatedTest;
+use RectorPrefix202610\Entropy\Console\ConsoleTable\ValueObject\TableRow;
+use RectorPrefix202610\Entropy\Console\ConsoleTable\ValueObject\TableView;
+use RectorPrefix202610\Entropy\Console\Output\OutputPrinter;
+use RectorPrefix202610\Entropy\Tests\Console\ConsoleTable\ViewRendererTest;
+/**
+ * @see \Entropy\Tests\Console\ConsoleTable\ViewRendererTest
+ */
 final class ViewRenderer
 {
-    /**
-     * @readonly
-     */
-    private OutputPrinter $outputPrinter;
-    /**
-     * @readonly
-     */
-    private ConsoleTable $consoleTable;
     /**
      * @var int Tables span at least this many characters wide
      */
     private const MIN_WIDTH = 60;
+    private OutputPrinter $outputPrinter;
+    private ConsoleTable $consoleTable;
     public function __construct(OutputPrinter $outputPrinter, ConsoleTable $consoleTable)
     {
         $this->outputPrinter = $outputPrinter;

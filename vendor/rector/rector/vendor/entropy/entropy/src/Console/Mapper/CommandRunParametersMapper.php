@@ -1,19 +1,22 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609\Entropy\Console\Mapper;
+namespace RectorPrefix202610\Entropy\Console\Mapper;
 
-use RectorPrefix202609\Entropy\Attributes\RelatedTest;
-use RectorPrefix202609\Entropy\Console\Contract\CommandInterface;
-use RectorPrefix202609\Entropy\Console\Exception\InvalidCommandException;
-use RectorPrefix202609\Entropy\Console\ValueObject\Argument;
-use RectorPrefix202609\Entropy\Console\ValueObject\ArgumentsAndOptions;
-use RectorPrefix202609\Entropy\Console\ValueObject\Option;
-use RectorPrefix202609\Entropy\Reflection\ParameterDescriptionResolver;
-use RectorPrefix202609\Entropy\Reflection\ParameterOptionMarkerResolver;
-use RectorPrefix202609\Entropy\Tests\Console\Mapper\CommandRunParametersMapperTest;
+use RectorPrefix202610\Entropy\Attribute\RelatedTest;
+use RectorPrefix202610\Entropy\Console\Contract\CommandInterface;
+use RectorPrefix202610\Entropy\Console\Exception\InvalidCommandException;
+use RectorPrefix202610\Entropy\Console\ValueObject\Argument;
+use RectorPrefix202610\Entropy\Console\ValueObject\ArgumentsAndOptions;
+use RectorPrefix202610\Entropy\Console\ValueObject\Option;
+use RectorPrefix202610\Entropy\Reflection\ParameterDescriptionResolver;
+use RectorPrefix202610\Entropy\Reflection\ParameterOptionMarkerResolver;
+use RectorPrefix202610\Entropy\Tests\Console\Mapper\CommandRunParametersMapperTest;
 use ReflectionMethod;
 use ReflectionNamedType;
+/**
+ * @see \Entropy\Tests\Console\Mapper\CommandRunParametersMapperTest
+ */
 final class CommandRunParametersMapper
 {
     public function map(CommandInterface $command): ArgumentsAndOptions
@@ -39,9 +42,9 @@ final class CommandRunParametersMapper
             $defaultValue = null;
             if ($reflectionParameter->isDefaultValueAvailable()) {
                 $defaultValue = $reflectionParameter->getDefaultValue();
-                // not relevant default value
-                if ($defaultValue === []) {
-                    $defaultValue = null;
+                // array default is not a scalar option value, join it or drop when empty
+                if (is_array($defaultValue)) {
+                    $defaultValue = $defaultValue === [] ? null : implode(', ', $defaultValue);
                 }
             }
             // first param can be an arg by convention, only "string" and "array" are allowed types,

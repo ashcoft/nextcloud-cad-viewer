@@ -1,23 +1,14 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609\Entropy\Console\Output;
+namespace RectorPrefix202610\Entropy\Console\Output;
 
-use RectorPrefix202609\Entropy\Console\CommandRegistry;
+use RectorPrefix202610\Entropy\Console\CommandRegistry;
 final class HelpPrinter
 {
-    /**
-     * @readonly
-     */
-    private CommandRegistry $commandRegistry;
-    /**
-     * @readonly
-     */
-    private OutputPrinter $outputPrinter;
-    /**
-     * @var int
-     */
     private const MIN_WIDTH = 10;
+    private CommandRegistry $commandRegistry;
+    private OutputPrinter $outputPrinter;
     public function __construct(CommandRegistry $commandRegistry, OutputPrinter $outputPrinter)
     {
         $this->commandRegistry = $commandRegistry;

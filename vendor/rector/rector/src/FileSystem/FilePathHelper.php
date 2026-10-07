@@ -3,10 +3,10 @@
 declare (strict_types=1);
 namespace Rector\FileSystem;
 
-use RectorPrefix202609\Nette\Utils\Strings;
+use RectorPrefix202610\Nette\Utils\Strings;
 use Rector\Skipper\FileSystem\PathNormalizer;
-use RectorPrefix202609\Symfony\Component\Filesystem\Filesystem;
-use RectorPrefix202609\Webmozart\Assert\Assert;
+use RectorPrefix202610\Symfony\Component\Filesystem\Filesystem;
+use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\FileSystem\FilePathHelperTest
  */
@@ -33,6 +33,15 @@ final class FilePathHelper
     public function __construct(Filesystem $filesystem)
     {
         $this->filesystem = $filesystem;
+    }
+    // real path when it resolves, the original path otherwise (vfs, phar, not-yet-created)
+    public function resolveRealPath(string $filePath): string
+    {
+        $realPath = realpath($filePath);
+        if ($realPath === \false) {
+            return $filePath;
+        }
+        return $realPath;
     }
     public function relativePath(string $fileRealPath): string
     {

@@ -1,22 +1,13 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609\Entropy\Console\ValueObject;
+namespace RectorPrefix202610\Entropy\Console\ValueObject;
 
 final class Argument
 {
-    /**
-     * @readonly
-     */
     private string $name;
-    /**
-     * @readonly
-     */
-    private ?string $description = null;
-    /**
-     * @readonly
-     */
-    private bool $acceptsMultipleValues = \false;
+    private ?string $description;
+    private bool $acceptsMultipleValues;
     public function __construct(string $name, ?string $description = null, bool $acceptsMultipleValues = \false)
     {
         $this->name = $name;

@@ -1,13 +1,15 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609\Entropy\Console\Terminal;
+namespace RectorPrefix202610\Entropy\Console\Terminal;
 
+/**
+ * @see \Entropy\Tests\Console\Terminal\TerminalTest
+ */
 final class Terminal
 {
     /**
      * @see SymfonyStyle::MAX_LINE_LENGTH
-     * @var int
      */
     private const MAX_LINE_LENGTH = 120;
     /**
@@ -19,9 +21,14 @@ final class Terminal
         if ($columns !== \false && is_numeric($columns)) {
             return min((int) $columns, self::MAX_LINE_LENGTH);
         }
-        $sttySize = @exec('stty size 2>/dev/null');
-        if (is_string($sttySize) && preg_match('#\d+ (?<columns>\d+)#', $sttySize, $matches) === 1) {
-            return min((int) $matches['columns'], self::MAX_LINE_LENGTH);
+        if (\PHP_OS_FAMILY === 'Windows') {
+            return self::MAX_LINE_LENGTH;
+        }
+        if (function_exists('exec')) {
+            $sttySize = exec('stty size 2>/dev/null');
+            if (is_string($sttySize) && preg_match('#\d+ (?<columns>\d+)#', $sttySize, $matches) === 1) {
+                return min((int) $matches['columns'], self::MAX_LINE_LENGTH);
+            }
         }
         return self::MAX_LINE_LENGTH;
     }

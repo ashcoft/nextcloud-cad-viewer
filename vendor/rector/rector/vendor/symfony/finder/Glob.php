@@ -8,7 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202609\Symfony\Component\Finder;
+namespace RectorPrefix202610\Symfony\Component\Finder;
 
 /**
  * Glob matches globbing patterns against text.
@@ -70,7 +70,10 @@ class Glob
             if ($delimiter === $car || '.' === $car || '(' === $car || ')' === $car || '|' === $car || '+' === $car || '^' === $car || '$' === $car) {
                 $regex .= "\\{$car}";
             } elseif ('*' === $car) {
-                $regex .= $escaping ? '\*' : ($strictWildcardSlash ? '[^/]*' : '.*');
+                if ($escaping || $strictWildcardSlash || substr_compare($regex, '.*', -strlen('.*')) !== 0) {
+                    // ".*.*" matches the same as ".*" but backtracks quadratically
+                    $regex .= $escaping ? '\*' : ($strictWildcardSlash ? '[^/]*' : '.*');
+                }
             } elseif ('?' === $car) {
                 $regex .= $escaping ? '\?' : ($strictWildcardSlash ? '[^/]' : '.');
             } elseif ('{' === $car) {

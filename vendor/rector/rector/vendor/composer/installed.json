@@ -28,7 +28,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Clue\\React\\NDJson\\": "src\/"
+                    "RectorPrefix202610\\Clue\\React\\NDJson\\": "src\/"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -109,7 +109,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Composer\\Pcre\\": "src"
+                    "RectorPrefix202610\\Composer\\Pcre\\": "src"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -148,17 +148,17 @@
         },
         {
             "name": "composer\/semver",
-            "version": "3.4.4",
-            "version_normalized": "3.4.4.0",
+            "version": "3.5.1",
+            "version_normalized": "3.5.1.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/composer\/semver.git",
-                "reference": "198166618906cb2de69b95d7d47e5fa8aa1b2b95"
+                "reference": "528948210cc46f967a4b98e83b19e76f2b504993"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/composer\/semver\/zipball\/198166618906cb2de69b95d7d47e5fa8aa1b2b95",
-                "reference": "198166618906cb2de69b95d7d47e5fa8aa1b2b95",
+                "url": "https:\/\/api.github.com\/repos\/composer\/semver\/zipball\/528948210cc46f967a4b98e83b19e76f2b504993",
+                "reference": "528948210cc46f967a4b98e83b19e76f2b504993",
                 "shasum": ""
             },
             "require": {
@@ -168,7 +168,7 @@
                 "phpstan\/phpstan": "^1.11",
                 "symfony\/phpunit-bridge": "^3 || ^7"
             },
-            "time": "2025-08-20T19:15:30+00:00",
+            "time": "2026-10-05T13:12:12+00:00",
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -178,7 +178,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Composer\\Semver\\": "src"
+                    "RectorPrefix202610\\Composer\\Semver\\": "src"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -202,7 +202,7 @@
                     "homepage": "http:\/\/robbast.nl"
                 }
             ],
-            "description": "Semver library that offers utilities, version constraint parsing and validation.",
+            "description": "Version comparison library that offers utilities, version constraint parsing and validation.",
             "keywords": [
                 "semantic",
                 "semver",
@@ -212,7 +212,7 @@
             "support": {
                 "irc": "ircs:\/\/irc.libera.chat:6697\/composer",
                 "issues": "https:\/\/github.com\/composer\/semver\/issues",
-                "source": "https:\/\/github.com\/composer\/semver\/tree\/3.4.4"
+                "source": "https:\/\/github.com\/composer\/semver\/tree\/3.5.1"
             },
             "funding": [
                 {
@@ -256,7 +256,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Composer\\XdebugHandler\\": "src"
+                    "RectorPrefix202610\\Composer\\XdebugHandler\\": "src"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -325,7 +325,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Doctrine\\Inflector\\": "src"
+                    "RectorPrefix202610\\Doctrine\\Inflector\\": "src"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -390,28 +390,29 @@
         },
         {
             "name": "entropy\/entropy",
-            "version": "0.4.13",
-            "version_normalized": "0.4.13.0",
+            "version": "0.4.27",
+            "version_normalized": "0.4.27.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/TomasVotruba\/entropy.git",
-                "reference": "b2c703a93350f49ce67d150bb8560e886be01027"
+                "reference": "57f762f4dc53b27923967acf77b97afdc34def09"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/TomasVotruba\/entropy\/zipball\/b2c703a93350f49ce67d150bb8560e886be01027",
-                "reference": "b2c703a93350f49ce67d150bb8560e886be01027",
+                "url": "https:\/\/api.github.com\/repos\/TomasVotruba\/entropy\/zipball\/57f762f4dc53b27923967acf77b97afdc34def09",
+                "reference": "57f762f4dc53b27923967acf77b97afdc34def09",
                 "shasum": ""
             },
             "require": {
                 "ext-tokenizer": "*",
-                "php": "^8.4",
-                "webmozart\/assert": "^2.4"
+                "php": ">=7.4",
+                "symfony\/polyfill-php80": "^1.31"
             },
             "require-dev": {
+                "php-parallel-lint\/php-parallel-lint": "^1.4",
                 "phpstan\/extension-installer": "^1.4",
                 "phpstan\/phpstan": "^2.1",
-                "phpunit\/phpunit": "^12.5",
+                "phpunit\/phpunit": "^9.6",
                 "rector\/jack": "^1.0",
                 "rector\/rector": "^2.4",
                 "rector\/swiss-knife": "^2.4",
@@ -422,12 +423,12 @@
                 "tomasvotruba\/unused-public": "^2.2",
                 "tracy\/tracy": "^2.12"
             },
-            "time": "2026-09-03T19:53:04+00:00",
+            "time": "2026-10-05T22:23:15+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Entropy\\": "src"
+                    "RectorPrefix202610\\Entropy\\": "src"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -437,7 +438,7 @@
             "description": "Entropy framework",
             "support": {
                 "issues": "https:\/\/github.com\/TomasVotruba\/entropy\/issues",
-                "source": "https:\/\/github.com\/TomasVotruba\/entropy\/tree\/0.4.13"
+                "source": "https:\/\/github.com\/TomasVotruba\/entropy\/tree\/0.4.27"
             },
             "install-path": "..\/entropy\/entropy"
         },
@@ -467,7 +468,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Evenement\\": "src\/"
+                    "RectorPrefix202610\\Evenement\\": "src\/"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -493,24 +494,24 @@
         },
         {
             "name": "fidry\/cpu-core-counter",
-            "version": "1.3.0",
-            "version_normalized": "1.3.0.0",
+            "version": "1.4.1",
+            "version_normalized": "1.4.1.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/theofidry\/cpu-core-counter.git",
-                "reference": "db9508f7b1474469d9d3c53b86f817e344732678"
+                "reference": "d384a7d0d6e67aa497327260ca95023e92dc2032"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/theofidry\/cpu-core-counter\/zipball\/db9508f7b1474469d9d3c53b86f817e344732678",
-                "reference": "db9508f7b1474469d9d3c53b86f817e344732678",
+                "url": "https:\/\/api.github.com\/repos\/theofidry\/cpu-core-counter\/zipball\/d384a7d0d6e67aa497327260ca95023e92dc2032",
+                "reference": "d384a7d0d6e67aa497327260ca95023e92dc2032",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.2 || ^8.0"
             },
             "require-dev": {
-                "fidry\/makefile": "^0.2.0",
+                "fidry\/makefile": "^0.2.0 || ^1.1.2",
                 "fidry\/php-cs-fixer-config": "^1.1.2",
                 "phpstan\/extension-installer": "^1.2.0",
                 "phpstan\/phpstan": "^2.0",
@@ -518,14 +519,15 @@
                 "phpstan\/phpstan-phpunit": "^2.0",
                 "phpstan\/phpstan-strict-rules": "^2.0",
                 "phpunit\/phpunit": "^8.5.31 || ^9.5.26",
+                "symfony\/polyfill-mbstring": "^1.33",
                 "webmozarts\/strict-phpunit": "^7.5"
             },
-            "time": "2025-08-14T07:29:31+00:00",
+            "time": "2026-09-29T22:11:39+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Fidry\\CpuCoreCounter\\": "src\/"
+                    "RectorPrefix202610\\Fidry\\CpuCoreCounter\\": "src\/"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -545,7 +547,7 @@
             ],
             "support": {
                 "issues": "https:\/\/github.com\/theofidry\/cpu-core-counter\/issues",
-                "source": "https:\/\/github.com\/theofidry\/cpu-core-counter\/tree\/1.3.0"
+                "source": "https:\/\/github.com\/theofidry\/cpu-core-counter\/tree\/1.4.1"
             },
             "funding": [
                 {
@@ -603,7 +605,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Nette\\": "src"
+                    "RectorPrefix202610\\Nette\\": "src"
                 },
                 "classmap": [
                     "src\/"
@@ -741,7 +743,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\OndraM\\CiDetector\\": "src\/"
+                    "RectorPrefix202610\\OndraM\\CiDetector\\": "src\/"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -792,17 +794,17 @@
         },
         {
             "name": "phpstan\/phpdoc-parser",
-            "version": "2.3.5",
-            "version_normalized": "2.3.5.0",
+            "version": "2.3.6",
+            "version_normalized": "2.3.6.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/phpstan\/phpdoc-parser.git",
-                "reference": "148cefffaf0233e4c08cc13db8a195a56dd6dfe9"
+                "reference": "1427af4647235b4a73b13940b1f1258d3584f36e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/phpstan\/phpdoc-parser\/zipball\/148cefffaf0233e4c08cc13db8a195a56dd6dfe9",
-                "reference": "148cefffaf0233e4c08cc13db8a195a56dd6dfe9",
+                "url": "https:\/\/api.github.com\/repos\/phpstan\/phpdoc-parser\/zipball\/1427af4647235b4a73b13940b1f1258d3584f36e",
+                "reference": "1427af4647235b4a73b13940b1f1258d3584f36e",
                 "shasum": ""
             },
             "require": {
@@ -819,7 +821,7 @@
                 "phpunit\/phpunit": "^9.6",
                 "symfony\/process": "^5.2"
             },
-            "time": "2026-08-31T16:05:28+00:00",
+            "time": "2026-09-27T20:07:45+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -836,7 +838,7 @@
             "description": "PHPDoc parser with support for nullable, intersection and generic types",
             "support": {
                 "issues": "https:\/\/github.com\/phpstan\/phpdoc-parser\/issues",
-                "source": "https:\/\/github.com\/phpstan\/phpdoc-parser\/tree\/2.3.5"
+                "source": "https:\/\/github.com\/phpstan\/phpdoc-parser\/tree\/2.3.6"
             },
             "install-path": "..\/phpstan\/phpdoc-parser"
         },
@@ -868,7 +870,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Psr\\Container\\": "src\/"
+                    "RectorPrefix202610\\Psr\\Container\\": "src\/"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -924,7 +926,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Psr\\Log\\": "src"
+                    "RectorPrefix202610\\Psr\\Log\\": "src"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -976,7 +978,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\React\\Cache\\": "src\/"
+                    "RectorPrefix202610\\React\\Cache\\": "src\/"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -1055,7 +1057,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\React\\ChildProcess\\": "src\/"
+                    "RectorPrefix202610\\React\\ChildProcess\\": "src\/"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -1133,7 +1135,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\React\\Dns\\": "src\/"
+                    "RectorPrefix202610\\React\\Dns\\": "src\/"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -1210,7 +1212,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\React\\EventLoop\\": "src\/"
+                    "RectorPrefix202610\\React\\EventLoop\\": "src\/"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -1286,7 +1288,7 @@
                     "src\/functions_include.php"
                 ],
                 "psr-4": {
-                    "RectorPrefix202609\\React\\Promise\\": "src\/"
+                    "RectorPrefix202610\\React\\Promise\\": "src\/"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -1366,7 +1368,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\React\\Socket\\": "src\/"
+                    "RectorPrefix202610\\React\\Socket\\": "src\/"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -1444,7 +1446,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\React\\Stream\\": "src\/"
+                    "RectorPrefix202610\\React\\Stream\\": "src\/"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -1556,12 +1558,12 @@
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/rectorphp\/rector-doctrine.git",
-                "reference": "bacd0fd462cd1e346d33548bdef9a2d0cccc3aa6"
+                "reference": "c48eeac1143aaf4591400704a4f37041d89d13a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-doctrine\/zipball\/bacd0fd462cd1e346d33548bdef9a2d0cccc3aa6",
-                "reference": "bacd0fd462cd1e346d33548bdef9a2d0cccc3aa6",
+                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-doctrine\/zipball\/c48eeac1143aaf4591400704a4f37041d89d13a1",
+                "reference": "c48eeac1143aaf4591400704a4f37041d89d13a1",
                 "shasum": ""
             },
             "require": {
@@ -1569,7 +1571,7 @@
             },
             "require-dev": {
                 "doctrine\/doctrine-bundle": "^3.0",
-                "doctrine\/orm": "^3.0",
+                "doctrine\/orm": "^3.7",
                 "phpstan\/extension-installer": "^1.4",
                 "phpstan\/phpstan": "^2.2",
                 "phpstan\/phpstan-deprecation-rules": "^2.0",
@@ -1577,14 +1579,14 @@
                 "phpunit\/phpunit": "^13.3",
                 "rector\/jack": "^1.1",
                 "rector\/rector-src": "dev-main",
-                "rector\/swiss-knife": "^2.4",
+                "rector\/swiss-knife": "^2.6",
                 "symplify\/easy-coding-standard": "^13.2",
                 "symplify\/phpstan-rules": "^14.12",
                 "tomasvotruba\/class-leak": "^2.1.8",
                 "tomasvotruba\/type-coverage": "^2.3",
                 "tracy\/tracy": "^2.12"
             },
-            "time": "2026-09-08T19:21:34+00:00",
+            "time": "2026-10-05T14:06:12+00:00",
             "default-branch": true,
             "type": "rector-extension",
             "installation-source": "dist",
@@ -1613,12 +1615,12 @@
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/rectorphp\/rector-downgrade-php.git",
-                "reference": "f75508770f5817c615fead7157cfa8c7c1816444"
+                "reference": "aecffc1f31883067b33e32a37ca6fec0483df3c0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-downgrade-php\/zipball\/f75508770f5817c615fead7157cfa8c7c1816444",
-                "reference": "f75508770f5817c615fead7157cfa8c7c1816444",
+                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-downgrade-php\/zipball\/aecffc1f31883067b33e32a37ca6fec0483df3c0",
+                "reference": "aecffc1f31883067b33e32a37ca6fec0483df3c0",
                 "shasum": ""
             },
             "require": {
@@ -1642,7 +1644,7 @@
                 "tomasvotruba\/unused-public": "^2.2",
                 "tracy\/tracy": "^2.12"
             },
-            "time": "2026-09-10T18:31:59+00:00",
+            "time": "2026-09-26T18:41:06+00:00",
             "default-branch": true,
             "type": "rector-extension",
             "installation-source": "dist",
@@ -1671,12 +1673,12 @@
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/rectorphp\/rector-phpunit.git",
-                "reference": "c9cbc660a72a7865c01b52be6c5dbca947c43880"
+                "reference": "722063f5ae2c1f7e01663a7a727f1a8f451a834f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-phpunit\/zipball\/c9cbc660a72a7865c01b52be6c5dbca947c43880",
-                "reference": "c9cbc660a72a7865c01b52be6c5dbca947c43880",
+                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-phpunit\/zipball\/722063f5ae2c1f7e01663a7a727f1a8f451a834f",
+                "reference": "722063f5ae2c1f7e01663a7a727f1a8f451a834f",
                 "shasum": ""
             },
             "require": {
@@ -1693,7 +1695,7 @@
                 "phpunit\/phpunit": "^13.2",
                 "rector\/jack": "^1.0",
                 "rector\/rector-src": "dev-main",
-                "rector\/swiss-knife": "^2.4",
+                "rector\/swiss-knife": "^2.6",
                 "symplify\/easy-coding-standard": "^13.2",
                 "symplify\/phpstan-extensions": "^12.0",
                 "symplify\/phpstan-rules": "^14.13.1",
@@ -1702,7 +1704,7 @@
                 "tomasvotruba\/unused-public": "^2.2",
                 "tracy\/tracy": "^2.12"
             },
-            "time": "2026-09-11T18:53:04+00:00",
+            "time": "2026-10-03T07:48:49+00:00",
             "default-branch": true,
             "type": "rector-extension",
             "installation-source": "dist",
@@ -1731,12 +1733,12 @@
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/rectorphp\/rector-symfony.git",
-                "reference": "3b5d6251c7a6561e30170f58d1e5d29e8a16b6e1"
+                "reference": "722e241cb108f8dc3845c8757a2a003495faca6e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-symfony\/zipball\/3b5d6251c7a6561e30170f58d1e5d29e8a16b6e1",
-                "reference": "3b5d6251c7a6561e30170f58d1e5d29e8a16b6e1",
+                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-symfony\/zipball\/722e241cb108f8dc3845c8757a2a003495faca6e",
+                "reference": "722e241cb108f8dc3845c8757a2a003495faca6e",
                 "shasum": ""
             },
             "require": {
@@ -1751,7 +1753,7 @@
                 "phpunit\/phpunit": "^13.2",
                 "rector\/jack": "^1.0",
                 "rector\/rector-src": "dev-main",
-                "rector\/swiss-knife": "^2.4",
+                "rector\/swiss-knife": "^2.6",
                 "symfony\/config": "^8.1",
                 "symfony\/dependency-injection": "^6.4",
                 "symfony\/http-kernel": "^7.4",
@@ -1768,7 +1770,7 @@
                 "tracy\/tracy": "^2.12",
                 "twig\/twig": "^3.21"
             },
-            "time": "2026-09-13T06:41:52+00:00",
+            "time": "2026-09-26T18:40:57+00:00",
             "default-branch": true,
             "type": "rector-extension",
             "installation-source": "dist",
@@ -1874,17 +1876,17 @@
         },
         {
             "name": "symfony\/console",
-            "version": "v6.4.45",
-            "version_normalized": "6.4.45.0",
+            "version": "v6.4.47",
+            "version_normalized": "6.4.47.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/symfony\/console.git",
-                "reference": "3b8473e0d14157f2d22b0a0d7259ad23483d1e6d"
+                "reference": "0f758dfab4608cac6a342b7e7f80cb84c9cc98ca"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/symfony\/console\/zipball\/3b8473e0d14157f2d22b0a0d7259ad23483d1e6d",
-                "reference": "3b8473e0d14157f2d22b0a0d7259ad23483d1e6d",
+                "url": "https:\/\/api.github.com\/repos\/symfony\/console\/zipball\/0f758dfab4608cac6a342b7e7f80cb84c9cc98ca",
+                "reference": "0f758dfab4608cac6a342b7e7f80cb84c9cc98ca",
                 "shasum": ""
             },
             "require": {
@@ -1917,12 +1919,12 @@
                 "symfony\/stopwatch": "^5.4|^6.0|^7.0",
                 "symfony\/var-dumper": "^5.4|^6.0|^7.0"
             },
-            "time": "2026-08-25T13:08:31+00:00",
+            "time": "2026-09-18T10:23:48+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Symfony\\Component\\Console\\": ""
+                    "RectorPrefix202610\\Symfony\\Component\\Console\\": ""
                 },
                 "exclude-from-classmap": [
                     "\/Tests\/"
@@ -1951,7 +1953,7 @@
                 "terminal"
             ],
             "support": {
-                "source": "https:\/\/github.com\/symfony\/console\/tree\/v6.4.45"
+                "source": "https:\/\/github.com\/symfony\/console\/tree\/v6.4.47"
             },
             "funding": [
                 {
@@ -2076,7 +2078,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Symfony\\Component\\Filesystem\\": ""
+                    "RectorPrefix202610\\Symfony\\Component\\Filesystem\\": ""
                 },
                 "exclude-from-classmap": [
                     "\/Tests\/"
@@ -2123,17 +2125,17 @@
         },
         {
             "name": "symfony\/finder",
-            "version": "v8.1.5",
-            "version_normalized": "8.1.5.0",
+            "version": "v8.1.8",
+            "version_normalized": "8.1.8.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/symfony\/finder.git",
-                "reference": "8d7acede2b2ae07605783d1c43e49b5767036474"
+                "reference": "bd4fed193a3132c91c5c93595cbfc78988915822"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/symfony\/finder\/zipball\/8d7acede2b2ae07605783d1c43e49b5767036474",
-                "reference": "8d7acede2b2ae07605783d1c43e49b5767036474",
+                "url": "https:\/\/api.github.com\/repos\/symfony\/finder\/zipball\/bd4fed193a3132c91c5c93595cbfc78988915822",
+                "reference": "bd4fed193a3132c91c5c93595cbfc78988915822",
                 "shasum": ""
             },
             "require": {
@@ -2142,12 +2144,12 @@
             "require-dev": {
                 "symfony\/filesystem": "^7.4|^8.0"
             },
-            "time": "2026-08-21T12:16:08+00:00",
+            "time": "2026-09-26T06:33:49+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Symfony\\Component\\Finder\\": ""
+                    "RectorPrefix202610\\Symfony\\Component\\Finder\\": ""
                 },
                 "exclude-from-classmap": [
                     "\/Tests\/"
@@ -2170,7 +2172,7 @@
             "description": "Finds files and directories via an intuitive fluent interface",
             "homepage": "https:\/\/symfony.com",
             "support": {
-                "source": "https:\/\/github.com\/symfony\/finder\/tree\/v8.1.5"
+                "source": "https:\/\/github.com\/symfony\/finder\/tree\/v8.1.8"
             },
             "funding": [
                 {
@@ -2193,18 +2195,104 @@
             "install-path": "..\/symfony\/finder"
         },
         {
-            "name": "symfony\/polyfill-intl-grapheme",
-            "version": "v1.41.0",
-            "version_normalized": "1.41.0.0",
+            "name": "symfony\/polyfill-ctype",
+            "version": "v1.37.0",
+            "version_normalized": "1.37.0.0",
             "source": {
                 "type": "git",
-                "url": "https:\/\/github.com\/symfony\/polyfill-intl-grapheme.git",
-                "reference": "bb899c1db0aa8127dc3afe8cda4a67eb24915f8d"
+                "url": "https:\/\/github.com\/symfony\/polyfill-ctype.git",
+                "reference": "141046a8f9477948ff284fa65be2095baafb94f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/symfony\/polyfill-intl-grapheme\/zipball\/bb899c1db0aa8127dc3afe8cda4a67eb24915f8d",
-                "reference": "bb899c1db0aa8127dc3afe8cda4a67eb24915f8d",
+                "url": "https:\/\/api.github.com\/repos\/symfony\/polyfill-ctype\/zipball\/141046a8f9477948ff284fa65be2095baafb94f2",
+                "reference": "141046a8f9477948ff284fa65be2095baafb94f2",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "provide": {
+                "ext-ctype": "*"
+            },
+            "suggest": {
+                "ext-ctype": "For best performance"
+            },
+            "time": "2026-04-10T16:19:22+00:00",
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https:\/\/github.com\/symfony\/polyfill",
+                    "name": "symfony\/polyfill"
+                }
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Ctype\\": ""
+                }
+            },
+            "notification-url": "https:\/\/packagist.org\/downloads\/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Gert de Pagter",
+                    "email": "BackEndTea@gmail.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https:\/\/symfony.com\/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for ctype functions",
+            "homepage": "https:\/\/symfony.com",
+            "keywords": [
+                "compatibility",
+                "ctype",
+                "polyfill",
+                "portable"
+            ],
+            "support": {
+                "source": "https:\/\/github.com\/symfony\/polyfill-ctype\/tree\/v1.37.0"
+            },
+            "funding": [
+                {
+                    "url": "https:\/\/symfony.com\/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https:\/\/github.com\/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https:\/\/github.com\/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https:\/\/tidelift.com\/funding\/github\/packagist\/symfony\/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "install-path": "..\/symfony\/polyfill-ctype"
+        },
+        {
+            "name": "symfony\/polyfill-intl-grapheme",
+            "version": "v1.43.0",
+            "version_normalized": "1.43.0.0",
+            "source": {
+                "type": "git",
+                "url": "https:\/\/github.com\/symfony\/polyfill-intl-grapheme.git",
+                "reference": "5cac8f4db97208823aa353f59a01faad2da52c75"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https:\/\/api.github.com\/repos\/symfony\/polyfill-intl-grapheme\/zipball\/5cac8f4db97208823aa353f59a01faad2da52c75",
+                "reference": "5cac8f4db97208823aa353f59a01faad2da52c75",
                 "shasum": ""
             },
             "require": {
@@ -2213,7 +2301,7 @@
             "suggest": {
                 "ext-intl": "For best performance"
             },
-            "time": "2026-07-28T08:25:59+00:00",
+            "time": "2026-09-25T15:46:47+00:00",
             "type": "library",
             "extra": {
                 "thanks": {
@@ -2255,7 +2343,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https:\/\/github.com\/symfony\/polyfill-intl-grapheme\/tree\/v1.41.0"
+                "source": "https:\/\/github.com\/symfony\/polyfill-intl-grapheme\/tree\/v1.43.0"
             },
             "funding": [
                 {
@@ -2276,6 +2364,269 @@
                 }
             ],
             "install-path": "..\/symfony\/polyfill-intl-grapheme"
+        },
+        {
+            "name": "symfony\/polyfill-intl-normalizer",
+            "version": "v1.43.0",
+            "version_normalized": "1.43.0.0",
+            "source": {
+                "type": "git",
+                "url": "https:\/\/github.com\/symfony\/polyfill-intl-normalizer.git",
+                "reference": "ebd57ccc7edb93d632e184efbe7693d2517bab3b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https:\/\/api.github.com\/repos\/symfony\/polyfill-intl-normalizer\/zipball\/ebd57ccc7edb93d632e184efbe7693d2517bab3b",
+                "reference": "ebd57ccc7edb93d632e184efbe7693d2517bab3b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "suggest": {
+                "ext-intl": "For best performance"
+            },
+            "time": "2026-09-23T22:02:09+00:00",
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https:\/\/github.com\/symfony\/polyfill",
+                    "name": "symfony\/polyfill"
+                }
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Intl\\Normalizer\\": ""
+                },
+                "classmap": [
+                    "Resources\/stubs"
+                ]
+            },
+            "notification-url": "https:\/\/packagist.org\/downloads\/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https:\/\/symfony.com\/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for intl's Normalizer class and related functions",
+            "homepage": "https:\/\/symfony.com",
+            "keywords": [
+                "compatibility",
+                "intl",
+                "normalizer",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https:\/\/github.com\/symfony\/polyfill-intl-normalizer\/tree\/v1.43.0"
+            },
+            "funding": [
+                {
+                    "url": "https:\/\/symfony.com\/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https:\/\/github.com\/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https:\/\/github.com\/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https:\/\/tidelift.com\/funding\/github\/packagist\/symfony\/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "install-path": "..\/symfony\/polyfill-intl-normalizer"
+        },
+        {
+            "name": "symfony\/polyfill-mbstring",
+            "version": "v1.43.0",
+            "version_normalized": "1.43.0.0",
+            "source": {
+                "type": "git",
+                "url": "https:\/\/github.com\/symfony\/polyfill-mbstring.git",
+                "reference": "4d5d331bf731e0aedbc6b2f5e61135b7b7996a72"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https:\/\/api.github.com\/repos\/symfony\/polyfill-mbstring\/zipball\/4d5d331bf731e0aedbc6b2f5e61135b7b7996a72",
+                "reference": "4d5d331bf731e0aedbc6b2f5e61135b7b7996a72",
+                "shasum": ""
+            },
+            "require": {
+                "ext-iconv": "*",
+                "php": ">=7.2"
+            },
+            "provide": {
+                "ext-mbstring": "*"
+            },
+            "suggest": {
+                "ext-mbstring": "For best performance"
+            },
+            "time": "2026-09-24T15:19:04+00:00",
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https:\/\/github.com\/symfony\/polyfill",
+                    "name": "symfony\/polyfill"
+                }
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Mbstring\\": ""
+                }
+            },
+            "notification-url": "https:\/\/packagist.org\/downloads\/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https:\/\/symfony.com\/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for the Mbstring extension",
+            "homepage": "https:\/\/symfony.com",
+            "keywords": [
+                "compatibility",
+                "mbstring",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https:\/\/github.com\/symfony\/polyfill-mbstring\/tree\/v1.43.0"
+            },
+            "funding": [
+                {
+                    "url": "https:\/\/symfony.com\/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https:\/\/github.com\/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https:\/\/github.com\/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https:\/\/tidelift.com\/funding\/github\/packagist\/symfony\/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "install-path": "..\/symfony\/polyfill-mbstring"
+        },
+        {
+            "name": "symfony\/polyfill-php80",
+            "version": "v1.43.0",
+            "version_normalized": "1.43.0.0",
+            "source": {
+                "type": "git",
+                "url": "https:\/\/github.com\/symfony\/polyfill-php80.git",
+                "reference": "9c6a5d6b01ca51d486c813e9a9c0ed55f208bb74"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https:\/\/api.github.com\/repos\/symfony\/polyfill-php80\/zipball\/9c6a5d6b01ca51d486c813e9a9c0ed55f208bb74",
+                "reference": "9c6a5d6b01ca51d486c813e9a9c0ed55f208bb74",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "time": "2026-09-25T15:50:05+00:00",
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https:\/\/github.com\/symfony\/polyfill",
+                    "name": "symfony\/polyfill"
+                }
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Php80\\": ""
+                },
+                "classmap": [
+                    "Resources\/stubs"
+                ]
+            },
+            "notification-url": "https:\/\/packagist.org\/downloads\/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ion Bazan",
+                    "email": "ion.bazan@gmail.com"
+                },
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https:\/\/symfony.com\/contributors"
+                }
+            ],
+            "description": "Symfony polyfill backporting some PHP 8.0+ features to lower PHP versions",
+            "homepage": "https:\/\/symfony.com",
+            "keywords": [
+                "compatibility",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https:\/\/github.com\/symfony\/polyfill-php80\/tree\/v1.43.0"
+            },
+            "funding": [
+                {
+                    "url": "https:\/\/symfony.com\/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https:\/\/github.com\/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https:\/\/github.com\/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https:\/\/tidelift.com\/funding\/github\/packagist\/symfony\/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "install-path": "..\/symfony\/polyfill-php80"
         },
         {
             "name": "symfony\/service-contracts",
@@ -2314,7 +2665,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Symfony\\Contracts\\Service\\": ""
+                    "RectorPrefix202610\\Symfony\\Contracts\\Service\\": ""
                 },
                 "exclude-from-classmap": [
                     "\/Test\/"
@@ -2369,17 +2720,17 @@
         },
         {
             "name": "symfony\/string",
-            "version": "v7.4.15",
-            "version_normalized": "7.4.15.0",
+            "version": "v7.4.19",
+            "version_normalized": "7.4.19.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/symfony\/string.git",
-                "reference": "e394af32256bf9e7bf80849d95e589167c10097b"
+                "reference": "02731ce2bd26514bec9efc0baef2cd0b0cf67f46"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/symfony\/string\/zipball\/e394af32256bf9e7bf80849d95e589167c10097b",
-                "reference": "e394af32256bf9e7bf80849d95e589167c10097b",
+                "url": "https:\/\/api.github.com\/repos\/symfony\/string\/zipball\/02731ce2bd26514bec9efc0baef2cd0b0cf67f46",
+                "reference": "02731ce2bd26514bec9efc0baef2cd0b0cf67f46",
                 "shasum": ""
             },
             "require": {
@@ -2400,7 +2751,7 @@
                 "symfony\/translation-contracts": "^2.5|^3.0",
                 "symfony\/var-exporter": "^6.4|^7.0|^8.0"
             },
-            "time": "2026-07-28T07:33:02+00:00",
+            "time": "2026-09-11T14:46:58+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -2408,7 +2759,7 @@
                     "Resources\/functions.php"
                 ],
                 "psr-4": {
-                    "RectorPrefix202609\\Symfony\\Component\\String\\": ""
+                    "RectorPrefix202610\\Symfony\\Component\\String\\": ""
                 },
                 "exclude-from-classmap": [
                     "\/Tests\/"
@@ -2439,7 +2790,7 @@
                 "utf8"
             ],
             "support": {
-                "source": "https:\/\/github.com\/symfony\/string\/tree\/v7.4.15"
+                "source": "https:\/\/github.com\/symfony\/string\/tree\/v7.4.19"
             },
             "funding": [
                 {
@@ -2521,93 +2872,22 @@
                     "type": "github"
                 }
             ],
+            "abandoned": true,
             "install-path": "..\/symplify\/rule-doc-generator-contracts"
         },
         {
-            "name": "tomasvotruba\/class-leak",
-            "version": "2.2.4",
-            "version_normalized": "2.2.4.0",
-            "source": {
-                "type": "git",
-                "url": "https:\/\/github.com\/TomasVotruba\/class-leak.git",
-                "reference": "bc56eb6d4940e250f959a5a5ee7dcb2f064c2725"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/TomasVotruba\/class-leak\/zipball\/bc56eb6d4940e250f959a5a5ee7dcb2f064c2725",
-                "reference": "bc56eb6d4940e250f959a5a5ee7dcb2f064c2725",
-                "shasum": ""
-            },
-            "require": {
-                "entropy\/entropy": "^0.4.6",
-                "nette\/utils": "^4.1",
-                "nikic\/php-parser": "^5.7",
-                "php": ">=8.4",
-                "symfony\/finder": "^7.4|^8.0",
-                "webmozart\/assert": "^2.0"
-            },
-            "replace": {
-                "symfony\/polyfill-ctype": "*",
-                "symfony\/polyfill-intl-normalizer": "*",
-                "symfony\/polyfill-mbstring": "*"
-            },
-            "require-dev": {
-                "phpstan\/extension-installer": "^1.4",
-                "phpstan\/phpstan": "^2.2",
-                "phpunit\/phpunit": "^13.0",
-                "rector\/jack": "^1.0",
-                "rector\/rector": "^2.4",
-                "symplify\/easy-coding-standard": "^13.0",
-                "symplify\/phpstan-extensions": "^12",
-                "tracy\/tracy": "^2.12"
-            },
-            "time": "2026-09-03T08:44:47+00:00",
-            "bin": [
-                "bin\/class-leak",
-                "bin\/class-leak.php"
-            ],
-            "type": "library",
-            "installation-source": "dist",
-            "autoload": {
-                "psr-4": {
-                    "RectorPrefix202609\\TomasVotruba\\ClassLeak\\": "src",
-                    "RectorPrefix202609\\TomasVotruba\\UnusedPublic\\": "packages\/unused-public\/src"
-                }
-            },
-            "notification-url": "https:\/\/packagist.org\/downloads\/",
-            "license": [
-                "MIT"
-            ],
-            "description": "Detect leaking classes",
-            "support": {
-                "issues": "https:\/\/github.com\/TomasVotruba\/class-leak\/issues",
-                "source": "https:\/\/github.com\/TomasVotruba\/class-leak\/tree\/2.2.4"
-            },
-            "funding": [
-                {
-                    "url": "https:\/\/www.paypal.me\/rectorphp",
-                    "type": "custom"
-                },
-                {
-                    "url": "https:\/\/github.com\/tomasvotruba",
-                    "type": "github"
-                }
-            ],
-            "install-path": "..\/tomasvotruba\/class-leak"
-        },
-        {
             "name": "webmozart\/assert",
-            "version": "2.4.1",
-            "version_normalized": "2.4.1.0",
+            "version": "2.5.0",
+            "version_normalized": "2.5.0.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/webmozarts\/assert.git",
-                "reference": "2ccb7c2e821038c03a3e6e1700c570c158c55f70"
+                "reference": "8a163706bbcac613733dba03f51e13b5eb1bb819"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/webmozarts\/assert\/zipball\/2ccb7c2e821038c03a3e6e1700c570c158c55f70",
-                "reference": "2ccb7c2e821038c03a3e6e1700c570c158c55f70",
+                "url": "https:\/\/api.github.com\/repos\/webmozarts\/assert\/zipball\/8a163706bbcac613733dba03f51e13b5eb1bb819",
+                "reference": "8a163706bbcac613733dba03f51e13b5eb1bb819",
                 "shasum": ""
             },
             "require": {
@@ -2621,7 +2901,7 @@
                 "ext-simplexml": "",
                 "ext-spl": ""
             },
-            "time": "2026-06-15T15:31:57+00:00",
+            "time": "2026-10-05T23:14:19+00:00",
             "type": "library",
             "extra": {
                 "psalm": {
@@ -2635,7 +2915,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "RectorPrefix202609\\Webmozart\\Assert\\": "src\/"
+                    "RectorPrefix202610\\Webmozart\\Assert\\": "src\/"
                 }
             },
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -2660,7 +2940,7 @@
             ],
             "support": {
                 "issues": "https:\/\/github.com\/webmozarts\/assert\/issues",
-                "source": "https:\/\/github.com\/webmozarts\/assert\/tree\/2.4.1"
+                "source": "https:\/\/github.com\/webmozarts\/assert\/tree\/2.5.0"
             },
             "install-path": "..\/webmozart\/assert"
         }

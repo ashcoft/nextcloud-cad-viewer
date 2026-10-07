@@ -1,19 +1,22 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609\Entropy\Console\Mapper;
+namespace RectorPrefix202610\Entropy\Console\Mapper;
 
-use RectorPrefix202609\Entropy\Attributes\RelatedTest;
-use RectorPrefix202609\Entropy\Console\Contract\CommandInterface;
-use RectorPrefix202609\Entropy\Console\Exception\ConsoleInputMappingException;
-use RectorPrefix202609\Entropy\Console\ValueObject\CLIRequest;
-use RectorPrefix202609\Entropy\Reflection\ParameterOptionMarkerResolver;
-use RectorPrefix202609\Entropy\Tests\Console\Mapper\CLIRequestMapperTest;
+use RectorPrefix202610\Entropy\Attribute\RelatedTest;
+use RectorPrefix202610\Entropy\Console\Contract\CommandInterface;
+use RectorPrefix202610\Entropy\Console\Exception\ConsoleInputMappingException;
+use RectorPrefix202610\Entropy\Console\ValueObject\CLIRequest;
+use RectorPrefix202610\Entropy\Reflection\ParameterOptionMarkerResolver;
+use RectorPrefix202610\Entropy\Tests\Console\Mapper\CLIRequestMapperTest;
+use RectorPrefix202610\Entropy\Validation\Assert;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionType;
-use RectorPrefix202609\Webmozart\Assert\Assert;
+/**
+ * @see \Entropy\Tests\Console\Mapper\CLIRequestMapperTest
+ */
 final class CLIRequestMapper
 {
     /**
@@ -93,7 +96,8 @@ final class CLIRequestMapper
             }
             // 4) Single positional
             if (!$isBool && isset($positionals[$positionIndex])) {
-                $value = $positionals[$positionIndex++];
+                $value = $positionals[$positionIndex];
+                ++$positionIndex;
                 $args[] = $this->castValueByParameterType($value, $type);
                 continue;
             }
@@ -144,26 +148,29 @@ final class CLIRequestMapper
             return $value;
         }
         // fallback to default value if empty
-        if ($defaultValue !== 'unknown' && empty($value)) {
+        if ($defaultValue !== 'unknown' && in_array($value, [null, \false, '', '0', 0, 0.0, []], \true)) {
             return $defaultValue;
         }
         // special case, use single value if param type is scalar
         if (in_array($reflectionType->getName(), ['string', 'int', 'float', 'bool'], \true) && is_array($value)) {
             $value = array_shift($value);
         }
-        switch ($reflectionType->getName()) {
-            case 'bool':
-                return filter_var($value, \FILTER_VALIDATE_BOOLEAN);
-            case 'int':
-                return (int) $value;
-            case 'float':
-                return (float) $value;
-            case 'string':
-                return (string) $value;
-            case 'array':
-                return (array) $value;
-            default:
-                return $value;
+        $typeName = $reflectionType->getName();
+        if ($typeName === 'bool') {
+            return filter_var($value, \FILTER_VALIDATE_BOOLEAN);
         }
+        if ($typeName === 'int') {
+            return (int) $value;
+        }
+        if ($typeName === 'float') {
+            return (float) $value;
+        }
+        if ($typeName === 'string') {
+            return (string) $value;
+        }
+        if ($typeName === 'array') {
+            return (array) $value;
+        }
+        return $value;
     }
 }

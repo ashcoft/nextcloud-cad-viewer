@@ -1,19 +1,18 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609\Entropy\Console;
+namespace RectorPrefix202610\Entropy\Console;
 
-use RectorPrefix202609\Entropy\Console\Contract\CommandInterface;
-use RectorPrefix202609\Entropy\Console\Contract\DefaultCommandInterface;
-use RectorPrefix202609\Entropy\Console\Contract\HiddenCommandInterface;
-use RectorPrefix202609\Entropy\Console\Exception\InvalidCommandException;
-use RectorPrefix202609\Entropy\Utils\FuzzyMatcher;
-use RectorPrefix202609\Webmozart\Assert\Assert;
+use RectorPrefix202610\Entropy\Console\Contract\CommandInterface;
+use RectorPrefix202610\Entropy\Console\Contract\DefaultCommandInterface;
+use RectorPrefix202610\Entropy\Console\Contract\HiddenCommandInterface;
+use RectorPrefix202610\Entropy\Console\Exception\InvalidCommandException;
+use RectorPrefix202610\Entropy\Utils\FuzzyMatcher;
+use RectorPrefix202610\Entropy\Validation\Assert;
 final class CommandRegistry
 {
     /**
      * @var CommandInterface[]
-     * @readonly
      */
     private array $commands;
     /**
@@ -100,7 +99,7 @@ final class CommandRegistry
         if ($command->getDescription() === '') {
             throw new InvalidCommandException('Command description cannot be empty');
         }
-        if (!method_exists($command, 'run')) {
+        if (!is_callable([$command, 'run'])) {
             throw new InvalidCommandException(sprintf('Command "%s" must have a public "run()" method', $name));
         }
     }

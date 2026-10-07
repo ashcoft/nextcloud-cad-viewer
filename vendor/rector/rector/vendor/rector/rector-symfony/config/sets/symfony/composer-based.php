@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609;
+namespace RectorPrefix202610;
 
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\BooleanType;
@@ -836,7 +836,7 @@ return static function (RectorConfig $rectorConfig): void {
     // symfony/translation 6.2
     $rectorConfig->ruleWithConfigurationComposerVersionBound(RenameClassRector::class, [
         // @see https://github.com/symfony/symfony/pull/46161
-        'Symfony\Component\Translation\Extractor\PhpAstExtractor' => 'Symfony\Component\Translation\Extractor\PhpAstExtractor',
+        'Symfony\Component\Translation\Extractor\PhpExtractor' => 'Symfony\Component\Translation\Extractor\PhpAstExtractor',
     ], 'symfony/translation', '>=6.2');
     // symfony/twig-bridge 6.2
     $rectorConfig->ruleWithConfigurationComposerVersionBound(RenameClassRector::class, [
