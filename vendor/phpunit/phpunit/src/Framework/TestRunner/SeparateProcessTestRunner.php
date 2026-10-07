@@ -23,12 +23,13 @@ use function sys_get_temp_dir;
 use function tempnam;
 use function unlink;
 use function var_export;
-use PHPUnit\Event\Facade as EventFacade;
+use PHPUnit\Event\Emitter;
 use PHPUnit\Event\NoPreviousThrowableException;
 use PHPUnit\Event\TestRunner\ChildProcessReason;
 use PHPUnit\Framework\Exception;
 use PHPUnit\Framework\ProcessIsolationException;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Metadata\Api\Requirements;
 use PHPUnit\Runner\CodeCoverage;
 use PHPUnit\TextUI\Configuration\Registry as ConfigurationRegistry;
 use PHPUnit\TextUI\Configuration\SourceMapper;
@@ -46,7 +47,14 @@ use SebastianBergmann\Template\Template;
  */
 final class SeparateProcessTestRunner
 {
-    private static ?string $sourceMapFile = null;
+    private static ?string $configurationFile = null;
+    private static ?string $sourceMapFile     = null;
+    private readonly Emitter $emitter;
+
+    public function __construct(Emitter $emitter)
+    {
+        $this->emitter = $emitter;
+    }
 
     /**
      * @throws \PHPUnit\Runner\Exception
@@ -56,7 +64,7 @@ final class SeparateProcessTestRunner
      * @throws NoPreviousThrowableException
      * @throws ProcessIsolationException
      */
-    public function run(TestCase $test, bool $preserveGlobalState, bool $requiresXdebug): void
+    public function run(TestCase $test): void
     {
         $class = new ReflectionClass($test);
 
@@ -70,7 +78,7 @@ final class SeparateProcessTestRunner
             $bootstrap = ConfigurationRegistry::get()->bootstrap();
         }
 
-        if ($preserveGlobalState) {
+        if ($test->preservesGlobalState()) {
             $constants         = GlobalState::getConstantsAsString();
             $globalStateResult = GlobalState::exportGlobals();
             $globals           = $globalStateResult->globalsString();
@@ -78,7 +86,7 @@ final class SeparateProcessTestRunner
             $iniSettings       = GlobalState::getIniSettingsAsString();
 
             foreach ($globalStateResult->skippedGlobals() as $skipped) {
-                EventFacade::emitter()->testTriggeredPhpunitWarning(
+                $this->emitter->testTriggeredPhpunitWarning(
                     $test->valueObjectForEvents(),
                     sprintf(
                         'Global variable %s was not preserved because it %s',
@@ -122,7 +130,7 @@ final class SeparateProcessTestRunner
         $dependencyInput         = "'." . $dependencyInput . ".'";
         $includePath             = "'." . $includePath . ".'";
         $offset                  = hrtime();
-        $serializedConfiguration = $this->saveConfigurationForChildProcess();
+        $serializedConfiguration = $this->configurationFileForChildProcess();
         $processResultFile       = $this->createTemporaryFile();
 
         if ($processResultFile === false || $processResultFile === '') {
@@ -175,9 +183,9 @@ final class SeparateProcessTestRunner
 
         assert($code !== '');
 
-        JobRunnerRegistry::runTestJob(new Job($code, ChildProcessReason::TestRequiringProcessIsolation, requiresXdebug: $requiresXdebug), $processResultFile, $test, $processResultNonce);
+        $requiresXdebug = new Requirements($this->emitter)->requiresXdebug($test::class, $test->name());
 
-        @unlink($serializedConfiguration);
+        JobRunnerRegistry::runTestJob(new Job($code, ChildProcessReason::TestRequiringProcessIsolation, requiresXdebug: $requiresXdebug), $processResultFile, $test, $processResultNonce);
     }
 
     private function sourceMapFileForChildProcess(): string
@@ -201,7 +209,7 @@ final class SeparateProcessTestRunner
             return self::$sourceMapFile;
         }
 
-        $path = $this->createTemporaryFile();
+        $path = $this->createTemporaryFileSharedByChildProcesses();
 
         if ($path === false) {
             // @codeCoverageIgnoreStart
@@ -219,29 +227,6 @@ final class SeparateProcessTestRunner
             // @codeCoverageIgnoreEnd
         }
 
-        $pid = getmypid();
-
-        // the source map is written once per test run and shared by all child
-        // processes, so it can only be removed when the test run has ended
-        register_shutdown_function(
-            static function () use ($path, $pid): void
-            {
-                // this runs during PHP's shutdown sequence, after code coverage
-                // data has been collected
-                // @codeCoverageIgnoreStart
-                if (getmypid() !== $pid) {
-                    // a process that was forked, for instance using pcntl_fork(),
-                    // from the process that registered this shutdown function
-                    // inherited it; only the process that created the source map
-                    // may delete it
-                    return;
-                }
-
-                @unlink($path);
-                // @codeCoverageIgnoreEnd
-            },
-        );
-
         self::$sourceMapFile = $path;
 
         return self::$sourceMapFile;
@@ -250,9 +235,13 @@ final class SeparateProcessTestRunner
     /**
      * @throws ProcessIsolationException
      */
-    private function saveConfigurationForChildProcess(): string
+    private function configurationFileForChildProcess(): string
     {
-        $path = $this->createTemporaryFile();
+        if (self::$configurationFile !== null) {
+            return self::$configurationFile;
+        }
+
+        $path = $this->createTemporaryFileSharedByChildProcesses();
 
         if ($path === false) {
             // @codeCoverageIgnoreStart
@@ -266,11 +255,52 @@ final class SeparateProcessTestRunner
             // @codeCoverageIgnoreEnd
         }
 
-        return $path;
+        self::$configurationFile = $path;
+
+        return self::$configurationFile;
     }
 
     private function createTemporaryFile(): false|string
     {
         return tempnam(sys_get_temp_dir(), 'phpunit_');
+    }
+
+    /**
+     * The configuration and the source map do not change while the test run is
+     * in progress: each is written once and shared by all child processes, so
+     * neither can be removed before the test run has ended.
+     */
+    private function createTemporaryFileSharedByChildProcesses(): false|string
+    {
+        $path = $this->createTemporaryFile();
+
+        if ($path === false) {
+            // @codeCoverageIgnoreStart
+            return false;
+            // @codeCoverageIgnoreEnd
+        }
+
+        $pid = getmypid();
+
+        register_shutdown_function(
+            static function () use ($path, $pid): void
+            {
+                // this runs during PHP's shutdown sequence, after code coverage
+                // data has been collected
+                // @codeCoverageIgnoreStart
+                if (getmypid() !== $pid) {
+                    // a process that was forked, for instance using pcntl_fork(),
+                    // from the process that registered this shutdown function
+                    // inherited it; only the process that created the temporary
+                    // file may delete it
+                    return;
+                }
+
+                @unlink($path);
+                // @codeCoverageIgnoreEnd
+            },
+        );
+
+        return $path;
     }
 }

@@ -345,6 +345,22 @@ abstract readonly class Metadata
 
     /**
      * @param non-empty-string $className
+     */
+    public static function requiresClassOnClass(string $className): RequiresClass
+    {
+        return new RequiresClass(Level::CLASS_LEVEL, $className);
+    }
+
+    /**
+     * @param non-empty-string $className
+     */
+    public static function requiresClassOnMethod(string $className): RequiresClass
+    {
+        return new RequiresClass(Level::METHOD_LEVEL, $className);
+    }
+
+    /**
+     * @param non-empty-string $className
      * @param non-empty-string $methodName
      */
     public static function requiresMethodOnClass(string $className, string $methodName): RequiresMethod
@@ -979,6 +995,14 @@ abstract readonly class Metadata
      * @phpstan-assert-if-true RequiresMethod $this
      */
     public function isRequiresMethod(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @phpstan-assert-if-true RequiresClass $this
+     */
+    public function isRequiresClass(): bool
     {
         return false;
     }

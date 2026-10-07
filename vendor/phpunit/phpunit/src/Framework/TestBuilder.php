@@ -15,7 +15,7 @@ use function get_parent_class;
 use function preg_match;
 use function range;
 use function sprintf;
-use PHPUnit\Event\Facade as EventFacade;
+use PHPUnit\Event\Emitter;
 use PHPUnit\Metadata\Api\DataProvider;
 use PHPUnit\Metadata\Api\Groups;
 use PHPUnit\Metadata\Api\ProvidedData;
@@ -46,6 +46,13 @@ use ReflectionNamedType;
  */
 final readonly class TestBuilder
 {
+    private Emitter $emitter;
+
+    public function __construct(Emitter $emitter)
+    {
+        $this->emitter = $emitter;
+    }
+
     /**
      * @param ReflectionClass<TestCase> $theClass
      * @param non-empty-string          $methodName
@@ -88,7 +95,7 @@ final readonly class TestBuilder
 
         if ($retryMetadata->isNotEmpty()) {
             if ($repeatMetadata->isNotEmpty()) {
-                EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+                $this->emitter->testRunnerTriggeredPhpunitWarning(
                     sprintf(
                         'Method %s::%s is annotated with both #[Repeat] and #[Retry], the #[Retry] attribute is ignored',
                         $className,
@@ -126,7 +133,7 @@ final readonly class TestBuilder
 
             if ($this->requirementsSatisfied($className, $methodName) &&
                 !$this->filterExcludesMethod($className, $methodName)) {
-                $data = (new DataProvider)->providedData($className, $methodName);
+                $data = new DataProvider($this->emitter)->providedData($className, $methodName);
             }
         } finally {
             ErrorHandler::instance()->leaveTestCaseContext();
@@ -204,6 +211,7 @@ final readonly class TestBuilder
     {
         $dataProviderTestSuite = DataProviderTestSuite::empty(
             $className . '::' . $methodName,
+            $this->emitter,
         );
 
         $groups = array_merge(
@@ -232,6 +240,7 @@ final readonly class TestBuilder
                 $dataProviderTestSuite->addTest(
                     RetryTestSuite::fromTestCase(
                         $className . '::' . $methodName . '#' . $_dataName,
+                        $this->emitter,
                         $factory(),
                         $maxAttempts,
                         $factory,
@@ -261,6 +270,7 @@ final readonly class TestBuilder
                 $dataProviderTestSuite->addTest(
                     RepeatTestSuite::fromTests(
                         $className . '::' . $methodName . '#' . $_dataName,
+                        $this->emitter,
                         $tests,
                         $failureThreshold,
                         $groups,
@@ -320,6 +330,7 @@ final readonly class TestBuilder
 
         return RepeatTestSuite::fromTests(
             $className . '::' . $methodName,
+            $this->emitter,
             $tests,
             $failureThreshold,
             $groups,
@@ -356,6 +367,7 @@ final readonly class TestBuilder
 
         return RetryTestSuite::fromTestCase(
             $className . '::' . $methodName,
+            $this->emitter,
             $factory(),
             $maxAttempts,
             $factory,
@@ -528,7 +540,7 @@ final readonly class TestBuilder
      */
     private function requirementsSatisfied(string $className, string $methodName): bool
     {
-        return (new Requirements)->requirementsNotSatisfiedFor($className, $methodName) === [];
+        return new Requirements($this->emitter)->requirementsNotSatisfiedFor($className, $methodName) === [];
     }
 
     /**
@@ -582,7 +594,7 @@ final readonly class TestBuilder
     private function warnWhenMethodIsIneligible(string $attribute, string $verb, ReflectionClass $theClass, string $className, string $methodName): void
     {
         if (!$this->hasVoidReturnType($theClass->getMethod($methodName))) {
-            EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+            $this->emitter->testRunnerTriggeredPhpunitWarning(
                 sprintf(
                     'Method %s::%s is annotated with #[%s] but does not have a void return type declaration and will not be %s',
                     $className,
@@ -594,7 +606,7 @@ final readonly class TestBuilder
         }
 
         if (!$this->doesNotDependOnAnotherTest($className, $methodName)) {
-            EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+            $this->emitter->testRunnerTriggeredPhpunitWarning(
                 sprintf(
                     'Method %s::%s is annotated with #[%s] but depends on another test and will not be %s',
                     $className,

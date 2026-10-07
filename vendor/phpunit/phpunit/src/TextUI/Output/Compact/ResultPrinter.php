@@ -68,11 +68,8 @@ final readonly class ResultPrinter
             return;
         }
 
-        if ($result->hasTestErroredEvents() || $result->hasTestFailedEvents()) {
-            $this->printer->print(PHP_EOL);
-        }
-
         $this->printSummaryLine($result);
+        $this->printTimeLimitExceeded($result);
         $this->printPhpunitErrors($result);
         $this->printTestRunnerWarnings($result);
 
@@ -298,6 +295,30 @@ final readonly class ResultPrinter
                 $this->renderer->printBody(trim($event->message()));
             }
         }
+    }
+
+    private function printTimeLimitExceeded(TestResult $result): void
+    {
+        if (!$result->wasTimeLimitExceeded()) {
+            return;
+        }
+
+        $timeLimit = $result->timeLimitExceededEvent()->timeLimit();
+        $unit      = 'seconds';
+
+        if ($timeLimit === 1) {
+            $unit = 'second';
+        }
+
+        $this->printer->print(PHP_EOL . '--- TIME LIMIT EXCEEDED' . PHP_EOL);
+
+        $this->renderer->printBody(
+            sprintf(
+                'The time limit of %d %s for the test run was exceeded.',
+                $timeLimit,
+                $unit,
+            ),
+        );
     }
 
     private function printTestRunnerWarnings(TestResult $result): void
