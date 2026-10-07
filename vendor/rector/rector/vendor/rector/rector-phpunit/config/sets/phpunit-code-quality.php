@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609;
+namespace RectorPrefix202610;
 
 use Rector\Config\RectorConfig;
 use Rector\PHPUnit\CodeQuality\Rector\CallLike\DirectInstanceOverMockArgRector;
@@ -57,6 +57,7 @@ use Rector\PHPUnit\CodeQuality\Rector\MethodCall\SingleWithConsecutiveToWithRect
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\StringCastAssertStringContainsStringRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\UseSpecificWillMethodRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\UseSpecificWithMethodRector;
+use Rector\PHPUnit\CodeQuality\Rector\MethodCall\WillReturnCallbackFallbackToReturnFalseRector;
 use Rector\PHPUnit\CodeQuality\Rector\MethodCall\WithCallbackIdenticalToStandaloneAssertsRector;
 use Rector\PHPUnit\CodeQuality\Rector\StmtsAwareInterface\DeclareStrictTypesTestsRector;
 use Rector\PHPUnit\PHPUnit120\Rector\CallLike\CreateStubOverCreateMockArgRector;
@@ -83,6 +84,7 @@ return static function (RectorConfig $rectorConfig): void {
         // narrow with consecutive
         NarrowIdenticalWithConsecutiveRector::class,
         NarrowSingleWillReturnCallbackRector::class,
+        WillReturnCallbackFallbackToReturnFalseRector::class,
         SingleWithConsecutiveToWithRector::class,
         // type declarations
         TypeWillReturnCallableArrowFunctionRector::class,
@@ -134,8 +136,6 @@ return static function (RectorConfig $rectorConfig): void {
         MockObjectVarToStubRector::class,
         AddStubIntersectionVarToStubPropertyRector::class,
         InlineStubPropertyToCreateStubMethodCallRector::class,
-        // @test first, enable later
-        // \Rector\PHPUnit\CodeQuality\Rector\Expression\ConfiguredMockEntityToSetterObjectRector::class,
         FinalizeTestCaseClassRector::class,
         DeclareStrictTypesTestsRector::class,
         WithCallbackIdenticalToStandaloneAssertsRector::class,

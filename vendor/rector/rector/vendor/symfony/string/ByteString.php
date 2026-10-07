@@ -8,12 +8,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202609\Symfony\Component\String;
+namespace RectorPrefix202610\Symfony\Component\String;
 
 use Random\Randomizer;
-use RectorPrefix202609\Symfony\Component\String\Exception\ExceptionInterface;
-use RectorPrefix202609\Symfony\Component\String\Exception\InvalidArgumentException;
-use RectorPrefix202609\Symfony\Component\String\Exception\RuntimeException;
+use RectorPrefix202610\Symfony\Component\String\Exception\ExceptionInterface;
+use RectorPrefix202610\Symfony\Component\String\Exception\InvalidArgumentException;
+use RectorPrefix202610\Symfony\Component\String\Exception\RuntimeException;
 /**
  * Represents a binary-safe string of bytes.
  *
@@ -99,8 +99,10 @@ class ByteString extends AbstractString
     public function camel()
     {
         $str = clone $this;
-        $parts = explode(' ', trim(ucwords(preg_replace('/[^a-zA-Z0-9\x7f-\xff]++/', ' ', $this->string))));
-        $parts[0] = 1 !== \strlen($parts[0]) && ctype_upper($parts[0]) ? $parts[0] : lcfirst($parts[0]);
+        $words = trim(preg_replace('/[^a-zA-Z0-9\x7f-\xff]++/', ' ', $this->string));
+        $parts = explode(' ', ucwords($words));
+        // a leading uppercase letter followed by another one is kept, as in AbstractUnicodeString::camel()
+        $parts[0] = preg_match('/^[A-Z]{2}/', $words) || 1 !== \strlen($parts[0]) && ctype_upper($parts[0]) ? $parts[0] : lcfirst($parts[0]);
         $str->string = implode('', $parts);
         return $str;
     }
@@ -412,7 +414,7 @@ class ByteString extends AbstractString
             try {
                 $validEncoding = \false !== mb_detect_encoding($this->string, $fromEncoding ?? 'Windows-1252', \true);
             } catch (InvalidArgumentException $e) {
-                if (!\function_exists('iconv') && !\function_exists('RectorPrefix202609\iconv')) {
+                if (!\function_exists('iconv') && !\function_exists('RectorPrefix202610\iconv')) {
                     throw $e;
                 }
                 $u->string = iconv($fromEncoding ?? 'Windows-1252', 'UTF-8', $this->string);

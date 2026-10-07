@@ -1,17 +1,18 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609\Entropy\Utils;
+namespace RectorPrefix202610\Entropy\Utils;
 
-use RectorPrefix202609\Entropy\Attributes\RelatedTest;
-use RectorPrefix202609\Entropy\Tests\Utils\RegexTest;
+use RectorPrefix202610\Entropy\Attribute\RelatedTest;
+use RectorPrefix202610\Entropy\Tests\Utils\RegexTest;
 /**
  * @api to be used
+ * @see \Entropy\Tests\Utils\RegexTest
  */
 final class Regex
 {
     /**
-     * @return array<string, mixed>
+     * @return array<array-key, string>
      */
     public static function match(string $subject, string $pattern): array
     {
@@ -20,7 +21,7 @@ final class Regex
         return $matches;
     }
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array<array-key, string>>
      */
     public static function matchAll(string $subject, string $pattern): array
     {
@@ -37,5 +38,16 @@ final class Regex
             return (string) preg_replace_callback($pattern, $replacement, $subject);
         }
         return preg_replace($pattern, $replacement, $subject) ?? $subject;
+    }
+    /**
+     * @return array<int, string>
+     */
+    public static function split(string $subject, string $pattern): array
+    {
+        $parts = preg_split($pattern, $subject);
+        if ($parts === \false) {
+            return [];
+        }
+        return $parts;
     }
 }

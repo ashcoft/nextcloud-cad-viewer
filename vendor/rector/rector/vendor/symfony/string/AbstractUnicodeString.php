@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202609\Symfony\Component\String;
+namespace RectorPrefix202610\Symfony\Component\String;
 
-use RectorPrefix202609\Symfony\Component\String\Exception\ExceptionInterface;
-use RectorPrefix202609\Symfony\Component\String\Exception\InvalidArgumentException;
-use RectorPrefix202609\Symfony\Component\String\Exception\RuntimeException;
+use RectorPrefix202610\Symfony\Component\String\Exception\ExceptionInterface;
+use RectorPrefix202610\Symfony\Component\String\Exception\InvalidArgumentException;
+use RectorPrefix202610\Symfony\Component\String\Exception\RuntimeException;
 /**
  * Represents a string of abstract Unicode characters.
  *
@@ -357,12 +357,13 @@ abstract class AbstractUnicodeString extends AbstractString
      */
     public function localeTitle(string $locale)
     {
+        $str = clone $this;
         if (null !== $transliterator = $this->getLocaleTransliterator($locale, 'Title')) {
-            $str = clone $this;
             $str->string = $transliterator->transliterate($str->string);
-            return $str;
+        } else {
+            $str->string = mb_convert_case($str->string, \MB_CASE_TITLE, 'UTF-8');
         }
-        return $this->title();
+        return $str;
     }
     /**
      * @return static

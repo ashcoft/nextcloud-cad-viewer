@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609\Entropy\Reflection;
+namespace RectorPrefix202610\Entropy\Reflection;
 
 final class UseStatementsResolver
 {
@@ -11,6 +11,9 @@ final class UseStatementsResolver
     public static function resolve(string $filePath): array
     {
         $useStatements = [];
+        if (!is_file($filePath)) {
+            return $useStatements;
+        }
         $fileContent = file_get_contents($filePath);
         if ($fileContent === \false) {
             return $useStatements;

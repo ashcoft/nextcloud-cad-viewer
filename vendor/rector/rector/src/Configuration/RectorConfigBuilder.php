@@ -4,8 +4,8 @@ declare (strict_types=1);
 namespace Rector\Configuration;
 
 use Deprecated;
-use RectorPrefix202609\DrupalRector\Set\DrupalSetList;
-use RectorPrefix202609\Nette\Utils\Strings;
+use RectorPrefix202610\DrupalRector\Set\DrupalSetList;
+use RectorPrefix202610\Nette\Utils\Strings;
 use PhpParser\NodeVisitor;
 use Rector\Bridge\SetRectorsResolver;
 use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
@@ -33,8 +33,8 @@ use Rector\Symfony\Set\TwigSetList;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\PhpVersion;
 use RectorLaravel\Set\LaravelSetList;
-use RectorPrefix202609\Symfony\Component\Finder\Finder;
-use RectorPrefix202609\Webmozart\Assert\Assert;
+use RectorPrefix202610\Symfony\Component\Finder\Finder;
+use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * @api
  */
@@ -85,7 +85,7 @@ final class RectorConfigBuilder
     private ?bool $parallel = null;
     private int $parallelTimeoutSeconds = 120;
     private int $parallelMaxNumberOfProcess = Defaults::PARALLEL_MAX_NUMBER_OF_PROCESS;
-    private int $parallelJobSize = 16;
+    private int $parallelJobSize = 48;
     private bool $importNames = \false;
     private bool $importDocBlockNames = \false;
     private bool $importShortClasses = \true;

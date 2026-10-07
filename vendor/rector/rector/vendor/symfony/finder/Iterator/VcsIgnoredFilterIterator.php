@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202609\Symfony\Component\Finder\Iterator;
+namespace RectorPrefix202610\Symfony\Component\Finder\Iterator;
 
-use RectorPrefix202609\Symfony\Component\Finder\Gitignore;
+use RectorPrefix202610\Symfony\Component\Finder\Gitignore;
 /**
  * @extends \FilterIterator<string, \SplFileInfo>
  */
@@ -30,9 +30,10 @@ final class VcsIgnoredFilterIterator extends \FilterIterator
      */
     public function __construct(\Iterator $iterator, string $baseDir)
     {
-        $this->baseDir = $this->normalizePath($baseDir);
+        // paths are compared to the real path of each file, so the base directory needs the same treatment
+        $this->baseDir = $this->normalizePath(realpath($baseDir) ?: $baseDir);
         foreach (array_merge([$this->baseDir], $this->parentDirectoriesUpwards($this->baseDir)) as $directory) {
-            if (@is_dir("{$directory}/.git")) {
+            if (@file_exists("{$directory}/.git")) {
                 $this->baseDir = $directory;
                 break;
             }
@@ -123,8 +124,11 @@ final class VcsIgnoredFilterIterator extends \FilterIterator
         }
         $rules = [];
         foreach (preg_split('~\r\n?|\n~', file_get_contents($path)) as $line) {
-            $line = preg_replace('~(?<!\\\\)#[^\n\r]*~', '', $line);
-            $line = preg_replace('~(?<!\\\\)[ \t]+$~', '', $line);
+            // only a line starting with "#" is a comment, and only trailing spaces are stripped
+            if (strncmp($line, '#', strlen('#')) === 0) {
+                continue;
+            }
+            $line = preg_replace('~(?<!\\\\) +$~', '', $line);
             if ($isNegated = strncmp($line, '!', strlen('!')) === 0) {
                 $line = (string) substr($line, 1);
             }
@@ -133,6 +137,10 @@ final class VcsIgnoredFilterIterator extends \FilterIterator
             }
             if ('' === $line) {
                 continue;
+            }
+            if (strncmp($line, '#', strlen('#')) === 0) {
+                // the leading "!" is already stripped, so a "#" here starts a pattern, not a comment
+                $line = '\\' . $line;
             }
             $rules[] = [Gitignore::toRegex($line), $isNegated, $isDirOnly];
         }

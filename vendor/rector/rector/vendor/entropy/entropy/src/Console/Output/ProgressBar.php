@@ -1,10 +1,10 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202609\Entropy\Console\Output;
+namespace RectorPrefix202610\Entropy\Console\Output;
 
-use RectorPrefix202609\Entropy\Attributes\RelatedTest;
-use RectorPrefix202609\Entropy\Tests\Console\Output\ProgressBarTest;
+use RectorPrefix202610\Entropy\Attribute\RelatedTest;
+use RectorPrefix202610\Entropy\Tests\Console\Output\ProgressBarTest;
 /**
  * Lightweight progress bar rendered on a single, re-written terminal line.
  *
@@ -12,26 +12,15 @@ use RectorPrefix202609\Entropy\Tests\Console\Output\ProgressBarTest;
  * tested without writing to the terminal.
  *
  * @api used by console applications to report progress
+ * @see \Entropy\Tests\Console\Output\ProgressBarTest
  */
 final class ProgressBar
 {
-    /**
-     * @var int
-     */
     private const BAR_WIDTH = 28;
-    /**
-     * @var string
-     */
     private const COMPLETE_CHAR = '▓';
-    /**
-     * @var string
-     */
     private const REMAINING_CHAR = '░';
     private int $current = 0;
     private int $maxSteps = 0;
-    /**
-     * @readonly
-     */
     private bool $isSilent;
     public function __construct()
     {

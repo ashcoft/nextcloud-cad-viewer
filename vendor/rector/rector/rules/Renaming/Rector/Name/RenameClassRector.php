@@ -14,12 +14,13 @@ use PhpParser\Node\Stmt\Property;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\Configuration\RenamedClassesDataCollector;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
+use Rector\Exception\Configuration\InvalidConfigurationException;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Rector\AbstractRector;
 use Rector\Renaming\NodeManipulator\ClassRenamer;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202609\Webmozart\Assert\Assert;
+use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Renaming\Rector\Name\RenameClassRector\RenameClassRectorTest
  */
@@ -110,6 +111,11 @@ CODE_SAMPLE
     {
         Assert::allString($configuration);
         Assert::allString(array_keys($configuration));
+        foreach ($configuration as $oldClass => $newClass) {
+            if ($oldClass === $newClass) {
+                throw new InvalidConfigurationException(sprintf('Rename "%s" class to a different one, as the old and new class name are the same', $oldClass));
+            }
+        }
         $this->renamedClassesDataCollector->addOldToNewClasses($configuration);
     }
     /**
