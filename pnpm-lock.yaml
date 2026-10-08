@@ -178,7 +178,7 @@ overrides:
   undici: ^8.0.0
   vue: 3.5.38
   vue-i18n: 11.4.6
-  '@ai-sdk/provider-utils': 5.0.56
+  '@ai-sdk/provider-utils': 5.0.57
   nanoid: 6.0.2
 
 importers:
@@ -384,8 +384,8 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/provider-utils@5.0.56':
-    resolution: {integrity: sha512-F7/U1YpVXEfSxRHbxScm0PVdr9lN6GaUWHnt8ws2UjuGeuxWHqCkV25dGpHAkpDHkuIXoC+aak/OqSylKSJmHw==}
+  '@ai-sdk/provider-utils@5.0.57':
+    resolution: {integrity: sha512-giQ9mNwVzYUbahU2DG1FWEjXkDU8D8Hitz7Rk4AlRGtqh8Ss48msQ9+wEAXquWs/GYOETzxMMFsgcHK0i7TbUQ==}
     engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -394,8 +394,8 @@ packages:
     resolution: {integrity: sha512-h88OPkavHTiN9tMn2l5awAznGB0lXzjcLhgR1/rvjB2zlLprsNxbM2tt6OJsHUxduLC3klq0/eqaSf6fX5XVww==}
     engines: {node: '>=18'}
 
-  '@ai-sdk/provider@4.0.24':
-    resolution: {integrity: sha512-iztFqJTdxNN0ZzqZAAnVPMhRMaL1bfQFa3GIPAffWQ0+dP2FXIkyMD8kHeEI7EpB/C6TR45cqOkrS7YZZ1sATA==}
+  '@ai-sdk/provider@4.0.25':
+    resolution: {integrity: sha512-vG0l7MUavfhn6c5+Z0y1/E6lKUrzecsLtFkuIknnHjAGAIiuwFDucafzebJuFVTZcLyhf8qhYYU2zeKP55Mymw==}
     engines: {node: '>=22'}
 
   '@ai-sdk/vue@2.0.216':
@@ -5530,25 +5530,25 @@ snapshots:
   '@ai-sdk/anthropic@2.0.87(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.3
-      '@ai-sdk/provider-utils': 5.0.56(zod@3.25.76)
+      '@ai-sdk/provider-utils': 5.0.57(zod@3.25.76)
       zod: 3.25.76
 
   '@ai-sdk/gateway@2.0.115(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.3
-      '@ai-sdk/provider-utils': 5.0.56(zod@3.25.76)
+      '@ai-sdk/provider-utils': 5.0.57(zod@3.25.76)
       '@vercel/oidc': 3.1.0
       zod: 3.25.76
 
   '@ai-sdk/openai@2.0.114(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.3
-      '@ai-sdk/provider-utils': 5.0.56(zod@3.25.76)
+      '@ai-sdk/provider-utils': 5.0.57(zod@3.25.76)
       zod: 3.25.76
 
-  '@ai-sdk/provider-utils@5.0.56(zod@3.25.76)':
+  '@ai-sdk/provider-utils@5.0.57(zod@3.25.76)':
     dependencies:
-      '@ai-sdk/provider': 4.0.24
+      '@ai-sdk/provider': 4.0.25
       '@standard-schema/spec': 1.1.0
       '@workflow/serde': 4.1.0
       eventsource-parser: 3.1.0
@@ -5559,13 +5559,13 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
-  '@ai-sdk/provider@4.0.24':
+  '@ai-sdk/provider@4.0.25':
     dependencies:
       json-schema: 0.4.0
 
   '@ai-sdk/vue@2.0.216(vue@3.5.38(typescript@6.0.3))(zod@3.25.76)':
     dependencies:
-      '@ai-sdk/provider-utils': 5.0.56(zod@3.25.76)
+      '@ai-sdk/provider-utils': 5.0.57(zod@3.25.76)
       ai: 5.0.216(zod@3.25.76)
       swrv: 1.2.0(vue@3.5.38(typescript@6.0.3))
     optionalDependencies:
@@ -7984,7 +7984,7 @@ snapshots:
     dependencies:
       '@ai-sdk/gateway': 2.0.115(zod@3.25.76)
       '@ai-sdk/provider': 2.0.3
-      '@ai-sdk/provider-utils': 5.0.56(zod@3.25.76)
+      '@ai-sdk/provider-utils': 5.0.57(zod@3.25.76)
       '@opentelemetry/api': 1.9.0
       zod: 3.25.76
 
