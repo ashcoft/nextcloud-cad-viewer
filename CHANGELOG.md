@@ -1,3 +1,18 @@
+## [0.5.247](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.246...v0.5.247) (2026-10-09)
+
+## [0.5.246](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.245...v0.5.246) (2026-10-09)
+
+## [0.5.245](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.244...v0.5.245) (2026-10-09)
+
+## [0.5.244](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.243...v0.5.244) (2026-10-09)
+
+## [0.5.243](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.242...v0.5.243) (2026-10-09)
+
+
+### Bug Fixes
+
+* **deps:** run TypeScript 7 side-by-side with the TypeScript 6 API ([7da899f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/7da899f44234f0aa746a7f810ef8da817e41dcfe))
+
 ## [0.5.242](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.241...v0.5.242) (2026-10-09)
 
 ## [0.5.241](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.240...v0.5.241) (2026-10-08)
