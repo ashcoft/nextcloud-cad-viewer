@@ -1,3 +1,11 @@
+## [0.5.249](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.248...v0.5.249) (2026-10-09)
+
+
+### Bug Fixes
+
+* **build:** stub optional onedrive/google-drive plugin imports for cad-viewer 1.7.5 ([8b50827](https://github.com/ashcoft/nextcloud-cad-viewer/commit/8b50827f255c88b7477397ab507ae18ac0c38954))
+* **deps:** update mlightcad-ecosystem to v1.7.5 ([cc5522b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/cc5522bea62e43683dc197d6f6b8301b146ca014))
+
 ## [0.5.248](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.247...v0.5.248) (2026-10-09)
 
 
