@@ -69,6 +69,18 @@ module.exports = {
         result.request = path.resolve(__dirname, 'src/polyfills/cad-svg-plugin-register.cjs');
       }
     ),
+    new webpack.NormalModuleReplacementPlugin(
+      /^@mlightcad\/cad-onedrive-plugin\/register$/,
+      (result) => {
+        result.request = path.resolve(__dirname, 'src/polyfills/cad-onedrive-plugin-register.cjs');
+      }
+    ),
+    new webpack.NormalModuleReplacementPlugin(
+      /^@mlightcad\/cad-google-drive-plugin\/register$/,
+      (result) => {
+        result.request = path.resolve(__dirname, 'src/polyfills/cad-google-drive-plugin-register.cjs');
+      }
+    ),
     // Ignore @mlightcad/dxf-json-converter which has version mismatch with data-model
     new webpack.IgnorePlugin({
       resourceRegExp: /^@mlightcad\/dxf-json-converter$/,
