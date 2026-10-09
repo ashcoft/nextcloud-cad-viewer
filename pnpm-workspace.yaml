@@ -33,7 +33,7 @@ overrides:
   'postcss': '^8.5.23'
   'three': '0.186.1'
   'undici': '^8.0.0'
-  'vue': '3.5.38'
+  'vue': '3.5.43'
   'vue-i18n': '11.4.6'
   '@ai-sdk/provider-utils': '5.0.58'
   # Security: force nanoid >= 3.3.18 to fix infinite loop in customAlphabet/

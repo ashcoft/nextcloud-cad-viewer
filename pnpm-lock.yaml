@@ -176,7 +176,7 @@ overrides:
   postcss: ^8.5.23
   three: 0.186.1
   undici: ^8.0.0
-  vue: 3.5.38
+  vue: 3.5.43
   vue-i18n: 11.4.6
   '@ai-sdk/provider-utils': 5.0.58
   nanoid: 6.0.2
@@ -187,7 +187,7 @@ importers:
     dependencies:
       '@mlightcad/cad-agent-plugin':
         specifier: ^1.7.4
-        version: 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(vue@3.5.38(@typescript/typescript6@6.0.2))
+        version: 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(vue@3.5.43(@typescript/typescript6@6.0.2))
       '@mlightcad/cad-html-plugin':
         specifier: 1.7.4
         version: 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(three@0.186.1)
@@ -202,7 +202,7 @@ importers:
         version: 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))
       '@mlightcad/cad-viewer':
         specifier: 1.7.4
-        version: 1.7.4(a87bf312e5464bf4cd1c9a5ae6ad3210)
+        version: 1.7.4(e8d00fd411446ade2ef0137e3d50719d)
       '@mlightcad/data-model':
         specifier: 1.14.5
         version: 1.14.5
@@ -220,7 +220,7 @@ importers:
         version: 3.2.0
       element-plus:
         specifier: 2.14.6
-        version: 2.14.6(vue@3.5.38(@typescript/typescript6@6.0.2))
+        version: 2.14.6(vue@3.5.43(@typescript/typescript6@6.0.2))
       jquery:
         specifier: ^4.0.0
         version: 4.0.0
@@ -231,14 +231,14 @@ importers:
         specifier: 0.186.1
         version: 0.186.1
       vue:
-        specifier: 3.5.38
-        version: 3.5.38(@typescript/typescript6@6.0.2)
+        specifier: 3.5.43
+        version: 3.5.43(@typescript/typescript6@6.0.2)
       vue-i18n:
         specifier: 11.4.6
-        version: 11.4.6(vue@3.5.38(@typescript/typescript6@6.0.2))
+        version: 11.4.6(vue@3.5.43(@typescript/typescript6@6.0.2))
       vue-router:
         specifier: ^5.2.0
-        version: 5.4.0(@vue/compiler-sfc@3.5.43)(vue@3.5.38(@typescript/typescript6@6.0.2))(webpack@5.111.1)
+        version: 5.4.0(@vue/compiler-sfc@3.5.43)(vue@3.5.43(@typescript/typescript6@6.0.2))(webpack@5.111.1)
     devDependencies:
       '@babel/core':
         specifier: ^8.0.0
@@ -275,10 +275,10 @@ importers:
         version: 3.5.43
       '@vue/test-utils':
         specifier: ^2.4.11
-        version: 2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.38(vue@3.5.38(@typescript/typescript6@6.0.2)))(vue@3.5.38(@typescript/typescript6@6.0.2))
+        version: 2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.43)(vue@3.5.43(@typescript/typescript6@6.0.2))
       '@vue/vue3-jest':
         specifier: ^29.2.6
-        version: 29.2.6(@babel/core@8.0.7)(@typescript/typescript6@6.0.2)(babel-jest@30.5.2(@babel/core@8.0.7)(supports-color@10.2.2))(jest@30.5.2(@types/node@26.6.4)(supports-color@10.2.2))(supports-color@10.2.2)(vue@3.5.38(@typescript/typescript6@6.0.2))
+        version: 29.2.6(@babel/core@8.0.7)(@typescript/typescript6@6.0.2)(babel-jest@30.5.2(@babel/core@8.0.7)(supports-color@10.2.2))(jest@30.5.2(@types/node@26.6.4)(supports-color@10.2.2))(supports-color@10.2.2)(vue@3.5.43(@typescript/typescript6@6.0.2))
       ajv:
         specifier: ^8.20.0
         version: 8.20.0
@@ -344,7 +344,7 @@ importers:
         version: 10.4.1(eslint@10.12.0(supports-color@10.2.2))(supports-color@10.2.2)
       vue-loader:
         specifier: ^17.4.2
-        version: 17.4.2(@vue/compiler-sfc@3.5.43)(vue@3.5.38(@typescript/typescript6@6.0.2))(webpack@5.111.1)
+        version: 17.4.2(@vue/compiler-sfc@3.5.43)(vue@3.5.43(@typescript/typescript6@6.0.2))(webpack@5.111.1)
       vue-tsc:
         specifier: ^3.3.8
         version: 3.3.12(@typescript/typescript6@6.0.2)
@@ -405,7 +405,7 @@ packages:
     resolution: {integrity: sha512-u+c+rfIRgwfUkF1I2FzC3v+Nf5s2mamzBUlgdHSighvSdZiBQkxYV37FBTZhFz8ZXkHcZKbnbXTozLyVN2GMRQ==}
     engines: {node: '>=18'}
     peerDependencies:
-      vue: 3.5.38
+      vue: 3.5.43
       zod: ^3.25.76 || ^4.1.8
     peerDependenciesMeta:
       vue:
@@ -1194,7 +1194,7 @@ packages:
   '@element-plus/icons-vue@2.3.2':
     resolution: {integrity: sha512-OzIuTaIfC8QXEPmJvB4Y4kw34rSXdCJzxcD1kFStBvr8bK6X1zQAYDo0CNMjojnfTqRQCJ0I7prlErcoRiET2A==}
     peerDependencies:
-      vue: 3.5.38
+      vue: 3.5.43
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -1457,7 +1457,7 @@ packages:
     peerDependencies:
       '@mlightcad/cad-simple-viewer': 1.7.4
       '@mlightcad/data-model': 1.14.5
-      vue: 3.5.38
+      vue: 3.5.43
 
   '@mlightcad/cad-html-plugin@1.7.4':
     resolution: {integrity: sha512-W8z80DZPydtv4qwjYO7AVGmLc/RtyWdz9lMy8xgWHapRy7v75MkeDL64ZWN4d8nIw0zqhwdh1TgP2fU7qpVe3Q==}
@@ -1509,7 +1509,7 @@ packages:
       element-plus: 2.14.6
       lodash-es: 4.17.21
       three: 0.186.1
-      vue: 3.5.38
+      vue: 3.5.43
       vue-i18n: 11.4.6
     peerDependenciesMeta:
       '@mlightcad/cad-agent-plugin':
@@ -2319,31 +2319,19 @@ packages:
     resolution: {integrity: sha512-/5Fv+6DgIcM9ajY05ZmKBv+LMX1M9A0X+IUwDRVdt67ciw8OV9bvG2r34p3RiEadlsQybjhKPRKNXDC8Bp23cw==}
     engines: {node: '>=20.19.0'}
     peerDependencies:
-      vue: 3.5.38
+      vue: 3.5.43
     peerDependenciesMeta:
       vue:
         optional: true
 
-  '@vue/compiler-core@3.5.38':
-    resolution: {integrity: sha512-s99aGxWYig9ErHbct27KXEGhrBYlRI6c4MwAgXErOAbX9xiW37/uMa+XUDO69zLz83dng8UUZ70CTOJrLrYrEQ==}
-
   '@vue/compiler-core@3.5.43':
     resolution: {integrity: sha512-zdiLhnbe1QQqgDT8xZMpNmyqZ3qlI+/Q/FHQco57Kwl/b05HhCzN6eVGN9QU9rbga4CrS0H5SYY8VGHZCt/1Hg==}
-
-  '@vue/compiler-dom@3.5.38':
-    resolution: {integrity: sha512-JTqp25l8aFfJYF7/KmsXZjAxJz7T+SjmTJLoXVjHtc2BrSgSiW2n9Aem/cWq1OPe68A8JL06B3eVdhlP0H4TVw==}
 
   '@vue/compiler-dom@3.5.43':
     resolution: {integrity: sha512-PEZoAk3NQmsn/ejMzSOCyTYqwGqczrWm70PuhBKjjv1+TCoQAaO/zOqNwjV+honlNstT5ILxtc+8r8UUfj+iEQ==}
 
-  '@vue/compiler-sfc@3.5.38':
-    resolution: {integrity: sha512-DuA2GiZawSEW442iw/9+Fkol8hTgb4Ke5KkhmSry65QA7YuyMbIdy8p0XZRMvNwJdgRz307W8g1CSzdvS4nuNg==}
-
   '@vue/compiler-sfc@3.5.43':
     resolution: {integrity: sha512-FCbrG3XNCRl+js3huuKx4IVHBLTvMkJhVepjbxSPu1gn4yWLaYtGNQdjJGZaMytXB6qb76qQDDmDSLy/vkmleQ==}
-
-  '@vue/compiler-ssr@3.5.38':
-    resolution: {integrity: sha512-7s+W5Gc42FGxZMcuwl8H5B29T8BJPMdBT7KHFE+BbAuZ/iTEdTtv7z2XiMjiaUUw4w3ZcCEdHs36RuYJ2VA7bA==}
 
   '@vue/compiler-ssr@3.5.43':
     resolution: {integrity: sha512-GF62orf7KiJX9RqrHNGrYBudsQGD0OhJ5nDs90O8UiDuS40+YMYomiXu6w6EuvtXuRDc3MSNis3EaaSKAVSWpg==}
@@ -2363,22 +2351,17 @@ packages:
   '@vue/language-core@3.3.12':
     resolution: {integrity: sha512-k7uIKR0n4CBidk233y7cac9osnDQ5WRidTl6nsrNvpZ3nf8cx9iJxRVsRzVsoPRHbowT/iKgGMTS9RGov3jeIA==}
 
-  '@vue/reactivity@3.5.38':
-    resolution: {integrity: sha512-pG6LV/NDNRbKizcUjFFLAfjaL8mcv4DmR9avNcUw2gDHBzZneuS2TWCmp633ynzxz9YYKNeEPK2I8Wraqy2HUQ==}
+  '@vue/reactivity@3.5.43':
+    resolution: {integrity: sha512-G/c9GyOZNI2jVaaS6OX1EF1SSFSv7H0ERqNTl4+DTFMlZmB5eVAB53aLQNam/7NL2NPtaDD7RdVrzf8uJzMuOA==}
 
-  '@vue/runtime-core@3.5.38':
-    resolution: {integrity: sha512-iyW8WVfF1CpCXxncZY5Ei6rSd6oZr5DgEom//fUjRBRl56AXPD+s9ATvukRt77ZFTuYlnVA1bxY+dJB94tWVYw==}
+  '@vue/runtime-core@3.5.43':
+    resolution: {integrity: sha512-hU6U6VnVhBGQDpvlnnDlIB8ZGJBiOcgk2lh/0InltHiz3D8oSkluvuvY+do1G2H3+udeKFsmaBlgVYP7gXQzEw==}
 
-  '@vue/runtime-dom@3.5.38':
-    resolution: {integrity: sha512-apX2wt9sdfDshS+a2xueFZLVpt0GkRJZSoPmrW/SA4yzXTznhfcMVW59gr7h4YQeY0vJhdJkk2rsIDwgfFgC5A==}
+  '@vue/runtime-dom@3.5.43':
+    resolution: {integrity: sha512-Bb2Jc0YjjJdMt1SJmb9b2L/IWd3I8lIT9x9eS/xvvP9CiVgna0ffua74xKRmt4/uSJ+0r4iN8ex1jrqkhQGWQw==}
 
-  '@vue/server-renderer@3.5.38':
-    resolution: {integrity: sha512-vue8vbf2QlV4quHqzwmJy6dWfmRhP1J8l4wtZg60CL6VoKqcPY2oe7may3+1d9qfpedjK5PRLFqd5k3Isj9mUw==}
-    peerDependencies:
-      vue: 3.5.38
-
-  '@vue/shared@3.5.38':
-    resolution: {integrity: sha512-FTW0AFZNaK5/mOqvGBwVfUlNLU38TiQn4+DQgIFUnrBBJQ1crMJ82yeGQLV5jyKFsO8yRukpbuP7x+nRbH6aug==}
+  '@vue/server-renderer@3.5.43':
+    resolution: {integrity: sha512-l2Ygjv9NehV94PSBxNWsAHC0j/eIIKbn92mBuWXAPGLnn6HfJ6MH5ubsd+Nk0YoZ5FRuxWI1P2VSoh+dbPQhCQ==}
 
   '@vue/shared@3.5.43':
     resolution: {integrity: sha512-uksS7YGMR5NZyr4JNq0Rp+QyLns0ueaz20KwzIPW9R0LH1Vnt4E+XUM29PNseEbf1www2gOuhuDi5AKOIXag9Q==}
@@ -2388,7 +2371,7 @@ packages:
     peerDependencies:
       '@vue/compiler-dom': 3.x
       '@vue/server-renderer': 3.x
-      vue: 3.5.38
+      vue: 3.5.43
     peerDependenciesMeta:
       '@vue/server-renderer':
         optional: true
@@ -2401,7 +2384,7 @@ packages:
       babel-jest: 29.x
       jest: 29.x
       typescript: '>= 4.3'
-      vue: 3.5.38
+      vue: 3.5.43
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -2413,7 +2396,7 @@ packages:
     resolution: {integrity: sha512-Zv67h5mrk7YHDJsRObx+DXaCBz6RKBUpxqLesJ+3xZNPG6yuQs7ja7kg3veFrrouYLWAqydQ7CwGEbLVxB43Ng==}
     engines: {node: '>=22'}
     peerDependencies:
-      vue: 3.5.38
+      vue: 3.5.43
 
   '@vueuse/metadata@11.3.0':
     resolution: {integrity: sha512-pwDnDspTqtTo2HwfLw4Rp6yywuuBdYnPYDq+mO38ZYKGebCUQC/nVj/PXSiK9HX5otxLz8Fn7ECPbjiRz2CC3g==}
@@ -2429,7 +2412,7 @@ packages:
     resolution: {integrity: sha512-vbNXhGrbV53xPOMSyOzMHQRvhMgZf7oNDw2RChUetVxwTIEkInQ1joZ9JbT0G3z2n2AJNjvmCWeM9ySYrnvogA==}
     engines: {node: '>=22'}
     peerDependencies:
-      vue: 3.5.38
+      vue: 3.5.43
 
   '@webassemblyjs/ast@1.14.1':
     resolution: {integrity: sha512-nuBEDgQfm1ccRp/8bCQrx1frohyufl4JlbMMZ4P1wpeOfDhF6FQkxZJ1b/e+PLwr6X1Nhw6OLme5usuBWYBvuQ==}
@@ -3052,7 +3035,7 @@ packages:
   element-plus@2.14.6:
     resolution: {integrity: sha512-GH0fMoMgVEKkHimoaKvg5B00NmfPbQ+qxX6/JrO7F+dLAC3atrZr2Y2MoccHMxS22M7QE12/s0DG0Zs49iwJ/A==}
     peerDependencies:
-      vue: 3.5.38
+      vue: 3.5.43
 
   emf-converter@2.0.2:
     resolution: {integrity: sha512-QLUufb45P3LlOudCoizBtJpO8cBw8LayH0mkvkRvIjvMlb6junwP0EXgUkdDyZUEF2QSEZUPV8rO8DS5rsJmkA==}
@@ -5105,7 +5088,7 @@ packages:
   swrv@1.2.0:
     resolution: {integrity: sha512-lH/g4UcNyj+7lzK4eRGT4C68Q4EhQ6JtM9otPRIASfhhzfLWtbZPHcMuhuba7S9YVYuxkMUGImwMyGpfbkH07A==}
     peerDependencies:
-      vue: 3.5.38
+      vue: 3.5.43
 
   symbol-tree@3.2.4:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
@@ -5419,7 +5402,7 @@ packages:
     hasBin: true
     peerDependencies:
       '@vue/composition-api': ^1.0.0-rc.1
-      vue: 3.5.38
+      vue: 3.5.43
     peerDependenciesMeta:
       '@vue/composition-api':
         optional: true
@@ -5434,7 +5417,7 @@ packages:
     resolution: {integrity: sha512-l0gE7Rfy0phCa5ChKYkOq543Wgd39BCK6hkktfr1Ed4D99oRkgPK9ffShASZdeC8OJxGfdWmpYoAaAH6iLEuIg==}
     engines: {node: '>= 22'}
     peerDependencies:
-      vue: 3.5.38
+      vue: 3.5.43
 
   vue-loader@17.4.2:
     resolution: {integrity: sha512-yTKOA4R/VN4jqjw4y5HrynFL8AK0Z3/Jt7eOJXEitsm0GMRHDBjCfCiuTiLP7OESvsZYo2pATCWhDqxC5ZrM6w==}
@@ -5455,7 +5438,7 @@ packages:
       '@vue/compiler-sfc': ^3.5.34 || ^4.0.0
       pinia: ^3.0.4 || ^4.0.2
       vite: ^7.3.0 || ^8.0.0
-      vue: 3.5.38
+      vue: 3.5.43
     peerDependenciesMeta:
       '@pinia/colada':
         optional: true
@@ -5472,8 +5455,8 @@ packages:
     peerDependencies:
       typescript: '>=5.0.0'
 
-  vue@3.5.38:
-    resolution: {integrity: sha512-vAMKHfImQlYSy0C+PBue4s3ERZ2xGKfgZg5GXAsLInq1dyh2H78ILVP5sK0KPFPVW4kv+OGCIvBEondcjpZp7A==}
+  vue@3.5.43:
+    resolution: {integrity: sha512-o5qZoksdnjIKvW1srZ3ab7pcDNYAerBjRe54D0LBLfRdCYFrSgBHVXokMas35czQc0//lmx4/tuY4ZNQ+Rf2Ng==}
     peerDependencies:
       typescript: '*'
     peerDependenciesMeta:
@@ -5727,13 +5710,13 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
-  '@ai-sdk/vue@2.0.216(vue@3.5.38(@typescript/typescript6@6.0.2))(zod@3.25.76)':
+  '@ai-sdk/vue@2.0.216(vue@3.5.43(@typescript/typescript6@6.0.2))(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider-utils': 5.0.58(zod@3.25.76)
       ai: 5.0.216(zod@3.25.76)
-      swrv: 1.2.0(vue@3.5.38(@typescript/typescript6@6.0.2))
+      swrv: 1.2.0(vue@3.5.43(@typescript/typescript6@6.0.2))
     optionalDependencies:
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
       zod: 3.25.76
 
   '@asamuzakjp/css-color@3.2.0':
@@ -6703,9 +6686,9 @@ snapshots:
 
   '@discoveryjs/json-ext@1.1.0': {}
 
-  '@element-plus/icons-vue@2.3.2(vue@3.5.38(@typescript/typescript6@6.0.2))':
+  '@element-plus/icons-vue@2.3.2(vue@3.5.43(@typescript/typescript6@6.0.2))':
     dependencies:
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
 
   '@emnapi/core@1.10.0':
     dependencies:
@@ -7090,15 +7073,15 @@ snapshots:
 
   '@lukeed/csprng@1.1.0': {}
 
-  '@mlightcad/cad-agent-plugin@1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(vue@3.5.38(@typescript/typescript6@6.0.2))':
+  '@mlightcad/cad-agent-plugin@1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(vue@3.5.43(@typescript/typescript6@6.0.2))':
     dependencies:
       '@ai-sdk/anthropic': 2.0.87(zod@3.25.76)
       '@ai-sdk/openai': 2.0.114(zod@3.25.76)
-      '@ai-sdk/vue': 2.0.216(vue@3.5.38(@typescript/typescript6@6.0.2))(zod@3.25.76)
+      '@ai-sdk/vue': 2.0.216(vue@3.5.43(@typescript/typescript6@6.0.2))(zod@3.25.76)
       '@mlightcad/cad-simple-viewer': 1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1)
       '@mlightcad/data-model': 1.14.5
       ai: 5.0.216(zod@3.25.76)
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
       zod: 3.25.76
 
   '@mlightcad/cad-html-plugin@1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(three@0.186.1)':
@@ -7132,19 +7115,19 @@ snapshots:
       '@mlightcad/mtext-parser': 1.5.3
       '@mlightcad/mtext-renderer': 0.12.7(three@0.186.1)
 
-  '@mlightcad/cad-viewer@1.7.4(a87bf312e5464bf4cd1c9a5ae6ad3210)':
+  '@mlightcad/cad-viewer@1.7.4(e8d00fd411446ade2ef0137e3d50719d)':
     dependencies:
       '@mlightcad/cad-simple-viewer': 1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1)
       '@mlightcad/data-model': 1.14.5
       '@mlightcad/three-renderer': 1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1)
-      '@vueuse/core': 11.3.0(vue@3.5.38(@typescript/typescript6@6.0.2))
-      element-plus: 2.14.6(vue@3.5.38(@typescript/typescript6@6.0.2))
+      '@vueuse/core': 11.3.0(vue@3.5.43(@typescript/typescript6@6.0.2))
+      element-plus: 2.14.6(vue@3.5.43(@typescript/typescript6@6.0.2))
       lodash-es: 4.18.1
       three: 0.186.1
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
-      vue-i18n: 11.4.6(vue@3.5.38(@typescript/typescript6@6.0.2))
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
+      vue-i18n: 11.4.6(vue@3.5.43(@typescript/typescript6@6.0.2))
     optionalDependencies:
-      '@mlightcad/cad-agent-plugin': 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(vue@3.5.38(@typescript/typescript6@6.0.2))
+      '@mlightcad/cad-agent-plugin': 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(vue@3.5.43(@typescript/typescript6@6.0.2))
       '@mlightcad/cad-html-plugin': 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(three@0.186.1)
       '@mlightcad/cad-pdf-plugin': 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/pdf-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))
       '@mlightcad/cad-svg-plugin': 1.7.4(@mlightcad/cad-simple-viewer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@mlightcad/three-renderer@1.7.4(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))(@velipso/polybool@1.1.1)(three@0.186.1))(lodash-es@4.18.1)(three@0.186.1))(@mlightcad/data-model@1.14.5)(@mlightcad/mtext-parser@1.5.3)(@mlightcad/mtext-renderer@0.12.7(three@0.186.1))
@@ -7928,7 +7911,7 @@ snapshots:
     optionalDependencies:
       typescript: '@typescript/typescript6@6.0.2'
 
-  '@vue-macros/common@3.1.4(vue@3.5.38(@typescript/typescript6@6.0.2))':
+  '@vue-macros/common@3.1.4(vue@3.5.43(@typescript/typescript6@6.0.2))':
     dependencies:
       '@vue/compiler-sfc': 3.5.43
       ast-kit: 2.2.0
@@ -7936,15 +7919,7 @@ snapshots:
       magic-string-ast: 1.0.3
       unplugin-utils: 0.3.2
     optionalDependencies:
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
-
-  '@vue/compiler-core@3.5.38':
-    dependencies:
-      '@babel/parser': 7.29.8
-      '@vue/shared': 3.5.38
-      entities: 7.0.1
-      estree-walker: 2.0.2
-      source-map-js: 1.2.1
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
 
   '@vue/compiler-core@3.5.43':
     dependencies:
@@ -7954,27 +7929,10 @@ snapshots:
       estree-walker: 2.0.2
       source-map-js: 1.2.1
 
-  '@vue/compiler-dom@3.5.38':
-    dependencies:
-      '@vue/compiler-core': 3.5.38
-      '@vue/shared': 3.5.38
-
   '@vue/compiler-dom@3.5.43':
     dependencies:
       '@vue/compiler-core': 3.5.43
       '@vue/shared': 3.5.43
-
-  '@vue/compiler-sfc@3.5.38':
-    dependencies:
-      '@babel/parser': 7.29.8
-      '@vue/compiler-core': 3.5.38
-      '@vue/compiler-dom': 3.5.38
-      '@vue/compiler-ssr': 3.5.38
-      '@vue/shared': 3.5.38
-      estree-walker: 2.0.2
-      magic-string: 0.30.21
-      postcss: 8.5.26
-      source-map-js: 1.2.1
 
   '@vue/compiler-sfc@3.5.43':
     dependencies:
@@ -7987,11 +7945,6 @@ snapshots:
       magic-string: 0.30.21
       postcss: 8.5.26
       source-map-js: 1.2.1
-
-  '@vue/compiler-ssr@3.5.38':
-    dependencies:
-      '@vue/compiler-dom': 3.5.38
-      '@vue/shared': 3.5.38
 
   '@vue/compiler-ssr@3.5.43':
     dependencies:
@@ -8023,42 +7976,40 @@ snapshots:
       path-browserify: 1.0.1
       picomatch: 4.0.5
 
-  '@vue/reactivity@3.5.38':
+  '@vue/reactivity@3.5.43':
     dependencies:
-      '@vue/shared': 3.5.38
+      '@vue/shared': 3.5.43
 
-  '@vue/runtime-core@3.5.38':
+  '@vue/runtime-core@3.5.43':
     dependencies:
-      '@vue/reactivity': 3.5.38
-      '@vue/shared': 3.5.38
+      '@vue/reactivity': 3.5.43
+      '@vue/shared': 3.5.43
 
-  '@vue/runtime-dom@3.5.38':
+  '@vue/runtime-dom@3.5.43':
     dependencies:
-      '@vue/reactivity': 3.5.38
-      '@vue/runtime-core': 3.5.38
-      '@vue/shared': 3.5.38
+      '@vue/reactivity': 3.5.43
+      '@vue/runtime-core': 3.5.43
+      '@vue/shared': 3.5.43
       csstype: 3.2.3
 
-  '@vue/server-renderer@3.5.38(vue@3.5.38(@typescript/typescript6@6.0.2))':
+  '@vue/server-renderer@3.5.43':
     dependencies:
-      '@vue/compiler-ssr': 3.5.38
-      '@vue/shared': 3.5.38
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
-
-  '@vue/shared@3.5.38': {}
+      '@vue/compiler-ssr': 3.5.43
+      '@vue/runtime-dom': 3.5.43
+      '@vue/shared': 3.5.43
 
   '@vue/shared@3.5.43': {}
 
-  '@vue/test-utils@2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.38(vue@3.5.38(@typescript/typescript6@6.0.2)))(vue@3.5.38(@typescript/typescript6@6.0.2))':
+  '@vue/test-utils@2.5.1(@vue/compiler-dom@3.5.43)(@vue/server-renderer@3.5.43)(vue@3.5.43(@typescript/typescript6@6.0.2))':
     dependencies:
       '@vue/compiler-dom': 3.5.43
       js-beautify: 2.0.3
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
       vue-component-type-helpers: 3.3.8
     optionalDependencies:
-      '@vue/server-renderer': 3.5.38(vue@3.5.38(@typescript/typescript6@6.0.2))
+      '@vue/server-renderer': 3.5.43
 
-  '@vue/vue3-jest@29.2.6(@babel/core@8.0.7)(@typescript/typescript6@6.0.2)(babel-jest@30.5.2(@babel/core@8.0.7)(supports-color@10.2.2))(jest@30.5.2(@types/node@26.6.4)(supports-color@10.2.2))(supports-color@10.2.2)(vue@3.5.38(@typescript/typescript6@6.0.2))':
+  '@vue/vue3-jest@29.2.6(@babel/core@8.0.7)(@typescript/typescript6@6.0.2)(babel-jest@30.5.2(@babel/core@8.0.7)(supports-color@10.2.2))(jest@30.5.2(@types/node@26.6.4)(supports-color@10.2.2))(supports-color@10.2.2)(vue@3.5.43(@typescript/typescript6@6.0.2))':
     dependencies:
       '@babel/core': 8.0.7
       '@babel/plugin-transform-modules-commonjs': 7.29.7(@babel/core@8.0.7)(supports-color@10.2.2)
@@ -8069,43 +8020,43 @@ snapshots:
       jest: 30.5.2(@types/node@26.6.4)(supports-color@10.2.2)
       source-map: 0.5.6
       tsconfig: 7.0.0
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
     optionalDependencies:
       typescript: '@typescript/typescript6@6.0.2'
     transitivePeerDependencies:
       - supports-color
 
-  '@vueuse/core@11.3.0(vue@3.5.38(@typescript/typescript6@6.0.2))':
+  '@vueuse/core@11.3.0(vue@3.5.43(@typescript/typescript6@6.0.2))':
     dependencies:
       '@types/web-bluetooth': 0.0.20
       '@vueuse/metadata': 11.3.0
-      '@vueuse/shared': 11.3.0(vue@3.5.38(@typescript/typescript6@6.0.2))
-      vue-demi: 0.14.10(vue@3.5.38(@typescript/typescript6@6.0.2))
+      '@vueuse/shared': 11.3.0(vue@3.5.43(@typescript/typescript6@6.0.2))
+      vue-demi: 0.14.10(vue@3.5.43(@typescript/typescript6@6.0.2))
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
 
-  '@vueuse/core@15.0.0(vue@3.5.38(@typescript/typescript6@6.0.2))':
+  '@vueuse/core@15.0.0(vue@3.5.43(@typescript/typescript6@6.0.2))':
     dependencies:
       '@types/web-bluetooth': 0.0.21
       '@vueuse/metadata': 15.0.0
-      '@vueuse/shared': 15.0.0(vue@3.5.38(@typescript/typescript6@6.0.2))
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
+      '@vueuse/shared': 15.0.0(vue@3.5.43(@typescript/typescript6@6.0.2))
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
 
   '@vueuse/metadata@11.3.0': {}
 
   '@vueuse/metadata@15.0.0': {}
 
-  '@vueuse/shared@11.3.0(vue@3.5.38(@typescript/typescript6@6.0.2))':
+  '@vueuse/shared@11.3.0(vue@3.5.43(@typescript/typescript6@6.0.2))':
     dependencies:
-      vue-demi: 0.14.10(vue@3.5.38(@typescript/typescript6@6.0.2))
+      vue-demi: 0.14.10(vue@3.5.43(@typescript/typescript6@6.0.2))
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
 
-  '@vueuse/shared@15.0.0(vue@3.5.38(@typescript/typescript6@6.0.2))':
+  '@vueuse/shared@15.0.0(vue@3.5.43(@typescript/typescript6@6.0.2))':
     dependencies:
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
 
   '@webassemblyjs/ast@1.14.1':
     dependencies:
@@ -8777,15 +8728,15 @@ snapshots:
 
   electron-to-chromium@1.5.397: {}
 
-  element-plus@2.14.6(vue@3.5.38(@typescript/typescript6@6.0.2)):
+  element-plus@2.14.6(vue@3.5.43(@typescript/typescript6@6.0.2)):
     dependencies:
       '@ctrl/tinycolor': 4.2.1
-      '@element-plus/icons-vue': 2.3.2(vue@3.5.38(@typescript/typescript6@6.0.2))
+      '@element-plus/icons-vue': 2.3.2(vue@3.5.43(@typescript/typescript6@6.0.2))
       '@floating-ui/dom': 1.8.0
       '@popperjs/core': '@sxzz/popperjs-es@2.11.8'
       '@types/lodash': 4.17.24
       '@types/lodash-es': 4.17.12
-      '@vueuse/core': 15.0.0(vue@3.5.38(@typescript/typescript6@6.0.2))
+      '@vueuse/core': 15.0.0(vue@3.5.43(@typescript/typescript6@6.0.2))
       async-validator: 4.2.5
       dayjs: 1.11.21
       lodash: 4.18.1
@@ -8793,7 +8744,7 @@ snapshots:
       lodash-unified: 1.0.3(@types/lodash-es@4.17.12)(lodash-es@4.18.1)(lodash@4.18.1)
       memoize-one: 6.0.0
       normalize-wheel-es: 1.2.0
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
       vue-component-type-helpers: 3.3.11
 
   emf-converter@2.0.2: {}
@@ -10933,9 +10884,9 @@ snapshots:
 
   svg-tags@1.0.0: {}
 
-  swrv@1.2.0(vue@3.5.38(@typescript/typescript6@6.0.2)):
+  swrv@1.2.0(vue@3.5.43(@typescript/typescript6@6.0.2)):
     dependencies:
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
 
   symbol-tree@3.2.4: {}
 
@@ -11222,9 +11173,9 @@ snapshots:
 
   vue-component-type-helpers@3.3.8: {}
 
-  vue-demi@0.14.10(vue@3.5.38(@typescript/typescript6@6.0.2)):
+  vue-demi@0.14.10(vue@3.5.43(@typescript/typescript6@6.0.2)):
     dependencies:
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
 
   vue-eslint-parser@10.4.1(eslint@10.12.0(supports-color@10.2.2))(supports-color@10.2.2):
     dependencies:
@@ -11238,15 +11189,15 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  vue-i18n@11.4.6(vue@3.5.38(@typescript/typescript6@6.0.2)):
+  vue-i18n@11.4.6(vue@3.5.43(@typescript/typescript6@6.0.2)):
     dependencies:
       '@intlify/core-base': 11.4.6
       '@intlify/devtools-types': 11.4.6
       '@intlify/shared': 11.4.6
       '@vue/devtools-api': 6.6.4
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
 
-  vue-loader@17.4.2(@vue/compiler-sfc@3.5.43)(vue@3.5.38(@typescript/typescript6@6.0.2))(webpack@5.111.1):
+  vue-loader@17.4.2(@vue/compiler-sfc@3.5.43)(vue@3.5.43(@typescript/typescript6@6.0.2))(webpack@5.111.1):
     dependencies:
       chalk: 4.1.2
       hash-sum: 2.0.0
@@ -11254,11 +11205,11 @@ snapshots:
       webpack: 5.111.1(postcss@8.5.26)(uglify-js@3.19.3)(webpack-cli@7.2.3)
     optionalDependencies:
       '@vue/compiler-sfc': 3.5.43
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
 
-  vue-router@5.4.0(@vue/compiler-sfc@3.5.43)(vue@3.5.38(@typescript/typescript6@6.0.2))(webpack@5.111.1):
+  vue-router@5.4.0(@vue/compiler-sfc@3.5.43)(vue@3.5.43(@typescript/typescript6@6.0.2))(webpack@5.111.1):
     dependencies:
-      '@vue-macros/common': 3.1.4(vue@3.5.38(@typescript/typescript6@6.0.2))
+      '@vue-macros/common': 3.1.4(vue@3.5.43(@typescript/typescript6@6.0.2))
       '@vue/devtools-api': 8.1.5
       ast-walker-scope: 0.10.0
       chokidar: 5.0.0
@@ -11274,7 +11225,7 @@ snapshots:
       tinyglobby: 0.2.17
       unplugin: 3.4.0(webpack@5.111.1)
       unplugin-utils: 0.3.2
-      vue: 3.5.38(@typescript/typescript6@6.0.2)
+      vue: 3.5.43(@typescript/typescript6@6.0.2)
     optionalDependencies:
       '@vue/compiler-sfc': 3.5.43
     transitivePeerDependencies:
@@ -11294,13 +11245,13 @@ snapshots:
       '@vue/language-core': 3.3.12
       typescript: '@typescript/typescript6@6.0.2'
 
-  vue@3.5.38(@typescript/typescript6@6.0.2):
+  vue@3.5.43(@typescript/typescript6@6.0.2):
     dependencies:
-      '@vue/compiler-dom': 3.5.38
-      '@vue/compiler-sfc': 3.5.38
-      '@vue/runtime-dom': 3.5.38
-      '@vue/server-renderer': 3.5.38(vue@3.5.38(@typescript/typescript6@6.0.2))
-      '@vue/shared': 3.5.38
+      '@vue/compiler-dom': 3.5.43
+      '@vue/compiler-sfc': 3.5.43
+      '@vue/runtime-dom': 3.5.43
+      '@vue/server-renderer': 3.5.43
+      '@vue/shared': 3.5.43
     optionalDependencies:
       typescript: '@typescript/typescript6@6.0.2'
 
