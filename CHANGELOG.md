@@ -1,3 +1,10 @@
+## [0.5.248](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.247...v0.5.248) (2026-10-09)
+
+
+### Bug Fixes
+
+* **deps:** sync vue override to 3.5.43 to clear server-renderer advisory ([04b46e0](https://github.com/ashcoft/nextcloud-cad-viewer/commit/04b46e0d9253d34ab6c07f8d6695c5a82f23f9a5))
+
 ## [0.5.247](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.246...v0.5.247) (2026-10-09)
 
 ## [0.5.246](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.245...v0.5.246) (2026-10-09)
