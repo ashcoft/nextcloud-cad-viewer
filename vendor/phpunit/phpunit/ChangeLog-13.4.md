@@ -2,6 +2,20 @@
 
 All notable changes of the PHPUnit 13.4 release series are documented in this file using the [Keep a CHANGELOG](https://keepachangelog.com/) principles.
 
+## [13.4.1] - 2026-10-05
+
+### Changed
+
+* The Software Bill of Materials (SBOM) embedded in the PHAR now uses CycloneDX 1.7 and provides the NTIA minimum elements as well as the data fields that BSI TR-03183-2 (version 2.1.0) requires for logical and identified components, including component creators, original, distribution and effective licences, source code URIs, and the PHP runtime and its extensions as external components
+
+### Fixed
+
+* [#7029](https://github.com/sebastianbergmann/phpunit/issues/7029): `TestSuite::runTests()` doubles garbage collector time when `zend.exception_ignore_args` is off
+* `setUpBeforeClass()` and `tearDownAfterClass()` were run twice for a test class that is the only test class in a test suite of the XML configuration file that has the name of that test class
+* Tests could not be run in process isolation when the path of the bootstrap script, the test file, or the directory for temporary files contained a single quote
+* Arguments in the `--ARGS--` section of a PHPT test that start with `-` were interpreted by PHP instead of being passed to the test when the test also has a `--STDIN--` section
+* Recording the tests that passed in a child process copied all tests that had passed so far, which made running many tests in process isolation increasingly slow
+
 ## [13.4.0] - 2026-10-02
 
 ### Added
@@ -38,4 +52,5 @@ All notable changes of the PHPUnit 13.4 release series are documented in this fi
 * A test that is run in process isolation aborts the test run when its result cannot be unserialized, for instance because it returns an object that holds a test double
 * A test that uses `#[DataProviderClosure]` errors when it is run in process isolation
 
+[13.4.1]: https://github.com/sebastianbergmann/phpunit/compare/13.4.0...13.4.1
 [13.4.0]: https://github.com/sebastianbergmann/phpunit/compare/13.3.6...13.4.0
