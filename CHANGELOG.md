@@ -1,3 +1,5 @@
+## [0.5.253](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.252...v0.5.253) (2026-10-10)
+
 ## [0.5.252](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.251...v0.5.252) (2026-10-10)
 
 ## [0.5.251](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.250...v0.5.251) (2026-10-10)
