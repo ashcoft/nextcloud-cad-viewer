@@ -1,3 +1,10 @@
+## [0.5.268](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.267...v0.5.268) (2026-10-16)
+
+
+### Bug Fixes
+
+* **deps:** update mlightcad-ecosystem to v1.7.6 ([adba1c0](https://github.com/ashcoft/nextcloud-cad-viewer/commit/adba1c0c5ce2f4ab51d9c92727204678992e83d8))
+
 ## [0.5.267](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.266...v0.5.267) (2026-10-16)
 
 ## [0.5.266](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.265...v0.5.266) (2026-10-15)
