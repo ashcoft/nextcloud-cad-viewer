@@ -3,7 +3,7 @@
         'name' => 'ashcoft/nextcloud-cad-viewer',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '4afd37b35f71183e83e4b96fd09574a5b2e9a84d',
+        'reference' => '7ff4cc52ca06cd590c8c7738816532974745fcee',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -112,7 +112,7 @@
         'ashcoft/nextcloud-cad-viewer' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '4afd37b35f71183e83e4b96fd09574a5b2e9a84d',
+            'reference' => '7ff4cc52ca06cd590c8c7738816532974745fcee',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -410,9 +410,9 @@
             'dev_requirement' => true,
         ),
         'phpunit/phpunit' => array(
-            'pretty_version' => '13.4.2',
-            'version' => '13.4.2.0',
-            'reference' => '7b9ba83328f01ce299ef82161720195bd827a4bb',
+            'pretty_version' => '13.4.3',
+            'version' => '13.4.3.0',
+            'reference' => '2180c47c4229e5da117ff248753370443c074f10',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpunit/phpunit',
             'aliases' => array(),
@@ -421,7 +421,7 @@
         'psalm/psalm' => array(
             'dev_requirement' => true,
             'provided' => array(
-                0 => '6.20.0',
+                0 => '6.20.1',
             ),
         ),
         'psr/container' => array(
@@ -832,9 +832,9 @@
             'dev_requirement' => true,
         ),
         'vimeo/psalm' => array(
-            'pretty_version' => '6.20.0',
-            'version' => '6.20.0.0',
-            'reference' => '804f03c0c183d149fcd4b8c7c0c9b3fbf836d34c',
+            'pretty_version' => '6.20.1',
+            'version' => '6.20.1.0',
+            'reference' => '376425b8e67b79773add388e16b4f6be5693dc87',
             'type' => 'project',
             'install_path' => __DIR__ . '/../vimeo/psalm',
             'aliases' => array(),
