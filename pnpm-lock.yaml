@@ -211,7 +211,7 @@ importers:
         version: 2.6.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
       '@nextcloud/files':
         specifier: ^4.0.0
-        version: 4.1.0(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
+        version: 4.1.1(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
       '@nextcloud/l10n':
         specifier: ^3.0.0
         version: 3.4.1
@@ -1603,8 +1603,8 @@ packages:
     resolution: {integrity: sha512-zIfvKmUGkXpVzRKoXrcO9hkoiKDm65fqNxy/XIbIxrQhZByPq3gDkjBpnu3V5Gs8JdYwa73R8DjzV9oH8HYhIg==}
     engines: {node: ^20 || ^22 || ^24}
 
-  '@nextcloud/files@4.1.0':
-    resolution: {integrity: sha512-C45fxBxU9v5HQ437I+r4EuqG/A9CYqNnYM34ltdxFNSBMjId7DoRJrk5UDA7QsC4eB/CP1xNxFSpkY+g6RPWXA==}
+  '@nextcloud/files@4.1.1':
+    resolution: {integrity: sha512-3fvaBNObXFjVgFm0FvPXr+rtYh2CUGAc0+98dhIP0AC7Q+UCVYIwyB3tsSBGP29HnqGWqGRY7nZaj7gI7NzbvQ==}
     engines: {node: ^24.0.0 || >=26.0.0}
 
   '@nextcloud/initial-state@3.0.0':
@@ -1637,6 +1637,9 @@ packages:
 
   '@nodable/entities@3.0.0':
     resolution: {integrity: sha512-8L9xFeTYKhm49xfIypoe2W5wV1m/3Z58kT+7kR9A8OyFxcPduI4VmxaUMQyKYrRjUoLLSXv6EKKID5Tvj9cUVw==}
+
+  '@nodable/entities@3.1.0':
+    resolution: {integrity: sha512-LsS/DjHr+uDM647Gru/cA8+J3a3HfhttwCKLyuoyN7yXTFCxKBtSgMQBvrW9yNPa2/zDRUNuGPaH5QUFoa4arQ==}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -3283,8 +3286,8 @@ packages:
   fast-xml-builder@1.3.0:
     resolution: {integrity: sha512-F74cZEdCvuw9P41GAC3rod4X04jjWGM1JPEv/GWSqFTWLsdyMSBMBMlm9Hk3GLBgLBbdBNY8yee0pQh2RBVESQ==}
 
-  fast-xml-parser@5.10.1:
-    resolution: {integrity: sha512-IEMIf7298kXuZSRFoGfMYrl7is8LpavODgbNz1cwIudv7KwVFnuU+UsMporfq6PD6aXSlawZlARiA3UywCTfMw==}
+  fast-xml-parser@5.11.2:
+    resolution: {integrity: sha512-R9iDuNrQYeQut46cn2r2wHKn4HYzVDvDm5J1wW+koZewykv0yuO2HChTYeZtrULyHIDM9cj9TUXloCsueCQUog==}
     hasBin: true
 
   fastest-levenshtein@1.0.16:
@@ -5028,8 +5031,8 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
-  strnum@2.4.1:
-    resolution: {integrity: sha512-M9eUSMT2dCB2cTNPG7UYj6KuK7RJR2SN2+yCV/fTW3xzTCS6EaGZ5pSMgDIjB7r8zSfTGk+dvvn9rTjpVS9Mwg==}
+  strnum@2.5.1:
+    resolution: {integrity: sha512-UM4nTLWzQiDBseVxUGxN0wJzIk0UU89Qi7pKXz9qISo+lhviJikTuikBsK/oFRlpvYHvSdz0TVoLyQ+sEpYwxA==}
 
   strtok3@10.3.5:
     resolution: {integrity: sha512-ki4hZQfh5rX0QDLLkOCj+h+CVNkqmp/CMf8v8kZpkNVK6jGQooMytqzLZYUVYIZcFZ6yDB70EfD8POcFXiF5oA==}
@@ -5524,8 +5527,8 @@ packages:
   web-worker@1.5.0:
     resolution: {integrity: sha512-RiMReJrTAiA+mBjGONMnjVDP2u3p9R1vkcGz6gDIrOMT3oGuYwX2WRMYI9ipkphSuE5XKEhydbhNEJh4NY9mlw==}
 
-  webdav@5.10.0:
-    resolution: {integrity: sha512-fVPuRLtcduVGvSO7Tn/6TQCzIvI/g6BO/+xPRctCvi/GytYpjn4czxWbh4HsArsdom9qz9BI63k9/v2HBUui1A==}
+  webdav@5.11.0:
+    resolution: {integrity: sha512-DbUS8rHvWse55EiHM0q5q1z3eVRCLWW7Va7mUqA2/JJdQHIew4Op2HTglHkBJDOAVrQeQf0I+REUJkIrYqtL+w==}
     engines: {node: '>=14'}
 
   webidl-conversions@7.0.0:
@@ -7265,7 +7268,7 @@ snapshots:
       '@types/semver': 7.7.1
       semver: 7.8.5
 
-  '@nextcloud/files@4.1.0(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)':
+  '@nextcloud/files@4.1.1(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)':
     dependencies:
       '@nextcloud/auth': 2.6.0
       '@nextcloud/axios': 2.6.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
@@ -7279,7 +7282,7 @@ snapshots:
       is-svg: 6.1.0
       p-queue: 9.3.3
       typescript-event-target: 1.1.2
-      webdav: 5.10.0
+      webdav: 5.11.0
     transitivePeerDependencies:
       - axios
       - debug
@@ -7310,13 +7313,15 @@ snapshots:
       '@nextcloud/initial-state': 3.0.0
       is-svg: 6.1.0
     optionalDependencies:
-      '@nextcloud/files': 4.1.0(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
+      '@nextcloud/files': 4.1.1(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
 
   '@nextcloud/typings@1.10.0':
     dependencies:
       '@types/jquery': 3.5.16
 
   '@nodable/entities@3.0.0': {}
+
+  '@nodable/entities@3.1.0': {}
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
@@ -9076,13 +9081,13 @@ snapshots:
       path-expression-matcher: 1.6.2
       xml-naming: 0.3.0
 
-  fast-xml-parser@5.10.1:
+  fast-xml-parser@5.11.2:
     dependencies:
-      '@nodable/entities': 3.0.0
+      '@nodable/entities': 3.1.0
       fast-xml-builder: 1.3.0
       is-unsafe: 2.0.0
       path-expression-matcher: 1.6.2
-      strnum: 2.4.1
+      strnum: 2.5.1
       xml-naming: 0.3.0
 
   fastest-levenshtein@1.0.16: {}
@@ -10851,7 +10856,7 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  strnum@2.4.1:
+  strnum@2.5.1:
     dependencies:
       anynum: 1.0.1
 
@@ -11355,13 +11360,14 @@ snapshots:
 
   web-worker@1.5.0: {}
 
-  webdav@5.10.0:
+  webdav@5.11.0:
     dependencies:
       '@buttercup/fetch': 0.2.1
+      '@nodable/entities': 3.0.0
       base-64: 1.0.0
       byte-length: 1.0.2
       entities: 6.0.1
-      fast-xml-parser: 5.10.1
+      fast-xml-parser: 5.11.2
       hot-patcher: 2.0.1
       layerr: 3.0.0
       md5: 2.3.0
