@@ -211,7 +211,7 @@ importers:
         version: 2.6.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
       '@nextcloud/files':
         specifier: ^4.0.0
-        version: 4.1.1(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
+        version: 4.1.0(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
       '@nextcloud/l10n':
         specifier: ^3.0.0
         version: 3.4.1
@@ -1603,8 +1603,8 @@ packages:
     resolution: {integrity: sha512-zIfvKmUGkXpVzRKoXrcO9hkoiKDm65fqNxy/XIbIxrQhZByPq3gDkjBpnu3V5Gs8JdYwa73R8DjzV9oH8HYhIg==}
     engines: {node: ^20 || ^22 || ^24}
 
-  '@nextcloud/files@4.1.1':
-    resolution: {integrity: sha512-3fvaBNObXFjVgFm0FvPXr+rtYh2CUGAc0+98dhIP0AC7Q+UCVYIwyB3tsSBGP29HnqGWqGRY7nZaj7gI7NzbvQ==}
+  '@nextcloud/files@4.1.0':
+    resolution: {integrity: sha512-C45fxBxU9v5HQ437I+r4EuqG/A9CYqNnYM34ltdxFNSBMjId7DoRJrk5UDA7QsC4eB/CP1xNxFSpkY+g6RPWXA==}
     engines: {node: ^24.0.0 || >=26.0.0}
 
   '@nextcloud/initial-state@3.0.0':
@@ -1634,9 +1634,6 @@ packages:
   '@nextcloud/typings@1.10.0':
     resolution: {integrity: sha512-SMC42rDjOH3SspPTLMZRv76ZliHpj2JJkF8pGLP8l1QrVTZxE47Qz5qeKmbj2VL+dRv2e/NgixlAFmzVnxkhqg==}
     engines: {node: ^20.0.0 || ^22.0.0 || ^24.0.0}
-
-  '@nodable/entities@3.0.0':
-    resolution: {integrity: sha512-8L9xFeTYKhm49xfIypoe2W5wV1m/3Z58kT+7kR9A8OyFxcPduI4VmxaUMQyKYrRjUoLLSXv6EKKID5Tvj9cUVw==}
 
   '@nodable/entities@3.1.0':
     resolution: {integrity: sha512-LsS/DjHr+uDM647Gru/cA8+J3a3HfhttwCKLyuoyN7yXTFCxKBtSgMQBvrW9yNPa2/zDRUNuGPaH5QUFoa4arQ==}
@@ -7268,7 +7265,7 @@ snapshots:
       '@types/semver': 7.7.1
       semver: 7.8.5
 
-  '@nextcloud/files@4.1.1(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)':
+  '@nextcloud/files@4.1.0(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)':
     dependencies:
       '@nextcloud/auth': 2.6.0
       '@nextcloud/axios': 2.6.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
@@ -7313,13 +7310,11 @@ snapshots:
       '@nextcloud/initial-state': 3.0.0
       is-svg: 6.1.0
     optionalDependencies:
-      '@nextcloud/files': 4.1.1(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
+      '@nextcloud/files': 4.1.0(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
 
   '@nextcloud/typings@1.10.0':
     dependencies:
       '@types/jquery': 3.5.16
-
-  '@nodable/entities@3.0.0': {}
 
   '@nodable/entities@3.1.0': {}
 
@@ -11363,7 +11358,7 @@ snapshots:
   webdav@5.11.0:
     dependencies:
       '@buttercup/fetch': 0.2.1
-      '@nodable/entities': 3.0.0
+      '@nodable/entities': 3.1.0
       base-64: 1.0.0
       byte-length: 1.0.2
       entities: 6.0.1
