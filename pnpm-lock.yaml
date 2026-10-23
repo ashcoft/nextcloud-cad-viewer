@@ -211,7 +211,7 @@ importers:
         version: 2.6.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
       '@nextcloud/files':
         specifier: ^4.0.0
-        version: 4.1.0(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
+        version: 4.1.1(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
       '@nextcloud/l10n':
         specifier: ^3.0.0
         version: 3.4.1
@@ -1603,8 +1603,8 @@ packages:
     resolution: {integrity: sha512-zIfvKmUGkXpVzRKoXrcO9hkoiKDm65fqNxy/XIbIxrQhZByPq3gDkjBpnu3V5Gs8JdYwa73R8DjzV9oH8HYhIg==}
     engines: {node: ^20 || ^22 || ^24}
 
-  '@nextcloud/files@4.1.0':
-    resolution: {integrity: sha512-C45fxBxU9v5HQ437I+r4EuqG/A9CYqNnYM34ltdxFNSBMjId7DoRJrk5UDA7QsC4eB/CP1xNxFSpkY+g6RPWXA==}
+  '@nextcloud/files@4.1.1':
+    resolution: {integrity: sha512-3fvaBNObXFjVgFm0FvPXr+rtYh2CUGAc0+98dhIP0AC7Q+UCVYIwyB3tsSBGP29HnqGWqGRY7nZaj7gI7NzbvQ==}
     engines: {node: ^24.0.0 || >=26.0.0}
 
   '@nextcloud/initial-state@3.0.0':
@@ -7265,7 +7265,7 @@ snapshots:
       '@types/semver': 7.7.1
       semver: 7.8.5
 
-  '@nextcloud/files@4.1.0(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)':
+  '@nextcloud/files@4.1.1(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)':
     dependencies:
       '@nextcloud/auth': 2.6.0
       '@nextcloud/axios': 2.6.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
@@ -7310,7 +7310,7 @@ snapshots:
       '@nextcloud/initial-state': 3.0.0
       is-svg: 6.1.0
     optionalDependencies:
-      '@nextcloud/files': 4.1.0(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
+      '@nextcloud/files': 4.1.1(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
 
   '@nextcloud/typings@1.10.0':
     dependencies:
