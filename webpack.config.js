@@ -10,15 +10,15 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const runtimeAssets = [
   {
     from: path.resolve(__dirname, 'node_modules/@mlightcad/libredwg-converter/dist/libredwg-parser-worker.js'),
-    to: 'libredwg-parser-worker.js',
+    to: path.resolve(__dirname, 'assets/libredwg-parser-worker.js'),
   },
   {
     from: path.resolve(__dirname, 'node_modules/@mlightcad/libredwg-converter/dist/libredwg-web.wasm'),
-    to: 'libredwg-web.wasm',
+    to: path.resolve(__dirname, 'assets/libredwg-web.wasm'),
   },
   {
     from: path.resolve(__dirname, 'node_modules/@mlightcad/cad-simple-viewer/dist/mtext-renderer-worker.js'),
-    to: 'mtext-renderer-worker.js',
+    to: path.resolve(__dirname, 'assets/mtext-renderer-worker.js'),
   },
 ];
 module.exports = {
@@ -74,12 +74,7 @@ module.exports = {
     // The CAD viewer loads its workers from "./assets/<name>" relative to the
     // page, i.e. /apps/cad_viewer/assets/. Emit them there (the app root is
     // served statically by Nextcloud).
-    new CopyWebpackPlugin({
-      patterns: runtimeAssets.map((asset) => ({
-        ...asset,
-        to: path.resolve(__dirname, 'assets', asset.to),
-      })),
-    }),
+    new CopyWebpackPlugin({ patterns: runtimeAssets }),
     // Redirect @mlightcad optional plugin /register subpath imports to empty stubs
     // Using explicit pattern matching to avoid path traversal false positives
     new webpack.NormalModuleReplacementPlugin(

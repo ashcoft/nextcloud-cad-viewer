@@ -18,15 +18,10 @@ const configSource = readFileSync(resolve(__dirname, '../../webpack.config.js'),
 
 describe('webpack runtime assets', () => {
   it.each([
-    'libredwg-parser-worker.js',
-    'libredwg-web.wasm',
-    'mtext-renderer-worker.js',
+    "assets/libredwg-parser-worker.js",
+    "assets/libredwg-web.wasm",
+    "assets/mtext-renderer-worker.js",
   ])('copies %s', (file) => {
-    const escaped = file.replace(/\./g, '\\.')
-    expect(configSource).toMatch(new RegExp(`to:\\s*'${escaped}'`))
-  })
-
-  it('emits the assets under the app assets/ directory', () => {
-    expect(configSource).toContain("path.resolve(__dirname, 'assets', asset.to)")
+    expect(configSource).toContain(file)
   })
 })
