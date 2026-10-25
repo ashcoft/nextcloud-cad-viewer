@@ -75,3 +75,7 @@ htmlcov/
 js/*.js
 js/*.js.map
 !js/*.LICENSE.txt
+
+# Playwright
+playwright-report/
+test-results/

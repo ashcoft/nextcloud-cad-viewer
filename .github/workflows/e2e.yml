@@ -1,0 +1,117 @@
+# Runs the Playwright end-to-end tests against the built frontend bundle.
+#
+# SPDX-FileCopyrightText: 2024 CAD Viewer Contributors
+# SPDX-License-Identifier: MIT
+
+name: E2E tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - stable*
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-tests-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+
+    outputs:
+      src: ${{ steps.changes.outputs.src }}
+
+    steps:
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: changes
+        continue-on-error: true
+        with:
+          filters: |
+            src:
+              - '.github/workflows/**'
+              - 'src/**'
+              - 'tests/e2e/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'tsconfig.json'
+              - 'webpack.config.js'
+              - 'playwright.config.ts'
+              - '**.ts'
+              - '**.vue'
+
+  test:
+    runs-on: ubuntu-latest
+
+    needs: changes
+    if: needs.changes.outputs.src != 'false'
+
+    name: e2e
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Read package.json node and npm engines version
+        uses: skjnldsv/read-package-engines-version-actions@06d6db44aa62f4609ba070f556ec24bc99fb85cb # v4
+        id: versions
+        with:
+          fallbackNode: '^24'
+          fallbackNpm: '^11.3'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ steps.versions.outputs.nodeVersion }}
+          cache: 'pnpm'
+
+      - name: Install dependencies & build
+        run: |
+          pnpm install
+          pnpm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run e2e tests
+        run: pnpm run test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  summary:
+    permissions:
+      contents: none
+    runs-on: ubuntu-latest
+    needs: [changes, test]
+
+    if: always()
+
+    name: e2e-summary
+
+    steps:
+      - name: Summary status
+        run: |
+          if [[ "${{ needs.changes.outputs.src }}" != "false" ]]; then
+            result="${{ needs.test.result }}"
+            if [[ "$result" != "success" && "$result" != "skipped" && -n "$result" ]]; then
+              exit 1
+            fi
+          fi

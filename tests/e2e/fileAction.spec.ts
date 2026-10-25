@@ -1,93 +1,108 @@
-import { test, expect } from '@playwright/test';
-import path from 'path';
+import { test, expect, type Page } from '@playwright/test'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
-test('Open with CAD Viewer action is registered via built script', async ({ page }) => {
-  // Use a simple data URL to have a valid origin for some APIs
-  await page.goto('about:blank');
+/**
+ * End-to-end coverage for the built init script (js/cad-viewer.js).
+ *
+ * The script runs on the Files page and must register the "Open with CAD
+ * Viewer" file action, which is what makes a single click on a DWG/DXF file
+ * open the app's viewer.
+ *
+ * The Nextcloud Files runtime is not available in CI, so the page provides a
+ * minimal stub of the pieces the script touches (@nextcloud/files registry,
+ * @nextcloud/l10n and @nextcloud/router). The real bundle is loaded from a
+ * URL (so its automatic public path resolves) and exercised in a browser.
+ */
 
-  // Mock Nextcloud globals and environment
-  await page.evaluate(() => {
-    // Mock OC
-    (window as any).OC = {
-      PERMISSION_READ: 1,
-      imagePath: (app: string, path: string) => `/${app}/${path}`,
-      generateUrl: (url: string) => url,
-    };
+const bundlePath = resolve(__dirname, '../../js/cad-viewer.js')
 
-    // Mock OCA.Files
-    (window as any).OCA = {
-      Files: {
-        registerFileAction: (action: any) => {
-          (window as any).registeredActions = (window as any).registeredActions || [];
-          (window as any).registeredActions.push(action);
-        },
+/** Install the Nextcloud stubs and serve the built bundle. */
+async function loadInitScript(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const w = window as unknown as Record<string, unknown>
+    w.OC = { PERMISSION_READ: 1 }
+    w.OCA = {}
+    w.t = (_app: string, text: string) => text
+    w.n = (_app: string, singular: string) => singular
+
+    // Minimal @nextcloud/files registry, exposed on the global scope the
+    // bundle reads it from.
+    w._nc_files_scope = {
+      v4_0: {
+        fileActions: new Map(),
+        registry: { dispatchTypedEvent: () => {} },
       },
-    };
+    }
+  })
 
-    // Mock translation function
-    (window as any).t = (app: string, text: string) => text;
+  await page.route('**/*', (route) => {
+    const url = route.request().url()
+    if (url.endsWith('/cad-viewer.js')) {
+      return route.fulfill({
+        contentType: 'application/javascript',
+        body: readFileSync(bundlePath, 'utf8'),
+      })
+    }
+    return route.fulfill({
+      contentType: 'text/html',
+      body: '<!doctype html><html><head></head><body></body></html>',
+    })
+  })
 
-    // Polyfill/Mock localStorage to avoid Access Denied errors
-    const mockStorage: any = {
-      getItem: () => null,
-      setItem: () => {},
-      removeItem: () => {},
-      clear: () => {},
-      key: () => null,
-      length: 0
-    };
-    Object.defineProperty(window, 'localStorage', { value: mockStorage });
-  });
+  await page.goto('/apps/cad_viewer/')
+  await page.addScriptTag({ url: '/apps/cad_viewer/js/cad-viewer.js' })
+}
 
-  // Inject a simplified registration script that matches the logic in main.ts
-  // but avoids the heavy Vue/Webpack overhead which might be failing in this minimal environment
-  await page.addScriptTag({ content: `
-    const SUPPORTED_MIMES = [
-      'application/acad',
-      'application/autocad_dwg',
-      'application/dwg',
-      'application/x-autocad',
-      'application/x-dwg',
-      'image/vnd.dwg',
-      'image/vnd.dxf',
-      'application/dxf',
-      'application/x-dxf',
-      'image/x-dxf',
-    ];
+test('registers the "Open with CAD Viewer" file action', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
 
-    function registerFileAction() {
-      if (typeof OC === 'undefined' || typeof OCA === 'undefined') {
-        return;
+  await loadInitScript(page)
+
+  const action = await page.evaluate(() => {
+    const actions = (
+      window as unknown as {
+        _nc_files_scope: { v4_0: { fileActions: Map<string, unknown> } }
       }
+    )._nc_files_scope.v4_0.fileActions
+    return actions.get('cad-viewer-open') ?? null
+  })
 
-      SUPPORTED_MIMES.forEach((mime) => {
-        if (OCA.Files && typeof OCA.Files.registerFileAction === 'function') {
-          OCA.Files.registerFileAction({
-            name: 'cad-viewer-open',
-            displayName: t('cad_viewer', 'Open with CAD Viewer'),
-            mime,
-          });
+  expect(action).not.toBeNull()
+  expect(errors).toEqual([])
+})
+
+test('the action is enabled only for CAD files', async ({ page }) => {
+  await loadInitScript(page)
+
+  const results = await page.evaluate(() => {
+    const actions = (
+      window as unknown as {
+        _nc_files_scope: {
+          v4_0: {
+            fileActions: Map<
+              string,
+              { enabled?: (context: { nodes: unknown[] }) => boolean }
+            >
+          }
         }
-      });
+      }
+    )._nc_files_scope.v4_0.fileActions
+    const action = actions.get('cad-viewer-open')
+    if (!action?.enabled) {
+      return null
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      registerFileAction();
-    });
-  `});
+    const file = (mime: string, basename: string) => ({ type: 'file', mime, basename })
+    return {
+      dwg: action.enabled({ nodes: [file('application/dwg', 'plan.dwg')] }),
+      dxf: action.enabled({ nodes: [file('image/vnd.dxf', 'plan.dxf')] }),
+      octet: action.enabled({ nodes: [file('application/octet-stream', 'plan.dwg')] }),
+      pdf: action.enabled({ nodes: [file('application/pdf', 'plan.pdf')] }),
+      folder: action.enabled({ nodes: [{ type: 'folder', mime: 'httpd/unix-directory', basename: 'plan.dwg' }] }),
+    }
+  })
 
-  // Simulate DOMContentLoaded
-  await page.evaluate(() => {
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-  });
-
-  // Check if the action was registered
-  await page.waitForFunction(() => (window as any).registeredActions && (window as any).registeredActions.length > 0);
-
-  const registeredActions = await page.evaluate(() => (window as any).registeredActions);
-  expect(registeredActions).toBeDefined();
-
-  const cadAction = registeredActions.find((a: any) => a.name === 'cad-viewer-open');
-  expect(cadAction).toBeDefined();
-  expect(cadAction.displayName).toBe('Open with CAD Viewer');
-});
+  expect(results).toEqual({ dwg: true, dxf: true, octet: true, pdf: false, folder: false })
+})
