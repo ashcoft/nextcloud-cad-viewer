@@ -60,6 +60,34 @@ module.exports = tseslint.config(
     },
   },
   {
+    name: 'cad-viewer/tests',
+    files: ['**/*.test.ts', '**/*.spec.ts'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      parser: vueParser,
+      parserOptions: {
+        parser: tseslint.parser,
+        ecmaVersion: 2022,
+        sourceType: 'module',
+      },
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        jest: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        require: 'readonly',
+        console: 'readonly',
+      },
+    },
+    rules: {
+      'no-console': 'off',
+    },
+  },
+  {
     name: 'cad-viewer/javascript',
     files: ['**/*.js', '**/*.jsx'],
     languageOptions: {

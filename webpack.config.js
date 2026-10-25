@@ -100,10 +100,6 @@ module.exports = {
       path: path.resolve(__dirname, 'src/polyfills/empty.js'),
       crypto: path.resolve(__dirname, 'src/polyfills/empty.js'),
       stream: false,
-      // Optional plugins for @mlightcad/cad-viewer 1.5.2+
-      '@mlightcad/cad-pdf-plugin': path.resolve(__dirname, 'src/polyfills/cad-pdf-plugin-register.cjs'),
-      '@mlightcad/cad-svg-plugin': path.resolve(__dirname, 'src/polyfills/cad-svg-plugin-register.cjs'),
-      '@mlightcad/cad-html-plugin': path.resolve(__dirname, 'src/polyfills/cad-html-plugin-register.cjs'),
       // @mlightcad/cad-simple-viewer's "./icons" subpath ships raw .ts source
       // under its "import" export condition (a packaging bug), which babel-loader
       // can't transpile because node_modules is excluded. Redirect the bare
