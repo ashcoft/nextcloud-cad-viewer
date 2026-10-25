@@ -34,8 +34,10 @@ function mountStandaloneViewer(): void {
   mountCadViewerApp(container).catch((error: unknown) => {
     // Leave a visible message instead of a blank page with a silent rejection.
     console.error('CAD Viewer: failed to mount the viewer', error)
-    container.textContent =
-      'Failed to load the CAD Viewer. Please reload the page and try again.'
+    container.textContent = t(
+      'cad_viewer',
+      'Failed to load the CAD Viewer. Please reload the page and try again.',
+    )
   })
 }
 

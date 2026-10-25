@@ -84,13 +84,29 @@ class RegisterMimeType extends MimeTypeMigration
      * @param string $filename Absolute path of the config file.
      * @param array<string, mixed> $data Entries to merge in.
      *
-     * @throws \RuntimeException When the config file cannot be written.
+     * @throws \RuntimeException When the config file cannot be read or written.
      */
     private function mergeIntoConfigFile(string $filename, array $data): void
     {
         $existing = [];
+
         if (file_exists($filename)) {
-            $decoded = json_decode((string)file_get_contents($filename), true);
+            $contents = @file_get_contents($filename);
+            if ($contents === false) {
+                throw new \RuntimeException(
+                    sprintf('Could not read the MIME mapping file %s', $filename)
+                );
+            }
+
+            $decoded = json_decode($contents, true);
+            if ($decoded === null && trim($contents) !== 'null') {
+                // Refuse to overwrite a file we cannot parse; clobbering it
+                // would silently drop the mappings other apps registered.
+                throw new \RuntimeException(
+                    sprintf('Could not parse the MIME mapping file %s', $filename)
+                );
+            }
+
             if (is_array($decoded)) {
                 $existing = $decoded;
             }
