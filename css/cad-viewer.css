@@ -79,7 +79,7 @@
 /* Responsive adjustments */
 @media (width <= 768px) {
   #cad-viewer-container {
-    /* Keep the app content inset from the rounded container edges on mobile. */
+    /* Square corners on mobile, where the app content fills the screen edge to edge. */
     border-radius: 0;
   }
 }
