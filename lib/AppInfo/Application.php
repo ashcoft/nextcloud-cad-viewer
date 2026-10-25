@@ -10,15 +10,18 @@ declare(strict_types=1);
 namespace OCA\CadViewer\AppInfo;
 
 use OCA\CadViewer\Listener\LoadViewer;
+use OCA\Files\Event\LoadAdditionalScriptsEvent;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
 
 class Application extends App implements IBootstrap
 {
     public const APP_ID = 'cad_viewer';
     public const CANONICAL_DWG_MIME = 'application/dwg';
+    public const CANONICAL_DXF_MIME = 'image/vnd.dxf';
 
     public const MIME_TYPES = [
         'application/acad' => 'dwg',
@@ -59,26 +62,38 @@ class Application extends App implements IBootstrap
     #[\Override]
     public function register(IRegistrationContext $context): void
     {
-        // Register event listener to inject scripts/styles when files app loads
+        // Inject the file action / init script on the Files app and on the
+        // app's own pages. Public share pages are skipped: the viewer and its
+        // file API require a logged-in user.
+        $context->registerEventListener(LoadAdditionalScriptsEvent::class, LoadViewer::class);
         $context->registerEventListener(
-            \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
+            BeforeTemplateRenderedEvent::class,
             LoadViewer::class
         );
     }
 
     /**
-     * Provides the app bootstrap hook without performing boot-time work.
+     * Boots the app and registers the DWG/DXF MIME types at runtime.
      *
-     * This app has no boot-time registrations; the method is intentionally a no-op
-     * required by the IBootstrap interface contract.
-     *
-     * @param IBootContext $context Unused boot context.
+     * @param IBootContext $context The boot context.
      *
      * @return void
      */
     #[\Override]
     public function boot(IBootContext $context): void
     {
-        // Intentional no-op: this app performs all setup in register().
+        // The repair step writes the mappings to the config files; this covers
+        // setups where the config directory is not writable.
+        $context->injectFn(function (\OCP\Files\IMimeTypeDetector $detector): void {
+            if (!method_exists($detector, 'registerType')) {
+                return;
+            }
+            // getAllMappings() must be called first: it forces the detector to
+            // load the default mappings, which would otherwise be skipped
+            // because registerType() marks the mapping table as initialized.
+            $detector->getAllMappings();
+            $detector->registerType('dwg', self::CANONICAL_DWG_MIME);
+            $detector->registerType('dxf', self::CANONICAL_DXF_MIME);
+        });
     }
 }

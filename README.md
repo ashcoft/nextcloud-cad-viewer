@@ -49,7 +49,9 @@ A native Nextcloud app providing DWG and DXF file viewing capabilities based on 
    ```bash
    occ app:enable cad_viewer
    ```
-4. Register the DWG/DXF MIME types (see the [From source](#from-source) steps below).
+   The DWG/DXF MIME types are registered automatically on install; the app
+   re-detects existing CAD files, so no manual `config/mimetypemapping.json`
+   edit is required.
 
 ### From source
 
@@ -71,26 +73,7 @@ A native Nextcloud app providing DWG and DXF file viewing capabilities based on 
    pnpm run build
    ```
 
-4. Register the DWG/DXF MIME types.
-
-   Nextcloud core does not ship a MIME mapping for `.dwg`/`.dxf` files, so without
-   this step uploaded CAD files are treated as `application/octet-stream` and the
-   **Open with CAD Viewer** action will not appear. Create
-   `config/mimetypemapping.json` in your Nextcloud config directory (merge with an
-   existing file if present) and refresh the MIME database:
-   ```json
-   {
-       "dwg": ["application/dwg"],
-       "dxf": ["image/vnd.dxf"]
-   }
-   ```
-   ```bash
-   occ maintenance:mimetype:update-db --repair-filecache
-   ```
-   The `--repair-filecache` flag re-detects the MIME type of files that were
-   uploaded before the mapping was added.
-
-5. Enable the app:
+4. Enable the app:
 
    ```bash
    occ app:enable cad_viewer
@@ -98,13 +81,21 @@ A native Nextcloud app providing DWG and DXF file viewing capabilities based on 
    Or go to **Settings** → **Apps**, find "CAD Viewer" in the disabled apps
    section and click **Enable**.
 
+   Enabling the app registers the `.dwg`/`.dxf` MIME types and re-detects
+   files uploaded before the app was installed. If you need to re-run this
+   manually:
+
+   ```bash
+   occ maintenance:repair --include-expensive
+   ```
+
 ## 🚀 Usage
 
 Once installed, the CAD Viewer integrates seamlessly with Nextcloud:
 
 1. **Navigate** to any DWG or DXF file in your Nextcloud files
 2. **Click** the file, or right-click it and choose **Open with CAD Viewer**
-3. The file opens in the CAD Viewer
+3. The drawing opens in the CAD Viewer
 4. Use the toolbar controls to:
    - Zoom in/out
    - Pan around the drawing
@@ -112,6 +103,11 @@ Once installed, the CAD Viewer integrates seamlessly with Nextcloud:
    - Toggle layers
    - Switch between dark/light themes
    - Enter fullscreen mode
+
+> **Note:** The app opens CAD drawings in its own full-page viewer rather than
+> in the Nextcloud Viewer. The bundled Nextcloud Viewer is a Vue 2 application
+> and cannot render the Vue 3 CAD component, so the file action navigates to
+> `/apps/cad_viewer/view` instead.
 
 ### Supported File Formats
 

@@ -18,4 +18,8 @@
                         <directory name="vendor-bin"/>
                 </ignoreFiles>
         </projectFiles>
+        <stubs>
+                <file name="tests/stubs/static-analysis/oc.php"/>
+                <file name="tests/stubs/static-analysis/oca.php"/>
+        </stubs>
 </psalm>

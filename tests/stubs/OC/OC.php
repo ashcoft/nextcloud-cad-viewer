@@ -49,6 +49,8 @@ namespace OCP\AppFramework\Bootstrap {
     interface IBootContext
     {
         public function getServer(): \OCP\IServerContainer;
+
+        public function injectFn(callable $fn): void;
     }
 
     interface IBootstrap
@@ -65,11 +67,36 @@ namespace OCP\AppFramework\Bootstrap {
 namespace OCP\EventDispatcher {
     abstract class Event
     {
+        public function __construct()
+        {
+        }
     }
 
     interface IEventListener
     {
         public function handle(Event $event): void;
+    }
+}
+
+namespace OCP\Files {
+    interface IMimeTypeDetector
+    {
+        public function getAllMappings(): array;
+
+        public function registerType(string $extension, string $mimeType): void;
+    }
+
+    interface IMimeTypeLoader
+    {
+        public function getId(string $mimetype): int;
+
+        public function updateFilecache(string $ext, int $mimeTypeId): int;
+    }
+}
+
+namespace OCA\Files\Event {
+    class LoadAdditionalScriptsEvent extends \OCP\EventDispatcher\Event
+    {
     }
 }
 

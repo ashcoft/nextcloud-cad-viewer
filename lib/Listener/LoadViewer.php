@@ -1,63 +1,60 @@
 <?php
 
+/**
+ * SPDX-FileCopyrightText: 2024 CAD Viewer Contributors
+ * SPDX-License-Identifier: MIT
+ */
+
 declare(strict_types=1);
 
 namespace OCA\CadViewer\Listener;
 
 use OCA\CadViewer\AppInfo\Application;
+use OCA\Files\Event\LoadAdditionalScriptsEvent;
 use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Util;
 
 /**
- * Loads the CAD viewer assets lazily for supported template renders.
+ * Loads the CAD viewer script on the Files app and on the app's own pages.
  *
- * Uses addInitScript to ensure the handler registers BEFORE the Nextcloud Viewer
- * app loads. This allows the CAD viewer to handle .dwg/.dxf files inline without
- * requiring the user to download them.
+ * The script is loaded with addInitScript so the "Open with CAD Viewer" file
+ * action is registered before the Files list takes its first snapshot of the
+ * available actions.
  *
- * The cad-viewer.js bundle contains only the lightweight registration code and
- * a thin Vue 3 component wrapper. The heavy CAD viewer engine (Three.js,
- * Element Plus) is loaded on-demand when the handler's onMounted() fires.
+ * Public share pages are deliberately skipped: the viewer route and the file
+ * API require a logged-in user, so offering the action there would send an
+ * anonymous visitor to the login page.
  *
- * @template-implements IEventListener<BeforeTemplateRenderedEvent>
+ * @template-implements IEventListener<LoadAdditionalScriptsEvent|BeforeTemplateRenderedEvent>
  */
 class LoadViewer implements IEventListener
 {
     /**
-     * Loads the CAD viewer assets for supported template renders.
-     *
-     * @param Event $event The event fired before a template is rendered.
-     *
-     * @return void
+     * @param Event $event The dispatched event.
      */
     #[\Override]
     public function handle(Event $event): void
     {
-        if (!$event instanceof BeforeTemplateRenderedEvent) {
+        if ($event instanceof LoadAdditionalScriptsEvent) {
+            $this->addScripts();
             return;
         }
 
-        $response = $event->getResponse();
-
-        $app = $response->getApp();
-        $isFilesApp = $app === 'files';
-        $isSharingApp = $app === 'files_sharing';
-        $isCadViewerApp = $app === Application::APP_ID;
-
-        if (!$isFilesApp && !$isSharingApp && !$isCadViewerApp) {
-            return;
+        if (
+            $event instanceof BeforeTemplateRenderedEvent
+            && $event->getResponse()->getApp() === Application::APP_ID
+        ) {
+            $this->addScripts();
         }
+    }
 
-        // Use addInitScript to ensure handler registration happens BEFORE
-        // the Nextcloud Viewer app initializes. This is critical for the
-        // registerHandler() call to be picked up by the Viewer.
-        // The script is injected before the Viewer's own initialization.
-        //
-        // The actual CAD viewer bundle is lazy-loaded only when a CAD file
-        // is opened (in the component's onMounted hook), avoiding unnecessary
-        // bundle loading on every Files page view.
+    /**
+     * Add the CAD viewer init script and stylesheet.
+     */
+    private function addScripts(): void
+    {
         Util::addInitScript(Application::APP_ID, 'cad-viewer');
         Util::addStyle(Application::APP_ID, 'cad-viewer');
     }
