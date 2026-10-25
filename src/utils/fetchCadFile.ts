@@ -9,10 +9,13 @@ import type { LoadResponse } from '../types/loadResponse'
 
 /**
  * A CAD file ready to hand to the viewer, or the reason it could not be read.
+ *
+ * `error` is the server-provided message when there is one; the caller falls
+ * back to its own translated message when it is absent.
  */
 export type CadFileResult =
   | { ok: true; meta: LoadResponse; file: File }
-  | { ok: false; error: string }
+  | { ok: false; error?: string }
 
 /**
  * Fetch a CAD file's metadata and bytes.
@@ -47,17 +50,39 @@ export async function fetchCadFile(
     return { ok: true, meta, file }
   } catch (err) {
     console.error('CAD Viewer: Failed to fetch file content', err)
-    return { ok: false, error: extractErrorMessage(err) }
+    return { ok: false, error: await extractErrorMessage(err) }
   }
 }
 
 /**
  * Read the `error` field Nextcloud's DataResponse carries on a failed request.
+ *
+ * The download request uses `responseType: 'blob'`, so its error body arrives
+ * as a Blob rather than parsed JSON and has to be decoded first.
  */
-function extractErrorMessage(err: unknown): string {
-  const response = (err as { response?: { data?: { error?: string } } } | null)?.response
-  const message = response?.data?.error
-  return typeof message === 'string' && message !== ''
-    ? message
-    : 'Failed to load file content. Please try again.'
+async function extractErrorMessage(err: unknown): Promise<string | undefined> {
+  const data = (err as { response?: { data?: unknown } } | null)?.response?.data
+
+  let parsed: unknown = data
+  if (isBlobLike(data)) {
+    try {
+      parsed = JSON.parse(await data.text())
+    } catch {
+      parsed = undefined
+    }
+  }
+
+  const message = (parsed as { error?: unknown } | undefined)?.error
+  return typeof message === 'string' && message !== '' ? message : undefined
+}
+
+/**
+ * Whether a value is a Blob (which exposes `text()` in modern browsers).
+ */
+function isBlobLike(value: unknown): value is { text: () => Promise<string> } {
+  return (
+    typeof value === 'object'
+    && value !== null
+    && typeof (value as { text?: unknown }).text === 'function'
+  )
 }

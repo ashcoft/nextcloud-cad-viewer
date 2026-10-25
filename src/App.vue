@@ -113,7 +113,7 @@ export default defineComponent({
 
       // Check for fetch failure
       if (!result.ok) {
-        error.value = result.error
+        error.value = result.error ?? appTranslation('Failed to load file content. Please try again.')
         loading.value = false
         return
       }
@@ -175,7 +175,7 @@ export default defineComponent({
           error.value = appTranslation('Failed to load CAD viewer: ') + msg
         }
       } else {
-        error.value = result.error
+        error.value = result.error ?? appTranslation('Failed to load file')
       }
       loading.value = false
     }

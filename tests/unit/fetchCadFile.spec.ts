@@ -62,14 +62,27 @@ describe('fetchCadFile', () => {
     })
   })
 
-  it('falls back to a generic message when the error has no body', async () => {
+  it('decodes a JSON error body returned as a Blob', async () => {
+    mockedGet.mockRejectedValueOnce({
+      response: {
+        // A Blob exposes text(); jsdom's Blob is too limited, so stub it.
+        data: { text: async () => JSON.stringify({ error: 'Unsupported file type' }) },
+      },
+    })
+
+    const result = await fetchCadFile(7)
+
+    expect(result).toEqual({ ok: false, error: 'Unsupported file type' })
+  })
+
+  it('returns no message when the error has no JSON body', async () => {
     mockedGet.mockRejectedValueOnce(new Error('network down'))
 
     const result = await fetchCadFile(7)
 
     expect(result.ok).toBe(false)
     if (!result.ok) {
-      expect(result.error).toBe('Failed to load file content. Please try again.')
+      expect(result.error).toBeUndefined()
     }
   })
 })
