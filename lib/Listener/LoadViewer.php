@@ -1,11 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * SPDX-FileCopyrightText: 2024 CAD Viewer Contributors
  * SPDX-License-Identifier: MIT
  */
+
+declare(strict_types=1);
 
 namespace OCA\CadViewer\Listener;
 
@@ -42,7 +42,8 @@ class LoadViewer implements IEventListener
             return;
         }
 
-        if ($event instanceof BeforeTemplateRenderedEvent
+        if (
+            $event instanceof BeforeTemplateRenderedEvent
             && $event->getResponse()->getApp() === Application::APP_ID
         ) {
             $this->addScripts();

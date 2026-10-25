@@ -41,7 +41,7 @@ class LoadViewerTest extends TestCase
     /**
      * Build a BeforeTemplateRenderedEvent whose response reports the given app.
      */
-    private function _makeTemplateEvent(string $appName): BeforeTemplateRenderedEvent
+    private function makeTemplateEvent(string $appName): BeforeTemplateRenderedEvent
     {
         $response = new class ($appName) {
             public function __construct(private readonly string $app)
@@ -79,14 +79,14 @@ class LoadViewerTest extends TestCase
 
     public function testHandleLoadsAssetsForCadViewerApp(): void
     {
-        $this->_listener->handle($this->_makeTemplateEvent(Application::APP_ID));
+        $this->_listener->handle($this->makeTemplateEvent(Application::APP_ID));
         $this->addToAssertionCount(1);
     }
 
     public function testHandleIgnoresOtherApps(): void
     {
         foreach (['dashboard', 'files', '', 'cad_viewer_extra'] as $app) {
-            $this->_listener->handle($this->_makeTemplateEvent($app));
+            $this->_listener->handle($this->makeTemplateEvent($app));
         }
         $this->addToAssertionCount(1);
     }
