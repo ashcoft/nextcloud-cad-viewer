@@ -37,9 +37,9 @@ class ApplicationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        \OC::$server = $this->createMock(IServerContainerExtended::class);
-        $config = $this->createMock(IConfig::class);
-        \OC::$server->method('get')->with(IConfig::class)->willReturn($config);
+        \OC::$server = $this->createStub(IServerContainerExtended::class);
+        $config = $this->createStub(IConfig::class);
+        \OC::$server->method('get')->willReturn($config);
     }
 
     public function testAppId(): void
@@ -74,7 +74,7 @@ class ApplicationTest extends TestCase
     public function testRegisterRegistersAllEvents(): void
     {
         $app = new Application();
-        $context = $this->createMock(IRegistrationContext::class);
+        $context = $this->createStub(IRegistrationContext::class);
 
         $expected = [
             LoadAdditionalScriptsEvent::class,
@@ -99,7 +99,7 @@ class ApplicationTest extends TestCase
     public function testBootRegistersMimeTypes(): void
     {
         $app = new Application();
-        $context = $this->createMock(IBootContext::class);
+        $context = $this->createStub(IBootContext::class);
         $app->boot($context);
         $this->addToAssertionCount(1);
     }

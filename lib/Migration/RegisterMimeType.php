@@ -34,11 +34,13 @@ class RegisterMimeType extends MimeTypeMigration
         'image/x-dxf' => 'dxf',
     ];
 
+    #[\Override]
     public function getName(): string
     {
         return 'Register MIME types for CAD Viewer';
     }
 
+    #[\Override]
     public function run(IOutput $output): void
     {
         $output->info('Registering the CAD MIME types...');

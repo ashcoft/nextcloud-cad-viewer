@@ -67,6 +67,9 @@ namespace OCP\AppFramework\Bootstrap {
 namespace OCP\EventDispatcher {
     abstract class Event
     {
+        public function __construct()
+        {
+        }
     }
 
     interface IEventListener
