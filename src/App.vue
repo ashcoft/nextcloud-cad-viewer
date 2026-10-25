@@ -20,9 +20,8 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
-import { generateUrl } from '@nextcloud/router'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
-import type { LoadResponse } from './types/loadResponse'
+import { fetchCadFile } from './utils/fetchCadFile'
 
 // Global translation function from Nextcloud
 declare global {
@@ -37,26 +36,6 @@ const t = (app: string, text: string) => {
 }
 
 const appTranslation = (text: string) => t('cad_viewer', text)
-
-/**
- * Fetch file content using the load endpoint.
- */
-async function fetchFileContent(fileId: number | string): Promise<LoadResponse | null> {
-  try {
-    const url = generateUrl('/apps/cad_viewer/api/load/{fileId}', { fileId: String(fileId) })
-    const response = await window.fetch(url)
-
-    if (!response.ok) {
-      const data = await response.json()
-      throw new Error(data.error || `HTTP ${response.status}`)
-    }
-
-    return await response.json()
-  } catch (err) {
-    console.error('CAD Viewer: Failed to fetch file content', err)
-    return null
-  }
-}
 
 export default defineComponent({
   name: 'CadViewerApp',
@@ -123,8 +102,7 @@ export default defineComponent({
         return
       }
 
-      // Fetch file content using load endpoint
-      const fileData = await fetchFileContent(String(fid))
+      const result = await fetchCadFile(String(fid))
 
       // Guard against component unmount during async fetch
       if (getUnmountedState()) {
@@ -133,25 +111,18 @@ export default defineComponent({
       }
 
       // Check for fetch failure
-      if (fileData === null) {
-        error.value = appTranslation('Failed to load file content. Please try again.')
+      if (!result.ok) {
+        error.value = result.error ?? appTranslation('Failed to load file content. Please try again.')
         loading.value = false
         return
       }
 
-      if (fileData.error) {
-        error.value = fileData.error
-        loading.value = false
-        return
-      }
-
-      // Load viewer with secure callback URL
       const container = viewerContainer.value
       if (container?.isConnected) {
         try {
           viewerInstance.value = await loadCADViewer(container, {
-            url: fileData.url,
-            fileName: fileData.name,
+            localFile: result.file,
+            fileName: result.meta.name,
             theme: 'dark',
           })
         } catch (err) {
@@ -189,12 +160,12 @@ export default defineComponent({
 
       viewerInstance.value?.dispose()
 
-      const fileData = await fetchFileContent(retryFileId.value)
-      if (fileData && !fileData.error) {
+      const result = await fetchCadFile(retryFileId.value)
+      if (result.ok) {
         try {
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
-            url: fileData.url,
-            fileName: fileData.name,
+            localFile: result.file,
+            fileName: result.meta.name,
             theme: 'dark',
           })
         } catch (err) {
@@ -202,7 +173,7 @@ export default defineComponent({
           error.value = appTranslation('Failed to load CAD viewer: ') + msg
         }
       } else {
-        error.value = fileData?.error || appTranslation('Failed to load file')
+        error.value = result.error ?? appTranslation('Failed to load file')
       }
       loading.value = false
     }

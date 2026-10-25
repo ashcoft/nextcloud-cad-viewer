@@ -46,6 +46,8 @@ module.exports = tseslint.config(
         n: 'readonly',
         console: 'readonly',
         HTMLElement: 'readonly',
+        File: 'readonly',
+        Blob: 'readonly',
       },
     },
     rules: {
