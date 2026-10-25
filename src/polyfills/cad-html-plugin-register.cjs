@@ -1,9 +1,10 @@
-// Stub for the optional @mlightcad/cad-html-plugin.
+// Stub for the optional @mlightcad/cad-html-plugin "/register" subpath only.
 //
 // cad-viewer imports the *named* export `registerLazyHtmlPlugin` from
-// "@mlightcad/cad-html-plugin/register". The Nextcloud app does not bundle
-// that plugin, but webpack still has to resolve the specifier, so provide the
-// same named export.
+// "@mlightcad/cad-html-plugin/register" to register the HTML export plugin
+// lazily; this stub keeps that lazy registration out of the bundle. The bare
+// "@mlightcad/cad-html-plugin" package itself is bundled, because cad-viewer
+// imports real values from it.
 exports.registerLazyHtmlPlugin = function registerLazyHtmlPlugin() {
   return null;
 };

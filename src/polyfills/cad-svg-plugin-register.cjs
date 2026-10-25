@@ -1,9 +1,8 @@
-// Stub for the optional @mlightcad/cad-svg-plugin.
+// Stub for the optional @mlightcad/cad-svg-plugin "/register" subpath only.
 //
 // cad-viewer imports the *named* export `registerLazySvgPlugin` from
-// "@mlightcad/cad-svg-plugin/register". The Nextcloud app does not bundle
-// that plugin, but webpack still has to resolve the specifier, so provide the
-// same named export.
+// "@mlightcad/cad-svg-plugin/register" to register the SVG export plugin
+// lazily; this stub keeps that lazy registration out of the bundle.
 exports.registerLazySvgPlugin = function registerLazySvgPlugin() {
   return null;
 };
