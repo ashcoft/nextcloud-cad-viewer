@@ -1,0 +1,49 @@
+# Verifies the app version sources stay in sync.
+#
+# appinfo/info.xml is what Nextcloud and the release pipeline read, and
+# package.json mirrors it. They must not drift apart, or a release archive can
+# carry the wrong version.
+#
+# SPDX-FileCopyrightText: 2024 CAD Viewer Contributors
+# SPDX-License-Identifier: MIT
+
+name: Version check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - stable*
+
+permissions:
+  contents: read
+
+concurrency:
+  group: version-check-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    name: version
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check info.xml and package.json versions match
+        run: |
+          INFO=$(sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' appinfo/info.xml | head -n 1 | xargs)
+          PKG=$(node -p "require('./package.json').version")
+          echo "info.xml=$INFO package.json=$PKG"
+          if [ -z "$INFO" ]; then
+            echo "::error::Could not read <version> from appinfo/info.xml"
+            exit 1
+          fi
+          if [ "$INFO" != "$PKG" ]; then
+            echo "::error::Version mismatch: appinfo/info.xml ($INFO) != package.json ($PKG)"
+            exit 1
+          fi

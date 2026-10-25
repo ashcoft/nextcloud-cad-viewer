@@ -131,8 +131,8 @@ pnpm run stylelint    # Stylelint
 Releases use [semantic-release](https://github.com/semantic-release/semantic-release) with conventional commits:
 
 1. All conventional commit types trigger a release (patch by default)
-2. When PR is merged to `main` or `stable`, semantic-release triggers the `release.yml` workflow
-3. The workflow builds the Nextcloud app first, then semantic-release creates the GitHub Release with app archives (tar.gz and zip) as assets
+2. When PR is merged to `main` or `stable`, semantic-release runs first, bumps the version and creates a draft GitHub Release
+3. The workflow then builds the tagged version of the Nextcloud app and attaches the archives (tar.gz and zip) to that release before publishing it
 
 | Commit Type | Release Type |
 |-------------|-------------|
