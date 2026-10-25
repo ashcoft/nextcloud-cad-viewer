@@ -1,3 +1,19 @@
+# [0.6.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.291...v0.6.0) (2026-10-25)
+
+
+### Bug Fixes
+
+* address remaining review feedback ([64730dd](https://github.com/ashcoft/nextcloud-cad-viewer/commit/64730ddfd145a3639a5b48c24631f5ab73165b32))
+* address review feedback on the viewer rewrite ([b38bdf5](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b38bdf560f19c0790571e2593a5af8e10eeae009))
+* localize the mount error and protect the MIME config file ([93e3a3f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/93e3a3f3e2a69f50b3e6b06fcb6f16ce08b698a5))
+* satisfy static analysis and PHPUnit for the rewritten viewer ([5047c54](https://github.com/ashcoft/nextcloud-cad-viewer/commit/5047c54ef15f7b11646d8161d8066f7f9d3e6a4a))
+* treat blank MIME config files as empty and reject non-object JSON ([2120732](https://github.com/ashcoft/nextcloud-cad-viewer/commit/2120732ab98b526e7fbd9b835b49582ab1280b82))
+
+
+### Features
+
+* rewrite viewer integration to open DWG/DXF reliably ([1623acc](https://github.com/ashcoft/nextcloud-cad-viewer/commit/1623acc56546b5d54fac50abecbf7850c5a55854))
+
 ## [0.5.291](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.290...v0.5.291) (2026-10-25)
 
 ## [0.5.290](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.289...v0.5.290) (2026-10-24)
