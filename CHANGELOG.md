@@ -1,3 +1,14 @@
+## [0.6.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.6.0...v0.6.1) (2026-10-25)
+
+
+### Bug Fixes
+
+* decode blob error bodies and keep the fallback translatable ([9944865](https://github.com/ashcoft/nextcloud-cad-viewer/commit/99448650411c34325899e89a7c6645517b953b59))
+* do not log the full axios error (may carry the requesttoken) ([5babd3a](https://github.com/ashcoft/nextcloud-cad-viewer/commit/5babd3a98bba3b78b366c6682ece8db550919c03))
+* never log the axios error object, even without a response status ([bca02c2](https://github.com/ashcoft/nextcloud-cad-viewer/commit/bca02c2d66a0aaa0ca082fcb9cf0d3337b0759c1))
+* send the CSRF token when loading CAD file content ([269226e](https://github.com/ashcoft/nextcloud-cad-viewer/commit/269226e59aace2781dfcaa68a2beb10e2fb6ca6b))
+* surface server errors and cover the file-load flow ([3392f5f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/3392f5f96dd7193a8d0920233db0f89d49fb90d5))
+
 # [0.6.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.5.291...v0.6.0) (2026-10-25)
 
 
