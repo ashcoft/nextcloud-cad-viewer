@@ -25,20 +25,27 @@ Corresponding source offer
 The complete corresponding source code for the GPL-3.0 component is available
 from:
 
-  - https://github.com/mlightcad/realdwg-web (the `libredwg-converter` package)
+  - https://github.com/mlightcad/realdwg-web (the `libredwg-converter` package;
+    see the tag matching version 3.15.14)
   - https://www.gnu.org/software/libredwg/
-
-You may also obtain the exact source for the version bundled here from the npm
-registry at:
-
-  - https://www.npmjs.com/package/@mlightcad/libredwg-converter
 
 To request a copy of the corresponding source on physical media, contact the
 app maintainers via https://github.com/ashcoft/nextcloud-cad-viewer/issues.
 
-2. Other bundled components
+2. MTEXT renderer worker (MIT)
+------------------------------
+
+File distributed in this app:
+
+  - assets/mtext-renderer-worker.js
+
+From the npm package `@mlightcad/mtext-renderer`, licensed under the MIT
+license. See https://www.npmjs.com/package/@mlightcad/mtext-renderer.
+
+3. Other bundled components
 ---------------------------
 
-The remaining bundled libraries (the MIT-licensed CAD viewer UI, Three.js,
-Vue, Element Plus and their dependencies) are distributed under their
-respective licenses; see each package for details.
+The remaining bundled libraries (the CAD viewer UI, Three.js, Vue, Element
+Plus, DOMPurify and their dependencies) are distributed under their respective
+licenses; the generated `js/*.LICENSE.txt` files list them per bundle. See each
+package for the full license text.

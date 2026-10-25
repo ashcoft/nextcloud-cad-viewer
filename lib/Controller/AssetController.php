@@ -67,7 +67,11 @@ class AssetController extends Controller
         $response = new StreamResponse($stream);
         $response->addHeader('Content-Type', self::ASSETS[$file]);
         $response->addHeader('Content-Length', (string) filesize($path));
-        $response->addHeader('Cache-Control', 'public, max-age=86400, immutable');
+        // The file name is stable across releases, so do not cache it
+        // immutably: a new app version must be able to replace the worker.
+        // Let the browser revalidate, using the mtime as the validator.
+        $response->addHeader('Cache-Control', 'public, no-cache, must-revalidate');
+        $response->setLastModified(new \DateTime('@' . filemtime($path)));
 
         return $response;
     }
