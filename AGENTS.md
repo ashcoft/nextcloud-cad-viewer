@@ -150,9 +150,26 @@ docs: update README               # → patch release
 
 ### Release Workflow Details
 
-The `release.yml` workflow has two jobs:
-- **`build`**: Installs dependencies, builds the app, creates archives
-- **`release`**: Downloads artifacts and runs semantic-release to publish the release with assets
+The `release.yml` workflow has two jobs, and the order matters:
+
+- **`release`** runs first: it runs semantic-release, which bumps
+  `appinfo/info.xml` and `package.json`, commits them, creates the tag and
+  creates a **draft** GitHub release. It exposes the released `version` and a
+  `published` flag as job outputs.
+- **`build`** runs only when `published` is true: it checks out `v<version>`,
+  verifies the version in `appinfo/info.xml`, builds the app, creates the
+  archives, verifies the version inside the archive, uploads them to the
+  release and finally publishes the draft.
+
+Building before semantic-release produced archives whose `appinfo/info.xml`
+still carried the previous tag's version, so the archives were always one
+version behind. The build job also has no need for a write credential, so its
+checkout uses `persist-credentials: false`.
+
+The GitHub release is created as a **draft** and only published by the build
+job once the archives are attached. If the build job fails, the release stays
+a draft (never public and empty); re-run the failed `build` job, or publish
+the draft manually after attaching the archives.
 
 App archives are attached to releases with descriptive labels:
 - `cad_viewer.tar.gz` → "Nextcloud App (tar.gz)"

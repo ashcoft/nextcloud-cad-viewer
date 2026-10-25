@@ -57,7 +57,9 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        # semantic-release needs no build; skip lifecycle scripts so a
+        # compromised dependency cannot read the write-scoped git credential.
+        run: pnpm install --ignore-scripts
 
       - name: Semantic Release
         id: semantic
@@ -68,13 +70,17 @@ jobs:
             exit 0
           fi
 
-          BEFORE=$(git tag --sort=-v:refname | head -n1)
+          BEFORE_SHA=$(git rev-parse HEAD)
           npx semantic-release
-          AFTER=$(git tag --sort=-v:refname | head -n1)
+          AFTER_SHA=$(git rev-parse HEAD)
 
-          if [ -n "$AFTER" ] && [ "$AFTER" != "$BEFORE" ]; then
+          # Read the tag semantic-release created on this commit rather than
+          # comparing globally newest tags: a release on one branch can be
+          # lower than an existing tag on another.
+          VERSION=$(git tag --points-at HEAD --sort=-v:refname | head -n1)
+          if [ -n "$VERSION" ] && [ "$AFTER_SHA" != "$BEFORE_SHA" ]; then
             echo "published=true" >> "$GITHUB_OUTPUT"
-            echo "version=${AFTER#v}" >> "$GITHUB_OUTPUT"
+            echo "version=${VERSION#v}" >> "$GITHUB_OUTPUT"
           else
             echo "published=false" >> "$GITHUB_OUTPUT"
           fi
@@ -100,6 +106,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: v${{ needs.release.outputs.version }}
+          # No credential is needed to build; keep the token out of git config
+          # so dependency install scripts cannot read it.
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
@@ -174,3 +183,8 @@ jobs:
               echo "Uploaded: $FILE"
             fi
           done
+
+          # Publish the draft only now that the archives are attached, so a
+          # release never goes public without its assets.
+          gh release edit "$TAG" --draft=false
+          echo "Published release $TAG"
