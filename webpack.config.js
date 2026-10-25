@@ -20,6 +20,11 @@ const runtimeAssets = [
     from: path.resolve(__dirname, 'node_modules/@mlightcad/cad-simple-viewer/dist/mtext-renderer-worker.js'),
     to: path.resolve(__dirname, 'assets/mtext-renderer-worker.js'),
   },
+  {
+    // GPL-3.0 text for the bundled LibreDWG parser (see THIRD-PARTY-NOTICES.txt).
+    from: path.resolve(__dirname, 'node_modules/@mlightcad/libredwg-converter/LICENSE'),
+    to: path.resolve(__dirname, 'assets/libredwg-converter-LICENSE.txt'),
+  },
 ];
 module.exports = {
   entry: {

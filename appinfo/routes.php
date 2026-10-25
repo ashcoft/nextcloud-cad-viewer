@@ -6,6 +6,10 @@ return [
     'routes' => [
         ['name' => 'view#index', 'url' => '/', 'verb' => 'GET'],
         ['name' => 'view#view', 'url' => '/view', 'verb' => 'GET'],
+        // Runtime worker/WASM assets. The viewer loads its MTEXT worker from
+        // "./assets/<name>" relative to the page; with URL rewriting off that
+        // is this route. With rewriting on the web server serves them statically.
+        ['name' => 'asset#get', 'url' => '/assets/{file}', 'verb' => 'GET'],
         // Metadata endpoint - returns file info + secure download URL
         ['name' => 'file#load', 'url' => '/api/load/{fileId}', 'verb' => 'GET'],
         // Download endpoint - streams file directly (session-authenticated)

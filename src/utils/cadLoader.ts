@@ -1,5 +1,5 @@
 import type { App } from 'vue'
-import { generateUrl } from '@nextcloud/router'
+import { generateFilePath } from '@nextcloud/router'
 import { isSupportedCadMime } from './mimeTypes'
 
 export interface CADViewerOptions {
@@ -47,13 +47,16 @@ export async function loadCADViewer(
   // The viewer ships no DWG converter; the host app must register one. The
   // LibreDWG converter parses DWG in its own worker, which loads the wasm from
   // next to itself, so point it at the assets deployed with the app.
+  //
+  // generateFilePath() returns the app's static-file URL (from the appswebroots
+  // map), which is correct even with URL rewriting off or the app installed in
+  // custom_apps/. generateUrl() would instead produce a controller route.
   const { AcDbDatabaseConverterManager, AcDbFileType } = dataModel
   const { AcDbLibreDwgConverter } = libredwgModule
-  const assetsBase = generateUrl('/apps/cad_viewer/assets/')
   AcDbDatabaseConverterManager.instance.register(
     AcDbFileType.DWG,
     new AcDbLibreDwgConverter({
-      parserWorkerUrl: `${assetsBase}libredwg-parser-worker.js`,
+      parserWorkerUrl: generateFilePath('cad_viewer', '', 'assets/libredwg-parser-worker.js'),
     }),
   )
 
