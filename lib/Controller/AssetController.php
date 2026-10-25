@@ -71,7 +71,10 @@ class AssetController extends Controller
         // immutably: a new app version must be able to replace the worker.
         // Let the browser revalidate, using the mtime as the validator.
         $response->addHeader('Cache-Control', 'public, no-cache, must-revalidate');
-        $response->setLastModified(new \DateTime('@' . filemtime($path)));
+        $mtime = filemtime($path);
+        if ($mtime !== false) {
+            $response->setLastModified(new \DateTime('@' . $mtime));
+        }
 
         return $response;
     }
