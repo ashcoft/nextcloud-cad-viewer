@@ -20,7 +20,6 @@ require_once __DIR__ . '/../stubs/OC/OC.php';
 use OCA\CadViewer\AppInfo\Application;
 use OCA\CadViewer\Listener\LoadViewer;
 use OCA\Files\Event\LoadAdditionalScriptsEvent;
-use OCA\Files_Sharing\Event\BeforeTemplateRenderedEvent as FilesSharingBeforeTemplateRenderedEvent;
 use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -75,21 +74,6 @@ class LoadViewerTest extends TestCase
     public function testHandleLoadsAssetsForFilesApp(): void
     {
         $this->_listener->handle(new LoadAdditionalScriptsEvent());
-        $this->addToAssertionCount(1);
-    }
-
-    public function testHandleLoadsAssetsForPublicSharePage(): void
-    {
-        $this->_listener->handle(new FilesSharingBeforeTemplateRenderedEvent('publicShare'));
-        $this->addToAssertionCount(1);
-    }
-
-    public function testHandleSkipsPublicShareAuthPage(): void
-    {
-        $event = new FilesSharingBeforeTemplateRenderedEvent(
-            FilesSharingBeforeTemplateRenderedEvent::SCOPE_PUBLIC_SHARE_AUTH
-        );
-        $this->_listener->handle($event);
         $this->addToAssertionCount(1);
     }
 

@@ -13,18 +13,3 @@ namespace OCA\Files\Event {
     {
     }
 }
-
-namespace OCA\Files_Sharing\Event {
-    class BeforeTemplateRenderedEvent extends \OCP\EventDispatcher\Event
-    {
-        public const SCOPE_PUBLIC_SHARE_AUTH = 'publicShareAuth';
-
-        public function getShare(): \OCP\Share\IShare
-        {
-        }
-
-        public function getScope(): ?string
-        {
-        }
-    }
-}

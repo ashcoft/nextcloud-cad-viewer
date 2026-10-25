@@ -20,7 +20,6 @@ require_once __DIR__ . '/../stubs/OC/OC.php';
 use OCA\CadViewer\AppInfo\Application;
 use OCA\CadViewer\Listener\LoadViewer;
 use OCA\Files\Event\LoadAdditionalScriptsEvent;
-use OCA\Files_Sharing\Event\BeforeTemplateRenderedEvent as FilesSharingBeforeTemplateRenderedEvent;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
@@ -69,7 +68,7 @@ class ApplicationTest extends TestCase
     }
 
     /**
-     * register() must wire the LoadViewer listener to every supported event.
+     * register() must wire the LoadViewer listener to the supported events.
      */
     public function testRegisterRegistersAllEvents(): void
     {
@@ -78,7 +77,6 @@ class ApplicationTest extends TestCase
 
         $expected = [
             LoadAdditionalScriptsEvent::class,
-            FilesSharingBeforeTemplateRenderedEvent::class,
             BeforeTemplateRenderedEvent::class,
         ];
 

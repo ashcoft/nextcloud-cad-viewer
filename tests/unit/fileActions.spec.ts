@@ -49,6 +49,18 @@ describe('CAD Viewer file action', () => {
     } as never)).toBe(false)
   })
 
+  it('is enabled for unresolved drawings by extension', () => {
+    expect(action.enabled?.({
+      nodes: [{ mime: 'application/octet-stream', basename: 'plan.dwg' }],
+    } as never)).toBe(true)
+    expect(action.enabled?.({
+      nodes: [{ mime: 'application/octet-stream', basename: 'plan.dxf' }],
+    } as never)).toBe(true)
+    expect(action.enabled?.({
+      nodes: [{ mime: 'application/octet-stream', basename: 'plan.txt' }],
+    } as never)).toBe(false)
+  })
+
   it('opens the app viewer for the file id', async () => {
     await action.exec({ nodes: [{ fileid: 42, mime: 'application/dwg', basename: 'a.dwg' }] } as never)
     expect(navigate).toHaveBeenCalledWith('/apps/cad_viewer/view?fileIds=42')

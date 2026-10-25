@@ -11,7 +11,6 @@ namespace OCA\CadViewer\AppInfo;
 
 use OCA\CadViewer\Listener\LoadViewer;
 use OCA\Files\Event\LoadAdditionalScriptsEvent;
-use OCA\Files_Sharing\Event\BeforeTemplateRenderedEvent as FilesSharingBeforeTemplateRenderedEvent;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -63,13 +62,10 @@ class Application extends App implements IBootstrap
     #[\Override]
     public function register(IRegistrationContext $context): void
     {
-        // Inject the file action / init script on the Files app, on public
-        // share pages and on the app's own pages.
+        // Inject the file action / init script on the Files app and on the
+        // app's own pages. Public share pages are skipped: the viewer and its
+        // file API require a logged-in user.
         $context->registerEventListener(LoadAdditionalScriptsEvent::class, LoadViewer::class);
-        $context->registerEventListener(
-            FilesSharingBeforeTemplateRenderedEvent::class,
-            LoadViewer::class
-        );
         $context->registerEventListener(
             BeforeTemplateRenderedEvent::class,
             LoadViewer::class

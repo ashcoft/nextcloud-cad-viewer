@@ -11,21 +11,23 @@ namespace OCA\CadViewer\Listener;
 
 use OCA\CadViewer\AppInfo\Application;
 use OCA\Files\Event\LoadAdditionalScriptsEvent;
-use OCA\Files_Sharing\Event\BeforeTemplateRenderedEvent as FilesSharingBeforeTemplateRenderedEvent;
 use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Util;
 
 /**
- * Loads the CAD viewer script on the Files app, on public share pages and on
- * the app's own pages.
+ * Loads the CAD viewer script on the Files app and on the app's own pages.
  *
  * The script is loaded with addInitScript so the "Open with CAD Viewer" file
  * action is registered before the Files list takes its first snapshot of the
  * available actions.
  *
- * @template-implements IEventListener<LoadAdditionalScriptsEvent|BeforeTemplateRenderedEvent|FilesSharingBeforeTemplateRenderedEvent>
+ * Public share pages are deliberately skipped: the viewer route and the file
+ * API require a logged-in user, so offering the action there would send an
+ * anonymous visitor to the login page.
+ *
+ * @template-implements IEventListener<LoadAdditionalScriptsEvent|BeforeTemplateRenderedEvent>
  */
 class LoadViewer implements IEventListener
 {
@@ -40,23 +42,9 @@ class LoadViewer implements IEventListener
             return;
         }
 
-        if ($event instanceof FilesSharingBeforeTemplateRenderedEvent) {
-            // Skip the share authentication (password) page.
-            if ($event->getScope() === FilesSharingBeforeTemplateRenderedEvent::SCOPE_PUBLIC_SHARE_AUTH) {
-                return;
-            }
-
-            $this->addScripts();
-            return;
-        }
-
-        if ($event instanceof BeforeTemplateRenderedEvent) {
-            $app = $event->getResponse()->getApp();
-            $isCadViewerApp = $app === Application::APP_ID;
-
-            if (!$isCadViewerApp) {
-                return;
-            }
+        if ($event instanceof BeforeTemplateRenderedEvent
+            && $event->getResponse()->getApp() === Application::APP_ID
+        ) {
             $this->addScripts();
         }
     }

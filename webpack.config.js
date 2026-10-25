@@ -12,8 +12,11 @@ module.exports = {
     filename: '[name].js',
     library: 'CadViewer',
     libraryTarget: 'window',
+    // `auto` derives the chunk base from the loaded entry script URL, so the
+    // lazily imported viewer chunks resolve under /apps/cad_viewer/js/ rather
+    // than relative to the current route.
+    publicPath: 'auto',
     clean: true,
-    publicPath: '',
   },
   module: {
     rules: [
