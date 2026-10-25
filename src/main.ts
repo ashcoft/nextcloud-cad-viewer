@@ -27,9 +27,16 @@ function mountStandaloneViewer(): void {
     document.getElementById('cad-viewer-app') ??
     document.getElementById('cad-viewer-container')
 
-  if (container) {
-    void mountCadViewerApp(container)
+  if (!container) {
+    return
   }
+
+  mountCadViewerApp(container).catch((error: unknown) => {
+    // Leave a visible message instead of a blank page with a silent rejection.
+    console.error('CAD Viewer: failed to mount the viewer', error)
+    container.textContent =
+      'Failed to load the CAD Viewer. Please reload the page and try again.'
+  })
 }
 
 function init(): void {

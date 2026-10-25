@@ -1,4 +1,5 @@
 import type { App } from 'vue'
+import { isSupportedCadMime } from './mimeTypes'
 
 export interface CADViewerOptions {
   locale?: string
@@ -106,18 +107,7 @@ export async function loadCADViewer(
 }
 
 export function isSupportedCADFormat(mimeType: string): boolean {
-  return [
-    'application/acad',
-    'application/autocad_dwg',
-    'application/dwg',
-    'application/x-autocad',
-    'application/x-dwg',
-    'image/vnd.dwg',
-    'image/vnd.dxf',
-    'application/dxf',
-    'application/x-dxf',
-    'image/x-dxf',
-  ].includes(mimeType)
+  return isSupportedCadMime(mimeType)
 }
 
 export function getFileExtension(filename: string): string {

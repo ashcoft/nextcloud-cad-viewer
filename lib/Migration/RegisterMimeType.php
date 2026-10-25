@@ -83,6 +83,8 @@ class RegisterMimeType extends MimeTypeMigration
      *
      * @param string $filename Absolute path of the config file.
      * @param array<string, mixed> $data Entries to merge in.
+     *
+     * @throws \RuntimeException When the config file cannot be written.
      */
     private function mergeIntoConfigFile(string $filename, array $data): void
     {
@@ -94,9 +96,15 @@ class RegisterMimeType extends MimeTypeMigration
             }
         }
 
-        file_put_contents(
+        $written = @file_put_contents(
             $filename,
             json_encode(array_merge($existing, $data), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
         );
+
+        if ($written === false) {
+            throw new \RuntimeException(
+                sprintf('Could not write the CAD MIME mapping to %s', $filename)
+            );
+        }
     }
 }

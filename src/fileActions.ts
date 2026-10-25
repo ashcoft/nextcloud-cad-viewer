@@ -1,5 +1,5 @@
 import { generateUrl } from '@nextcloud/router'
-import { DefaultType, type IFileAction, type INode } from '@nextcloud/files'
+import { DefaultType, FileType, type IFileAction, type INode } from '@nextcloud/files'
 import { isSupportedCadMime, hasCadExtension } from './utils/mimeTypes'
 
 type TranslateFn = (app: string, text: string) => string
@@ -12,11 +12,15 @@ export const CAD_VIEWER_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox=
 /**
  * Whether a node is a CAD drawing the app can open.
  *
- * Falls back to the file extension so drawings still open when their MIME
- * type has not been resolved to a CAD type yet (e.g. the Nextcloud MIME
- * mapping was not refreshed after upload).
+ * Only files are considered, so a folder named `plan.dwg` never matches. The
+ * extension fallback keeps drawings openable when their MIME type has not been
+ * resolved to a CAD type yet (e.g. the Nextcloud MIME mapping was not
+ * refreshed after upload).
  */
-export function isCadNode(node: Pick<INode, 'mime' | 'basename'>): boolean {
+export function isCadNode(node: Pick<INode, 'type' | 'mime' | 'basename'>): boolean {
+  if (node.type !== FileType.File) {
+    return false
+  }
   return isSupportedCadMime(node.mime) || hasCadExtension(node.basename)
 }
 

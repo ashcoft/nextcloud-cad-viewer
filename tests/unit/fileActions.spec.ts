@@ -20,8 +20,12 @@ describe('CAD MIME helpers', () => {
   })
 
   it('treats unresolved octet-stream drawings as CAD by extension', () => {
-    expect(isCadNode({ mime: 'application/octet-stream', basename: 'plan.dwg' })).toBe(true)
-    expect(isCadNode({ mime: 'application/octet-stream', basename: 'plan.txt' })).toBe(false)
+    expect(isCadNode({ type: 'file', mime: 'application/octet-stream', basename: 'plan.dwg' })).toBe(true)
+    expect(isCadNode({ type: 'file', mime: 'application/octet-stream', basename: 'plan.txt' })).toBe(false)
+  })
+
+  it('never treats a folder as a CAD file', () => {
+    expect(isCadNode({ type: 'folder', mime: 'httpd/unix-directory', basename: 'plan.dwg' })).toBe(false)
   })
 })
 
@@ -38,26 +42,32 @@ describe('CAD Viewer file action', () => {
   })
 
   it('is enabled only for a single CAD file', () => {
-    expect(action.enabled?.({ nodes: [{ mime: 'application/dwg', basename: 'a.dwg' }] } as never)).toBe(true)
-    expect(action.enabled?.({ nodes: [{ mime: 'image/vnd.dxf', basename: 'a.dxf' }] } as never)).toBe(true)
-    expect(action.enabled?.({ nodes: [{ mime: 'application/pdf', basename: 'a.pdf' }] } as never)).toBe(false)
+    expect(action.enabled?.({ nodes: [{ type: 'file', mime: 'application/dwg', basename: 'a.dwg' }] } as never)).toBe(true)
+    expect(action.enabled?.({ nodes: [{ type: 'file', mime: 'image/vnd.dxf', basename: 'a.dxf' }] } as never)).toBe(true)
+    expect(action.enabled?.({ nodes: [{ type: 'file', mime: 'application/pdf', basename: 'a.pdf' }] } as never)).toBe(false)
     expect(action.enabled?.({
       nodes: [
-        { mime: 'application/dwg', basename: 'a.dwg' },
-        { mime: 'application/dwg', basename: 'b.dwg' },
+        { type: 'file', mime: 'application/dwg', basename: 'a.dwg' },
+        { type: 'file', mime: 'application/dwg', basename: 'b.dwg' },
       ],
     } as never)).toBe(false)
   })
 
   it('is enabled for unresolved drawings by extension', () => {
     expect(action.enabled?.({
-      nodes: [{ mime: 'application/octet-stream', basename: 'plan.dwg' }],
+      nodes: [{ type: 'file', mime: 'application/octet-stream', basename: 'plan.dwg' }],
     } as never)).toBe(true)
     expect(action.enabled?.({
-      nodes: [{ mime: 'application/octet-stream', basename: 'plan.dxf' }],
+      nodes: [{ type: 'file', mime: 'application/octet-stream', basename: 'plan.dxf' }],
     } as never)).toBe(true)
     expect(action.enabled?.({
-      nodes: [{ mime: 'application/octet-stream', basename: 'plan.txt' }],
+      nodes: [{ type: 'file', mime: 'application/octet-stream', basename: 'plan.txt' }],
+    } as never)).toBe(false)
+  })
+
+  it('is disabled for a folder named like a drawing', () => {
+    expect(action.enabled?.({
+      nodes: [{ type: 'folder', mime: 'httpd/unix-directory', basename: 'plan.dwg' }],
     } as never)).toBe(false)
   })
 

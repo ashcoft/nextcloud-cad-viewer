@@ -9,4 +9,8 @@ module.exports = {
     DEFAULT: 'default',
     HIDDEN: 'hidden',
   },
+  FileType: {
+    File: 'file',
+    Folder: 'folder',
+  },
 }
