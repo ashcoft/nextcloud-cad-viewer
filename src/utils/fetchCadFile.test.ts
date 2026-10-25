@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { fetchCadFile } from './fetchCadFile'
 import axios from '@nextcloud/axios'
 
