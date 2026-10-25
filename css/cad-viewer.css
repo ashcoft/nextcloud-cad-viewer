@@ -8,9 +8,18 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  min-height: 100vh;
   background: #1e1e1e;
   overflow: hidden;
+
+  /*
+   * The CAD viewer mounts a root element that is `position: fixed; inset: 0`
+   * (and a fixed status bar). Without a containing block those cover the whole
+   * viewport, including the Nextcloud header, so the viewer's menu bar overlaps
+   * the server menu bar. A transform makes this element the containing block
+   * for its fixed descendants, keeping the viewer inside the app content area.
+   */
+  position: relative;
+  transform: translateZ(0);
 }
 
 .cad-viewer-wrapper {
@@ -70,6 +79,7 @@
 /* Responsive adjustments */
 @media (width <= 768px) {
   #cad-viewer-container {
-    min-height: calc(100vh - 50px);
+    /* Keep the app content inset from the rounded container edges on mobile. */
+    border-radius: 0;
   }
 }
