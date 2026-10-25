@@ -1,5 +1,4 @@
 /* eslint-env jest */
-// Manual mock for @nextcloud/axios
 module.exports = {
   __esModule: true,
   default: {
