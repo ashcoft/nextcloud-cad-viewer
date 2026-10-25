@@ -1,3 +1,12 @@
+## [0.6.3](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.6.2...v0.6.3) (2026-10-25)
+
+
+### Bug Fixes
+
+* **ci:** address further release review feedback ([aa5628d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/aa5628d1b54c5ac35bc6a5e167ae76dd1285516e))
+* **ci:** address release review feedback ([5a96a77](https://github.com/ashcoft/nextcloud-cad-viewer/commit/5a96a77a86ea0eb90ddaf3fd061ccbede1386a32))
+* **ci:** package releases with the current tag version ([917e1fa](https://github.com/ashcoft/nextcloud-cad-viewer/commit/917e1fa64193ce85044838bf3a9ef796d82e03f1))
+
 ## [0.6.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.6.1...v0.6.2) (2026-10-25)
 
 ## [0.6.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.6.0...v0.6.1) (2026-10-25)
