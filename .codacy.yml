@@ -5,4 +5,7 @@ exclude:
       - "*.js"
   - pattern: "*.min.js"
   - path: templates/
+  # Test stubs mirror external Nextcloud APIs and group several
+  # interfaces/classes per file, so PSR-1 one-type-per-file does not apply.
+  - path: tests/stubs/
 ---
