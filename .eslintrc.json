@@ -20,6 +20,25 @@
     "no-console": "off",
     "no-undef": "warn"
   },
+  "overrides": [
+    {
+      "files": ["*.test.ts", "*.spec.ts", "**/*.test.ts", "**/*.spec.ts"],
+      "env": {
+        "jest": true,
+        "node": true
+      },
+      "globals": {
+        "describe": "readonly",
+        "it": "readonly",
+        "test": "readonly",
+        "expect": "readonly",
+        "jest": "readonly",
+        "beforeEach": "readonly",
+        "afterEach": "readonly",
+        "require": "readonly"
+      }
+    }
+  ],
   "parserOptions": {
     "ecmaVersion": 2022,
     "sourceType": "module"
