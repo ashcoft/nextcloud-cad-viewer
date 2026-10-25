@@ -17,6 +17,7 @@ module.exports = {
     '^element-plus/dist/index.css$': 'jest-transform-stub',
     '^@nextcloud/router$': '<rootDir>/tests/__mocks__/@nextcloud/router.js',
     '^@nextcloud/files$': '<rootDir>/tests/__mocks__/@nextcloud/files.js',
+    '^@nextcloud/axios$': '<rootDir>/tests/__mocks__/@nextcloud/axios.js',
   },
   // snapshotSerializers removed - jest-serializer-vue is incompatible with Jest 30
   testMatch: [

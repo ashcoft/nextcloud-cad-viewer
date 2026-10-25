@@ -20,10 +20,8 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
-import { generateUrl } from '@nextcloud/router'
-import axios from '@nextcloud/axios'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
-import type { LoadResponse } from './types/loadResponse'
+import { fetchCadFile } from './utils/fetchCadFile'
 
 // Global translation function from Nextcloud
 declare global {
@@ -38,36 +36,6 @@ const t = (app: string, text: string) => {
 }
 
 const appTranslation = (text: string) => t('cad_viewer', text)
-
-/**
- * Fetch file metadata and the file bytes.
- *
- * Both requests go through @nextcloud/axios so they carry the requesttoken
- * header Nextcloud requires for CSRF protection; a bare fetch() (or letting
- * the viewer fetch the URL itself) is rejected with HTTP 412.
- */
-async function fetchFileContent(
-  fileId: number | string,
-): Promise<{ meta: LoadResponse; file: File } | null> {
-  try {
-    const url = generateUrl('/apps/cad_viewer/api/load/{fileId}', { fileId: String(fileId) })
-    const { data: meta } = await axios.get<LoadResponse>(url)
-
-    if (meta.error) {
-      return null
-    }
-
-    const { data: blob } = await axios.get<Blob>(meta.url, { responseType: 'blob' })
-    const file = new File([blob], meta.name, {
-      type: meta.mimeType || 'application/octet-stream',
-    })
-
-    return { meta, file }
-  } catch (err) {
-    console.error('CAD Viewer: Failed to fetch file content', err)
-    return null
-  }
-}
 
 export default defineComponent({
   name: 'CadViewerApp',
@@ -135,7 +103,7 @@ export default defineComponent({
       }
 
       // Fetch file metadata and bytes
-      const result = await fetchFileContent(String(fid))
+      const result = await fetchCadFile(String(fid))
 
       // Guard against component unmount during async fetch
       if (getUnmountedState()) {
@@ -144,8 +112,8 @@ export default defineComponent({
       }
 
       // Check for fetch failure
-      if (result === null) {
-        error.value = appTranslation('Failed to load file content. Please try again.')
+      if (!result.ok) {
+        error.value = result.error
         loading.value = false
         return
       }
@@ -194,8 +162,8 @@ export default defineComponent({
 
       viewerInstance.value?.dispose()
 
-      const result = await fetchFileContent(retryFileId.value)
-      if (result) {
+      const result = await fetchCadFile(retryFileId.value)
+      if (result.ok) {
         try {
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
             localFile: result.file,
@@ -207,7 +175,7 @@ export default defineComponent({
           error.value = appTranslation('Failed to load CAD viewer: ') + msg
         }
       } else {
-        error.value = appTranslation('Failed to load file')
+        error.value = result.error
       }
       loading.value = false
     }
