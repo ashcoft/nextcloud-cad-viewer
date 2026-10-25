@@ -1,3 +1,13 @@
+## [0.6.6](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.6.5...v0.6.6) (2026-10-25)
+
+
+### Bug Fixes
+
+* guard filemtime() false in the asset controller (Psalm) ([c52d28d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/c52d28d0f78d5ab8e90484a591ff45fe6933f58a))
+* register the DWG converter and ship its parser worker ([cdef229](https://github.com/ashcoft/nextcloud-cad-viewer/commit/cdef22925e99b82f7dff04675386af9972034fcc))
+* resolve worker URLs to real static files and meet GPL terms ([238668d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/238668d26b317e24da8a917f63b8842644b1d884))
+* revalidate worker assets and correct the license notices ([6f9933e](https://github.com/ashcoft/nextcloud-cad-viewer/commit/6f9933eb3136f53007829138d352ca522225a976))
+
 ## [0.6.5](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.6.4...v0.6.5) (2026-10-25)
 
 ## [0.6.4](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.6.3...v0.6.4) (2026-10-25)
