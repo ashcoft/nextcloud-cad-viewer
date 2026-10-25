@@ -98,16 +98,19 @@ class RegisterMimeType extends MimeTypeMigration
                 );
             }
 
-            $decoded = json_decode($contents, true);
-            if ($decoded === null && trim($contents) !== 'null') {
-                // Refuse to overwrite a file we cannot parse; clobbering it
-                // would silently drop the mappings other apps registered.
-                throw new \RuntimeException(
-                    sprintf('Could not parse the MIME mapping file %s', $filename)
-                );
-            }
-
-            if (is_array($decoded)) {
+            if (trim($contents) === '') {
+                // An empty file holds no mappings and is safe to populate.
+                $existing = [];
+            } else {
+                $decoded = json_decode($contents, true);
+                if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+                    // Refuse to overwrite a file we cannot parse or that is not
+                    // a mapping object; clobbering it would silently drop the
+                    // mappings other apps registered.
+                    throw new \RuntimeException(
+                        sprintf('Could not parse the MIME mapping file %s', $filename)
+                    );
+                }
                 $existing = $decoded;
             }
         }
