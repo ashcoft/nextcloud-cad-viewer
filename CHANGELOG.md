@@ -1,3 +1,10 @@
+## [0.6.4](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.6.3...v0.6.4) (2026-10-25)
+
+
+### Bug Fixes
+
+* expose the named plugin exports the viewer imports ([89c736c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/89c736c8654dad6d03f49039dca6ae01deee7078))
+
 ## [0.6.3](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.6.2...v0.6.3) (2026-10-25)
 
 
