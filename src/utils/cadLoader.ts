@@ -1,4 +1,5 @@
 import type { App } from 'vue'
+import { generateUrl } from '@nextcloud/router'
 import { isSupportedCadMime } from './mimeTypes'
 
 export interface CADViewerOptions {
@@ -31,15 +32,30 @@ export async function loadCADViewer(
 ): Promise<ViewerInstance> {
   // Dynamically import heavy dependencies to enable lazy loading
   // Webpack will create a separate chunk for these modules
-  const [vueModule, elementPlus, cadViewerModule] = await Promise.all([
+  const [vueModule, elementPlus, cadViewerModule, dataModel, libredwgModule] = await Promise.all([
     import(/* webpackChunkName: "cad-viewer-vue" */ 'vue'),
     import(/* webpackChunkName: "cad-viewer-element" */ 'element-plus'),
     import(/* webpackChunkName: "cad-viewer-engine" */ '@mlightcad/cad-viewer'),
+    import(/* webpackChunkName: "cad-viewer-engine" */ '@mlightcad/data-model'),
+    import(/* webpackChunkName: "cad-viewer-engine" */ '@mlightcad/libredwg-converter'),
   ])
 
   const { createApp } = vueModule
   const ElementPlus = elementPlus.default
   const { i18n, MlCadViewer } = cadViewerModule
+
+  // The viewer ships no DWG converter; the host app must register one. The
+  // LibreDWG converter parses DWG in its own worker, which loads the wasm from
+  // next to itself, so point it at the assets deployed with the app.
+  const { AcDbDatabaseConverterManager, AcDbFileType } = dataModel
+  const { AcDbLibreDwgConverter } = libredwgModule
+  const assetsBase = generateUrl('/apps/cad_viewer/assets/')
+  AcDbDatabaseConverterManager.instance.register(
+    AcDbFileType.DWG,
+    new AcDbLibreDwgConverter({
+      parserWorkerUrl: `${assetsBase}libredwg-parser-worker.js`,
+    }),
+  )
 
   const {
     locale = 'en',

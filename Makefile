@@ -55,6 +55,7 @@ build:
 clean:
 	rm -rf $(build_dir)
 	rm -rf js/*
+	rm -rf assets
 
 # === Package for App Store ===
 $(app_dir):
