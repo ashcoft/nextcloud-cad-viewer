@@ -23,6 +23,7 @@ module.exports = {
   testMatch: [
     '**/tests/unit/**/*.spec.(js|jsx|ts|tsx)',
     '**/tests/unit/**/*.test.(js|jsx|ts|tsx)',
+    '**/src/**/*.test.(js|jsx|ts|tsx)',
     '**/__tests__/*.(js|jsx|ts|tsx)',
   ],
   testEnvironmentOptions: {
@@ -36,6 +37,7 @@ module.exports = {
     'src/**/*.{ts,vue}',
     '!src/main.ts',
     '!src/router/index.ts',
+    '!src/**/*.test.ts',
     '!**/node_modules/**',
   ],
   globals: {

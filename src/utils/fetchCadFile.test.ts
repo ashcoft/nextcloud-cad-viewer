@@ -1,4 +1,4 @@
-import { fetchCadFile } from '../../src/utils/fetchCadFile'
+import { fetchCadFile } from './fetchCadFile'
 import axios from '@nextcloud/axios'
 
 jest.mock('@nextcloud/axios', () => ({
@@ -62,16 +62,28 @@ describe('fetchCadFile', () => {
     })
   })
 
-  it('decodes a JSON error body returned as a Blob', async () => {
-    mockedGet.mockRejectedValueOnce({
-      response: {
-        // A Blob exposes text(); jsdom's Blob is too limited, so stub it.
-        data: { text: async () => JSON.stringify({ error: 'Unsupported file type' }) },
-      },
-    })
+  it('decodes a JSON error body returned as a Blob for the download', async () => {
+    const meta = {
+      id: 7,
+      name: 'plan.dwg',
+      size: 3,
+      mimeType: 'application/dwg',
+      path: '/plan.dwg',
+      url: '/apps/cad_viewer/api/download/7',
+      contentType: 'application/octet-stream',
+    }
+    mockedGet
+      .mockResolvedValueOnce({ data: meta })
+      .mockRejectedValueOnce({
+        response: {
+          // A Blob exposes text(); jsdom's Blob is too limited, so stub it.
+          data: { text: async () => JSON.stringify({ error: 'Unsupported file type' }) },
+        },
+      })
 
     const result = await fetchCadFile(7)
 
+    expect(mockedGet).toHaveBeenCalledTimes(2)
     expect(result).toEqual({ ok: false, error: 'Unsupported file type' })
   })
 

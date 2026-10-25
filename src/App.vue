@@ -102,7 +102,6 @@ export default defineComponent({
         return
       }
 
-      // Fetch file metadata and bytes
       const result = await fetchCadFile(String(fid))
 
       // Guard against component unmount during async fetch
@@ -118,7 +117,6 @@ export default defineComponent({
         return
       }
 
-      // Load viewer with the fetched file
       const container = viewerContainer.value
       if (container?.isConnected) {
         try {
