@@ -76,6 +76,9 @@ js/*.js
 js/*.js.map
 !js/*.LICENSE.txt
 
+# Runtime worker/WASM assets copied by webpack (generated from node_modules)
+assets/
+
 # Playwright
 playwright-report/
 test-results/

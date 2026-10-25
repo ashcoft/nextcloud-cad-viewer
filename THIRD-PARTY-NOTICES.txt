@@ -1,0 +1,51 @@
+Third-Party Notices for the Nextcloud CAD Viewer app
+====================================================
+
+This app bundles the following third-party software. The notices below are
+provided to satisfy the license terms of each component.
+
+1. LibreDWG WebAssembly DWG parser (GPL-3.0)
+--------------------------------------------
+
+Files distributed in this app:
+
+  - assets/libredwg-parser-worker.js
+  - assets/libredwg-web.wasm
+
+These files come from the npm package `@mlightcad/libredwg-converter`, which is
+licensed under the GNU General Public License, version 3 (GPL-3.0). The parser
+is a WebAssembly build of LibreDWG (https://www.gnu.org/software/libredwg/).
+
+The full text of the GPL-3.0 is distributed alongside these files as
+`assets/libredwg-converter-LICENSE.txt`.
+
+Corresponding source offer
+--------------------------
+
+The complete corresponding source code for the GPL-3.0 component is available
+from:
+
+  - https://github.com/mlightcad/realdwg-web (the `libredwg-converter` package;
+    see the tag matching version 3.15.14)
+  - https://www.gnu.org/software/libredwg/
+
+To request a copy of the corresponding source on physical media, contact the
+app maintainers via https://github.com/ashcoft/nextcloud-cad-viewer/issues.
+
+2. MTEXT renderer worker (MIT)
+------------------------------
+
+File distributed in this app:
+
+  - assets/mtext-renderer-worker.js
+
+From the npm package `@mlightcad/mtext-renderer`, licensed under the MIT
+license. See https://www.npmjs.com/package/@mlightcad/mtext-renderer.
+
+3. Other bundled components
+---------------------------
+
+The remaining bundled libraries (the CAD viewer UI, Three.js, Vue, Element
+Plus, DOMPurify and their dependencies) are distributed under their respective
+licenses; the generated `js/*.LICENSE.txt` files list them per bundle. See each
+package for the full license text.

@@ -1,7 +1,31 @@
 const path = require('path');
 const webpack = require('webpack');
 const { VueLoaderPlugin } = require('vue-loader');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
+// Worker scripts and WASM binaries the CAD viewer loads at runtime by URL.
+// They are not imported by the bundle, so they must be copied verbatim.
+//   - libredwg-parser-worker.js + libredwg-web.wasm: DWG parsing (LibreDWG)
+//   - mtext-renderer-worker.js: MTEXT layout/shaping
+const runtimeAssets = [
+  {
+    from: path.resolve(__dirname, 'node_modules/@mlightcad/libredwg-converter/dist/libredwg-parser-worker.js'),
+    to: path.resolve(__dirname, 'assets/libredwg-parser-worker.js'),
+  },
+  {
+    from: path.resolve(__dirname, 'node_modules/@mlightcad/libredwg-converter/dist/libredwg-web.wasm'),
+    to: path.resolve(__dirname, 'assets/libredwg-web.wasm'),
+  },
+  {
+    from: path.resolve(__dirname, 'node_modules/@mlightcad/cad-simple-viewer/dist/mtext-renderer-worker.js'),
+    to: path.resolve(__dirname, 'assets/mtext-renderer-worker.js'),
+  },
+  {
+    // GPL-3.0 text for the bundled LibreDWG parser (see THIRD-PARTY-NOTICES.txt).
+    from: path.resolve(__dirname, 'node_modules/@mlightcad/libredwg-converter/LICENSE'),
+    to: path.resolve(__dirname, 'assets/libredwg-converter-LICENSE.txt'),
+  },
+];
 module.exports = {
   entry: {
     'cad-viewer': './src/main.ts',
@@ -52,6 +76,10 @@ module.exports = {
   },
   plugins: [
     new VueLoaderPlugin(),
+    // The CAD viewer loads its workers from "./assets/<name>" relative to the
+    // page, i.e. /apps/cad_viewer/assets/. Emit them there (the app root is
+    // served statically by Nextcloud).
+    new CopyWebpackPlugin({ patterns: runtimeAssets }),
     // Redirect @mlightcad optional plugin /register subpath imports to empty stubs
     // Using explicit pattern matching to avoid path traversal false positives
     new webpack.NormalModuleReplacementPlugin(
