@@ -131,8 +131,8 @@ pnpm run stylelint    # Stylelint
 Releases use [semantic-release](https://github.com/semantic-release/semantic-release) with conventional commits:
 
 1. All conventional commit types trigger a release (patch by default)
-2. When PR is merged to `main` or `stable`, semantic-release triggers the `release.yml` workflow
-3. The workflow builds the Nextcloud app first, then semantic-release creates the GitHub Release with app archives (tar.gz and zip) as assets
+2. When PR is merged to `main` or `stable`, semantic-release runs first, bumps the version and creates a draft GitHub Release
+3. The workflow then builds the tagged version of the Nextcloud app and attaches the archives (tar.gz and zip) to that release before publishing it
 
 | Commit Type | Release Type |
 |-------------|-------------|
@@ -150,9 +150,26 @@ docs: update README               # → patch release
 
 ### Release Workflow Details
 
-The `release.yml` workflow has two jobs:
-- **`build`**: Installs dependencies, builds the app, creates archives
-- **`release`**: Downloads artifacts and runs semantic-release to publish the release with assets
+The `release.yml` workflow has two jobs, and the order matters:
+
+- **`release`** runs first: it runs semantic-release, which bumps
+  `appinfo/info.xml` and `package.json`, commits them, creates the tag and
+  creates a **draft** GitHub release. It exposes the released `version` and a
+  `published` flag as job outputs.
+- **`build`** runs only when `published` is true: it checks out `v<version>`,
+  verifies the version in `appinfo/info.xml`, builds the app, creates the
+  archives, verifies the version inside the archive, uploads them to the
+  release and finally publishes the draft.
+
+Building before semantic-release produced archives whose `appinfo/info.xml`
+still carried the previous tag's version, so the archives were always one
+version behind. The build job also has no need for a write credential, so its
+checkout uses `persist-credentials: false`.
+
+The GitHub release is created as a **draft** and only published by the build
+job once the archives are attached. If the build job fails, the release stays
+a draft (never public and empty); re-run the failed `build` job, or publish
+the draft manually after attaching the archives.
 
 App archives are attached to releases with descriptive labels:
 - `cad_viewer.tar.gz` → "Nextcloud App (tar.gz)"
@@ -196,17 +213,24 @@ PR limits: 10 for npm/composer, 5 for actions.
 The project uses semantic-release for automated releases. Configuration is in `release.config.js`:
 
 ### GitHub Assets Configuration
-App archives are uploaded to GitHub releases via the `@semantic-release/github` plugin:
-```javascript
-[
-  '@semantic-release/github',
-  {
-    assets: [
-      { path: 'build/artifacts/cad_viewer.tar.gz', label: 'Nextcloud App (tar.gz)' },
-      { path: 'build/artifacts/cad_viewer.zip', label: 'Nextcloud App (zip)' },
-    ],
-  },
-],
+
+The `@semantic-release/github` plugin runs with `assets: null` and
+`draftRelease: true`: semantic-release creates the tag and a **draft** release,
+but attaches no assets itself.
+
+The `build` job then attaches the archives with `gh release upload` and
+publishes the draft with `gh release edit --draft=false`:
+
+```yaml
+# release.config.js
+['@semantic-release/github', { assets: null, draftRelease: true }]
+```
+
+```bash
+# .github/workflows/release.yml (build job)
+gh release upload "$TAG" build/artifacts/cad_viewer.tar.gz --clobber
+gh release upload "$TAG" build/artifacts/cad_viewer.zip --clobber
+gh release edit "$TAG" --draft=false
 ```
 
 ### Version Bumping

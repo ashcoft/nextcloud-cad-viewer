@@ -39,6 +39,9 @@ module.exports = {
       '@semantic-release/github',
       {
         assets: null,
+        // Create the release as a draft; the build job publishes it after the
+        // app archives are attached, so a release never goes public empty.
+        draftRelease: true,
       },
     ],
   ],
