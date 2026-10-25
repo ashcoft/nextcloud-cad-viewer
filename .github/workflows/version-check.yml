@@ -20,7 +20,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: version-check-${{ github.head_ref || github.run_id }}
+  # Key PR runs by number so forks sharing a branch name do not cancel each
+  # other's required check.
+  group: version-check-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:

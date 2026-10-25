@@ -213,17 +213,24 @@ PR limits: 10 for npm/composer, 5 for actions.
 The project uses semantic-release for automated releases. Configuration is in `release.config.js`:
 
 ### GitHub Assets Configuration
-App archives are uploaded to GitHub releases via the `@semantic-release/github` plugin:
-```javascript
-[
-  '@semantic-release/github',
-  {
-    assets: [
-      { path: 'build/artifacts/cad_viewer.tar.gz', label: 'Nextcloud App (tar.gz)' },
-      { path: 'build/artifacts/cad_viewer.zip', label: 'Nextcloud App (zip)' },
-    ],
-  },
-],
+
+The `@semantic-release/github` plugin runs with `assets: null` and
+`draftRelease: true`: semantic-release creates the tag and a **draft** release,
+but attaches no assets itself.
+
+The `build` job then attaches the archives with `gh release upload` and
+publishes the draft with `gh release edit --draft=false`:
+
+```yaml
+# release.config.js
+['@semantic-release/github', { assets: null, draftRelease: true }]
+```
+
+```bash
+# .github/workflows/release.yml (build job)
+gh release upload "$TAG" build/artifacts/cad_viewer.tar.gz --clobber
+gh release upload "$TAG" build/artifacts/cad_viewer.zip --clobber
+gh release edit "$TAG" --draft=false
 ```
 
 ### Version Bumping
