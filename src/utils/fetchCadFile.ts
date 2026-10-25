@@ -49,7 +49,9 @@ export async function fetchCadFile(
 
     return { ok: true, meta, file }
   } catch (err) {
-    console.error('CAD Viewer: Failed to fetch file content', err)
+    // Log only the status: the axios error carries config.headers.requesttoken.
+    const status = (err as { response?: { status?: number } } | null)?.response?.status
+    console.error('CAD Viewer: failed to fetch file content', status ?? err)
     return { ok: false, error: await extractErrorMessage(err) }
   }
 }
