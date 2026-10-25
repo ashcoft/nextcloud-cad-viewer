@@ -79,9 +79,6 @@ async function extractErrorMessage(err: unknown): Promise<string | undefined> {
   return typeof message === 'string' && message !== '' ? message : undefined
 }
 
-/**
- * Whether a value is a Blob (which exposes `text()` in modern browsers).
- */
 function isBlobLike(value: unknown): value is { text: () => Promise<string> } {
   return (
     typeof value === 'object'

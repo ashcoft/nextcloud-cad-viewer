@@ -41,8 +41,10 @@ jobs:
               - 'tests/e2e/**'
               - 'package.json'
               - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
               - 'tsconfig.json'
               - 'webpack.config.js'
+              - 'babel.config.js'
               - 'playwright.config.ts'
               - '**.ts'
               - '**.vue'
@@ -109,6 +111,12 @@ jobs:
     steps:
       - name: Summary status
         run: |
+          # Fail if the change filter itself errored.
+          if [[ "${{ needs.changes.result }}" != "success" ]]; then
+            echo "The change filter did not succeed."
+            exit 1
+          fi
+          # Only require the test job when there were relevant changes.
           if [[ "${{ needs.changes.outputs.src }}" != "false" ]]; then
             result="${{ needs.test.result }}"
             if [[ "$result" != "success" && "$result" != "skipped" && -n "$result" ]]; then
