@@ -17,6 +17,9 @@
   <licence>MIT</licence>
   <author mail="dony@dony.me">CAD Viewer Contributors</author>
   <namespace>CadViewer</namespace>
+  <types>
+    <filesystem/>
+  </types>
   <documentation>
     <user>https://github.com/ashcoft/nextcloud-cad-viewer</user>
     <admin>https://github.com/ashcoft/nextcloud-cad-viewer</admin>
@@ -31,6 +34,14 @@
     <php min-version="8.4"/>
     <nextcloud min-version="34" max-version="35"/>
   </dependencies>
+  <repair-steps>
+    <post-migration>
+      <step>OCA\CadViewer\Migration\RegisterMimeType</step>
+    </post-migration>
+    <install>
+      <step>OCA\CadViewer\Migration\RegisterMimeType</step>
+    </install>
+  </repair-steps>
   <settings>
     <admin>OCA\CadViewer\Settings\AdminSettings</admin>
     <admin-section>OCA\CadViewer\Settings\AdminSection</admin-section>

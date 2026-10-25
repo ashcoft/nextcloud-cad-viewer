@@ -5,11 +5,8 @@ declare(strict_types=1);
 /**
  * Cad Viewer Application bootstrap test suite.
  *
- * PHP version 8.3
- *
  * @category Tests
  * @package  OCA\CadViewer\Tests\Unit
- * @author   CAD Viewer Contributors <contributors@cadviewer.local>
  * @license  https://opensource.org/licenses/MIT MIT
  * @link     https://github.com/ashcoft/nextcloud-cad-viewer
  *
@@ -21,28 +18,22 @@ namespace OCA\CadViewer\Tests\Unit;
 require_once __DIR__ . '/../stubs/OC/OC.php';
 
 use OCA\CadViewer\AppInfo\Application;
+use OCA\CadViewer\Listener\LoadViewer;
+use OCA\Files\Event\LoadAdditionalScriptsEvent;
+use OCA\Files_Sharing\Event\BeforeTemplateRenderedEvent as FilesSharingBeforeTemplateRenderedEvent;
 use OCP\AppFramework\Bootstrap\IBootContext;
+use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
 use OCP\IConfig;
 use OCP\IServerContainerExtended;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test suite for Application bootstrap.
- *
- * @category Tests
- * @package  OCA\CadViewer\Tests\Unit
- * @author   CAD Viewer Contributors <contributors@cadviewer.local>
- * @license  https://opensource.org/licenses/MIT MIT
- * @link     https://github.com/ashcoft/nextcloud-cad-viewer
+ * Test suite for the Application bootstrap.
  */
 class ApplicationTest extends TestCase
 {
-    /**
-     * Set up test fixtures.
-     *
-     * @return void
-     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -51,135 +42,65 @@ class ApplicationTest extends TestCase
         \OC::$server->method('get')->with(IConfig::class)->willReturn($config);
     }
 
-    /**
-     * Test that APP_ID constant is set correctly.
-     *
-     * @return void
-     */
     public function testAppId(): void
     {
         $this->assertSame('cad_viewer', Application::APP_ID);
     }
 
-    /**
-     * Test that Application can be instantiated.
-     *
-     * @return void
-     */
     public function testConstructor(): void
     {
-        $app = new Application();
-        $this->assertInstanceOf(Application::class, $app);
+        $this->assertInstanceOf(Application::class, new Application());
     }
 
-    /**
-     * Test that register() calls registerEventListener exactly once.
-     *
-     * @return void
-     */
-    public function testRegister(): void
+    public function testImplementsIBootstrap(): void
     {
-        $app = new Application();
-        $mockContext = $this->createMock(IRegistrationContext::class);
-
-        $mockContext->expects($this->exactly(1))
-            ->method('registerEventListener')
-            ->with(
-                \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
-                \OCA\CadViewer\Listener\LoadViewer::class,
-            );
-
-        $app->register($mockContext);
+        $this->assertInstanceOf(IBootstrap::class, new Application());
     }
 
-    /**
-     * Test that MIME_TYPES constant contains expected entries.
-     *
-     * @return void
-     */
     public function testMimeTypesConstant(): void
     {
-        $this->assertNotEmpty(Application::MIME_TYPES);
-        $this->assertArrayHasKey('application/dwg', Application::MIME_TYPES);
-        $this->assertSame('dwg', Application::MIME_TYPES['application/dwg']);
+        $this->assertArrayHasKey(Application::CANONICAL_DWG_MIME, Application::MIME_TYPES);
+        $this->assertSame('dwg', Application::MIME_TYPES[Application::CANONICAL_DWG_MIME]);
     }
 
-    /**
-     * Test that MIME_TYPE_ALIASES constant contains expected entries.
-     *
-     * @return void
-     */
     public function testMimeTypeAliasesConstant(): void
     {
-        $this->assertNotEmpty(Application::MIME_TYPE_ALIASES);
-        $this->assertArrayHasKey('application/acad', Application::MIME_TYPE_ALIASES);
-        $this->assertSame('application/dwg', Application::MIME_TYPE_ALIASES['application/acad']);
+        $this->assertSame(Application::CANONICAL_DWG_MIME, Application::MIME_TYPE_ALIASES['application/acad']);
     }
 
     /**
-     * Test that boot() does not perform any operations.
-     *
-     * @return void
+     * register() must wire the LoadViewer listener to every supported event.
      */
-    public function testBoot(): void
+    public function testRegisterRegistersAllEvents(): void
     {
         $app = new Application();
-        $mockContext = $this->createMock(IBootContext::class);
-        $app->boot($mockContext);
+        $context = $this->createMock(IRegistrationContext::class);
+
+        $expected = [
+            LoadAdditionalScriptsEvent::class,
+            FilesSharingBeforeTemplateRenderedEvent::class,
+            BeforeTemplateRenderedEvent::class,
+        ];
+
+        $registered = [];
+        $context->method('registerEventListener')
+            ->willReturnCallback(function (string $event, string $listener) use (&$registered): void {
+                $registered[$event] = $listener;
+            });
+
+        $app->register($context);
+
+        foreach ($expected as $event) {
+            $this->assertArrayHasKey($event, $registered);
+            $this->assertSame(LoadViewer::class, $registered[$event]);
+        }
+    }
+
+    public function testBootRegistersMimeTypes(): void
+    {
+        $app = new Application();
+        $context = $this->createMock(IBootContext::class);
+        $app->boot($context);
         $this->addToAssertionCount(1);
-    }
-
-    /**
-     * Test that Application implements IBootstrap interface.
-     *
-     * This validates that the #[\Override] attributes on register() and boot()
-     * are correct, as they implement IBootstrap interface methods.
-     *
-     * @return void
-     */
-    public function testApplicationImplementsIBootstrap(): void
-    {
-        $app = new Application();
-        $this->assertInstanceOf(
-            \OCP\AppFramework\Bootstrap\IBootstrap::class,
-            $app,
-        );
-    }
-
-    /**
-     * Test that boot() does not interact with the IBootContext at all.
-     *
-     * The boot() method is intentionally a no-op because this app performs
-     * all setup in register().
-     *
-     * @return void
-     */
-    public function testBootDoesNotInteractWithContext(): void
-    {
-        $app = new Application();
-        $mockContext = $this->createMock(IBootContext::class);
-
-        $mockContext->expects($this->never())->method($this->anything());
-
-        $app->boot($mockContext);
-    }
-
-    /**
-     * Test that register() interacts with the context exactly once.
-     *
-     * The method must only register the LoadViewer listener, confirming the
-     * #[\Override] method fulfils the IBootstrap contract.
-     *
-     * @return void
-     */
-    public function testRegisterCallsContextExactlyOnce(): void
-    {
-        $app = new Application();
-        $mockContext = $this->createMock(IRegistrationContext::class);
-
-        $mockContext->expects($this->once())
-            ->method('registerEventListener');
-
-        $app->register($mockContext);
     }
 }

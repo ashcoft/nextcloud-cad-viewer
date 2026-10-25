@@ -49,6 +49,8 @@ namespace OCP\AppFramework\Bootstrap {
     interface IBootContext
     {
         public function getServer(): \OCP\IServerContainer;
+
+        public function injectFn(callable $fn): void;
     }
 
     interface IBootstrap
@@ -70,6 +72,45 @@ namespace OCP\EventDispatcher {
     interface IEventListener
     {
         public function handle(Event $event): void;
+    }
+}
+
+namespace OCP\Files {
+    interface IMimeTypeDetector
+    {
+        public function getAllMappings(): array;
+
+        public function registerType(string $extension, string $mimeType): void;
+    }
+
+    interface IMimeTypeLoader
+    {
+        public function getId(string $mimetype): int;
+
+        public function updateFilecache(string $ext, int $mimeTypeId): int;
+    }
+}
+
+namespace OCA\Files\Event {
+    class LoadAdditionalScriptsEvent extends \OCP\EventDispatcher\Event
+    {
+    }
+}
+
+namespace OCA\Files_Sharing\Event {
+    class BeforeTemplateRenderedEvent extends \OCP\EventDispatcher\Event
+    {
+        public const SCOPE_PUBLIC_SHARE_AUTH = 'publicShareAuth';
+
+        public function __construct(private readonly ?string $scope = null)
+        {
+            parent::__construct();
+        }
+
+        public function getScope(): ?string
+        {
+            return $this->scope;
+        }
     }
 }
 
