@@ -238,7 +238,9 @@ class FileController extends Controller
                 'size' => $file->getSize(),
                 'mimeType' => $file->getMimeType(),
                 'path' => $file->getPath(),
+                'directory' => $this->getUserDirectory($file),
                 'etag' => $file->getEtag(),
+                'canSave' => $this->canSave($file),
                 'url' => $downloadUrl,
                 'contentType' => 'application/octet-stream',
             ]);
@@ -352,6 +354,130 @@ class FileController extends Controller
         } catch (\Throwable $e) {
             return $this->_handleFileError($e, $fileId);
         }
+    }
+
+    /**
+     * Save new drawing content back to a CAD file.
+     *
+     * The viewer can edit a drawing and serialise it to DXF, so a save writes
+     * the posted DXF text over the file. Only DXF can be written: the bundled
+     * LibreDWG converter parses DWG but has no encoder, so a DWG file is
+     * rejected rather than silently replaced with DXF content.
+     *
+     * The etag the client loaded is required and checked, so a save based on a
+     * stale copy is refused instead of overwriting someone else's edit.
+     *
+     * @NoAdminRequired
+     */
+    public function save(int $fileId): DataResponse
+    {
+        try {
+            $file = $this->_resolveFile($fileId);
+
+            $errorResponse = $this->_validateFileConstraints($file, $fileId);
+            if ($errorResponse !== null) {
+                return $errorResponse;
+            }
+
+            if (!$file->isUpdateable()) {
+                return new DataResponse(
+                    ['error' => self::ERR_ACCESS_DENIED],
+                    Http::STATUS_FORBIDDEN
+                );
+            }
+
+            if (!$this->canSave($file)) {
+                return new DataResponse(
+                    ['error' => 'This file type cannot be saved. Only DXF files can be written.'],
+                    Http::STATUS_UNSUPPORTED_MEDIA_TYPE
+                );
+            }
+
+            $content = $this->request->getParam('content');
+            if (!is_string($content) || $content === '') {
+                return new DataResponse(
+                    ['error' => 'Missing file content'],
+                    Http::STATUS_BAD_REQUEST
+                );
+            }
+
+            $etag = $this->request->getParam('etag');
+            if (!is_string($etag) || $etag === '') {
+                return new DataResponse(
+                    ['error' => 'Missing file version'],
+                    Http::STATUS_BAD_REQUEST
+                );
+            }
+
+            // Compare before writing so a stale editor does not clobber a newer
+            // version of the drawing.
+            if ($etag !== $file->getEtag()) {
+                $this->logger->info('CAD Viewer: refusing save, file changed', ['fileId' => $fileId]);
+                return new DataResponse(
+                    ['error' => 'The file was changed by someone else. Reload it before saving.'],
+                    Http::STATUS_CONFLICT
+                );
+            }
+
+            $file->putContent($content);
+            clearstatcache();
+
+            $this->logger->info('CAD Viewer: Saved file', [
+                'fileId' => $fileId,
+                'size' => $file->getSize(),
+            ]);
+
+            return new DataResponse([
+                'etag' => $file->getEtag(),
+                'size' => $file->getSize(),
+                'mtime' => $file->getMTime(),
+            ]);
+        } catch (\Throwable $e) {
+            return $this->_handleFileError($e, $fileId);
+        }
+    }
+
+    /**
+     * Whether the drawing can be written back.
+     *
+     * Only DXF is supported: the bundled converter can parse DWG but cannot
+     * encode it, so a DWG would have to be written as DXF under a .dwg name.
+     */
+    private function canSave(File $file): bool
+    {
+        if (!$file->isUpdateable()) {
+            return false;
+        }
+
+        $extension = strtolower(pathinfo($file->getName(), PATHINFO_EXTENSION));
+
+        return $extension === 'dxf';
+    }
+
+    /**
+     * The user-visible folder the file lives in, for "back to Files" links.
+     *
+     * `getPath()` returns a path inside the user's home ("/alice/folder/file"),
+     * so the user id and the file name are stripped to leave the folder.
+     */
+    private function getUserDirectory(File $file): string
+    {
+        $user = $this->userSession->getUser();
+        $path = $file->getPath();
+        $name = $file->getName();
+
+        if ($user !== null) {
+            $prefix = '/' . $user->getUID();
+            if (str_starts_with($path, $prefix)) {
+                $path = substr($path, strlen($prefix));
+            }
+        }
+
+        if ($name !== '' && str_ends_with($path, '/' . $name)) {
+            $path = substr($path, 0, -strlen($name) - 1);
+        }
+
+        return $path === '' ? '/' : $path;
     }
 
     /**

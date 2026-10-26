@@ -16,6 +16,7 @@ A native Nextcloud app providing DWG and DXF file viewing capabilities based on 
 - 🌓 **Theme support**: Dark and light mode options
 - 🖥️ **Fullscreen mode** for detailed viewing
 - 📱 **Responsive design** that works on desktop and mobile
+- 💾 **Save and exit** from the viewer toolbar (DXF files)
 - 🔒 **Secure integration** with Nextcloud's file permissions
 - 🖼️ **Preview thumbnails** in the Files app for drawings you have opened
 - 🔄 **Easy updates** from upstream cad-viewer
@@ -116,6 +117,16 @@ Once installed, the CAD Viewer integrates seamlessly with Nextcloud:
 |--------|-----------|------------|
 | AutoCAD DWG | `.dwg` | `application/acad`, `application/autocad_dwg`, `application/dwg`, `application/x-autocad`, `application/x-dwg`, `image/vnd.dwg` |
 | AutoCAD DXF | `.dxf` | `image/vnd.dxf`, `application/dxf`, `application/x-dxf`, `image/x-dxf` |
+
+### Saving Changes
+
+The viewer toolbar has **Save** and **Exit** buttons. Save serialises the
+drawing back to its file, then Exit returns to the folder it came from.
+
+Saving is limited to **DXF**: the bundled LibreDWG converter can read DWG but
+has no encoder, so a DWG is left read-only and the Save button is hidden. The
+server also refuses a save when the file changed since it was loaded, so an
+older browser tab cannot overwrite a newer version.
 
 ### Preview Thumbnails
 

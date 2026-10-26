@@ -20,6 +20,8 @@ return [
         ['name' => 'file#preview', 'url' => '/api/preview/{fileId}', 'verb' => 'GET'],
         // Store a browser-rendered thumbnail for a CAD file
         ['name' => 'file#thumbnail', 'url' => '/api/thumbnail/{fileId}', 'verb' => 'POST'],
+        // Save edited drawing content back to a DXF file
+        ['name' => 'file#save', 'url' => '/api/save/{fileId}', 'verb' => 'POST'],
         // Admin settings endpoint
         ['name' => 'AdminSettings#index', 'url' => '/settings/admin', 'verb' => 'GET'],
         ['name' => 'AdminSettings#settings', 'url' => '/settings/save', 'verb' => 'POST'],

@@ -1,5 +1,25 @@
 <template>
   <div id="cad-viewer-wrapper" class="cad-viewer-wrapper">
+    <!-- Toolbar: save and exit, mirroring the Files app workflow -->
+    <div v-if="!loading" class="cad-viewer-toolbar">
+      <button
+        v-if="canSave"
+        class="button primary cad-viewer-toolbar__button"
+        :disabled="saving"
+        :title="appTranslation('Save the drawing')"
+        @click="save"
+      >
+        {{ saving ? appTranslation('Saving...') : appTranslation('Save') }}
+      </button>
+      <button
+        class="button cad-viewer-toolbar__button"
+        :title="appTranslation('Close the viewer and return to Files')"
+        @click="exitViewer"
+      >
+        {{ appTranslation('Exit') }}
+      </button>
+      <span v-if="status" class="cad-viewer-toolbar__status">{{ status }}</span>
+    </div>
     <!-- Viewer container rendered unconditionally to ensure it's in the DOM -->
     <div ref="viewerContainer" class="cad-viewer-canvas"></div>
     <!-- Loading/Error overlay on top of the viewer container -->
@@ -20,10 +40,13 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
+import { generateUrl } from '@nextcloud/router'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
 import { fetchCadFile } from './utils/fetchCadFile'
 import { getCurrentCadDocument, type PreviousCadDocument } from './utils/cadThumbnail'
+import { saveCadFile } from './utils/saveCadFile'
 import { uploadCadThumbnail } from './utils/thumbnailUpload'
+import type { LoadResponse } from './types/loadResponse'
 
 // Global translation function from Nextcloud
 declare global {
@@ -62,6 +85,13 @@ export default defineComponent({
     // Document that was active before the current drawing was opened, used to
     // reject a leftover drawing that happens to share the file name.
     let previousDocument: PreviousCadDocument | undefined
+
+    // Save/exit state.
+    const canSave = ref(false)
+    const saving = ref(false)
+    const status = ref('')
+    const etag = ref('')
+    const directory = ref('/')
 
     // Browser animation frame function for polling
     const raf = globalThis.requestAnimationFrame.bind(globalThis)
@@ -148,7 +178,56 @@ export default defineComponent({
 
       loading.value = false
 
+      applyFileState(result.meta)
       startThumbnailCapture(fid, result.meta.name, result.meta.etag)
+    }
+
+    /**
+     * Record the file's version and capabilities for the save/exit toolbar.
+     */
+    function applyFileState(meta: LoadResponse): void {
+      etag.value = meta.etag
+      directory.value = meta.directory || '/'
+      canSave.value = meta.canSave === true
+      status.value = ''
+    }
+
+    /**
+     * Save the drawing back to its file.
+     *
+     * The viewer can only serialise DXF, and the server refuses a save when the
+     * file changed since it was loaded, so a conflict is reported rather than
+     * silently overwriting the newer version.
+     */
+    async function save(): Promise<void> {
+      const fid = retryFileId.value
+      if (!fid || saving.value) {
+        return
+      }
+
+      saving.value = true
+      status.value = appTranslation('Saving...')
+
+      const result = await saveCadFile(fid, etag.value)
+      saving.value = false
+
+      if (result.ok) {
+        if (result.etag) {
+          etag.value = result.etag
+        }
+        status.value = appTranslation('Saved')
+        return
+      }
+
+      status.value = result.error ?? appTranslation('Could not save the drawing.')
+    }
+
+    /**
+     * Leave the viewer and return to the file's folder in the Files app.
+     */
+    function exitViewer(): void {
+      const params = new URLSearchParams({ dir: directory.value })
+      window.location.href = generateUrl('/apps/files/') + '?' + params.toString()
     }
 
     /**
@@ -223,6 +302,7 @@ export default defineComponent({
       loading.value = false
 
       if (result.ok) {
+        applyFileState(result.meta)
         startThumbnailCapture(retryFileId.value, result.meta.name, result.meta.etag)
       }
     }
@@ -234,6 +314,11 @@ export default defineComponent({
       retryFileId,
       retryLoad,
       appTranslation,
+      canSave,
+      saving,
+      status,
+      save,
+      exitViewer,
     }
   },
 })
@@ -247,6 +332,27 @@ export default defineComponent({
   flex-direction: column;
   background: #1e1e1e;
   position: relative;
+}
+
+.cad-viewer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #2b2b2b;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  flex: 0 0 auto;
+}
+
+.cad-viewer-toolbar__button {
+  flex: 0 0 auto;
+}
+
+.cad-viewer-toolbar__status {
+  color: #fff;
+  font-size: 0.875rem;
+  opacity: 0.85;
+  margin-left: 0.25rem;
 }
 
 .cad-viewer-canvas {
