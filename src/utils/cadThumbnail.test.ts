@@ -192,6 +192,48 @@ describe('captureCadThumbnail', () => {
     expect(fake.render).not.toHaveBeenCalled()
   })
 
+  /**
+   * Reopening the same file name (a changed drawing, or the same name in
+   * another folder) must wait for the fresh activation rather than capturing
+   * the document that is still active.
+   */
+  it('does not capture a leftover document with the same name', async () => {
+    const leftover = { fileName: 'plan.dwg', isReusableUntitled: false }
+    const fake = makeFakeManager(leftover)
+    mockDocManager(fake.manager)
+
+    const { captureCadThumbnail: capture } = await import('./cadThumbnail')
+    const pending = capture({
+      fileName: 'plan.dwg',
+      timeoutMs: 500,
+      previousDocument: leftover,
+    })
+    await waitForListener(fake)
+
+    // The stale document must not be captured.
+    await Promise.resolve()
+    expect(fake.render).not.toHaveBeenCalled()
+
+    const fresh = { fileName: 'plan.dwg', isReusableUntitled: false }
+    activateDrawing(fake, fresh)
+
+    expect(await pending).toBe(DATA_URL)
+    expect(fake.render).toHaveBeenCalled()
+  })
+
+  it('returns null when only the previous document is present', async () => {
+    const leftover = { fileName: 'plan.dwg', isReusableUntitled: false }
+    const fake = makeFakeManager(leftover)
+    mockDocManager(fake.manager)
+
+    const { captureCadThumbnail: capture } = await import('./cadThumbnail')
+
+    expect(
+      await capture({ fileName: 'plan.dwg', timeoutMs: 10, previousDocument: leftover }),
+    ).toBeNull()
+    expect(fake.render).not.toHaveBeenCalled()
+  })
+
   it('returns null when the scene never becomes idle', async () => {
     const fake = makeFakeManager({ fileName: 'plan.dwg', isReusableUntitled: false })
     fake.waitUntilIdle.mockResolvedValue(false)

@@ -22,6 +22,7 @@
 import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
 import { fetchCadFile } from './utils/fetchCadFile'
+import { getCurrentCadDocument } from './utils/cadThumbnail'
 import { uploadCadThumbnail } from './utils/thumbnailUpload'
 
 // Global translation function from Nextcloud
@@ -57,6 +58,10 @@ export default defineComponent({
     // Cancels an in-flight thumbnail capture when the viewer loads another
     // drawing or unmounts, so a stale capture cannot be uploaded.
     let captureAbort: AbortController | null = null
+
+    // Document that was active before the current drawing was opened, used to
+    // reject a leftover drawing that happens to share the file name.
+    let previousDocument: unknown
 
     // Browser animation frame function for polling
     const raf = globalThis.requestAnimationFrame.bind(globalThis)
@@ -125,6 +130,9 @@ export default defineComponent({
       const container = viewerContainer.value
       if (container?.isConnected) {
         try {
+          // Snapshot the active document before mounting, so a drawing left
+          // over from an earlier session cannot be captured as this one.
+          previousDocument = await getCurrentCadDocument()
           viewerInstance.value = await loadCADViewer(container, {
             localFile: result.file,
             fileName: result.meta.name,
@@ -164,6 +172,7 @@ export default defineComponent({
       void uploadCadThumbnail(String(fid), etag, {
         fileName,
         signal: captureAbort.signal,
+        previousDocument,
       })
     }
 
@@ -198,6 +207,7 @@ export default defineComponent({
       const result = await fetchCadFile(retryFileId.value)
       if (result.ok) {
         try {
+          previousDocument = await getCurrentCadDocument()
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
             localFile: result.file,
             fileName: result.meta.name,

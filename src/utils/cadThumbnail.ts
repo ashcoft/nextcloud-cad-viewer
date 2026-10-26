@@ -13,6 +13,14 @@ export interface CadThumbnailOptions {
   fileName?: string
   /** Aborts the capture, e.g. when the viewer unmounts. */
   signal?: AbortSignal
+  /**
+   * Document that was active before this drawing was opened.
+   *
+   * The viewer keeps one document manager for the whole page, so the document
+   * from a previous session can still be active when this runs. A document that
+   * is this very object is the old one, even if it has the same file name.
+   */
+  previousDocument?: unknown
 }
 
 /**
@@ -51,13 +59,24 @@ interface CadDocManagerLike {
 /**
  * Whether a document is the drawing we are waiting for.
  *
- * Matching on the file name also rejects the viewer's untitled start-up
- * placeholder and any drawing left over from a previous viewer session. The
- * `isReusableUntitled` flag is only consulted when present, so the check keeps
- * working on viewer versions that do not expose it.
+ * Matching on the file name rejects the viewer's untitled start-up placeholder
+ * and a drawing left over from a previous session. When the caller reports the
+ * document that was active before this load, that exact object is also rejected:
+ * reopening the same file name (a changed drawing, or the same name in another
+ * folder) must still wait for the fresh activation.
+ *
+ * The `isReusableUntitled` flag is only consulted when present, so the check
+ * keeps working on viewer versions that do not expose it.
  */
-function isTargetDocument(doc: CadDocumentLike | undefined, fileName?: string): boolean {
+function isTargetDocument(
+  doc: CadDocumentLike | undefined,
+  fileName?: string,
+  previousDocument?: unknown,
+): boolean {
   if (!doc || doc.isReusableUntitled === true) {
+    return false
+  }
+  if (previousDocument !== undefined && doc === previousDocument) {
     return false
   }
   if (fileName !== undefined && fileName !== '') {
@@ -128,6 +147,19 @@ async function getDocManager(): Promise<CadDocManagerLike | null> {
 }
 
 /**
+ * The document currently active in the viewer, if any.
+ *
+ * Call this before opening a drawing and pass the result as
+ * {@link CadThumbnailOptions.previousDocument}, so a document left over from an
+ * earlier session cannot be mistaken for the drawing being opened now.
+ */
+export async function getCurrentCadDocument(): Promise<unknown> {
+  const manager = await getDocManager()
+
+  return manager?.curDocument
+}
+
+/**
  * Wait until the requested drawing has been activated.
  *
  * Resolves `true` once a `documentActivated` event carries the target drawing.
@@ -140,8 +172,9 @@ async function waitForDrawing(
   fileName: string | undefined,
   timeoutMs: number,
   signal?: AbortSignal,
+  previousDocument?: unknown,
 ): Promise<boolean> {
-  if (isTargetDocument(manager.curDocument, fileName)) {
+  if (isTargetDocument(manager.curDocument, fileName, previousDocument)) {
     return true
   }
   if (signal?.aborted) {
@@ -164,7 +197,7 @@ async function waitForDrawing(
       resolve(matched)
     }
     const onActivated = (args: DocumentActivatedArgs) => {
-      if (isTargetDocument(args?.doc, fileName)) {
+      if (isTargetDocument(args?.doc, fileName, previousDocument)) {
         finish(true)
       }
     }
@@ -191,14 +224,14 @@ async function waitForDrawing(
  * the requested drawing never becomes ready.
  */
 export async function captureCadThumbnail(options: CadThumbnailOptions = {}): Promise<string | null> {
-  const { longSide = 512, timeoutMs = 20000, fileName, signal } = options
+  const { longSide = 512, timeoutMs = 20000, fileName, signal, previousDocument } = options
 
   const manager = await getDocManager()
   if (!manager) {
     return null
   }
 
-  if (!(await waitForDrawing(manager, fileName, timeoutMs, signal))) {
+  if (!(await waitForDrawing(manager, fileName, timeoutMs, signal, previousDocument))) {
     return null
   }
   if (signal?.aborted) {

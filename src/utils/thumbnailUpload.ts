@@ -19,12 +19,13 @@ import { captureCadThumbnail } from './cadThumbnail'
 export async function uploadCadThumbnail(
   fileId: number | string,
   etag?: string,
-  options: { fileName?: string; signal?: AbortSignal } = {},
+  options: { fileName?: string; signal?: AbortSignal; previousDocument?: unknown } = {},
 ): Promise<void> {
   try {
     const dataUrl = await captureCadThumbnail({
       fileName: options.fileName,
       signal: options.signal,
+      previousDocument: options.previousDocument,
     })
     if (!dataUrl) {
       return
