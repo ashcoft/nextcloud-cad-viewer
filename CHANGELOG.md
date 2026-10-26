@@ -1,3 +1,19 @@
+# [1.1.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.0.0...v1.1.0) (2026-10-26)
+
+
+### Bug Fixes
+
+* address thumbnail review findings ([5f393c2](https://github.com/ashcoft/nextcloud-cad-viewer/commit/5f393c21293bec38f058be6e510d6df446007565))
+* finish the thumbnail review follow-ups ([c8d5815](https://github.com/ashcoft/nextcloud-cad-viewer/commit/c8d5815c25b7dc431fd8d8f62308bc08ba2d24c9))
+* honour the previews setting and tighten the provider ([5b6698b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/5b6698bff6c1cb77dc5a4e9f9112062148710eb1))
+* keep thumbnails correct when documents are reused or switched ([8c0decf](https://github.com/ashcoft/nextcloud-cad-viewer/commit/8c0decff5225d0faa657f4656963ee57093f8d6a))
+* reject a leftover drawing that shares the file name ([65c204e](https://github.com/ashcoft/nextcloud-cad-viewer/commit/65c204e459eb7e9b805776f5405eaca386224eca))
+
+
+### Features
+
+* add CAD preview thumbnails in the Files app ([d7cc8c8](https://github.com/ashcoft/nextcloud-cad-viewer/commit/d7cc8c8f988f6bd3c50d76a45ccfb559ab117dbe))
+
 # [1.0.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.6.7...v1.0.0) (2026-10-26)
 
 
