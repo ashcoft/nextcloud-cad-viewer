@@ -23,6 +23,10 @@ module.exports = {
          */
         releaseRules: [
           { breaking: true, release: 'major' },
+          // git-style reverts ("Revert \"feat: ...\"") have no conventional
+          // type, so they only match on `revert`. Without this rule the
+          // analyzer falls back to its default revert -> patch rule.
+          { revert: true, release: false },
           { type: 'feat', release: 'minor' },
           { type: 'fix', release: false },
           { type: 'perf', release: false },

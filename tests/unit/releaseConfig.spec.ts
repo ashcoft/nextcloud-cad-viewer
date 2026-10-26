@@ -6,6 +6,8 @@
  * each, which flooded the tags. This guards the policy in release.config.js
  * so it cannot silently regress.
  */
+import { execFileSync } from 'node:child_process'
+import { resolve } from 'node:path'
 import releaseConfig from '../../release.config.js'
 
 interface ReleaseRule {
@@ -60,5 +62,47 @@ describe('release policy', () => {
   it('never maps a non-breaking commit to a patch release', () => {
     const patchRules = rules.filter((rule) => rule.release === 'patch')
     expect(patchRules).toEqual([])
+  })
+
+  it('suppresses git-style reverts before the default rules can apply', () => {
+    // git writes `Revert "feat: ..."` with no conventional type, so it only
+    // matches a `revert` rule. Without it the analyzer's default
+    // `{ revert: true, release: 'patch' }` would cut a patch release.
+    const revertRule = ruleFor((rule) => rule.revert === true)
+    expect(revertRule?.release).toBe(false)
+  })
+})
+
+describe('release policy (behaviour)', () => {
+  // Run the real analyzer (via scripts/release-type.mjs, since it is ESM) so
+  // the policy is checked by behaviour, not just by inspecting the config.
+  function releaseType(message: string): string {
+    return execFileSync('node', [resolve(__dirname, '../../scripts/release-type.mjs'), message], {
+      encoding: 'utf8',
+    }).trim()
+  }
+
+  it.each([
+    ['feat: add layer panel', 'minor'],
+    ['feat: new thing\n\nBREAKING CHANGE: removes X', 'major'],
+    ['feat!: drop legacy API', 'major'],
+  ])('releases %j as %s', (message, expected) => {
+    expect(releaseType(message)).toBe(expected)
+  })
+
+  it.each([
+    'fix: correct worker url',
+    'fix(deps): bump @mlightcad/cad-viewer',
+    'chore(deps): bump element-plus from 2.14.6 to 2.14.7',
+    'chore(actions): bump pullfrog/pullfrog from 0.1.85 to 0.1.95',
+    'docs: update README',
+    'test: add unit tests',
+    'ci: pin setup-php',
+    'refactor: split loader',
+    'perf: faster parse',
+    'revert: undo a change',
+    'Revert "feat: add layer panel"\n\nThis reverts commit abc123.',
+  ])('does not release for %j', (message) => {
+    expect(releaseType(message)).toBe('none')
   })
 })
