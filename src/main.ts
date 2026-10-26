@@ -1,7 +1,7 @@
 import { registerFileAction } from '@nextcloud/files'
 import { translate as t } from '@nextcloud/l10n'
 import { createCadFileAction } from './fileActions'
-import { mountCadViewerApp } from './mount'
+import { mountCadStartPage, mountCadViewerApp } from './mount'
 
 /**
  * Register the "Open with CAD Viewer" file action.
@@ -18,36 +18,53 @@ function registerCadFileAction(): void {
   }
 }
 
-/**
- * Mount the full-page CAD viewer when the app's own route rendered a
- * container. On the Files app no container exists and this is a no-op.
- */
-function mountStandaloneViewer(): void {
-  const container =
-    document.getElementById('cad-viewer-app') ??
-    document.getElementById('cad-viewer-container')
+function showMountError(container: HTMLElement): void {
+  // Leave a visible message instead of a blank page with a silent rejection.
+  container.textContent = t(
+    'cad_viewer',
+    'Failed to load the CAD Viewer. Please reload the page and try again.',
+  )
+}
 
-  if (!container) {
+/**
+ * Mount the app component that matches the rendered template.
+ *
+ * The start page renders `#cad-viewer-start`, the viewer renders
+ * `#cad-viewer-container`. On the Files app neither exists and this is a
+ * no-op.
+ */
+function mountStandaloneApp(): void {
+  const startContainer = document.getElementById('cad-viewer-start')
+  if (startContainer) {
+    mountCadStartPage(startContainer).catch((error: unknown) => {
+      console.error('CAD Viewer: failed to mount the start page', error)
+      showMountError(startContainer)
+    })
     return
   }
 
-  mountCadViewerApp(container).catch((error: unknown) => {
-    // Leave a visible message instead of a blank page with a silent rejection.
+  const viewerContainer =
+    document.getElementById('cad-viewer-app') ??
+    document.getElementById('cad-viewer-container')
+
+  if (!viewerContainer) {
+    return
+  }
+
+  mountCadViewerApp(viewerContainer).catch((error: unknown) => {
     console.error('CAD Viewer: failed to mount the viewer', error)
-    container.textContent = t(
-      'cad_viewer',
-      'Failed to load the CAD Viewer. Please reload the page and try again.',
-    )
+    showMountError(viewerContainer)
   })
 }
 
 function init(): void {
   registerCadFileAction()
-  mountStandaloneViewer()
+  mountStandaloneApp()
 }
 
 init()
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', mountStandaloneViewer, { once: true })
+  document.addEventListener('DOMContentLoaded', mountStandaloneApp, { once: true })
 }
+
