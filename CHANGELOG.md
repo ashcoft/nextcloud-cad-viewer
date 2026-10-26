@@ -1,3 +1,10 @@
+## [0.6.7](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.6.6...v0.6.7) (2026-10-26)
+
+
+### Bug Fixes
+
+* keep the CAD viewer below the Nextcloud header ([998143e](https://github.com/ashcoft/nextcloud-cad-viewer/commit/998143ecdb654f9af9fe3b70fe8e7b9e8570217c))
+
 ## [0.6.6](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.6.5...v0.6.6) (2026-10-25)
 
 
