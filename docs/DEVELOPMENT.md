@@ -96,11 +96,15 @@ The app integrates with Nextcloud through:
 Registered in `routes.php`:
 - `GET /api/file/{fileId}` - Get file content
 - `GET /api/preview/{fileId}` - Get file preview
+- `POST /api/thumbnail/{fileId}` - Store a browser-rendered preview thumbnail
 
 Example requests:
 ```bash
 curl http://localhost/index.php/apps/cad_viewer/api/file/123
 curl http://localhost/index.php/apps/cad_viewer/api/preview/123
+curl -X POST http://localhost/index.php/apps/cad_viewer/api/thumbnail/123 \
+  -H 'Content-Type: application/json' \
+  -d '{"image":"data:image/png;base64,...","etag":"<file etag>"}'
 ```
 
 ## Debugging

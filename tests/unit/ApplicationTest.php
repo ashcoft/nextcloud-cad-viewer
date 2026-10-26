@@ -18,12 +18,15 @@ namespace OCA\CadViewer\Tests\Unit;
 require_once __DIR__ . '/../stubs/OC/OC.php';
 
 use OCA\CadViewer\AppInfo\Application;
+use OCA\CadViewer\Listener\DeleteThumbnail;
 use OCA\CadViewer\Listener\LoadViewer;
+use OCA\CadViewer\Preview\CadPreviewProvider;
 use OCA\Files\Event\LoadAdditionalScriptsEvent;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
+use OCP\Files\Events\Node\NodeDeletedEvent;
 use OCP\Files\IMimeTypeDetector;
 use OCP\IConfig;
 use OCP\IServerContainerExtended;
@@ -90,12 +93,38 @@ class ApplicationTest extends TestCase
 
         $app->register($context);
 
-        $this->assertCount(count($expected), $calls);
+        // Two viewer events plus the thumbnail cleanup listener.
+        $this->assertCount(count($expected) + 1, $calls);
         foreach ($expected as $event) {
             $matches = array_filter($calls, static fn (array $call): bool => $call[0] === $event);
             $this->assertCount(1, $matches, "Expected exactly one registration for {$event}");
             $this->assertSame(LoadViewer::class, array_values($matches)[0][1]);
         }
+
+        $deletedMatches = array_filter(
+            $calls,
+            static fn (array $call): bool => $call[0] === NodeDeletedEvent::class
+        );
+        $this->assertCount(1, $deletedMatches);
+        $this->assertSame(DeleteThumbnail::class, array_values($deletedMatches)[0][1]);
+    }
+
+    /**
+     * register() must register the CAD preview provider for the CAD MIME types.
+     */
+    public function testRegisterRegistersPreviewProvider(): void
+    {
+        $app = new Application();
+        $context = $this->createMock(IRegistrationContext::class);
+
+        $context->expects($this->once())
+            ->method('registerPreviewProvider')
+            ->with(
+                CadPreviewProvider::class,
+                CadPreviewProvider::MIME_TYPE_REGEX,
+            );
+
+        $app->register($context);
     }
 
     /**

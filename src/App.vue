@@ -22,6 +22,7 @@
 import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
 import { fetchCadFile } from './utils/fetchCadFile'
+import { uploadCadThumbnail } from './utils/thumbnailUpload'
 
 // Global translation function from Nextcloud
 declare global {
@@ -134,6 +135,12 @@ export default defineComponent({
       }
 
       loading.value = false
+
+      // Render and cache a thumbnail so the Files app can show it. Thumbnails
+      // are a progressive enhancement; failures are non-fatal.
+      if (!error.value && !getUnmountedState()) {
+        void uploadCadThumbnail(String(fid), result.meta.etag)
+      }
     }
 
     onMounted(async () => {
