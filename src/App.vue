@@ -358,9 +358,12 @@ export default defineComponent({
    * block. The viewer therefore paints over this toolbar unless the toolbar
    * sits in a higher stacking context of its own; without this the buttons are
    * in the DOM but cannot be seen or clicked.
+   *
+   * It must also stay above .cad-viewer-overlay (z-index 10) so Exit remains
+   * usable while the loading or error overlay is shown.
    */
   position: relative;
-  z-index: 3;
+  z-index: 11;
 }
 
 .cad-viewer-toolbar__button {
