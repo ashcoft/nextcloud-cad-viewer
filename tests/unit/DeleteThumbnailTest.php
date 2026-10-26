@@ -122,6 +122,29 @@ class DeleteThumbnailTest extends TestCase
         (new DeleteThumbnail($service))->handle(new BeforeNodeDeletedEvent($folder));
     }
 
+    /**
+     * Canonical DXF files carry an image MIME type, so the image search must
+     * be covered too.
+     */
+    public function testRemovesThumbnailsOfDrawingsWithAnImageMimeType(): void
+    {
+        $dxf = $this->createMock(File::class);
+        $dxf->method('getId')->willReturn(9);
+        $dxf->method('getName')->willReturn('plan.dxf');
+        $png = $this->createMock(File::class);
+        $png->method('getName')->willReturn('photo.png');
+
+        $folder = $this->createMock(Folder::class);
+        $folder->method('searchByMime')->willReturnCallback(
+            static fn (string $mime) => $mime === 'image' ? [$dxf, $png] : []
+        );
+
+        $service = $this->createMock(ThumbnailService::class);
+        $service->expects($this->once())->method('deleteForFileId')->with(9);
+
+        (new DeleteThumbnail($service))->handle(new BeforeNodeDeletedEvent($folder));
+    }
+
     public function testIgnoresUnrelatedEvents(): void
     {
         $service = $this->createMock(ThumbnailService::class);

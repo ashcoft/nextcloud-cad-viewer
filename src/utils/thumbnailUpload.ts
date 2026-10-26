@@ -27,13 +27,14 @@ export async function uploadCadThumbnail(
       signal: options.signal,
       previousDocument: options.previousDocument,
     })
-    if (!dataUrl) {
+    if (!dataUrl || options.signal?.aborted) {
       return
     }
 
     await axios.post(
       generateUrl('/apps/cad_viewer/api/thumbnail/{fileId}', { fileId: String(fileId) }),
       { image: dataUrl, etag: etag ?? '' },
+      { signal: options.signal },
     )
   } catch {
     // Ignore: the generic file icon stays until a thumbnail is available.

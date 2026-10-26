@@ -104,6 +104,13 @@ class ThumbnailService
             }
 
             $name = $this->thumbnailName($file);
+
+            // Reopening an unchanged drawing re-uploads the same image. Treat
+            // it as already stored rather than trying to create the file again.
+            if ($folder->fileExists($name)) {
+                return self::STORED;
+            }
+
             $folder->newFile($name, $binary);
 
             // Only once the replacement is safely stored: a new etag means a
@@ -216,19 +223,23 @@ class ThumbnailService
      */
     private function isDecodableImage(string $binary): bool
     {
-        if (!function_exists('imagecreatefromstring')) {
-            // Without GD the header checks above are the best available guard.
+        if (function_exists('imagecreatefromstring')) {
+            $image = @imagecreatefromstring($binary);
+            if ($image === false) {
+                return false;
+            }
+
+            imagedestroy($image);
+
             return true;
         }
 
-        $image = @imagecreatefromstring($binary);
-        if ($image === false) {
-            return false;
-        }
+        // No decoder to verify the pixels with, and the header checks alone
+        // would accept a truncated PNG. Refuse rather than store an image the
+        // preview pipeline may not be able to read.
+        $this->logger->warning('CAD Viewer: refusing thumbnail upload, no image decoder available');
 
-        imagedestroy($image);
-
-        return true;
+        return false;
     }
 
     /**

@@ -278,6 +278,27 @@ class ThumbnailServiceTest extends TestCase
         $this->assertSame(['etag-a.png'], array_keys($this->fileFolder($folder, 42)->files));
     }
 
+    /**
+     * Reopening an unchanged drawing re-uploads the same image; the second
+     * upload must not fail on the file it already wrote.
+     */
+    public function testStoringTheSameVersionTwiceIsAccepted(): void
+    {
+        $folder = new InMemoryFolder();
+        $service = $this->service($folder);
+        $file = $this->file(42, 'etag-a');
+
+        $this->assertSame(
+            ThumbnailService::STORED,
+            $service->storeThumbnail($file, $this->validPng(), 'etag-a')
+        );
+        $this->assertSame(
+            ThumbnailService::STORED,
+            $service->storeThumbnail($file, $this->validPng(), 'etag-a')
+        );
+        $this->assertSame(['etag-a.png'], array_keys($this->fileFolder($folder, 42)->files));
+    }
+
     public function testGetThumbnailReturnsNullWhenMissing(): void
     {
         $this->assertNull($this->service(new InMemoryFolder())->getThumbnail($this->file(42, 'etag-a')));

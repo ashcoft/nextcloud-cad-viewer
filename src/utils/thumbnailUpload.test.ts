@@ -34,6 +34,7 @@ describe('uploadCadThumbnail', () => {
     expect(mockedPost).toHaveBeenCalledWith(
       '/apps/cad_viewer/api/thumbnail/42',
       { image: 'data:image/png;base64,AAAA', etag: 'etag-a' },
+      { signal: undefined },
     )
   })
 
@@ -51,6 +52,26 @@ describe('uploadCadThumbnail', () => {
       fileName: 'plan.dwg',
       signal: controller.signal,
     })
+    expect(mockedPost).toHaveBeenCalledWith(
+      '/apps/cad_viewer/api/thumbnail/42',
+      expect.anything(),
+      { signal: controller.signal },
+    )
+  })
+
+  it('does not upload when the capture is aborted before it finishes', async () => {
+    const controller = new AbortController()
+    mockedCapture.mockImplementation(async () => {
+      controller.abort()
+      return 'data:image/png;base64,AAAA'
+    })
+
+    await uploadCadThumbnail(42, 'etag-a', {
+      fileName: 'plan.dwg',
+      signal: controller.signal,
+    })
+
+    expect(mockedPost).not.toHaveBeenCalled()
   })
 
   it('does not upload when no drawing was captured', async () => {
@@ -77,6 +98,7 @@ describe('uploadCadThumbnail', () => {
     expect(mockedPost).toHaveBeenCalledWith(
       '/apps/cad_viewer/api/thumbnail/7',
       { image: 'data:image/png;base64,AAAA', etag: '' },
+      { signal: undefined },
     )
   })
 })
