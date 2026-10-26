@@ -201,12 +201,13 @@ jobs:
         id: appstore
         env:
           APPSTORE_TOKEN: ${{ secrets.APPSTORE_TOKEN }}
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
         run: |
-          if [ -n "$APPSTORE_TOKEN" ]; then
+          if [ -n "$APPSTORE_TOKEN" ] && [ -n "$APP_PRIVATE_KEY" ]; then
             echo "available=true" >> "$GITHUB_OUTPUT"
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Skipping Nextcloud App Store publish: APPSTORE_TOKEN is not set (see docs/APPSTORE.md)"
+            echo "::notice::Skipping Nextcloud App Store publish: APPSTORE_TOKEN and/or APP_PRIVATE_KEY is not set (see docs/APPSTORE.md)"
           fi
 
       - name: Publish to the Nextcloud App Store
