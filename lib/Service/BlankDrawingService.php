@@ -9,10 +9,13 @@ declare(strict_types=1);
 
 namespace OCA\CadViewer\Service;
 
+use OCA\CadViewer\Exception\NoUserSessionException;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotPermittedException;
 use OCP\IUserSession;
+use OCP\Lock\LockedException;
 
 /**
  * Creates a new, empty DXF drawing in the user's files.
@@ -25,8 +28,16 @@ class BlankDrawingService
     public const DEFAULT_NAME = 'Drawing';
     public const EXTENSION = 'dxf';
 
-    /** Keeps the file name well below typical filesystem limits. */
-    private const MAX_NAME_LENGTH = 100;
+    /**
+     * Maximum length of the base name in UTF-8 bytes.
+     *
+     * Most filesystems cap file names at 255 bytes. Keeping the base at 120
+     * leaves room for the `.dxf` extension and a ` (999)` collision suffix.
+     */
+    private const MAX_NAME_BYTES = 120;
+
+    /** Attempts made when another request takes the chosen name. */
+    private const MAX_CREATE_ATTEMPTS = 5;
 
     /**
      * A minimal, valid DXF R12 document with an empty ENTITIES section.
@@ -89,21 +100,42 @@ DXF;
      * Create a blank drawing in the root of the current user's files.
      *
      * An existing file is never overwritten: the name gets a counter suffix
-     * instead.
+     * instead. If two requests race for the same free name, the write is
+     * retried with the next free name.
      *
-     * @throws \RuntimeException when there is no user session
+     * @throws NoUserSessionException when there is no user session
+     * @throws NotPermittedException when no name could be written
      */
     public function create(string $name = ''): File
     {
         $user = $this->userSession->getUser();
         if ($user === null) {
-            throw new \RuntimeException('No user session');
+            throw new NoUserSessionException('A user session is required to create a drawing');
         }
 
         $userFolder = $this->rootFolder->getUserFolder($user->getUID());
-        $fileName = $this->uniqueFileName($userFolder, self::normalizeFileName($name));
+        $baseName = self::normalizeFileName($name);
+        $content = self::BLANK_DXF . "\n";
+        $lastError = null;
 
-        return $userFolder->newFile($fileName, self::BLANK_DXF . "\n");
+        for ($attempt = 0; $attempt < self::MAX_CREATE_ATTEMPTS; $attempt++) {
+            try {
+                return $userFolder->newFile(
+                    $this->uniqueFileName($userFolder, $baseName),
+                    $content,
+                );
+            } catch (NotPermittedException | LockedException $e) {
+                // Another request can take the name between the existence
+                // check and the write, so try the next free name.
+                $lastError = $e;
+            }
+        }
+
+        if ($lastError !== null) {
+            throw $lastError;
+        }
+
+        throw new NotPermittedException('Could not create the drawing');
     }
 
     /**
@@ -124,8 +156,10 @@ DXF;
             $name = self::DEFAULT_NAME;
         }
 
-        if (mb_strlen($name) > self::MAX_NAME_LENGTH) {
-            $name = rtrim(mb_substr($name, 0, self::MAX_NAME_LENGTH), " .-");
+        if (strlen($name) > self::MAX_NAME_BYTES) {
+            // mb_strcut() cuts on byte boundaries without splitting a
+            // multibyte character, so the result stays valid UTF-8.
+            $name = rtrim(mb_strcut($name, 0, self::MAX_NAME_BYTES, 'UTF-8'), " .-");
         }
 
         return $name . '.' . self::EXTENSION;

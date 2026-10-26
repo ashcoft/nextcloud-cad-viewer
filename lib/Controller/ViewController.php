@@ -72,9 +72,10 @@ class ViewController extends Controller
         try {
             $file = $this->blankDrawings->create(is_string($name) ? $name : '');
         } catch (\Throwable $e) {
+            // Log the class only: exception messages can contain file paths.
             $this->logger->error(
                 'CAD Viewer: could not create a blank drawing',
-                ['exception' => $e],
+                ['error' => $e::class],
             );
 
             return new DataResponse(

@@ -50,14 +50,16 @@
       </p>
     </section>
 
-    <div v-if="dialogOpen" class="cad-start__backdrop" @click.self="closeDialog">
-      <form
-        class="cad-start__dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="cad-start-dialog-title"
-        @submit.prevent="createDrawing"
-      >
+    <dialog
+      ref="dialogElement"
+      class="cad-start__dialog"
+      aria-labelledby="cad-start-dialog-title"
+      @cancel.prevent="closeDialog"
+      @click.self="closeDialog"
+      @close="handleDialogClosed"
+      @keydown.esc.prevent="closeDialog"
+    >
+      <form @submit.prevent="createDrawing">
         <h2 id="cad-start-dialog-title" class="cad-start__heading">
           {{ appTranslation('New blank drawing') }}
         </h2>
@@ -90,13 +92,13 @@
           </button>
         </div>
       </form>
-    </div>
+    </dialog>
   </div>
 </template>
 
 
 <script lang="ts">
-import { defineComponent, nextTick, onBeforeUnmount, onMounted, ref, type PropType } from 'vue'
+import { defineComponent, nextTick, ref, type PropType } from 'vue'
 import { translate } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { buildViewerUrl } from './fileActions'
@@ -104,6 +106,17 @@ import { createBlankDrawing, requestErrorMessage } from './utils/startPage'
 import type { RecentDrawing } from './types/recentDrawing'
 
 const appTranslation = (text: string): string => translate('cad_viewer', text)
+
+function viewerUrl(fileId: number): string {
+  return buildViewerUrl(fileId)
+}
+
+function formatMtime(mtime: number): string {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(mtime * 1000))
+}
 
 export default defineComponent({
   name: 'CadStartPage',
@@ -114,18 +127,18 @@ export default defineComponent({
     },
   },
   setup() {
-    const dialogOpen = ref(false)
     const creating = ref(false)
     const error = ref<string | null>(null)
     const fileName = ref('Drawing.dxf')
     const nameInput = ref<HTMLInputElement | null>(null)
+    const dialogElement = ref<HTMLDialogElement | null>(null)
 
     const filesUrl = generateUrl('/apps/files/')
 
     function openDialog(): void {
-      dialogOpen.value = true
       error.value = null
       fileName.value = 'Drawing.dxf'
+      dialogElement.value?.showModal()
       void nextTick(() => nameInput.value?.select())
     }
 
@@ -133,7 +146,10 @@ export default defineComponent({
       if (creating.value) {
         return
       }
-      dialogOpen.value = false
+      dialogElement.value?.close()
+    }
+
+    function handleDialogClosed(): void {
       error.value = null
     }
 
@@ -157,40 +173,21 @@ export default defineComponent({
       }
     }
 
-    function onKeydown(event: KeyboardEvent): void {
-      if (event.key === 'Escape' && dialogOpen.value) {
-        closeDialog()
-      }
-    }
-
-    function viewerUrl(fileId: number): string {
-      return buildViewerUrl(fileId)
-    }
-
     function folderOf(path: string): string {
       const separator = path.lastIndexOf('/')
       return separator > 0 ? path.slice(0, separator) : appTranslation('Home')
     }
 
-    function formatMtime(mtime: number): string {
-      return new Intl.DateTimeFormat(undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      }).format(new Date(mtime * 1000))
-    }
-
-    onMounted(() => document.addEventListener('keydown', onKeydown))
-    onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
-
     return {
-      dialogOpen,
       creating,
       error,
       fileName,
       nameInput,
+      dialogElement,
       filesUrl,
       openDialog,
       closeDialog,
+      handleDialogClosed,
       createDrawing,
       viewerUrl,
       folderOf,
@@ -337,24 +334,24 @@ export default defineComponent({
   font-size: 0.9rem;
 }
 
-.cad-start__backdrop {
-  position: fixed;
-  z-index: 2000;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background: rgb(0 0 0 / 50%);
-}
-
 .cad-start__dialog {
   box-sizing: border-box;
   width: min(440px, 100%);
-  padding: 1.5rem;
+  max-width: calc(100% - 2rem);
+  padding: 0;
+  border: none;
   border-radius: var(--border-radius-large, 12px);
   background: var(--color-main-background);
+  color: var(--color-main-text);
   box-shadow: 0 8px 32px rgb(0 0 0 / 25%);
+}
+
+.cad-start__dialog::backdrop {
+  background: rgb(0 0 0 / 50%);
+}
+
+.cad-start__dialog form {
+  padding: 1.5rem;
 }
 
 .cad-start__label {

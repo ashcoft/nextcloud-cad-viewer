@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\CadViewer\Controller;
 
+use OCA\CadViewer\AppInfo\Application;
 use OCA\CadViewer\Config\AppConfig;
 use OCA\CadViewer\Service\ThumbnailService;
 use OCP\AppFramework\Controller;
@@ -27,7 +28,6 @@ use Psr\Log\LoggerInterface;
 
 class FileController extends Controller
 {
-    private const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
     private const ALLOWED_EXTENSIONS = ['dwg', 'dxf'];
     private const ERR_FILE_NOT_FOUND = 'File not found';
     private const ERR_ACCESS_DENIED = 'Access denied';
@@ -104,13 +104,13 @@ class FileController extends Controller
         }
 
         // Check file size limit to prevent memory exhaustion
-        if ($fileSize > self::MAX_FILE_SIZE) {
+        if ($fileSize > Application::MAX_FILE_SIZE) {
             $this->logger->warning(
                 'CAD Viewer: File too large',
                 [
                     'fileId' => $fileId,
                     'size' => $fileSize,
-                    'limit' => self::MAX_FILE_SIZE,
+                    'limit' => Application::MAX_FILE_SIZE,
                 ]
             );
             return new DataResponse(

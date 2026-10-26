@@ -15,10 +15,12 @@ declare(strict_types=1);
 
 namespace OCA\CadViewer\Tests\Unit;
 
+use OCA\CadViewer\Exception\NoUserSessionException;
 use OCA\CadViewer\Service\BlankDrawingService;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotPermittedException;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -93,9 +95,29 @@ class BlankDrawingServiceTest extends TestCase
     {
         $name = BlankDrawingService::normalizeFileName(str_repeat('a', 500));
 
-        // 100 characters of the name plus the ".dxf" extension.
-        $this->assertSame(104, strlen($name));
+        // 120 bytes of the name plus the ".dxf" extension.
+        $this->assertSame(124, strlen($name));
         $this->assertStringEndsWith('.dxf', $name);
+    }
+
+    public function testNormalizeLimitsMultibyteNamesByBytes(): void
+    {
+        $name = BlankDrawingService::normalizeFileName(str_repeat('測', 100));
+
+        $this->assertLessThanOrEqual(124, strlen($name));
+        $this->assertTrue(mb_check_encoding($name, 'UTF-8'));
+        $this->assertStringEndsWith('.dxf', $name);
+    }
+
+    public function testCreateRequiresAUserSession(): void
+    {
+        $userSession = $this->createMock(IUserSession::class);
+        $userSession->method('getUser')->willReturn(null);
+
+        $service = new BlankDrawingService($this->createMock(IRootFolder::class), $userSession);
+
+        $this->expectException(NoUserSessionException::class);
+        $service->create();
     }
 
     public function testCreateWritesBlankDxf(): void
@@ -138,5 +160,45 @@ class BlankDrawingServiceTest extends TestCase
 
         $service = new BlankDrawingService($rootFolder, $userSession);
         $service->create('');
+    }
+
+    /**
+     * A concurrent request can take the chosen name after the existence
+     * check; the service must retry with the next free name.
+     */
+    public function testCreateRetriesWhenTheNameIsTakenConcurrently(): void
+    {
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('alice');
+
+        $userSession = $this->createMock(IUserSession::class);
+        $userSession->method('getUser')->willReturn($user);
+
+        $folder = $this->createMock(Folder::class);
+        $folder->method('nodeExists')
+            ->willReturnOnConsecutiveCalls(false, true, false);
+
+        $file = $this->createMock(File::class);
+        $file->method('getId')->willReturn(42);
+
+        $names = [];
+        $folder->method('newFile')->willReturnCallback(
+            static function (string $name, ?string $content = null) use (&$names, $file): File {
+                $names[] = $name;
+                if (count($names) === 1) {
+                    throw new NotPermittedException('Name taken');
+                }
+
+                return $file;
+            },
+        );
+
+        $rootFolder = $this->createMock(IRootFolder::class);
+        $rootFolder->method('getUserFolder')->willReturn($folder);
+
+        $result = (new BlankDrawingService($rootFolder, $userSession))->create('');
+
+        $this->assertSame($file, $result);
+        $this->assertSame(['Drawing.dxf', 'Drawing (1).dxf'], $names);
     }
 }

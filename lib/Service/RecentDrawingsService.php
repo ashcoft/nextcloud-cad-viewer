@@ -29,12 +29,14 @@ class RecentDrawingsService
     public const DEFAULT_LIMIT = 12;
 
     /**
-     * How many recently touched files are inspected per requested drawing.
+     * Number of the newest files inspected for drawings.
      *
-     * `getRecent()` returns every file type, so the CAD drawings are only a
-     * fraction of its result. A bounded multiple keeps the query cheap.
+     * Kept above 100 because `getRecent()` only applies its two-week cutoff up
+     * to that limit: a larger limit returns the newest files regardless of
+     * their age. The bound keeps the start page fast and memory-safe even for
+     * users with a very large archive of drawings.
      */
-    private const RECENT_SCAN_FACTOR = 5;
+    private const RECENT_SCAN_LIMIT = 200;
 
     private const EXTENSIONS = ['dwg', 'dxf'];
 
@@ -52,39 +54,24 @@ class RecentDrawingsService
      */
     public function getRecentDrawings(int $limit = self::DEFAULT_LIMIT): array
     {
-        if ($limit < 1) {
-            return [];
-        }
-
         $user = $this->userSession->getUser();
-        if ($user === null) {
+        if ($limit < 1 || $user === null) {
             return [];
         }
 
         try {
             $userFolder = $this->rootFolder->getUserFolder($user->getUID());
             $drawings = $this->collect(
-                $userFolder->getRecent($limit * self::RECENT_SCAN_FACTOR),
+                $userFolder->getRecent(self::RECENT_SCAN_LIMIT),
                 $userFolder,
             );
-
-            if ($drawings === []) {
-                // getRecent() only covers roughly the last two weeks. A user
-                // whose drawings are older would otherwise see an empty page.
-                $drawings = $this->collect(
-                    array_merge(
-                        $userFolder->searchByMime(Application::CANONICAL_DWG_MIME),
-                        $userFolder->searchByMime(Application::CANONICAL_DXF_MIME),
-                    ),
-                    $userFolder,
-                );
-            }
         } catch (\Throwable $e) {
             // The start page is a convenience; never fail it because the file
-            // search is unavailable.
+            // search is unavailable. Log the class only: exception messages
+            // can contain internal paths.
             $this->logger->warning(
                 'CAD Viewer: could not list recent drawings',
-                ['exception' => $e],
+                ['error' => $e::class],
             );
 
             return [];
@@ -95,7 +82,7 @@ class RecentDrawingsService
             static fn (array $a, array $b): int => $b['mtime'] <=> $a['mtime'],
         );
 
-        return array_slice($drawings, 0, $limit);
+        return array_slice($drawings, 0, min($limit, self::RECENT_SCAN_LIMIT));
     }
 
     /**
@@ -111,6 +98,12 @@ class RecentDrawingsService
 
         foreach ($nodes as $node) {
             if (!$node instanceof File || !$node->isReadable()) {
+                continue;
+            }
+
+            // The viewer refuses larger files, so listing one would only lead
+            // to an error page.
+            if ($node->getSize() > Application::MAX_FILE_SIZE) {
                 continue;
             }
 

@@ -47,6 +47,7 @@ module.exports = tseslint.config(
         console: 'readonly',
         HTMLElement: 'readonly',
         HTMLInputElement: 'readonly',
+        HTMLDialogElement: 'readonly',
         KeyboardEvent: 'readonly',
         File: 'readonly',
         Blob: 'readonly',

@@ -102,7 +102,8 @@ class ViewControllerTest extends TestCase
 
     public function testBlankRouteIsAPostEndpoint(): void
     {
-        $routes = require __DIR__ . '/../../appinfo/routes.php';
+        /** @var array{routes: list<array{name: string, url: string, verb: string}>} $routes */
+        $routes = require_once __DIR__ . '/../../appinfo/routes.php';
 
         $blankRoutes = array_values(array_filter(
             $routes['routes'],

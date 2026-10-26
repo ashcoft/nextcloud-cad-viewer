@@ -13,14 +13,17 @@ import { generateUrl } from '@nextcloud/router'
  * @throws When the request fails or the response carries no file id.
  */
 export async function createBlankDrawing(name: string): Promise<number> {
-  const response = await axios.post<{ fileId?: number }>(
+  // A type assertion is used instead of a generic call argument: Babel's
+  // TypeScript transform leaves call type arguments in place under some
+  // dependency layouts, which then makes Jest fail to parse the module.
+  const response = (await axios.post(
     generateUrl('/apps/cad_viewer/api/blank'),
     { name },
-  )
+  )) as { data?: { fileId?: unknown } }
 
   const fileId = response.data?.fileId
   if (typeof fileId !== 'number') {
-    throw new Error('The server did not return a file id')
+    throw new TypeError('The server did not return a file id')
   }
 
   return fileId
