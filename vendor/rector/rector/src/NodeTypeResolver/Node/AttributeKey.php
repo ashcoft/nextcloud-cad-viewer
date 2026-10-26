@@ -65,11 +65,6 @@ final class AttributeKey
      */
     public const IS_REGULAR_PATTERN = 'is_regular_pattern';
     /**
-     * Helps with infinite loop detection
-     * @var string
-     */
-    public const CREATED_BY_RULE = 'created_by_rule';
-    /**
      * @var string
      */
     public const WRAPPED_IN_PARENTHESES = 'wrapped_in_parentheses';
@@ -78,10 +73,6 @@ final class AttributeKey
      * @var string
      */
     public const PHP_ATTRIBUTE_NAME = 'php_attribute_name';
-    /**
-     * @var string
-     */
-    public const EXTRA_USE_IMPORT = 'extra_use_import';
     /**
      * Used internally by php-parser
      * @var string
@@ -108,10 +99,6 @@ final class AttributeKey
      * @var string
      */
     public const IS_BYREF_VAR = 'is_byref_var';
-    /**
-     * @var string
-     */
-    public const IS_BYREF_RETURN = 'is_byref_return';
     /**
      * @var string
      */

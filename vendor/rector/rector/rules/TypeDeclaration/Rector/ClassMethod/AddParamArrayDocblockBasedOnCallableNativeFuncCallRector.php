@@ -23,10 +23,10 @@ use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTypeChanger;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\TypeDeclaration\Enum\NativeFuncCallPositions;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\AddParamArrayDocblockBasedOnCallableNativeFuncCallRector\AddParamArrayDocblockBasedOnCallableNativeFuncCallRectorTest
  */
@@ -128,11 +128,6 @@ CODE_SAMPLE
             if (!$this->isNames($arrayArgValue, $variableNamesWithArrayType)) {
                 return null;
             }
-            $arrayArgValueType = $this->nodeTypeResolver->getNativeType($arrayArgValue);
-            // type changed, eg: by reassign
-            if (!$arrayArgValueType->isArray()->yes()) {
-                return null;
-            }
             $callbackArg = $subNode->getArg('callback', NativeFuncCallPositions::ARRAY_AND_CALLBACK_POSITIONS[$funcCallName]['callback']);
             if (!$callbackArg instanceof Arg) {
                 return null;
@@ -155,6 +150,11 @@ CODE_SAMPLE
                 return null;
             }
             if (!$callbackArgValue->params[0]->type instanceof Node) {
+                return null;
+            }
+            $arrayArgValueType = $this->nodeTypeResolver->getNativeType($arrayArgValue);
+            // type changed, eg: by reassign
+            if (!$arrayArgValueType->isArray()->yes()) {
                 return null;
             }
             $arrayArgValueName = (string) $this->getName($arrayArgValue);

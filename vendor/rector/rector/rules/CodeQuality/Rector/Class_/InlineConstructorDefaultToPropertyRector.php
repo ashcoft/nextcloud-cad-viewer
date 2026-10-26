@@ -20,9 +20,9 @@ use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\PhpParser\NodeFinder\PropertyFetchFinder;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\ValueObject\MethodName;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\CodeQuality\Rector\Class_\InlineConstructorDefaultToPropertyRector\InlineConstructorDefaultToPropertyRectorTest
  */
@@ -102,9 +102,9 @@ CODE_SAMPLE
         }
         $hasParentConstructCall = \false;
         foreach ($constructClassMethod->stmts as $key => $stmt) {
-            // code that is possibly breaking flow
+            // code that is possibly breaking flow; keep any inlining already done before it
             if ($stmt instanceof If_) {
-                return null;
+                break;
             }
             if (!$stmt instanceof Expression) {
                 continue;

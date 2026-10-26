@@ -14,12 +14,12 @@ use Rector\Php\PhpVersionProvider;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\TypeDeclaration\TypeInferer\ReturnTypeInferer;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VendorLocker\NodeVendorLocker\ClassMethodReturnTypeOverrideGuard;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromStrictFluentReturnRector\ReturnTypeFromStrictFluentReturnRectorTest
  */
@@ -79,26 +79,29 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::HAS_RETURN_TYPE;
+        return PhpVersion::PHP_70;
     }
     /**
      * @param ClassMethod $node
      */
     public function refactor(Node $node): ?Node
     {
-        $scope = ScopeFetcher::fetch($node);
         // already typed → skip
         if ($node->returnType instanceof Node) {
             return null;
         }
+        $scope = ScopeFetcher::fetch($node);
         if ($this->classMethodReturnTypeOverrideGuard->shouldSkipClassMethod($node, $scope)) {
+            return null;
+        }
+        $returnType = $this->returnTypeInferer->inferFunctionLike($node);
+        if (!$returnType instanceof StaticType && !$returnType instanceof ObjectType) {
             return null;
         }
         $classReflection = $this->reflectionResolver->resolveClassReflection($node);
         if (!$classReflection instanceof ClassReflection) {
             return null;
         }
-        $returnType = $this->returnTypeInferer->inferFunctionLike($node);
         if ($returnType instanceof StaticType && $returnType->getStaticObjectType()->getClassName() === $classReflection->getName()) {
             return $this->processAddReturnSelfOrStatic($node, $classReflection);
         }
@@ -124,6 +127,6 @@ CODE_SAMPLE
         if ($classReflection->isFinalByKeyword()) {
             return \true;
         }
-        return !$this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::STATIC_RETURN_TYPE);
+        return !$this->phpVersionProvider->isAtLeastPhpVersion(PhpVersion::PHP_80);
     }
 }

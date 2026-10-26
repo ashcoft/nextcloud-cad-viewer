@@ -16,12 +16,12 @@ use PHPStan\Type\ObjectType;
 use PHPStan\Type\StringType;
 use Rector\PhpParser\NodeTransformer;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\Util\Reflection\PrivatesAccessor;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
 use RectorPrefix202610\Symfony\Component\Console\Input\StringInput;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @changelog https://github.com/symfony/symfony/pull/27821/files
  *
@@ -43,7 +43,7 @@ final class StringToArrayArgumentProcessRector extends AbstractRector implements
     }
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('symfony/process', '>=4.2');
+        return new ComposerPackageConstraint('symfony/process', '>=4.2 <7.0');
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -79,9 +79,11 @@ CODE_SAMPLE
         return null;
     }
     /**
+     * @template TNode of New_|MethodCall
      * @param \PhpParser\Node\Expr\New_|\PhpParser\Node\Expr\MethodCall $node
+     * @return TNode|null
      */
-    private function processArgumentPosition($node, int $argumentPosition): ?Node
+    private function processArgumentPosition($node, int $argumentPosition)
     {
         if (!isset($node->args[$argumentPosition])) {
             return null;

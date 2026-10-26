@@ -12,10 +12,10 @@ use Rector\PhpParser\Enum\NodeGroup;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\PHPUnit\NodeFactory\AssertCallFactory;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\PHPUnit\Tests\PHPUnit60\Rector\MethodCall\DelegateExceptionArgumentsRector\DelegateExceptionArgumentsRectorTest
  */
@@ -34,7 +34,7 @@ final class DelegateExceptionArgumentsRector extends AbstractRector implements C
      */
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('phpunit/phpunit', '>=5.2');
+        return new ComposerPackageConstraint('phpunit/phpunit', '>=5.2 <8.0');
     }
     /**
      * @var array<string, string>
@@ -125,8 +125,9 @@ CODE_SAMPLE
         return null;
     }
     /**
+     * @template TCall of StaticCall|MethodCall
      * @param \PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\MethodCall $call
-     * @return \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\StaticCall
+     * @return ($call is MethodCall ? MethodCall : StaticCall)
      */
     private function createFirstArgExtraMethodCall($call)
     {

@@ -17,11 +17,11 @@ use PhpParser\Node\Expr\Ternary;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\ValueObject\Application\File;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php70\Rector\Ternary\TernaryToNullCoalescingRector\TernaryToNullCoalescingRectorTest
  */
@@ -78,16 +78,18 @@ final class TernaryToNullCoalescingRector extends AbstractRector implements MinP
         }
         $ternaryCompareNode = $node->cond;
         if ($this->isNullMatch($ternaryCompareNode->left, $ternaryCompareNode->right, $checkedNode)) {
+            $this->preserveWrappedFallback($fallbackNode);
             return $this->createCoalesce($checkedNode, $fallbackNode);
         }
         if ($this->isNullMatch($ternaryCompareNode->right, $ternaryCompareNode->left, $checkedNode)) {
+            $this->preserveWrappedFallback($fallbackNode);
             return $this->createCoalesce($checkedNode, $fallbackNode);
         }
         return null;
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::NULL_COALESCE;
+        return PhpVersion::PHP_70;
     }
     private function processTernaryWithIsNull(Ternary $ternary, FuncCall $isNullFuncCall, bool $isNegated): ?Coalesce
     {
@@ -132,6 +134,13 @@ final class TernaryToNullCoalescingRector extends AbstractRector implements MinP
         }
         if (!$this->nodeComparator->areNodesEqual($ternary->if, $isset->vars[0])) {
             return null;
+        }
+        // a nested coalescable ternary fallback is converted in the same pass; chained ?? needs no parentheses
+        if ($ternary->else instanceof Ternary) {
+            $convertedElse = $this->refactor($ternary->else);
+            if ($convertedElse instanceof Expr) {
+                return $this->createCoalesce($ternary->if, $convertedElse);
+            }
         }
         if (($ternary->else instanceof Ternary || $ternary->else instanceof BinaryOp) && $this->isTernaryParenthesized($this->getFile(), $ternary->cond, $ternary)) {
             $ternary->else->setAttribute(AttributeKey::WRAPPED_IN_PARENTHESES, \true);

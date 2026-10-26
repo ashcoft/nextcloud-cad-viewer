@@ -23,8 +23,8 @@ use Rector\PHPUnit\NodeAnalyzer\IdentifierManipulator;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\PHPUnit\ValueObject\BinaryOpWithAssertMethod;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\PHPUnit\Tests\CodeQuality\Rector\MethodCall\AssertComparisonToSpecificMethodRector\AssertComparisonToSpecificMethodRectorTest
  */
@@ -78,9 +78,11 @@ final class AssertComparisonToSpecificMethodRector extends AbstractRector
         return $this->processCallWithBinaryOp($node, $firstArgumentValue);
     }
     /**
+     * @template TNode of MethodCall|StaticCall
      * @param \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\StaticCall $node
+     * @return TNode|null
      */
-    private function processCallWithBinaryOp($node, BinaryOp $binaryOp): ?Node
+    private function processCallWithBinaryOp($node, BinaryOp $binaryOp)
     {
         $binaryOpClass = get_class($binaryOp);
         foreach ($this->binaryOpWithAssertMethods as $binaryOpWithAssertMethod) {

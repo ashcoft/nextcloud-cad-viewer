@@ -3,8 +3,16 @@
 declare (strict_types=1);
 namespace Rector\Console\Command;
 
+use RectorPrefix202610\Nette\Utils\Json;
+use Rector\ChangesReporting\Output\ConsoleOutputFormatter;
+use Rector\Configuration\Option;
+use Rector\Console\Rule\AllRectorRulesProvider;
+use Rector\Contract\Rector\RectorInterface;
+use Rector\PostRector\Contract\Rector\PostRectorInterface;
+use Rector\Skipper\Skipper\Skipper;
 use RectorPrefix202610\Symfony\Component\Console\Command\Command;
 use RectorPrefix202610\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202610\Symfony\Component\Console\Input\InputOption;
 use RectorPrefix202610\Symfony\Component\Console\Output\OutputInterface;
 use RectorPrefix202610\Symfony\Component\Console\Style\SymfonyStyle;
 final class ListRulesCommand extends Command
@@ -13,20 +21,82 @@ final class ListRulesCommand extends Command
      * @readonly
      */
     private SymfonyStyle $symfonyStyle;
-    public function __construct(SymfonyStyle $symfonyStyle)
+    /**
+     * @readonly
+     */
+    private Skipper $skipper;
+    /**
+     * @readonly
+     */
+    private AllRectorRulesProvider $allRectorRulesProvider;
+    /**
+     * @var RectorInterface[]
+     * @readonly
+     */
+    private array $rectors;
+    /**
+     * @param RectorInterface[] $rectors
+     */
+    public function __construct(SymfonyStyle $symfonyStyle, Skipper $skipper, AllRectorRulesProvider $allRectorRulesProvider, array $rectors)
     {
         $this->symfonyStyle = $symfonyStyle;
+        $this->skipper = $skipper;
+        $this->allRectorRulesProvider = $allRectorRulesProvider;
+        $this->rectors = $rectors;
         parent::__construct();
     }
     protected function configure(): void
     {
         $this->setName('list-rules');
-        $this->setDescription('[DEPRECATED] Show loaded Rectors');
+        $this->setDescription('Show loaded Rectors');
         $this->setAliases(['show-rules']);
+        $this->addOption(Option::OUTPUT_FORMAT, null, InputOption::VALUE_REQUIRED, 'Select output format', ConsoleOutputFormatter::NAME);
+        $this->addOption(Option::ONLY, null, InputOption::VALUE_REQUIRED, 'Fully qualified rule class name');
+        $this->addOption('all', null, InputOption::VALUE_NONE, 'List all existing rules in core and rector-* packages, not only the loaded ones');
     }
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->symfonyStyle->error('The "list-rules" command is deprecated and no longer provided. Run Rector with the set or rules you desire instead.');
-        return Command::FAILURE;
+        $rectorClasses = $input->getOption('all') ? $this->allRectorRulesProvider->provide() : $this->resolveRectorClasses();
+        $skippedClasses = $this->getSkippedRectorClasses();
+        $outputFormat = $input->getOption(Option::OUTPUT_FORMAT);
+        if ($outputFormat === 'json') {
+            $data = ['rectors' => $rectorClasses, 'skipped-rectors' => $skippedClasses];
+            echo Json::encode($data, \true) . \PHP_EOL;
+            return Command::SUCCESS;
+        }
+        $this->symfonyStyle->title('Loaded Rector rules');
+        $this->symfonyStyle->listing($rectorClasses);
+        if ($skippedClasses !== []) {
+            $this->symfonyStyle->title('Skipped Rector rules');
+            $this->symfonyStyle->listing($skippedClasses);
+        }
+        $this->symfonyStyle->newLine();
+        $this->symfonyStyle->note(sprintf('Loaded %d rules', count($rectorClasses)));
+        return Command::SUCCESS;
+    }
+    /**
+     * @return array<class-string<RectorInterface>>
+     */
+    private function resolveRectorClasses(): array
+    {
+        $customRectors = array_filter($this->rectors, static fn(RectorInterface $rector): bool => !$rector instanceof PostRectorInterface);
+        $rectorClasses = array_map(static fn(RectorInterface $rector): string => get_class($rector), $customRectors);
+        sort($rectorClasses);
+        return array_unique($rectorClasses);
+    }
+    /**
+     * @return array<class-string>
+     */
+    private function getSkippedRectorClasses(): array
+    {
+        $skippedRectorClasses = [];
+        foreach ($this->skipper->resolveSkippedClasses() as $rectorClass => $fileList) {
+            // ignore specific skips
+            if ($fileList !== null) {
+                continue;
+            }
+            $skippedRectorClasses[] = $rectorClass;
+        }
+        return $skippedRectorClasses;
     }
 }

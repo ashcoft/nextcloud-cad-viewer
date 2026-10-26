@@ -17,13 +17,13 @@ use Rector\PHPStan\ScopeFetcher;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\TypeDeclaration\NodeAnalyzer\ReturnAnalyzer;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VendorLocker\NodeVendorLocker\ClassMethodReturnTypeOverrideGuard;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromStrictTypedPropertyRector\ReturnTypeFromStrictTypedPropertyRectorTest
  */
@@ -125,7 +125,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::TYPED_PROPERTIES;
+        return PhpVersion::PHP_74;
     }
     /**
      * @return Type[]
@@ -133,6 +133,9 @@ CODE_SAMPLE
     private function resolveReturnPropertyType(ClassMethod $classMethod): array
     {
         $returns = $this->betterNodeFinder->findReturnsScoped($classMethod);
+        if (!$this->returnAnalyzer->hasOnlyReturnWithExpr($classMethod, $returns)) {
+            return [];
+        }
         $propertyTypes = [];
         foreach ($returns as $return) {
             if (!$return->expr instanceof Expr) {
@@ -150,9 +153,6 @@ CODE_SAMPLE
                 return [];
             }
             $propertyTypes[] = $this->nodeTypeResolver->getNativeType($return->expr);
-        }
-        if (!$this->returnAnalyzer->hasOnlyReturnWithExpr($classMethod, $returns)) {
-            return [];
         }
         return $propertyTypes;
     }

@@ -14,11 +14,11 @@ use PhpParser\Node\Identifier;
 use PHPStan\Type\ArrayType;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\TypeDeclaration\Enum\NativeFuncCallPositions;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\FuncCall\AddArrowFunctionParamArrayWhereDimFetchRector\AddArrowFunctionParamArrayWhereDimFetchRectorTest
  */
@@ -80,6 +80,11 @@ CODE_SAMPLE
             $instanceofVariableNames = $this->resolveInstanceofVariables($closureExpr);
             $skippedVariableNames = array_merge($isArrayVariableNames, $instanceofVariableNames);
             $dimFetchVariableNames = $this->resolveDimFetchVariableNames($closureExpr);
+            // the items type does not change per closure param, resolve it once
+            $type = $this->getType($closureItems);
+            if ($type instanceof ArrayType && $type->getItemType()->isObject()->yes()) {
+                continue;
+            }
             foreach ($closureExpr->getParams() as $closureParam) {
                 if ($closureParam->type instanceof Node) {
                     // param is known already
@@ -90,10 +95,6 @@ CODE_SAMPLE
                     continue;
                 }
                 if (!$this->isNames($closureParam->var, $dimFetchVariableNames)) {
-                    continue;
-                }
-                $type = $this->getType($closureItems);
-                if ($type instanceof ArrayType && $type->getItemType()->isObject()->yes()) {
                     continue;
                 }
                 $hasChanged = \true;
@@ -107,7 +108,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::SCALAR_TYPES;
+        return PhpVersion::PHP_70;
     }
     /**
      * @return string[]

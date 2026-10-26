@@ -7,16 +7,18 @@ use PhpParser\Node;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Function_;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode;
+use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\ThisTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\ClassMethod\RemoveUselessUnionReturnDocblockRector\RemoveUselessUnionReturnDocblockRectorTest
  */
@@ -98,6 +100,10 @@ CODE_SAMPLE
         if (!$returnTagValueNode->type instanceof UnionTypeNode) {
             return null;
         }
+        // keep static/$this, they denote the runtime subclass the native type cannot express
+        if ($this->hasStaticOrThisType($returnTagValueNode->type)) {
+            return null;
+        }
         $nativeReturnType = $this->staticTypeMapper->mapPhpParserNodePHPStanType($node->returnType);
         // keep array-involving native type (array, ?array, union with array), the docblock may carry element types
         if (!$nativeReturnType->isArray()->no()) {
@@ -116,6 +122,18 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::UNION_TYPES;
+        return PhpVersion::PHP_80;
+    }
+    private function hasStaticOrThisType(UnionTypeNode $unionTypeNode): bool
+    {
+        foreach ($unionTypeNode->types as $typeNode) {
+            if ($typeNode instanceof ThisTypeNode) {
+                return \true;
+            }
+            if ($typeNode instanceof IdentifierTypeNode && $typeNode->name === 'static') {
+                return \true;
+            }
+        }
+        return \false;
     }
 }

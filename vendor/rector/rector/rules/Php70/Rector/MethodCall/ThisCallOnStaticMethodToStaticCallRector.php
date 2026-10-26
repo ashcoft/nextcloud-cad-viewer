@@ -15,13 +15,12 @@ use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\Php\PhpMethodReflection;
 use Rector\Enum\ObjectReference;
 use Rector\NodeCollector\StaticAnalyzer;
-use Rector\PHPStan\ScopeFetcher;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php70\Rector\MethodCall\ThisCallOnStaticMethodToStaticCallRector\ThisCallOnStaticMethodToStaticCallRectorTest
  */
@@ -43,7 +42,7 @@ final class ThisCallOnStaticMethodToStaticCallRector extends AbstractRector impl
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::STATIC_CALL_ON_NON_STATIC;
+        return PhpVersion::PHP_70;
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -87,11 +86,10 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
-        $scope = ScopeFetcher::fetch($node);
-        if (!$scope->isInClass()) {
+        $classReflection = $this->fetchClassLikeReflection($node);
+        if (!$classReflection instanceof ClassReflection) {
             return null;
         }
-        $classReflection = $scope->getClassReflection();
         // skip PHPUnit calls, as they accept both self:: and $this-> formats
         if ($classReflection->is('PHPUnit\Framework\TestCase')) {
             return null;
@@ -125,11 +123,11 @@ CODE_SAMPLE
             if ($methodName === null) {
                 return null;
             }
-            $isStaticMethod = $this->staticAnalyzer->isStaticMethod($classReflection, $methodName, $class);
-            if (!$isStaticMethod) {
+            if ($subNode->isFirstClassCallable()) {
                 return null;
             }
-            if ($subNode->isFirstClassCallable()) {
+            $isStaticMethod = $this->staticAnalyzer->isStaticMethod($classReflection, $methodName, $class);
+            if (!$isStaticMethod) {
                 return null;
             }
             $this->hasChanged = \true;

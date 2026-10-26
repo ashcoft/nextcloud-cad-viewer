@@ -26,13 +26,13 @@ use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\ConfiguredCodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\TypeDeclaration\NodeTypeAnalyzer\PropertyTypeDecorator;
 use Rector\TypeDeclaration\TypeInferer\PropertyTypeInferer\AllAssignNodePropertyTypeInferer;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\Property\TypedPropertyFromAssignsRector\TypedPropertyFromAssignsRectorTest
  */
@@ -75,7 +75,6 @@ final class TypedPropertyFromAssignsRector extends AbstractRector implements Min
      */
     private AttrinationFinder $attrinationFinder;
     /**
-     * @api
      * @var string
      */
     public const INLINE_PUBLIC = 'inline_public';
@@ -142,7 +141,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::TYPED_PROPERTIES;
+        return PhpVersion::PHP_74;
     }
     /**
      * @param Class_ $node
@@ -154,8 +153,11 @@ CODE_SAMPLE
         if ($node->getMethod('loadMetadata') instanceof ClassMethod) {
             return null;
         }
+        $classReflection = $this->reflectionResolver->resolveClassReflection($node);
+        if (!$classReflection instanceof ClassReflection) {
+            return null;
+        }
         $hasChanged = \false;
-        $classReflection = null;
         foreach ($node->getProperties() as $property) {
             // non-private property can be anything with not inline public configured
             if (!$property->isPrivate() && !$this->inlinePublic) {
@@ -163,12 +165,6 @@ CODE_SAMPLE
             }
             if ($this->isDoctrineMappedProperty($property)) {
                 continue;
-            }
-            if (!$classReflection instanceof ClassReflection) {
-                $classReflection = $this->reflectionResolver->resolveClassReflection($node);
-            }
-            if (!$classReflection instanceof ClassReflection) {
-                return null;
             }
             if (!$this->makePropertyTypedGuard->isLegal($property, $classReflection, $this->inlinePublic)) {
                 continue;

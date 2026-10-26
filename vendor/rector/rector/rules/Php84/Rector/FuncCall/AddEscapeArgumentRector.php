@@ -11,10 +11,10 @@ use PhpParser\Node\Identifier;
 use PhpParser\Node\Scalar\String_;
 use PHPStan\Type\ObjectType;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php84\Rector\FuncCall\AddEscapeArgumentRector\AddEscapeArgumentRectorTest
  */
@@ -64,9 +64,6 @@ CODE_SAMPLE
         if (!in_array($name, ['setCsvControl', 'fputcsv', 'fgetcsv'], \true)) {
             return null;
         }
-        if (!$this->isObjectType($node->var, new ObjectType('SplFileObject'))) {
-            return null;
-        }
         if ($this->shouldSkipNamedArg($node)) {
             return null;
         }
@@ -76,12 +73,15 @@ CODE_SAMPLE
         if ($name === 'fputcsv' && isset($node->getArgs()[3])) {
             return null;
         }
+        if (!$this->isObjectType($node->var, new ObjectType('SplFileObject'))) {
+            return null;
+        }
         $node->args[count($node->getArgs())] = new Arg(new String_('\\'), \false, \false, [], new Identifier('escape'));
         return $node;
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::REQUIRED_ESCAPE_PARAMETER;
+        return PhpVersion::PHP_84;
     }
     /**
      * @param \PhpParser\Node\Expr\FuncCall|\PhpParser\Node\Expr\MethodCall $node

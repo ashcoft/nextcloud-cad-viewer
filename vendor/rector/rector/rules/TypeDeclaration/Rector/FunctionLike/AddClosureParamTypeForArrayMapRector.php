@@ -15,9 +15,9 @@ use PHPStan\Type\Type;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\FunctionLike\AddClosureParamTypeForArrayMapRector\AddClosureParamTypeForArrayMapRectorTest
  */
@@ -65,12 +65,12 @@ CODE_SAMPLE
         if (!$this->isName($node, 'array_map')) {
             return null;
         }
-        $funcReflection = $this->reflectionResolver->resolveFunctionLikeReflectionFromCall($node);
-        if (!$funcReflection instanceof NativeFunctionReflection) {
-            return null;
-        }
         $args = $node->getArgs();
         if (!isset($args[0]) || !$args[0]->value instanceof Closure) {
+            return null;
+        }
+        $funcReflection = $this->reflectionResolver->resolveFunctionLikeReflectionFromCall($node);
+        if (!$funcReflection instanceof NativeFunctionReflection) {
             return null;
         }
         // array_map passes the value of each array positionally to the closure:

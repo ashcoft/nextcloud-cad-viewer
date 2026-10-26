@@ -40,12 +40,12 @@ use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\ConfiguredCodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\ValueObject\MethodName;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector\ClassPropertyAssignToConstructorPromotionRectorTest
  */
@@ -100,17 +100,14 @@ final class ClassPropertyAssignToConstructorPromotionRector extends AbstractRect
      */
     private BetterNodeFinder $betterNodeFinder;
     /**
-     * @api
      * @var string
      */
     public const INLINE_PUBLIC = 'inline_public';
     /**
-     * @api
      * @var string
      */
     public const RENAME_PROPERTY = 'rename_property';
     /**
-     * @api
      * @var string
      */
     public const ALLOW_MODEL_BASED_CLASSES = 'allow_model_based_classes';
@@ -276,7 +273,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::PROPERTY_PROMOTION;
+        return PhpVersion::PHP_80;
     }
     private function processUnionType(Property $property, Param $param): void
     {

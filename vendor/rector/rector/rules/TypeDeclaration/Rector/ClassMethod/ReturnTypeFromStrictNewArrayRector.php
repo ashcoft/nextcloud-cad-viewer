@@ -9,12 +9,12 @@ use PhpParser\Node\Stmt\Function_;
 use PHPStan\Analyser\Scope;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\TypeDeclaration\NodeAnalyzer\StrictReturnNewArrayResolver;
 use Rector\ValueObject\PhpVersion;
 use Rector\VendorLocker\NodeVendorLocker\ClassMethodReturnTypeOverrideGuard;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromStrictNewArrayRector\ReturnTypeFromStrictNewArrayRectorTest
  */
@@ -71,6 +71,13 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
+        if ($node->returnType instanceof Node) {
+            return null;
+        }
+        // private methods are handled by PrivateMethodReturnTypeFromStrictNewArrayRector
+        if ($node instanceof ClassMethod && $node->isPrivate()) {
+            return null;
+        }
         $scope = ScopeFetcher::fetch($node);
         if ($this->shouldSkip($node, $scope)) {
             return null;
@@ -86,13 +93,6 @@ CODE_SAMPLE
      */
     private function shouldSkip($node, Scope $scope): bool
     {
-        if ($node->returnType instanceof Node) {
-            return \true;
-        }
-        // private methods are handled by PrivateMethodReturnTypeFromStrictNewArrayRector
-        if ($node instanceof ClassMethod && $node->isPrivate()) {
-            return \true;
-        }
         return $node instanceof ClassMethod && $this->classMethodReturnTypeOverrideGuard->shouldSkipClassMethod($node, $scope);
     }
 }

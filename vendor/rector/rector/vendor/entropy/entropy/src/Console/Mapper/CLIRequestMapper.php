@@ -57,6 +57,14 @@ final class CLIRequestMapper
             if (array_key_exists($optionName, $options)) {
                 $value = $cliRequest->option($optionName);
                 $consumedOptionNames[$optionName] = \true;
+                // non-bool option used as a bare flag (no value) -> fall back to default or fail
+                if ($value === \true && !$isBool) {
+                    if ($reflectionParameter->isDefaultValueAvailable()) {
+                        $args[] = $reflectionParameter->getDefaultValue();
+                        continue;
+                    }
+                    throw new ConsoleInputMappingException(sprintf('Missing value for "%s" (use "--%s=<value>" to provide it)', $name, $optionName));
+                }
                 $args[] = $this->castValueByParameterType($value, $type);
                 continue;
             }
@@ -121,7 +129,7 @@ final class CLIRequestMapper
         // 2) Extra options (unknown to run() signature) - ignore global ones
         $unknownOptions = array_diff_key($options, $consumedOptionNames, self::IGNORED_OPTIONS);
         if ($unknownOptions !== []) {
-            throw new ConsoleInputMappingException(sprintf('Unknown option%s: %s', count($unknownOptions) > 1 ? 's' : '', implode(', ', array_map(static fn(string $name): string => '"--' . $name . '"', array_keys($unknownOptions)))));
+            throw new ConsoleInputMappingException(sprintf('Unknown option%s: %s', count($unknownOptions) > 1 ? 's' : '', implode(', ', array_map(static fn(string $name): string => '"' . (strncmp($name, '-', strlen('-')) === 0 ? $name : '--' . $name) . '"', array_keys($unknownOptions)))));
         }
         return $args;
     }

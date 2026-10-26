@@ -18,6 +18,7 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\Instanceof_;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\PropertyFetch;
+use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\StaticPropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
@@ -34,10 +35,11 @@ use PHPStan\Type\Type;
 use PHPStan\Type\UnionType;
 use Rector\NodeTypeResolver\PHPStan\Type\TypeFactory;
 use Rector\NodeTypeResolver\TypeComparator\TypeComparator;
+use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\VendorLocker\ParentClassMethodTypeOverrideGuard;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\StrictArrayParamDimFetchRector\StrictArrayParamDimFetchRectorTest
  */
@@ -55,11 +57,16 @@ final class StrictArrayParamDimFetchRector extends AbstractRector
      * @readonly
      */
     private TypeFactory $typeFactory;
-    public function __construct(ParentClassMethodTypeOverrideGuard $parentClassMethodTypeOverrideGuard, TypeComparator $typeComparator, TypeFactory $typeFactory)
+    /**
+     * @readonly
+     */
+    private BetterNodeFinder $betterNodeFinder;
+    public function __construct(ParentClassMethodTypeOverrideGuard $parentClassMethodTypeOverrideGuard, TypeComparator $typeComparator, TypeFactory $typeFactory, BetterNodeFinder $betterNodeFinder)
     {
         $this->parentClassMethodTypeOverrideGuard = $parentClassMethodTypeOverrideGuard;
         $this->typeComparator = $typeComparator;
         $this->typeFactory = $typeFactory;
+        $this->betterNodeFinder = $betterNodeFinder;
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -95,6 +102,21 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
+        // cheap bail - collect untyped params, skip costly parent reflection guards below
+        $untypedParamNames = [];
+        foreach ($node->getParams() as $param) {
+            if ($param->type instanceof Node || $param->variadic) {
+                continue;
+            }
+            $untypedParamNames[] = $this->getName($param);
+        }
+        if ($untypedParamNames === []) {
+            return null;
+        }
+        // cheap syntactic bail - no param is dim-fetched at all, skip reflection and type resolution
+        if (!$this->hasArrayDimFetchOnParamNames($node, $untypedParamNames)) {
+            return null;
+        }
         $hasChanged = \false;
         if ($node instanceof ClassMethod && $this->parentClassMethodTypeOverrideGuard->hasParentClassMethod($node)) {
             return null;
@@ -102,7 +124,7 @@ CODE_SAMPLE
         if ($node instanceof ClassMethod && $this->parentClassMethodTypeOverrideGuard->isTypeGuardedClass($node)) {
             return null;
         }
-        foreach ($node->getParams() as $param) {
+        foreach ($node->getParams() as $position => $param) {
             if ($param->type instanceof Node) {
                 continue;
             }
@@ -115,6 +137,11 @@ CODE_SAMPLE
             if (!$this->isParamAccessedArrayDimFetch($param, $node)) {
                 continue;
             }
+            // a private method is only reachable from inside the class, so all its callers are visible here;
+            // skip if any of them passes an ArrayAccess object, which also supports dim fetch
+            if ($node instanceof ClassMethod && $node->isPrivate() && $this->isCalledWithArrayAccessArg($node, $position)) {
+                continue;
+            }
             $param->type = new Identifier('array');
             $hasChanged = \true;
         }
@@ -122,6 +149,34 @@ CODE_SAMPLE
             return $node;
         }
         return null;
+    }
+    /**
+     * @param string[] $paramNames
+     * @param \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Stmt\Function_|\PhpParser\Node\Expr\Closure $functionLike
+     */
+    private function hasArrayDimFetchOnParamNames($functionLike, array $paramNames): bool
+    {
+        if ($functionLike->stmts === null) {
+            return \false;
+        }
+        $hasArrayDimFetch = \false;
+        $this->traverseNodesWithCallable($functionLike->stmts, function (Node $node) use ($paramNames, &$hasArrayDimFetch): ?int {
+            if ($node instanceof Class_ || $node instanceof FunctionLike) {
+                return NodeVisitor::DONT_TRAVERSE_CURRENT_AND_CHILDREN;
+            }
+            if (!$node instanceof ArrayDimFetch) {
+                return null;
+            }
+            if (!$node->var instanceof Variable) {
+                return null;
+            }
+            if (!in_array($this->getName($node->var), $paramNames, \true)) {
+                return null;
+            }
+            $hasArrayDimFetch = \true;
+            return NodeVisitor::STOP_TRAVERSAL;
+        });
+        return $hasArrayDimFetch;
     }
     /**
      * @param \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Stmt\Function_|\PhpParser\Node\Expr\Closure $functionLike
@@ -284,6 +339,38 @@ CODE_SAMPLE
             return $node->var instanceof Variable && $this->isName($node->var, $paramName);
         }
         return \false;
+    }
+    private function isCalledWithArrayAccessArg(ClassMethod $classMethod, int $position): bool
+    {
+        $class = $this->findClassOfMethod($classMethod);
+        if (!$class instanceof Class_) {
+            return \false;
+        }
+        $methodName = $this->getName($classMethod);
+        $calls = $this->betterNodeFinder->findInstancesOf($class->getMethods(), [MethodCall::class, StaticCall::class]);
+        return array_any($calls, function ($call) use ($methodName, $position): bool {
+            if ($call->isFirstClassCallable()) {
+                return \false;
+            }
+            if (!$this->isName($call->name, $methodName)) {
+                return \false;
+            }
+            $args = $call->getArgs();
+            if (!isset($args[$position])) {
+                return \false;
+            }
+            return $this->isArrayAccess($this->getType($args[$position]->value));
+        });
+    }
+    private function findClassOfMethod(ClassMethod $classMethod): ?Class_
+    {
+        $classes = $this->betterNodeFinder->findInstanceOf($this->getFile()->getNewStmts(), Class_::class);
+        foreach ($classes as $class) {
+            if (in_array($classMethod, $class->getMethods(), \true)) {
+                return $class;
+            }
+        }
+        return null;
     }
     private function isArrayAccess(Type $type): bool
     {

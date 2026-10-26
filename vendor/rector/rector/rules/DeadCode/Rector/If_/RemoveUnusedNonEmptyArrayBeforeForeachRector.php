@@ -22,8 +22,8 @@ use Rector\Php\ReservedKeywordAnalyzer;
 use Rector\PhpParser\Enum\NodeGroup;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\If_\RemoveUnusedNonEmptyArrayBeforeForeachRector\RemoveUnusedNonEmptyArrayBeforeForeachRectorTest
  */
@@ -101,6 +101,10 @@ CODE_SAMPLE
     public function refactor(Node $node): ?\PhpParser\Node
     {
         if ($node instanceof If_) {
+            // cheap structural bail before pulling the scope
+            if (!$this->ifManipulator->isIfWithOnly($node, Foreach_::class)) {
+                return null;
+            }
             $scope = ScopeFetcher::fetch($node);
             return $this->refactorIf($node, $scope);
         }

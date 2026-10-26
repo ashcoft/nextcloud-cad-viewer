@@ -24,8 +24,8 @@ use Rector\NodeManipulator\IfManipulator;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\If_\RemoveDeadInstanceOfRector\RemoveDeadInstanceOfRectorTest
  */
@@ -137,12 +137,12 @@ CODE_SAMPLE
         if ($this->isPropertyFetch($instanceof->expr) || $instanceof->expr instanceof CallLike) {
             return null;
         }
-        $classReflection = $this->reflectionResolver->resolveClassReflection($instanceof);
-        if ($classReflection instanceof ClassReflection && $classReflection->isTrait()) {
-            return null;
-        }
         $exprType = $this->nodeTypeResolver->getNativeType($instanceof->expr);
         if (!$exprType instanceof ObjectType) {
+            return null;
+        }
+        $classReflection = $this->reflectionResolver->resolveClassReflection($instanceof);
+        if ($classReflection instanceof ClassReflection && $classReflection->isTrait()) {
             return null;
         }
         $className = $instanceof->class->toString();

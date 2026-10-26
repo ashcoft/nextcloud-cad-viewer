@@ -10,10 +10,10 @@ use PhpParser\Node\Expr\Closure;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Php74\NodeAnalyzer\ClosureArrowFunctionAnalyzer;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php74\Rector\Closure\ClosureToArrowFunctionRector\ClosureToArrowFunctionRectorTest
  */
@@ -70,6 +70,14 @@ CODE_SAMPLE
         if ($node->getAttribute(AttributeKey::IS_CLOSURE_IN_ATTRIBUTE) === \true) {
             return null;
         }
+        // convert a directly nested closure in the same pass, so each closure node is handled once
+        // instead of leaving the inner one for another traverse pass
+        if ($returnExpr instanceof Closure) {
+            $nestedArrowFunction = $this->refactor($returnExpr);
+            if ($nestedArrowFunction instanceof Expr) {
+                $returnExpr = $nestedArrowFunction;
+            }
+        }
         $attributes = $node->getAttributes();
         unset($attributes[AttributeKey::ORIGINAL_NODE]);
         $arrowFunction = new ArrowFunction(['params' => $node->params, 'returnType' => $node->returnType, 'byRef' => $node->byRef, 'expr' => $returnExpr], $attributes);
@@ -85,6 +93,6 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::ARROW_FUNCTION;
+        return PhpVersion::PHP_74;
     }
 }

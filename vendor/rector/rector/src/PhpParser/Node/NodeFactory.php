@@ -58,7 +58,7 @@ use Rector\PhpDocParser\NodeTraverser\SimpleCallableNodeTraverser;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\PostRector\ValueObject\PropertyMetadata;
 use Rector\StaticTypeMapper\StaticTypeMapper;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 /**
  * @see \Rector\Tests\PhpParser\Node\NodeFactoryTest
  */
@@ -162,9 +162,6 @@ final class NodeFactory
         $variable = new Variable($propertyName);
         return $this->createPropertyAssignmentWithExpr($propertyName, $variable);
     }
-    /**
-     * @api
-     */
     public function createPropertyAssignmentWithExpr(string $propertyName, Expr $expr): Assign
     {
         $propertyFetch = $this->createPropertyFetch(self::THIS, $propertyName);
@@ -203,16 +200,8 @@ final class NodeFactory
         return $property;
     }
     /**
-     * @api symfony
-     * @param mixed[] $arguments
-     */
-    public function createLocalMethodCall(string $method, array $arguments = []): MethodCall
-    {
-        $variable = new Variable('this');
-        return $this->createMethodCall($variable, $method, $arguments);
-    }
-    /**
-     * @api symfony, doctrine, phpunit
+     * @api
+     *
      * @param mixed[] $arguments
      * @param \PhpParser\Node\Expr|string $exprOrVariableName
      */
@@ -230,7 +219,7 @@ final class NodeFactory
         return $this->builderFactory->propertyFetch($fetcherExpr, $property);
     }
     /**
-     * @api doctrine
+     * @api
      */
     public function createPrivateProperty(string $name): Property
     {
@@ -298,7 +287,7 @@ final class NodeFactory
         $propertyFlags = $propertyMetadata->getFlags();
         $param->flags = $propertyFlags !== 0 ? $propertyFlags : Modifiers::PRIVATE;
         // make readonly by default
-        if ($this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::READONLY_PROPERTY)) {
+        if ($this->phpVersionProvider->isAtLeastPhpVersion(PhpVersion::PHP_81)) {
             $param->flags |= Modifiers::READONLY;
         }
         return $param;
@@ -312,7 +301,6 @@ final class NodeFactory
         return new ConstFetch(new Name('true'));
     }
     /**
-     * @api phpunit
      * @param string|ObjectReference::* $constantName
      */
     public function createClassConstFetchFromName(Name $className, string $constantName): ClassConstFetch

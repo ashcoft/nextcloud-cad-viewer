@@ -3,6 +3,7 @@
 declare (strict_types=1);
 namespace Rector\TypeDeclaration\Rector\ClassMethod;
 
+use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\MethodCall;
@@ -19,10 +20,10 @@ use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\VendorLocker\NodeVendorLocker\ClassMethodReturnTypeOverrideGuard;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromGetRepositoryDocblockRector\ReturnTypeFromGetRepositoryDocblockRectorTest
  */
@@ -114,6 +115,10 @@ CODE_SAMPLE
         if ($node->returnType instanceof Node) {
             return null;
         }
+        // the native type is read from the @return docblock; skip before scope fetch when there is none
+        if (!$node->getDocComment() instanceof Doc) {
+            return null;
+        }
         if (!$this->isGetRepositoryReturnOnly($node)) {
             return null;
         }
@@ -191,7 +196,7 @@ CODE_SAMPLE
     }
     private function isEntityManagerType(MethodCall $methodCall): bool
     {
-        $callerType = $this->nodeTypeResolver->getType($methodCall->var);
+        $callerType = $this->getType($methodCall->var);
         if (!$callerType instanceof ObjectType) {
             return \false;
         }

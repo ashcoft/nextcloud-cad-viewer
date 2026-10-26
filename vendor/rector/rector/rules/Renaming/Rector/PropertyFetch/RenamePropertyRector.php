@@ -16,8 +16,8 @@ use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
 use Rector\Renaming\ValueObject\RenameProperty;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\ConfiguredCodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Renaming\Rector\PropertyFetch\RenamePropertyRector\RenamePropertyRectorTest
@@ -32,6 +32,10 @@ final class RenamePropertyRector extends AbstractRector implements ConfigurableR
      * @var RenameProperty[]
      */
     private array $renamedProperties = [];
+    /**
+     * @var array<string, RenameProperty[]>
+     */
+    private array $renamedPropertiesByOldProperty = [];
     private bool $hasChanged = \false;
     public function __construct(ReflectionResolver $reflectionResolver)
     {
@@ -72,6 +76,11 @@ final class RenamePropertyRector extends AbstractRector implements ConfigurableR
     {
         Assert::allIsAOf($configuration, RenameProperty::class);
         $this->renamedProperties = $configuration;
+        // bucket by lowercased old property name for the per-fetch path
+        $this->renamedPropertiesByOldProperty = [];
+        foreach ($configuration as $renameProperty) {
+            $this->renamedPropertiesByOldProperty[strtolower($renameProperty->getOldProperty())][] = $renameProperty;
+        }
     }
     private function renameProperty(ClassLike $classLike, RenameProperty $renameProperty): void
     {
@@ -105,16 +114,17 @@ final class RenamePropertyRector extends AbstractRector implements ConfigurableR
         return $classReflection->hasTraitUse($traitName);
     }
     /**
+     * @template TPropertyFetch of PropertyFetch|StaticPropertyFetch
      * @param \PhpParser\Node\Expr\PropertyFetch|\PhpParser\Node\Expr\StaticPropertyFetch $propertyFetch
-     * @return null|\PhpParser\Node\Expr\PropertyFetch|\PhpParser\Node\Expr\StaticPropertyFetch
+     * @return TPropertyFetch|null
      */
     private function refactorPropertyFetch($propertyFetch)
     {
-        foreach ($this->renamedProperties as $renamedProperty) {
-            $oldProperty = $renamedProperty->getOldProperty();
-            if (!$this->isName($propertyFetch, $oldProperty)) {
-                continue;
-            }
+        $propertyName = $this->getName($propertyFetch);
+        if ($propertyName === null) {
+            return null;
+        }
+        foreach ($this->renamedPropertiesByOldProperty[strtolower($propertyName)] ?? [] as $renamedProperty) {
             $varPropertyFetch = $propertyFetch instanceof PropertyFetch ? $propertyFetch->var : $propertyFetch->class;
             if (!$this->isObjectType($varPropertyFetch, $renamedProperty->getObjectType())) {
                 continue;

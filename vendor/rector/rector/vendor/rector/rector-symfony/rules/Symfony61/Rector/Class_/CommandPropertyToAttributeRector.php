@@ -16,14 +16,14 @@ use PHPStan\Type\ObjectType;
 use Rector\Doctrine\NodeAnalyzer\AttributeFinder;
 use Rector\PhpAttribute\NodeFactory\PhpAttributeGroupFactory;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\Symfony\Enum\SymfonyAttribute;
 use Rector\Symfony\Enum\SymfonyClass;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * @changelog https://symfony.com/doc/current/console.html#registering-the-command
@@ -52,7 +52,7 @@ final class CommandPropertyToAttributeRector extends AbstractRector implements M
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::ATTRIBUTES;
+        return PhpVersion::PHP_80;
     }
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {

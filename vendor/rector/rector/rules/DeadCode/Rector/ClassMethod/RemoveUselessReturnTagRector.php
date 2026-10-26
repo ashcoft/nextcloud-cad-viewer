@@ -10,8 +10,8 @@ use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\DeadCode\PhpDoc\TagRemover\ReturnTagRemover;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\ClassMethod\RemoveUselessReturnTagRector\RemoveUselessReturnTagRectorTest
  */
@@ -74,6 +74,10 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
+        // early return if no @return tag is present
+        if (strpos((string) $node->getDocComment(), '@return') === \false) {
+            return null;
+        }
         $phpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($node);
         $hasChanged = $this->returnTagRemover->removeReturnTagIfUseless($phpDocInfo, $node);
         if (!$hasChanged) {

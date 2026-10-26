@@ -9,12 +9,12 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use Rector\Php\PhpVersionProvider;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\ValueObject\MethodName;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VendorLocker\ParentClassMethodTypeOverrideGuard;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\KnownMagicClassMethodTypeRector\KnownMagicClassMethodTypeRectorTest
  *
@@ -72,6 +72,9 @@ CODE_SAMPLE
             if (!$classMethod->isMagic()) {
                 continue;
             }
+            if (!$this->isNames($classMethod, [MethodName::CALL, MethodName::CALL_STATIC, MethodName::__SET, MethodName::__GET, MethodName::ISSET, MethodName::UNSET])) {
+                continue;
+            }
             if ($this->parentClassMethodTypeOverrideGuard->hasParentClassMethod($classMethod)) {
                 continue;
             }
@@ -82,19 +85,17 @@ CODE_SAMPLE
                     $hasChanged = \true;
                 }
             }
-            // first arg string
-            if ($this->isNames($classMethod, [MethodName::CALL, MethodName::CALL_STATIC, MethodName::__SET, MethodName::__GET, MethodName::ISSET, MethodName::UNSET])) {
-                $firstParam = $classMethod->getParams()[0];
-                if (!$firstParam->type instanceof Node) {
-                    $firstParam->type = new Identifier('string');
-                    $hasChanged = \true;
-                }
+            // first arg string, shared by all handled magic methods
+            $firstParam = $classMethod->getParams()[0];
+            if (!$firstParam->type instanceof Node) {
+                $firstParam->type = new Identifier('string');
+                $hasChanged = \true;
             }
-            if ($this->isName($classMethod, MethodName::__GET) && $this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::MIXED_TYPE) && !$classMethod->returnType instanceof Node) {
+            if ($this->isName($classMethod, MethodName::__GET) && $this->phpVersionProvider->isAtLeastPhpVersion(PhpVersion::PHP_80) && !$classMethod->returnType instanceof Node) {
                 $classMethod->returnType = new Identifier('mixed');
                 $hasChanged = \true;
             }
-            if ($this->isName($classMethod, MethodName::__SET) && $this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::MIXED_TYPE)) {
+            if ($this->isName($classMethod, MethodName::__SET) && $this->phpVersionProvider->isAtLeastPhpVersion(PhpVersion::PHP_80)) {
                 $secondParam = $classMethod->getParams()[1];
                 if (!$secondParam->type instanceof Node) {
                     $secondParam->type = new Identifier('mixed');
@@ -109,6 +110,6 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::SCALAR_TYPES;
+        return PhpVersion::PHP_70;
     }
 }

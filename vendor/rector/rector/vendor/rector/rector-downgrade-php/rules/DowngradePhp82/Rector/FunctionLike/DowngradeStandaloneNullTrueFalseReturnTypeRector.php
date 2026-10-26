@@ -22,9 +22,9 @@ use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTypeChanger;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PhpParser\AstResolver;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @changelog https://wiki.php.net/rfc/null-false-standalone-types
  * @changelog https://wiki.php.net/rfc/true-type
@@ -188,7 +188,7 @@ CODE_SAMPLE
             return null;
         }
         $methodName = $classMethod->name->toString();
-        $parents = array_merge(is_array($classReflection->getParents()) ? $classReflection->getParents() : iterator_to_array(is_array($classReflection->getParents()) ? new \ArrayIterator($classReflection->getParents()) : $classReflection->getParents()), is_array($classReflection->getInterfaces()) ? $classReflection->getInterfaces() : iterator_to_array(is_array($classReflection->getInterfaces()) ? new \ArrayIterator($classReflection->getInterfaces()) : $classReflection->getInterfaces()));
+        $parents = array_merge(is_array($classReflection->getParents()) ? $classReflection->getParents() : iterator_to_array($classReflection->getParents()), is_array($classReflection->getInterfaces()) ? $classReflection->getInterfaces() : iterator_to_array($classReflection->getInterfaces()));
         foreach ($parents as $parent) {
             if (!$parent->hasMethod($methodName)) {
                 continue;

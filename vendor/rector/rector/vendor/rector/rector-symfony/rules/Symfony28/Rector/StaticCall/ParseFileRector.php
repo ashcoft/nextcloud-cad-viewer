@@ -13,11 +13,11 @@ use PHPStan\Type\ObjectType;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PhpParser\Printer\BetterStandardPrinter;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\Util\StringUtils;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Symfony\Tests\Symfony28\Rector\StaticCall\ParseFileRector\ParseFileRectorTest
  */
@@ -48,7 +48,7 @@ final class ParseFileRector extends AbstractRector implements ComposerPackageCon
     }
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('symfony/yaml', '>=2.8');
+        return new ComposerPackageConstraint('symfony/yaml', '>=2.8 <5.0');
     }
     public function getRuleDefinition(): RuleDefinition
     {

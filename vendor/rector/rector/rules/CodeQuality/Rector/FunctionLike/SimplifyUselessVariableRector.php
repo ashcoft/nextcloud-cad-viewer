@@ -17,8 +17,8 @@ use Rector\NodeAnalyzer\VariableAnalyzer;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PhpParser\Enum\NodeGroup;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\CodeQuality\Rector\FunctionLike\SimplifyUselessVariableRector\SimplifyUselessVariableRectorTest
  */
@@ -113,7 +113,7 @@ CODE_SAMPLE
         if (!$return->expr instanceof Variable) {
             return \true;
         }
-        if ($return->getAttribute(AttributeKey::IS_BYREF_RETURN) === \true) {
+        if ($return->getAttribute(AttributeKey::IS_INSIDE_BYREF_FUNCTION_LIKE) === \true) {
             return \true;
         }
         if (!$previousStmt instanceof Expression) {

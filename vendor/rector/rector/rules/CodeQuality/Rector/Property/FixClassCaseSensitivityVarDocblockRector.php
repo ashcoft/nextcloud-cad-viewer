@@ -3,6 +3,7 @@
 declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\Property;
 
+use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Stmt\Expression;
@@ -17,8 +18,8 @@ use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\Naming\Naming\UseImportsResolver;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\CodeQuality\Rector\Property\FixClassCaseSensitivityVarDocblockRector\FixClassCaseSensitivityVarDocblockRectorTest
  */
@@ -68,6 +69,10 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
+        // a @var tag can only live in a docblock; skip nodes without one
+        if (!$node->getDocComment() instanceof Doc) {
+            return null;
+        }
         $phpDocInfo = $this->phpDocInfoFactory->createFromNode($node);
         if (!$phpDocInfo instanceof PhpDocInfo) {
             return null;

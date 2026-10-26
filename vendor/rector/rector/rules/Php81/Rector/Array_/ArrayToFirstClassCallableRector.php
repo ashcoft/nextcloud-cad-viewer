@@ -4,6 +4,7 @@ declare (strict_types=1);
 namespace Rector\Php81\Rector\Array_;
 
 use PhpParser\Node;
+use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\MethodCall;
@@ -20,11 +21,11 @@ use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\ValueObject\Type\FullyQualifiedObjectType;
 use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see RFC https://wiki.php.net/rfc/first_class_callable_syntax
  * @see \Rector\Tests\Php81\Rector\Array_\ArrayToFirstClassCallableRector\ArrayToFirstClassCallableRectorTest
@@ -92,19 +93,19 @@ CODE_SAMPLE
      */
     public function refactor(Node $node)
     {
+        if (count($node->items) !== 2) {
+            return null;
+        }
+        if (!$node->items[0] instanceof ArrayItem || !$node->items[1] instanceof ArrayItem) {
+            return null;
+        }
         if ($node->getAttribute(AttributeKey::IS_ARG_NOT_ACCEPTING_CLOSURE)) {
             return null;
         }
         if ($node->getAttribute(AttributeKey::IS_ARRAY_AS_STRING_CALLABLE)) {
             return null;
         }
-        $scope = ScopeFetcher::fetch($node);
-        $arrayCallable = $this->arrayCallableMethodMatcher->match($node, $scope);
-        if (!$arrayCallable instanceof ArrayCallable) {
-            return null;
-        }
-        $callerExpr = $arrayCallable->getCallerExpr();
-        if (!$callerExpr instanceof Variable && !$callerExpr instanceof PropertyFetch && !$callerExpr instanceof ClassConstFetch) {
+        if ($node->getAttribute(AttributeKey::IS_ARRAY_IN_ATTRIBUTE) === \true) {
             return null;
         }
         if ($node->getAttribute(AttributeKey::IS_CLASS_CONST_VALUE)) {
@@ -117,6 +118,15 @@ CODE_SAMPLE
             return null;
         }
         if ($node->getAttribute(AttributeKey::IS_UNPACKED_ARG_VALUE)) {
+            return null;
+        }
+        $scope = ScopeFetcher::fetch($node);
+        $arrayCallable = $this->arrayCallableMethodMatcher->match($node, $scope);
+        if (!$arrayCallable instanceof ArrayCallable) {
+            return null;
+        }
+        $callerExpr = $arrayCallable->getCallerExpr();
+        if (!$callerExpr instanceof Variable && !$callerExpr instanceof PropertyFetch && !$callerExpr instanceof ClassConstFetch) {
             return null;
         }
         $args = [new VariadicPlaceholder()];

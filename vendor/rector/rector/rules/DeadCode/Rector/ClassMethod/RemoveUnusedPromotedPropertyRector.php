@@ -20,12 +20,12 @@ use Rector\PhpParser\NodeFinder\PropertyFetchFinder;
 use Rector\Privatization\NodeManipulator\VisibilityManipulator;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\ValueObject\MethodName;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\ValueObject\Visibility;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\ClassMethod\RemoveUnusedPromotedPropertyRector\RemoveUnusedPromotedPropertyRectorTest
  */
@@ -130,7 +130,7 @@ CODE_SAMPLE
             return null;
         }
         $hasChanged = \false;
-        $phpDocInfo = $this->phpDocInfoFactory->createFromNode($constructClassMethod);
+        $phpDocInfo = null;
         foreach ($constructClassMethod->params as $key => $param) {
             // only private local scope; removing public property might be dangerous
             if (!$this->visibilityManipulator->hasVisibility($param, Visibility::PRIVATE)) {
@@ -152,6 +152,7 @@ CODE_SAMPLE
                 $param->flags = 0;
                 continue;
             }
+            $phpDocInfo ??= $this->phpDocInfoFactory->createFromNode($constructClassMethod);
             if ($phpDocInfo instanceof PhpDocInfo) {
                 $paramTagValueNode = $phpDocInfo->getParamTagValueByName($paramName);
                 if ($paramTagValueNode instanceof ParamTagValueNode) {
@@ -169,7 +170,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::PROPERTY_PROMOTION;
+        return PhpVersion::PHP_80;
     }
     private function shouldSkipClass(Class_ $class): bool
     {

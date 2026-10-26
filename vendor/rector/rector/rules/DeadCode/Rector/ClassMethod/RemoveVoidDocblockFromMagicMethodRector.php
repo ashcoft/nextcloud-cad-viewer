@@ -10,9 +10,9 @@ use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\ValueObject\MethodName;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\ClassMethod\RemoveVoidDocblockFromMagicMethodRector\RemoveVoidDocblockFromMagicMethodRectorTest
  */
@@ -77,6 +77,10 @@ CODE_SAMPLE
             return null;
         }
         if (!$this->isNames($node, [MethodName::CONSTRUCT, MethodName::DESTRUCT, MethodName::CLONE])) {
+            return null;
+        }
+        // early return if no @return tag is present
+        if (strpos((string) $node->getDocComment(), '@return') === \false) {
             return null;
         }
         $phpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($node);

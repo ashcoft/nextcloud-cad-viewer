@@ -10,10 +10,10 @@ use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Type\ObjectType;
 use Rector\Doctrine\Enum\DoctrineClass;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see https://github.com/doctrine/orm/commit/4d73e3ce7801d3bf3254257332e903d8ecea4096
  *
@@ -31,7 +31,7 @@ final class CastDoctrineExprToStringRector extends AbstractRector implements Com
     private array $exprFuncMethods = ['lower', 'upper', 'length', 'trim', 'avg', 'max', 'min', 'count', 'countDistinct', 'exists', 'all', 'some', 'any', 'not', 'abs', 'sqrt'];
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('doctrine/orm', '>=3.0');
+        return new ComposerPackageConstraint('doctrine/orm', '>=3.0 <5.0');
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -62,10 +62,11 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
-        if (!$this->isObjectType($node->var, new ObjectType(DoctrineClass::QUERY_EXPR))) {
+        // cheap name check first - a non-matching call bails before any type inference
+        if (!in_array($this->getName($node->name), $this->targetMethods, \true)) {
             return null;
         }
-        if (!in_array($this->getName($node->name), $this->targetMethods, \true)) {
+        if (!$this->isObjectType($node->var, new ObjectType(DoctrineClass::QUERY_EXPR))) {
             return null;
         }
         // Iterate through method arguments and cast `Expr\Func` calls to string

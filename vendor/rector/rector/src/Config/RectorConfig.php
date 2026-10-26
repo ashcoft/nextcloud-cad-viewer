@@ -4,9 +4,7 @@ declare (strict_types=1);
 namespace Rector\Config;
 
 use RectorPrefix202610\Composer\Semver\Semver;
-use Deprecated;
 use RectorPrefix202610\Entropy\Container\Container;
-use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
 use Rector\Composer\InstalledPackageResolver;
 use Rector\Configuration\Option;
 use Rector\Configuration\Parameter\SimpleParameterProvider;
@@ -16,7 +14,7 @@ use Rector\Contract\Rector\RectorInterface;
 use Rector\Enum\Config\Defaults;
 use Rector\Exception\ShouldNotHappenException;
 use Rector\Php\PhpVersionResolver\ComposerJsonPhpVersionResolver;
-use Rector\Skipper\SkipCriteriaResolver\SkippedClassResolver;
+use Rector\Skipper\Skipper\Skipper;
 use Rector\Validation\RectorConfigValidator;
 use Rector\ValueObject\Configuration\LevelOverflow;
 use Rector\ValueObject\PhpVersion;
@@ -360,22 +358,6 @@ final class RectorConfig extends Container
         SimpleParameterProvider::setParameter(Option::CONTAINER_CACHE_DIRECTORY, $directoryPath);
     }
     /**
-     * @param class-string<CacheStorageInterface> $cacheClass
-     * @deprecated Cache storage is selected automatically: file cache locally, in-memory cache in CI, where the ephemeral workspace makes writing a cache that is never re-read wasted IO. The passed value is ignored.
-     */
-    public function cacheClass(string $cacheClass): void
-    {
-        Assert::isAOf($cacheClass, CacheStorageInterface::class);
-    }
-    /**
-     * @param class-string $cacheMetaExtensionClass
-     * @deprecated Niche mechanism, no longer applied. Let Rector handle cache on its own. If custom invalidation is needed, handle it in CI in a more generic way, e.g. by clearing the cache directory.
-     */
-    public function cacheMetaExtension(string $cacheMetaExtensionClass): void
-    {
-        SimpleParameterProvider::addParameter(Option::CACHE_META_EXTENSIONS, $cacheMetaExtensionClass);
-    }
-    /**
      * @see https://github.com/nikic/PHP-Parser/issues/723#issuecomment-712401963
      */
     public function indent(string $character, int $count): void
@@ -398,8 +380,7 @@ final class RectorConfig extends Container
      */
     public function boot(): void
     {
-        $skippedClassResolver = new SkippedClassResolver();
-        $skippedElements = $skippedClassResolver->resolve();
+        $skippedElements = $this->make(Skipper::class)->resolveSkippedClasses();
         foreach ($skippedElements as $skippedClass => $path) {
             if ($path !== null) {
                 continue;

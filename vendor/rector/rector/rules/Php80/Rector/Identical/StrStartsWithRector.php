@@ -14,12 +14,12 @@ use Rector\Php80\MatchAndRefactor\StrStartsWithMatchAndRefactor\StrposMatchAndRe
 use Rector\Php80\MatchAndRefactor\StrStartsWithMatchAndRefactor\SubstrMatchAndRefactor;
 use Rector\Php80\ValueObject\StrStartsWith;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\ValueObject\PolyfillPackage;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Rector\VersionBonding\Contract\RelatedPolyfillInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php80\Rector\Identical\StrStartsWithRector\StrStartsWithRectorTest
  */
@@ -36,7 +36,7 @@ final class StrStartsWithRector extends AbstractRector implements MinPhpVersionI
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::STR_STARTS_WITH;
+        return PhpVersion::PHP_80;
     }
     public function getRuleDefinition(): RuleDefinition
     {

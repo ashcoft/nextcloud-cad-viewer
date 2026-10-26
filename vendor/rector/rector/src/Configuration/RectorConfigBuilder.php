@@ -3,7 +3,6 @@
 declare (strict_types=1);
 namespace Rector\Configuration;
 
-use Deprecated;
 use RectorPrefix202610\DrupalRector\Set\DrupalSetList;
 use RectorPrefix202610\Nette\Utils\Strings;
 use PhpParser\NodeVisitor;
@@ -403,72 +402,10 @@ final class RectorConfigBuilder
         $this->isPhpSetsVersionPicked = \true;
         return $this->addPhpLevelSets($pickedPhpVersions[0]);
     }
-    /**
-     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
-     */
-    public function withPhp53Sets(): self
-    {
-        return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
-    }
-    /**
-     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
-     */
-    public function withPhp54Sets(): self
-    {
-        return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
-    }
-    /**
-     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
-     */
-    public function withPhp55Sets(): self
-    {
-        return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
-    }
-    /**
-     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
-     */
-    public function withPhp56Sets(): self
-    {
-        return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
-    }
-    /**
-     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
-     */
-    public function withPhp70Sets(): self
-    {
-        return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
-    }
-    /**
-     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
-     */
-    public function withPhp71Sets(): self
-    {
-        return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
-    }
-    /**
-     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
-     */
-    public function withPhp72Sets(): self
-    {
-        return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
-    }
-    /**
-     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
-     */
-    public function withPhp73Sets(): self
-    {
-        return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
-    }
-    /**
-     * @deprecated Use "withPhpLevel()" instead, it raises PHP level one rule at a time.
-     */
-    public function withPhp74Sets(): self
-    {
-        return $this->reportDeprecatedPhpSetsMethod(__FUNCTION__);
-    }
     // there is no withPhp80Sets() and above,
     // as we already use PHP 8.0 and should go with withPhpSets() instead
     /**
+     * @param bool $naming @deprecated The naming set often causes conflicting variable and param names; use a coding standard tool instead
      * @param bool $instanceOf @deprecated Use $codeQuality instead, as most instanceof rules were moved there
      * @param bool $if @deprecated Use $codeQuality and $codingStyle instead, as the if rules were moved there or deprecated
      * @param bool $earlyReturn @deprecated Use $codeQuality instead, as all early return rules were moved there
@@ -476,6 +413,9 @@ final class RectorConfigBuilder
     public function withPreparedSets(bool $deadCode = \false, bool $codeQuality = \false, bool $codingStyle = \false, bool $typeDeclarations = \false, bool $typeDeclarationDocblocks = \false, bool $privatization = \false, bool $naming = \false, bool $namedArgs = \false, bool $instanceOf = \false, bool $if = \false, bool $earlyReturn = \false, bool $carbon = \false, bool $rectorPreset = \false, bool $phpunitCodeQuality = \false, bool $phpunitNarrowAsserts = \false, bool $phpunitMockToStub = \false, bool $doctrineCodeQuality = \false, bool $symfonyCodeQuality = \false, bool $symfonyConfigs = \false): self
     {
         Notifier::notifyNotSuitableMethodForPHP74(__METHOD__);
+        if ($naming) {
+            Notifier::notifyDeprecatedNamingSet();
+        }
         $setMap = [SetList::DEAD_CODE => $deadCode, SetList::CODE_QUALITY => $codeQuality, SetList::CODING_STYLE => $codingStyle, SetList::TYPE_DECLARATION => $typeDeclarations, SetList::TYPE_DECLARATION_DOCBLOCKS => $typeDeclarationDocblocks, SetList::PRIVATIZATION => $privatization, SetList::NAMING => $naming, SetList::NAMED_ARGS => $namedArgs, SetList::INSTANCEOF => $instanceOf, SetList::IF => $if, SetList::EARLY_RETURN => $earlyReturn, SetList::CARBON => $carbon, SetList::RECTOR_PRESET => $rectorPreset, PHPUnitSetList::PHPUNIT_CODE_QUALITY => $phpunitCodeQuality, PHPUnitSetList::PHPUNIT_NARROW_ASSERTS => $phpunitNarrowAsserts, PHPUnitSetList::PHPUNIT_MOCK_TO_STUB => $phpunitMockToStub, DoctrineSetList::DOCTRINE_CODE_QUALITY => $doctrineCodeQuality, SymfonySetList::SYMFONY_CODE_QUALITY => $symfonyCodeQuality, SymfonySetList::CONFIGS => $symfonyConfigs];
         foreach ($setMap as $setPath => $isEnabled) {
             if ($isEnabled) {
@@ -545,16 +485,6 @@ final class RectorConfigBuilder
     {
         $this->cacheDirectory = $cacheDirectory;
         $this->containerCacheDirectory = $containerCacheDirectory;
-        return $this;
-    }
-    /**
-     * @param class-string $cacheMetaExtensionClass
-     * @deprecated Niche mechanism, no longer applied. Let Rector handle cache on its own.
-     * @deprecated Niche mechanism, no longer applied. Let Rector handle cache on its own. If custom invalidation is needed, handle it in CI in a more generic way, e.g. by clearing the cache directory.
-     */
-    public function withCacheMetaExtension(string $cacheMetaExtensionClass): self
-    {
-        SimpleParameterProvider::addParameter(\Rector\Configuration\Option::CACHE_META_EXTENSIONS, $cacheMetaExtensionClass);
         return $this;
     }
     /**
@@ -814,11 +744,6 @@ final class RectorConfigBuilder
         $this->isWithPhpSetsUsed = \true;
         $this->pickedPhpSetsVersion = $phpVersion;
         $this->sets[] = SetList::PHP_VERSION_BASED_SET;
-        return $this;
-    }
-    private function reportDeprecatedPhpSetsMethod(string $methodName): self
-    {
-        SimpleParameterProvider::addParameter(\Rector\Configuration\Option::DEPRECATED_PHP_SETS_METHODS, $methodName);
         return $this;
     }
     /**

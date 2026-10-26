@@ -10,10 +10,10 @@ use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Expression;
 use Rector\PhpParser\Parser\SimplePhpParser;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php72\Rector\FuncCall\StringsAssertNakedRector\StringsAssertNakedRectorTest
  */
@@ -29,7 +29,7 @@ final class StringsAssertNakedRector extends AbstractRector implements MinPhpVer
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::STRING_IN_ASSERT_ARG;
+        return PhpVersion::PHP_72;
     }
     public function getRuleDefinition(): RuleDefinition
     {

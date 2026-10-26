@@ -19,13 +19,13 @@ use PhpParser\Node\Scalar\String_;
 use Rector\NodeAnalyzer\BinaryOpAnalyzer;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\ValueObject\FuncCallAndExpr;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\ValueObject\PolyfillPackage;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Rector\VersionBonding\Contract\RelatedPolyfillInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php80\Rector\Identical\StrEndsWithRector\StrEndsWithRectorTest
  */
@@ -46,7 +46,7 @@ final class StrEndsWithRector extends AbstractRector implements MinPhpVersionInt
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::STR_ENDS_WITH;
+        return PhpVersion::PHP_80;
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -154,13 +154,13 @@ CODE_SAMPLE
         if (!$funcCallAndExpr instanceof FuncCallAndExpr) {
             return null;
         }
-        $expr = $funcCallAndExpr->getExpr();
-        if (!$this->valueResolver->isValue($expr, 0)) {
-            return null;
-        }
         $substrCompareFuncCall = $funcCallAndExpr->getFuncCall();
         $args = $substrCompareFuncCall->getArgs();
         if (count($args) < 2) {
+            return null;
+        }
+        $expr = $funcCallAndExpr->getExpr();
+        if (!$this->valueResolver->isValue($expr, 0)) {
             return null;
         }
         $haystack = $args[0]->value;

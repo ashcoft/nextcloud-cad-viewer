@@ -12,12 +12,12 @@ use PHPStan\Reflection\ReflectionProvider;
 use Rector\PhpParser\Enum\NodeGroup;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\ValueObject\PolyfillPackage;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Rector\VersionBonding\Contract\RelatedPolyfillInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * This needs to removed 1 floor above, because only nodes in arrays can be removed why traversing,
  * see https://github.com/nikic/PHP-Parser/issues/389
@@ -86,7 +86,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::ARRAY_KEY_FIRST_LAST;
+        return PhpVersion::PHP_73;
     }
     public function providePolyfillPackage(): string
     {

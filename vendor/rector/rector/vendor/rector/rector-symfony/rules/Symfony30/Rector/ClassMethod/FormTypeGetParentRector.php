@@ -11,12 +11,12 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Return_;
 use PHPStan\Type\ObjectType;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\Symfony\Enum\SymfonyClass;
 use Rector\Symfony\FormHelper\FormTypeStringToTypeProvider;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Symfony\Tests\Symfony30\Rector\ClassMethod\FormTypeGetParentRector\FormTypeGetParentRectorTest
  */
@@ -32,7 +32,7 @@ final class FormTypeGetParentRector extends AbstractRector implements ComposerPa
     }
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('symfony/form', '>=3.0');
+        return new ComposerPackageConstraint('symfony/form', '>=3.0 <5.0');
     }
     public function getRuleDefinition(): RuleDefinition
     {
