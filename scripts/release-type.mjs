@@ -15,8 +15,10 @@ const require = createRequire(import.meta.url)
 const releaseConfig = require('../release.config.js')
 
 // `@semantic-release/commit-analyzer` is a dependency of semantic-release, not
-// a direct dependency, so resolve it from semantic-release's own tree.
-const semanticReleaseRequire = createRequire(require.resolve('semantic-release/package.json'))
+// a direct dependency, so resolve it from semantic-release's own tree. Anchor
+// on the package entry point (always resolvable) rather than its
+// package.json, which is not a guaranteed exported subpath.
+const semanticReleaseRequire = createRequire(require.resolve('semantic-release'))
 const { analyzeCommits } = await import(semanticReleaseRequire.resolve('@semantic-release/commit-analyzer'))
 
 const analyzer = releaseConfig.plugins.find(
