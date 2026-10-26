@@ -21,9 +21,9 @@ use PhpParser\NodeVisitor;
 use Rector\NodeManipulator\IfManipulator;
 use Rector\Php80\NodeAnalyzer\PromotedPropertyResolver;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\TypeDeclaration\AlreadyAssignDetector\ConstructorAssignDetector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\If_\RemoveTypedPropertyDeadInstanceOfRector\RemoveTypedPropertyDeadInstanceOfRectorTest
  */
@@ -145,8 +145,8 @@ CODE_SAMPLE
         if (!$instanceof->class instanceof Name) {
             return null;
         }
-        $classType = $this->nodeTypeResolver->getType($instanceof->class);
-        $exprType = $this->nodeTypeResolver->getType($instanceof->expr);
+        $classType = $this->getType($instanceof->class);
+        $exprType = $this->getType($instanceof->expr);
         $isSameStaticTypeOrSubtype = $classType->equals($exprType) || $classType->isSuperTypeOf($exprType)->yes();
         if (!$isSameStaticTypeOrSubtype) {
             return null;

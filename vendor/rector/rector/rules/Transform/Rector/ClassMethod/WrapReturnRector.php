@@ -12,9 +12,9 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Return_;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\ConfiguredCodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\Transform\ValueObject\WrapReturn;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Transform\Rector\ClassMethod\WrapReturnRector\WrapReturnRectorTest
@@ -61,14 +61,14 @@ CODE_SAMPLE
     {
         $hasChanged = \false;
         foreach ($this->typeMethodWraps as $typeMethodWrap) {
-            if (!$this->isObjectType($node, $typeMethodWrap->getObjectType())) {
-                continue;
-            }
             foreach ($node->getMethods() as $classMethod) {
                 if (!$this->isName($classMethod, $typeMethodWrap->getMethod())) {
                     continue;
                 }
                 if ($node->stmts === null) {
+                    continue;
+                }
+                if (!$this->isObjectType($node, $typeMethodWrap->getObjectType())) {
                     continue;
                 }
                 if ($typeMethodWrap->isArrayWrap() && $this->wrap($classMethod)) {

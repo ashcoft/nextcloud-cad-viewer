@@ -8,10 +8,10 @@ use PhpParser\Node\Expr\Assign;
 use Rector\Configuration\Deprecation\Contract\DeprecatedInterface;
 use Rector\Exception\ShouldNotHappenException;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @deprecated This rule is deprecated, as it can turn valid code into broken code. The reverse assign order only matters for the same array variable, but the rule cannot reliably tell apart independent assigns, so wrapping with array_reverse() can change correct behavior.
  */
@@ -37,6 +37,6 @@ final class ListSwapArrayOrderRector extends AbstractRector implements MinPhpVer
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::LIST_SWAP_ORDER;
+        return PhpVersion::PHP_70;
     }
 }

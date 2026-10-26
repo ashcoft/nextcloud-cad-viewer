@@ -7,12 +7,11 @@ use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassConst;
 use PHPStan\Reflection\ClassReflection;
-use Rector\PHPStan\ScopeFetcher;
 use Rector\Privatization\Guard\OverrideByParentClassGuard;
 use Rector\Privatization\NodeManipulator\VisibilityManipulator;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\Privatization\Rector\ClassConst\PrivatizeFinalClassConstantRector\PrivatizeFinalClassConstantRectorTest
  */
@@ -65,8 +64,7 @@ CODE_SAMPLE
         if (!$this->overrideByParentClassGuard->isLegal($node)) {
             return null;
         }
-        $scope = ScopeFetcher::fetch($node);
-        $classReflection = $scope->getClassReflection();
+        $classReflection = $this->fetchClassLikeReflection($node);
         if (!$classReflection instanceof ClassReflection) {
             return null;
         }

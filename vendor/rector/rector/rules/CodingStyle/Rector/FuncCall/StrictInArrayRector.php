@@ -8,8 +8,8 @@ use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\FuncCall;
 use Rector\NodeTypeResolver\TypeComparator\TypeComparator;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\CodingStyle\Rector\FuncCall\StrictInArrayRector\StrictInArrayRectorTest
  */
@@ -67,11 +67,11 @@ CODE_SAMPLE
         if (count($args) !== 2) {
             return null;
         }
-        $firstArgType = $this->nodeTypeResolver->getNativeType($args[0]->value);
         $secondArgType = $this->nodeTypeResolver->getNativeType($args[1]->value);
         if (!$secondArgType->isArray()->yes()) {
             return null;
         }
+        $firstArgType = $this->nodeTypeResolver->getNativeType($args[0]->value);
         if ($this->typeComparator->isSubtype($secondArgType->getIterableValueType(), $firstArgType)) {
             $node->args[] = new Arg($this->nodeFactory->createTrue());
             return $node;

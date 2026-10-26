@@ -7,8 +7,8 @@ use PhpParser\Node;
 use PhpParser\Node\Const_;
 use PhpParser\Node\Stmt\ClassConst;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\CodingStyle\Rector\ClassConst\SplitGroupedClassConstantsRector\SplitGroupedClassConstantsRectorTest
  */
@@ -63,7 +63,7 @@ CODE_SAMPLE
     {
         $decoratedConsts = [];
         foreach ($consts as $const) {
-            $decoratedConsts[] = new ClassConst([$const], $classConst->flags, $classConst->getAttributes());
+            $decoratedConsts[] = new ClassConst([$const], $classConst->flags, $classConst->getAttributes(), $classConst->attrGroups, $classConst->type);
         }
         return $decoratedConsts;
     }

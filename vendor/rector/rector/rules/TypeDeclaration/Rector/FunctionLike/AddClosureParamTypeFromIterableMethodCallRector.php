@@ -21,9 +21,9 @@ use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\PHPStanStaticTypeMapper\Utils\TypeUnwrapper;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\MethodReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\FunctionLike\AddClosureParamTypeFromIterableMethodCallRector\AddClosureParamTypeFromIterableMethodCallRectorTest
  */
@@ -99,6 +99,9 @@ CODE_SAMPLE
         if (!$node->name instanceof Identifier) {
             return null;
         }
+        if (!$this->callUsesClosures($node->getArgs())) {
+            return null;
+        }
         $varType = $this->getType($node->var);
         if (!$varType instanceof IntersectionType || !$varType->isIterable()->yes()) {
             return null;
@@ -113,9 +116,6 @@ CODE_SAMPLE
         }
         $parameters = $methodReflection->getVariants()[0]->getParameters();
         if (!$this->methodSignatureUsesCallableWithIteratorTypes($className, $parameters)) {
-            return null;
-        }
-        if (!$this->callUsesClosures($node->getArgs())) {
             return null;
         }
         $nameIndex = [];

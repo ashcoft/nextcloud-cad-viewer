@@ -14,10 +14,11 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
 use Rector\CodeQuality\NodeFactory\InArrayFromRepeatedCompareFactory;
 use Rector\CodeQuality\ValueObject\ComparedExprAndValueExpr;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\CodeQuality\Rector\BooleanOr\RepeatedOrEqualToInArrayRector\RepeatedOrEqualToInArrayRectorTest
  */
@@ -63,6 +64,10 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?FuncCall
     {
+        // in_array() func call is not allowed in a constant expression
+        if ($this->isInConstantExpression($node)) {
+            return null;
+        }
         if (!$this->isEqualOrIdentical($node->right)) {
             return null;
         }
@@ -79,8 +84,8 @@ CODE_SAMPLE
             return null;
         }
         $identicals = $this->betterNodeFinder->findInstanceOf($node, Identical::class);
-        $equals = $this->betterNodeFinder->findInstanceOf($node, Equal::class);
         if ($identicals !== []) {
+            $equals = $this->betterNodeFinder->findInstanceOf($node, Equal::class);
             if ($equals !== []) {
                 // mix identical and equals, keep as is
                 // @see https://3v4l.org/24cFl
@@ -89,6 +94,16 @@ CODE_SAMPLE
             $args[] = new Arg(new ConstFetch(new Name('true')));
         }
         return new FuncCall(new Name('in_array'), $args);
+    }
+    private function isInConstantExpression(BooleanOr $booleanOr): bool
+    {
+        if ($booleanOr->getAttribute(AttributeKey::IS_DEFAULT_PROPERTY_VALUE) === \true) {
+            return \true;
+        }
+        if ($booleanOr->getAttribute(AttributeKey::IS_CLASS_CONST_VALUE) === \true) {
+            return \true;
+        }
+        return $booleanOr->getAttribute(AttributeKey::IS_PARAM_DEFAULT) === \true;
     }
     private function isEqualOrIdentical(Expr $expr): bool
     {

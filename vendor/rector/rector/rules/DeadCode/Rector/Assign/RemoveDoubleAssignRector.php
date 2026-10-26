@@ -14,8 +14,8 @@ use Rector\DeadCode\SideEffect\SideEffectNodeDetector;
 use Rector\PhpParser\Enum\NodeGroup;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\Assign\RemoveDoubleAssignRector\RemoveDoubleAssignRectorTest
  */
@@ -79,6 +79,9 @@ CODE_SAMPLE
             if (!$this->nodeComparator->areNodesEqual($nextAssign->var, $stmt->expr->var)) {
                 continue;
             }
+            if (!$stmt->expr->var instanceof Variable && !$stmt->expr->var instanceof PropertyFetch && !$stmt->expr->var instanceof StaticPropertyFetch) {
+                continue;
+            }
             // early check self referencing, ensure that variable not re-used
             if ($this->isSelfReferencing($nextAssign)) {
                 continue;
@@ -95,9 +98,6 @@ CODE_SAMPLE
             }
             // next stmts can have side effect as well
             if (($nextAssign->var instanceof PropertyFetch || $nextAssign->var instanceof StaticPropertyFetch) && $this->sideEffectNodeDetector->detectCallExpr($nextAssign->expr)) {
-                continue;
-            }
-            if (!$stmt->expr->var instanceof Variable && !$stmt->expr->var instanceof PropertyFetch && !$stmt->expr->var instanceof StaticPropertyFetch) {
                 continue;
             }
             // side effect may throw exception, and may be handled by catch block

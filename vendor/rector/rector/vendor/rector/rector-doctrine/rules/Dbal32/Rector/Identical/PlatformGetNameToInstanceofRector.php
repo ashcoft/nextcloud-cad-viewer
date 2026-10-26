@@ -12,13 +12,13 @@ use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Scalar\String_;
 use PHPStan\Type\ObjectType;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see https://github.com/doctrine/dbal/pull/4755
- * @see Rector\Doctrine\Tests\Dbal32\Rector\Identical\PlatformGetNameToInstanceofRector\PlatformGetNameToInstanceofRectorTest
+ * @see \Rector\Doctrine\Tests\Dbal32\Rector\Identical\PlatformGetNameToInstanceofRector\PlatformGetNameToInstanceofRectorTest
  */
 final class PlatformGetNameToInstanceofRector extends AbstractRector implements ComposerPackageConstraintInterface
 {
@@ -34,7 +34,7 @@ final class PlatformGetNameToInstanceofRector extends AbstractRector implements 
     }
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('doctrine/dbal', '>= 3.2');
+        return new ComposerPackageConstraint('doctrine/dbal', '>=3.2 <6.0');
     }
     public function getNodeTypes(): array
     {

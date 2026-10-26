@@ -9,10 +9,10 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Identifier;
 use PHPStan\Type\ObjectType;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Doctrine\Tests\Dbal31\Rector\MethodCall\QueryBuilderExecuteToExecuteQueryOrExecuteStatementRector\QueryBuilderExecuteToExecuteQueryOrExecuteStatementRectorTest
  *
@@ -34,7 +34,7 @@ final class QueryBuilderExecuteToExecuteQueryOrExecuteStatementRector extends Ab
     private const STATEMENT_METHODS = ['insert', 'update', 'delete'];
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('doctrine/dbal', '>=3.1');
+        return new ComposerPackageConstraint('doctrine/dbal', '>=3.1 <6.0');
     }
     public function getRuleDefinition(): RuleDefinition
     {

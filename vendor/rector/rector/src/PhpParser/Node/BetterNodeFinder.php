@@ -15,7 +15,6 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Return_;
 use PhpParser\NodeFinder;
 use PhpParser\NodeVisitor;
-use Rector\NodeAnalyzer\ClassAnalyzer;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\PhpDocParser\NodeTraverser\SimpleCallableNodeTraverser;
 use RectorPrefix202610\Webmozart\Assert\Assert;
@@ -35,16 +34,11 @@ final class BetterNodeFinder
     /**
      * @readonly
      */
-    private ClassAnalyzer $classAnalyzer;
-    /**
-     * @readonly
-     */
     private SimpleCallableNodeTraverser $simpleCallableNodeTraverser;
-    public function __construct(NodeFinder $nodeFinder, NodeNameResolver $nodeNameResolver, ClassAnalyzer $classAnalyzer, SimpleCallableNodeTraverser $simpleCallableNodeTraverser)
+    public function __construct(NodeFinder $nodeFinder, NodeNameResolver $nodeNameResolver, SimpleCallableNodeTraverser $simpleCallableNodeTraverser)
     {
         $this->nodeFinder = $nodeFinder;
         $this->nodeNameResolver = $nodeNameResolver;
-        $this->classAnalyzer = $classAnalyzer;
         $this->simpleCallableNodeTraverser = $simpleCallableNodeTraverser;
     }
     /**
@@ -85,23 +79,6 @@ final class BetterNodeFinder
         return $this->nodeFinder->findFirstInstanceOf($nodes, $type);
     }
     /**
-     * @param class-string<Node> $type
-     * @param Node[] $nodes
-     */
-    public function hasInstanceOfName(array $nodes, string $type, string $name): bool
-    {
-        Assert::isAOf($type, Node::class);
-        return (bool) $this->findInstanceOfName($nodes, $type, $name);
-    }
-    /**
-     * @param Node[] $nodes
-     */
-    public function hasVariableOfName(array $nodes, string $name): bool
-    {
-        return $this->findVariableOfName($nodes, $name) instanceof Node;
-    }
-    /**
-     * @api
      * @param Node|Node[] $nodes
      * @return Variable|null
      */
@@ -126,16 +103,6 @@ final class BetterNodeFinder
     public function find($nodes, callable $filter): array
     {
         return $this->nodeFinder->find($nodes, $filter);
-    }
-    /**
-     * @api symfony
-     * @param Node[] $nodes
-     * @return Class_|null
-     */
-    public function findFirstNonAnonymousClass(array $nodes): ?Node
-    {
-        // skip anonymous classes
-        return $this->findFirst($nodes, fn(Node $node): bool => $node instanceof Class_ && !$this->classAnalyzer->isAnonymousClass($node));
     }
     /**
      * @param Node|Node[] $nodes
@@ -191,8 +158,6 @@ final class BetterNodeFinder
         return $returns;
     }
     /**
-     * @api to be used
-     *
      * @template T of Node
      * @param Node[] $nodes
      * @param class-string<T>|array<class-string<T>> $types

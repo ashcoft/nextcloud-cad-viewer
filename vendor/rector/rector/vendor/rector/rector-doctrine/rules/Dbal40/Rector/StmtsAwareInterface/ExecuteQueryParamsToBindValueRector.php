@@ -20,10 +20,10 @@ use PHPStan\Type\ObjectType;
 use Rector\Doctrine\Enum\DoctrineClass;
 use Rector\PhpParser\Enum\NodeGroup;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Doctrine\Tests\Dbal40\Rector\StmtsAwareInterface\ExecuteQueryParamsToBindValueRector\ExecuteQueryParamsToBindValueRectorTest
  */
@@ -31,7 +31,7 @@ final class ExecuteQueryParamsToBindValueRector extends AbstractRector implement
 {
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('doctrine/dbal', '>=4.0');
+        return new ComposerPackageConstraint('doctrine/dbal', '>=4.0 <6.0');
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -89,10 +89,11 @@ CODE_SAMPLE
                 if (!$node instanceof MethodCall) {
                     return \false;
                 }
-                if (!$this->isObjectType($node->var, $objectType)) {
+                // cheap name check first - a non-matching call bails before any type inference
+                if (!$this->isName($node->name, 'executeQuery')) {
                     return \false;
                 }
-                if (!$this->isName($node->name, 'executeQuery')) {
+                if (!$this->isObjectType($node->var, $objectType)) {
                     return \false;
                 }
                 return count($node->getArgs()) === 1;

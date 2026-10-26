@@ -14,10 +14,10 @@ use PhpParser\Node\VariadicPlaceholder;
 use Rector\CodingStyle\Guard\ArrowFunctionAndClosureFirstClassCallableGuard;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\CodingStyle\Rector\ArrowFunction\ArrowFunctionDelegatingCallToFirstClassCallableRector\ArrowFunctionDelegatingCallToFirstClassCallableRectorTest
  */
@@ -67,6 +67,6 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::FIRST_CLASS_CALLABLE_SYNTAX;
+        return PhpVersion::PHP_81;
     }
 }

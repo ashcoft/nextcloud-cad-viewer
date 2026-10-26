@@ -27,8 +27,8 @@ use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\If_\RemoveAlwaysTrueIfConditionRector\RemoveAlwaysTrueIfConditionRectorTest
  */
@@ -111,11 +111,11 @@ CODE_SAMPLE
         if ($node->elseifs !== []) {
             return null;
         }
-        $conditionStaticType = $this->nodeTypeResolver->getNativeType($node->cond);
-        if (!$conditionStaticType->isTrue()->yes()) {
+        if ($this->shouldSkipExpr($node->cond)) {
             return null;
         }
-        if ($this->shouldSkipExpr($node->cond)) {
+        $conditionStaticType = $this->nodeTypeResolver->getNativeType($node->cond);
+        if (!$conditionStaticType->isTrue()->yes()) {
             return null;
         }
         $scope = ScopeFetcher::fetch($node);
@@ -169,18 +169,12 @@ CODE_SAMPLE
     }
     private function shouldSkipExpr(Expr $expr): bool
     {
-        $hasNonStaticNode = (bool) $this->betterNodeFinder->findInstancesOf($expr, [PropertyFetch::class, StaticPropertyFetch::class, ArrayDimFetch::class, MethodCall::class, StaticCall::class]);
-        if ($hasNonStaticNode) {
-            return \true;
-        }
-        /** @var FuncCall[] $funcCalls */
-        $funcCalls = $this->betterNodeFinder->findInstancesOf($expr, [FuncCall::class]);
-        foreach ($funcCalls as $funcCall) {
-            if ($this->isNames($funcCall, self::RUNTIME_STATE_FUNCTIONS)) {
+        return $this->betterNodeFinder->findFirst($expr, function (Node $node): bool {
+            if ($node instanceof PropertyFetch || $node instanceof StaticPropertyFetch || $node instanceof ArrayDimFetch || $node instanceof MethodCall || $node instanceof StaticCall) {
                 return \true;
             }
-        }
-        return \false;
+            return $node instanceof FuncCall && $this->isNames($node, self::RUNTIME_STATE_FUNCTIONS);
+        }) instanceof Node;
     }
     private function refactorIfWithBooleanAnd(If_ $if): ?If_
     {

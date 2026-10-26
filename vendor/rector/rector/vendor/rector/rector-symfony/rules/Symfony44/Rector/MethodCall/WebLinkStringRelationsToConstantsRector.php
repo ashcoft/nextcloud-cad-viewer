@@ -10,10 +10,10 @@ use PhpParser\Node\Scalar\String_;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ObjectType;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Symfony\Tests\Symfony44\Rector\MethodCall\WebLinkStringRelationsToConstantsRector\WebLinkStringRelationsToConstantsRectorTest
  */
@@ -59,10 +59,11 @@ CODE_SAMPLE
     public function refactor(Node $node): ?Node
     {
         if ($node instanceof MethodCall) {
-            if (!$this->isObjectType($node->var, new ObjectType('Symfony\Component\WebLink\Link'))) {
+            // cheap name check first - a non-matching call bails before any type inference
+            if (!$this->isNames($node->name, ['withRel', 'withoutRel'])) {
                 return null;
             }
-            if (!$this->isNames($node->name, ['withRel', 'withoutRel'])) {
+            if (!$this->isObjectType($node->var, new ObjectType('Symfony\Component\WebLink\Link'))) {
                 return null;
             }
         } elseif ($node instanceof New_) {

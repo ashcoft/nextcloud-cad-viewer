@@ -13,10 +13,10 @@ use Rector\PHPUnit\Enum\ProphecyClassName;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @changelog https://github.com/sebastianbergmann/phpunit/issues/4142
  * @changelog https://github.com/sebastianbergmann/phpunit/issues/4141
@@ -101,9 +101,21 @@ CODE_SAMPLE
     }
     private function shouldSkipClass(Class_ $class): bool
     {
+        if (!$this->testsNodeAnalyzer->isInTestClass($class)) {
+            return \true;
+        }
         $hasProphesizeMethodCall = (bool) $this->betterNodeFinder->findFirst($class, fn(Node $node): bool => $this->testsNodeAnalyzer->isAssertMethodCallName($node, 'prophesize'));
         if (!$hasProphesizeMethodCall) {
             return \true;
+        }
+        // structural check first, so the rule stays idempotent even when the class reflection is
+        // not yet aware of a trait added on a previous pass
+        foreach ($class->getTraitUses() as $traitUse) {
+            foreach ($traitUse->traits as $trait) {
+                if ($this->isName($trait, ProphecyClassName::PROPHECY_TRAIT)) {
+                    return \true;
+                }
+            }
         }
         $classReflection = $this->reflectionResolver->resolveClassReflection($class);
         if (!$classReflection instanceof ClassReflection) {

@@ -16,10 +16,10 @@ use Rector\Configuration\Parameter\FeatureFlags;
 use Rector\NodeAnalyzer\PropertyFetchAnalyzer;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\TypeDeclaration\AlreadyAssignDetector\ConstructorAssignDetector;
 use Rector\ValueObject\MethodName;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\Property\RemoveDefaultValueFromAssignedPropertyRector\RemoveDefaultValueFromAssignedPropertyRectorTest
  */
@@ -85,11 +85,8 @@ CODE_SAMPLE
         if (!$constructClassMethod instanceof ClassMethod) {
             return null;
         }
-        // early return can skip the assign, so the default value is still needed
-        if ($this->hasEarlyReturn($node, $constructClassMethod)) {
-            return null;
-        }
         $hasChanged = \false;
+        $hasEarlyReturn = null;
         $isFinal = $node->isFinal() || FeatureFlags::treatClassesAsFinal($node);
         foreach ($node->getProperties() as $property) {
             // untyped properties are handled by RemoveNullPropertyInitializationRector
@@ -117,6 +114,11 @@ CODE_SAMPLE
                 // partial assign, e.g. $this->items['key'] = ...; keeps the default value required
                 if ($this->isAssignedViaArrayDimFetch($node, $propertyName)) {
                     continue;
+                }
+                // early return can skip the assign, so the default value is still needed
+                $hasEarlyReturn ??= $this->hasEarlyReturn($node, $constructClassMethod);
+                if ($hasEarlyReturn) {
+                    return null;
                 }
                 $propertyProperty->default = null;
                 $hasChanged = \true;

@@ -14,8 +14,8 @@ use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
 use Rector\Removing\ValueObject\ArgumentRemover;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\ConfiguredCodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Removing\Rector\ClassMethod\ArgumentRemoverRector\ArgumentRemoverRectorTest
@@ -27,9 +27,9 @@ final class ArgumentRemoverRector extends AbstractRector implements Configurable
      */
     private ValueResolver $valueResolver;
     /**
-     * @var ArgumentRemover[]
+     * @var array<string, ArgumentRemover[]>
      */
-    private array $removedArguments = [];
+    private array $removedArgumentsByMethod = [];
     private bool $hasChanged = \false;
     public function __construct(ValueResolver $valueResolver)
     {
@@ -61,10 +61,11 @@ CODE_SAMPLE
     public function refactor(Node $node)
     {
         $this->hasChanged = \false;
-        foreach ($this->removedArguments as $removedArgument) {
-            if (!$this->isName($node->name, $removedArgument->getMethod())) {
-                continue;
-            }
+        $methodName = $this->getName($node->name);
+        if ($methodName === null) {
+            return null;
+        }
+        foreach ($this->removedArgumentsByMethod[strtolower($methodName)] ?? [] as $removedArgument) {
             if (!$this->nodeTypeResolver->isMethodStaticCallOrClassMethodObjectType($node, $removedArgument->getObjectType())) {
                 continue;
             }
@@ -81,7 +82,10 @@ CODE_SAMPLE
     public function configure(array $configuration): void
     {
         Assert::allIsAOf($configuration, ArgumentRemover::class);
-        $this->removedArguments = $configuration;
+        $this->removedArgumentsByMethod = [];
+        foreach ($configuration as $removedArgument) {
+            $this->removedArgumentsByMethod[strtolower($removedArgument->getMethod())][] = $removedArgument;
+        }
     }
     /**
      * @param \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\MethodCall $node
@@ -90,9 +94,13 @@ CODE_SAMPLE
     {
         if ($argumentRemover->getValue() === null) {
             if ($node instanceof MethodCall || $node instanceof StaticCall) {
-                unset($node->args[$argumentRemover->getPosition()]);
-            } else {
+                if (isset($node->args[$argumentRemover->getPosition()])) {
+                    unset($node->args[$argumentRemover->getPosition()]);
+                    $this->hasChanged = \true;
+                }
+            } elseif (isset($node->params[$argumentRemover->getPosition()])) {
                 unset($node->params[$argumentRemover->getPosition()]);
+                $this->hasChanged = \true;
             }
             return;
         }
@@ -121,6 +129,7 @@ CODE_SAMPLE
         if ($node instanceof MethodCall || $node instanceof StaticCall) {
             if (isset($node->args[$position]) && $this->isName($node->args[$position], $name)) {
                 unset($node->args[$position]);
+                $this->hasChanged = \true;
             }
             return;
         }
@@ -128,6 +137,7 @@ CODE_SAMPLE
             return;
         }
         unset($node->params[$position]);
+        $this->hasChanged = \true;
     }
     /**
      * @param mixed[] $values

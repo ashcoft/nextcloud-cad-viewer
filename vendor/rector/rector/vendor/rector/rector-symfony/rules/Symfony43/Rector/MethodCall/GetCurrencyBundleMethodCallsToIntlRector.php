@@ -9,11 +9,11 @@ use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Name\FullyQualified;
 use PHPStan\Type\ObjectType;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\Symfony\ValueObject\IntlBundleClassToNewClass;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @changelog https://symfony.com/blog/new-in-symfony-4-3-simpler-access-to-intl-data
  * @changelog https://github.com/symfony/symfony/pull/28846
@@ -26,15 +26,24 @@ final class GetCurrencyBundleMethodCallsToIntlRector extends AbstractRector impl
      * @var IntlBundleClassToNewClass[]
      */
     private array $intlBundleClassesToNewClasses = [];
+    /**
+     * @var string[]
+     */
+    private array $oldMethodNames = [];
     public function __construct()
     {
         $this->intlBundleClassesToNewClasses[] = new IntlBundleClassToNewClass('Symfony\Component\Intl\ResourceBundle\LanguageBundleInterface', 'Symfony\Component\Intl\Languages', ['getLanguageNames' => 'getNames', 'getLanguageName' => 'getName']);
         $this->intlBundleClassesToNewClasses[] = new IntlBundleClassToNewClass('Symfony\Component\Intl\ResourceBundle\RegionBundleInterface', 'Symfony\Component\Intl\Currencies', ['getCountryNames' => 'getNames', 'getCountryName' => 'getName']);
         $this->intlBundleClassesToNewClasses[] = new IntlBundleClassToNewClass('Symfony\Component\Intl\ResourceBundle\CurrencyBundleInterface', 'Symfony\Component\Intl\Currencies', ['getCurrencyNames' => 'getNames', 'getCurrencyName' => 'getName', 'getCurrencySymbol' => 'getSymbol', 'getFractionDigits' => 'getFractionDigits']);
+        foreach ($this->intlBundleClassesToNewClasses as $intlBundleClassToNewClass) {
+            foreach (array_keys($intlBundleClassToNewClass->getOldToNewMethods()) as $oldMethodName) {
+                $this->oldMethodNames[] = $oldMethodName;
+            }
+        }
     }
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('symfony/intl', '>=4.3');
+        return new ComposerPackageConstraint('symfony/intl', '>=4.3 <7.0');
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -60,6 +69,10 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?StaticCall
     {
+        // cheap name check first - a non-matching call bails before any type inference
+        if (!$this->isNames($node->name, $this->oldMethodNames)) {
+            return null;
+        }
         foreach ($this->intlBundleClassesToNewClasses as $intlBundleClassToNewClass) {
             if (!$this->isObjectType($node->var, new ObjectType($intlBundleClassToNewClass->getOldClass()))) {
                 continue;

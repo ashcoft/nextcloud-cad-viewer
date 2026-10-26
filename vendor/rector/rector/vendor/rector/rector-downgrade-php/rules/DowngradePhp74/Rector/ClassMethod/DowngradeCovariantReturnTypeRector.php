@@ -26,11 +26,11 @@ use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\StaticTypeMapper\ValueObject\Type\ParentStaticType;
 use Rector\Util\Reflection\PrivatesAccessor;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @changelog https://www.php.net/manual/en/migration74.new-features.php#migration74.new-features.core.type-variance
  *
@@ -223,6 +223,11 @@ CODE_SAMPLE
                 continue;
             }
             if ($this->isNullable($parentReturnType, $returnType)) {
+                continue;
+            }
+            // only downgrade to a wider ancestor type; skipping a narrower one keeps the rule
+            // idempotent, otherwise a multi-level hierarchy flips the type back and forth
+            if (!$parentReturnType->accepts($returnType, \true)->yes()) {
                 continue;
             }
             // This is an ancestor class with a different return type

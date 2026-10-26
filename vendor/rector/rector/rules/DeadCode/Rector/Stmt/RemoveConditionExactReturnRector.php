@@ -12,8 +12,8 @@ use PhpParser\Node\Stmt\Return_;
 use Rector\DeadCode\SideEffect\SideEffectNodeDetector;
 use Rector\PhpParser\Enum\NodeGroup;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\Stmt\RemoveConditionExactReturnRector\RemoveConditionExactReturnRectorTest
  */
@@ -80,13 +80,6 @@ CODE_SAMPLE
                 continue;
             }
             $identicalOrEqual = $stmt->cond;
-            if ($this->sideEffectNodeDetector->detect($identicalOrEqual->right)) {
-                continue;
-            }
-            if (!$this->nodeComparator->areNodesEqual($identicalOrEqual->right, $soleIfReturn->expr)) {
-                continue;
-            }
-            $comparedVariable = $identicalOrEqual->left;
             // next if must be return of the same var
             $nextStmt = $node->stmts[$key + 1] ?? null;
             if (!$nextStmt instanceof Return_) {
@@ -95,6 +88,13 @@ CODE_SAMPLE
             if (!$nextStmt->expr instanceof Expr) {
                 continue;
             }
+            if ($this->sideEffectNodeDetector->detect($identicalOrEqual->right)) {
+                continue;
+            }
+            if (!$this->nodeComparator->areNodesEqual($identicalOrEqual->right, $soleIfReturn->expr)) {
+                continue;
+            }
+            $comparedVariable = $identicalOrEqual->left;
             if (!$this->nodeComparator->areNodesEqual($nextStmt->expr, $comparedVariable)) {
                 continue;
             }

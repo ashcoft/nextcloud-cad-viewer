@@ -4,15 +4,16 @@ declare (strict_types=1);
 namespace Rector\CodingStyle\Rector\ClassMethod;
 
 use PhpParser\Node;
+use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\Reflection\ClassReflection;
 use Rector\Privatization\NodeManipulator\VisibilityManipulator;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use ReflectionMethod;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\CodingStyle\Rector\ClassMethod\MakeInheritedMethodVisibilitySameAsParentRector\MakeInheritedMethodVisibilitySameAsParentRectorTest
  */
@@ -78,6 +79,13 @@ CODE_SAMPLE
     public function refactor(Node $node): ?Node
     {
         if ($node->isAnonymous()) {
+            return null;
+        }
+        // no parent class to align visibility to
+        if (!$node->extends instanceof Name) {
+            return null;
+        }
+        if ($node->getMethods() === []) {
             return null;
         }
         $classReflection = $this->reflectionResolver->resolveClassReflection($node);

@@ -4,7 +4,6 @@ declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\Empty_;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\BinaryOp\Identical;
 use PhpParser\Node\Expr\BinaryOp\NotIdentical;
@@ -25,9 +24,9 @@ use Rector\PhpParser\AstResolver;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\TypeDeclaration\TypeInferer\PropertyTypeInferer\AllAssignNodePropertyTypeInferer;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\CodeQuality\Rector\Empty_\SimplifyEmptyCheckOnEmptyArrayRector\SimplifyEmptyCheckOnEmptyArrayRectorTest
  */
@@ -89,35 +88,33 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
+        $empty = $node instanceof BooleanNot ? $node->expr : $node;
+        if (!$empty instanceof Empty_) {
+            return null;
+        }
+        $expr = $empty->expr;
+        if (!$expr instanceof Variable && !$expr instanceof PropertyFetch && !$expr instanceof StaticPropertyFetch) {
+            return null;
+        }
+        if ($expr instanceof Variable && is_string($expr->name) && $this->reservedKeywordAnalyzer->isNativeVariable($expr->name)) {
+            return null;
+        }
         $scope = ScopeFetcher::fetch($node);
-        if ($node instanceof BooleanNot) {
-            if ($node->expr instanceof Empty_ && $this->isAllowedExpr($node->expr->expr, $scope)) {
-                return new NotIdentical($node->expr->expr, new Array_());
-            }
+        if (!$this->isAllowedExpr($expr, $scope)) {
             return null;
         }
-        if (!$this->isAllowedExpr($node->expr, $scope)) {
-            return null;
-        }
-        return new Identical($node->expr, new Array_());
+        return $node instanceof BooleanNot ? new NotIdentical($expr, new Array_()) : new Identical($expr, new Array_());
     }
-    private function isAllowedVariable(Variable $variable): bool
-    {
-        if (is_string($variable->name) && $this->reservedKeywordAnalyzer->isNativeVariable($variable->name)) {
-            return \false;
-        }
-        return !$this->exprAnalyzer->isNonTypedFromParam($variable);
-    }
-    private function isAllowedExpr(Expr $expr, Scope $scope): bool
+    /**
+     * @param \PhpParser\Node\Expr\Variable|\PhpParser\Node\Expr\PropertyFetch|\PhpParser\Node\Expr\StaticPropertyFetch $expr
+     */
+    private function isAllowedExpr($expr, Scope $scope): bool
     {
         if (!$scope->getType($expr)->isArray()->yes()) {
             return \false;
         }
         if ($expr instanceof Variable) {
-            return $this->isAllowedVariable($expr);
-        }
-        if (!$expr instanceof PropertyFetch && !$expr instanceof StaticPropertyFetch) {
-            return \false;
+            return !$this->exprAnalyzer->isNonTypedFromParam($expr);
         }
         if (!$expr->name instanceof Identifier) {
             return \false;

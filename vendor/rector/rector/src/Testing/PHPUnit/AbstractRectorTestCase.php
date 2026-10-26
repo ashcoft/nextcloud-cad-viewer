@@ -8,6 +8,7 @@ use RectorPrefix202610\Nette\Utils\FileSystem;
 use RectorPrefix202610\Nette\Utils\Strings;
 use PHPUnit\Framework\ExpectationFailedException;
 use Rector\Application\ApplicationFileProcessor;
+use Rector\Application\RectorRegistry;
 use Rector\Autoloading\AdditionalAutoloader;
 use Rector\Autoloading\BootstrapFilesIncluder;
 use Rector\Composer\InstalledPackageResolver;
@@ -19,21 +20,21 @@ use Rector\Contract\Rector\RectorInterface;
 use Rector\Exception\ShouldNotHappenException;
 use Rector\NodeTypeResolver\DependencyInjection\PHPStanServicesFactory;
 use Rector\NodeTypeResolver\Reflection\BetterReflection\SourceLocatorProvider\DynamicSourceLocatorProvider;
-use Rector\PhpParser\NodeTraverser\RectorNodeTraverser;
 use Rector\Testing\Contract\RectorTestInterface;
 use Rector\Testing\Fixture\FixtureFileFinder;
 use Rector\Testing\Fixture\FixtureFileUpdater;
 use Rector\Testing\Fixture\FixtureSplitter;
 use Rector\Testing\PHPUnit\ValueObject\RectorTestResult;
 use Rector\ValueObject\PhpVersion;
-/**
- * @api used by public
- */
 abstract class AbstractRectorTestCase extends \Rector\Testing\PHPUnit\AbstractLazyTestCase implements RectorTestInterface
 {
     private DynamicSourceLocatorProvider $dynamicSourceLocatorProvider;
     private ApplicationFileProcessor $applicationFileProcessor;
     private ?string $inputFilePath = null;
+    /**
+     * @var resource|null
+     */
+    private $fixtureDirectoryLock;
     /**
      * @var array<string, true>
      */
@@ -85,9 +86,10 @@ abstract class AbstractRectorTestCase extends \Rector\Testing\PHPUnit\AbstractLa
             $this->bootFromConfigFiles([$configFile]);
             // no rules at all, e.g. in case of only post rector run, yields an empty array
             $rectors = $rectorConfig->findByContract(RectorInterface::class);
-            /** @var RectorNodeTraverser $rectorNodeTraverser */
-            $rectorNodeTraverser = $rectorConfig->make(RectorNodeTraverser::class);
-            $rectorNodeTraverser->refreshPhpRectors($rectors);
+            // keep the shared registry in sync with the current test's rules
+            /** @var RectorRegistry $rectorRegistry */
+            $rectorRegistry = $rectorConfig->make(RectorRegistry::class);
+            $rectorRegistry->refreshRectors($rectors);
             // store cache
             self::$cacheByRuleAndConfig[$cacheKey] = \true;
         }
@@ -106,6 +108,7 @@ abstract class AbstractRectorTestCase extends \Rector\Testing\PHPUnit\AbstractLa
         if (is_string($this->inputFilePath)) {
             FileSystem::delete($this->inputFilePath);
         }
+        $this->unlockFixtureDirectory();
         // a next test that does not set its own paths would still locate the deleted file
         $this->dynamicSourceLocatorProvider->reset();
     }
@@ -117,8 +120,6 @@ abstract class AbstractRectorTestCase extends \Rector\Testing\PHPUnit\AbstractLa
      * Override to test a rule that implements @see \Rector\VersionBonding\Contract\ComposerPackageConstraintInterface
      * against a package that is not installed. The versions are read from the "require" and "require-dev" sections of
      * the provided "composer.json", instead of the installed packages.
-     *
-     * @api used by extensions
      */
     protected function provideComposerJsonFilePath(): ?string
     {
@@ -142,6 +143,9 @@ abstract class AbstractRectorTestCase extends \Rector\Testing\PHPUnit\AbstractLa
         if ($fixtureFilePath === $inputFilePath) {
             throw new ShouldNotHappenException('Fixture file and input file cannot be the same: ' . $fixtureFilePath);
         }
+        // test classes that share a fixture directory write the same temp files,
+        // so in parallel processes one could delete the other's file
+        $this->lockFixtureDirectory(dirname($inputFilePath));
         // write temp file
         FileSystem::write($inputFilePath, $inputFileContents, null);
         $this->doTestFileMatchesExpectedContent($inputFilePath, $inputFileContents, $expectedFileContents, $fixtureFilePath, $includeFixtureDirectoryAsSource);
@@ -206,6 +210,26 @@ abstract class AbstractRectorTestCase extends \Rector\Testing\PHPUnit\AbstractLa
         // return changed file contents
         $changedFileContents = FileSystem::read($filePath);
         return new RectorTestResult($changedFileContents, $processResult);
+    }
+    private function lockFixtureDirectory(string $directory): void
+    {
+        // a test can call doTestFile() more than once; a second lock from this process would wait for the first
+        $this->unlockFixtureDirectory();
+        $fixtureDirectoryLock = fopen($directory . '/.fixture.lock', 'c');
+        if ($fixtureDirectoryLock === \false) {
+            throw new ShouldNotHappenException('Cannot open the lock file in ' . $directory);
+        }
+        flock($fixtureDirectoryLock, \LOCK_EX);
+        $this->fixtureDirectoryLock = $fixtureDirectoryLock;
+    }
+    private function unlockFixtureDirectory(): void
+    {
+        if (!is_resource($this->fixtureDirectoryLock)) {
+            return;
+        }
+        flock($this->fixtureDirectoryLock, \LOCK_UN);
+        fclose($this->fixtureDirectoryLock);
+        $this->fixtureDirectoryLock = null;
     }
     private function createInputFilePath(string $fixtureFilePath): string
     {

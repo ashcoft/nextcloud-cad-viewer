@@ -17,10 +17,10 @@ use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\TypeDeclarationDocblocks\NodeFinder\DataProviderMethodsFinder;
 use Rector\ValueObject\MethodName;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\ClassMethod\RemoveUnusedPrivateMethodRector\RemoveUnusedPrivateMethodRectorTest
  */
@@ -88,11 +88,11 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
-        if ($node->getMethods() === []) {
-            return null;
-        }
         // unreliable to detect on anonymous class: doesn't make sense
         if ($node->isAnonymous()) {
+            return null;
+        }
+        if (!$this->hasPrivateMethod($node)) {
             return null;
         }
         $hasChanged = \false;
@@ -104,6 +104,7 @@ CODE_SAMPLE
         // methods invoked via a class-string static call, e.g. self::class::sampleClass(),
         // are not seen by the usage analyzer
         $classStringCallMethodNames = $this->resolveClassStringStaticCallNames($node);
+        $scope = null;
         foreach ($node->stmts as $classStmtKey => $classStmt) {
             if (!$classStmt instanceof ClassMethod) {
                 continue;
@@ -112,20 +113,20 @@ CODE_SAMPLE
                 continue;
             }
             $classMethod = $classStmt;
-            if ($this->hasDynamicMethodCallOnFetchThis($classStmt)) {
-                continue;
-            }
-            $scope = ScopeFetcher::fetch($node);
-            if ($this->shouldSkip($classStmt, $classReflection)) {
-                continue;
-            }
-            if ($this->isClassMethodUsedAnalyzer->isClassMethodUsed($node, $classStmt, $scope)) {
-                continue;
-            }
             if ($this->isNames($classMethod, $dataProviderMethodNames)) {
                 continue;
             }
             if ($this->isNames($classMethod, $classStringCallMethodNames)) {
+                continue;
+            }
+            if ($this->hasDynamicMethodCallOnFetchThis($classStmt)) {
+                continue;
+            }
+            if ($this->shouldSkip($classStmt, $classReflection)) {
+                continue;
+            }
+            $scope ??= ScopeFetcher::fetch($node);
+            if ($this->isClassMethodUsedAnalyzer->isClassMethodUsed($node, $classStmt, $scope)) {
                 continue;
             }
             unset($node->stmts[$classStmtKey]);
@@ -135,6 +136,17 @@ CODE_SAMPLE
             return $node;
         }
         return null;
+    }
+    private function hasPrivateMethod(Class_ $class): bool
+    {
+        $found = \false;
+        foreach ($class->getMethods() as $classMethod) {
+            if ($classMethod->isPrivate()) {
+                $found = \true;
+                break;
+            }
+        }
+        return $found;
     }
     private function shouldSkip(ClassMethod $classMethod, ClassReflection $classReflection): bool
     {

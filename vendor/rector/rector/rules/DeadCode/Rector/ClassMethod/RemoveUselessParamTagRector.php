@@ -10,8 +10,8 @@ use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\DeadCode\PhpDoc\TagRemover\ParamTagRemover;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\ClassMethod\RemoveUselessParamTagRector\RemoveUselessParamTagRectorTest
  */
@@ -70,7 +70,7 @@ CODE_SAMPLE
     public function refactor(Node $node): ?Node
     {
         // skip as no comments
-        if ($node->getComments() === []) {
+        if (strpos((string) $node->getDocComment(), '@param') === \false) {
             return null;
         }
         $phpDocInfo = $this->phpDocInfoFactory->createFromNode($node);

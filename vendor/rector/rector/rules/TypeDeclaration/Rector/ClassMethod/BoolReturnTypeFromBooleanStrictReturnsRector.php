@@ -21,12 +21,12 @@ use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\TypeDeclaration\NodeAnalyzer\ReturnAnalyzer;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VendorLocker\NodeVendorLocker\ClassMethodReturnTypeOverrideGuard;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\BoolReturnTypeFromBooleanStrictReturnsRector\BoolReturnTypeFromBooleanStrictReturnsRectorTest
  */
@@ -99,12 +99,16 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
-        $scope = ScopeFetcher::fetch($node);
-        if ($this->shouldSkip($node, $scope)) {
+        // already has the type, skip
+        if ($node->returnType instanceof Node) {
             return null;
         }
         $returns = $this->betterNodeFinder->findReturnsScoped($node);
         if (!$this->returnAnalyzer->hasOnlyReturnWithExpr($node, $returns)) {
+            return null;
+        }
+        $scope = ScopeFetcher::fetch($node);
+        if ($this->shouldSkip($node, $scope)) {
             return null;
         }
         // handled in another rule
@@ -120,17 +124,13 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::SCALAR_TYPES;
+        return PhpVersion::PHP_70;
     }
     /**
      * @param ClassMethod|Function_|Closure $node
      */
     private function shouldSkip(Node $node, Scope $scope): bool
     {
-        // already has the type, skip
-        if ($node->returnType instanceof Node) {
-            return \true;
-        }
         return $node instanceof ClassMethod && $this->classMethodReturnTypeOverrideGuard->shouldSkipClassMethod($node, $scope);
     }
     /**

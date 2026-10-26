@@ -10,10 +10,10 @@ use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticCall;
 use PHPStan\Type\ObjectType;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php81\Rector\MethodCall\MyCLabsMethodCallToEnumConstRector\MyCLabsMethodCallToEnumConstRectorTest
  */
@@ -80,7 +80,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::ENUM;
+        return PhpVersion::PHP_81;
     }
     private function refactorGetterToMethodCall(MethodCall $methodCall, string $property): ?PropertyFetch
     {
@@ -105,22 +105,16 @@ CODE_SAMPLE
     }
     private function refactorMethodCall(MethodCall $methodCall, string $methodName): ?\PhpParser\Node\Expr\PropertyFetch
     {
+        if (!in_array($methodName, ['getName', 'label', 'getValue', 'value'], \true)) {
+            return null;
+        }
         if (!$this->isObjectType($methodCall->var, new ObjectType(self::SPATIE_FQN))) {
             return null;
         }
-        if ($methodName === 'getName') {
+        if (in_array($methodName, ['getName', 'label'], \true)) {
             return $this->refactorGetterToMethodCall($methodCall, 'name');
         }
-        if ($methodName === 'label') {
-            return $this->refactorGetterToMethodCall($methodCall, 'name');
-        }
-        if ($methodName === 'getValue') {
-            return $this->refactorGetterToMethodCall($methodCall, 'value');
-        }
-        if ($methodName === 'value') {
-            return $this->refactorGetterToMethodCall($methodCall, 'value');
-        }
-        return null;
+        return $this->refactorGetterToMethodCall($methodCall, 'value');
     }
     private function shouldOmitEnumCase(string $enumCaseName): bool
     {

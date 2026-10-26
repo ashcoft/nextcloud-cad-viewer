@@ -11,10 +11,10 @@ use PhpParser\Node\Identifier;
 use PHPStan\Type\ObjectType;
 use Rector\Doctrine\Enum\DoctrineClass;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Doctrine\Tests\Dbal211\Rector\MethodCall\ReplaceFetchAllMethodCallRector\ReplaceFetchAllMethodCallRectorTest
  *
@@ -24,7 +24,7 @@ final class ReplaceFetchAllMethodCallRector extends AbstractRector implements Co
 {
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('doctrine/dbal', '>=2.11');
+        return new ComposerPackageConstraint('doctrine/dbal', '>=2.11 <5.0');
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -64,6 +64,10 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
+        // cheap name check first - a non-matching call bails before any type inference
+        if (!$this->isNames($node->name, ['fetchAll', 'fetchArray', 'fetchColumn'])) {
+            return null;
+        }
         if ($this->isObjectType($node->var, new ObjectType(DoctrineClass::CONNECTION))) {
             return $this->refactorConnection($node);
         }

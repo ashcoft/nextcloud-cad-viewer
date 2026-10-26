@@ -12,6 +12,8 @@ use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Name;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\Symfony\NodeAnalyzer\FormAddMethodCallAnalyzer;
 use Rector\Symfony\NodeAnalyzer\FormCollectionAnalyzer;
 use Rector\Symfony\NodeAnalyzer\FormInstanceToFormClassConstFetchConverter;
@@ -19,8 +21,6 @@ use Rector\Symfony\NodeAnalyzer\FormOptionsArrayMatcher;
 use Rector\Symfony\TypeAnalyzer\ControllerAnalyzer;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * Best resource with clear example:
  *
@@ -69,7 +69,7 @@ final class FormTypeInstanceToClassConstRector extends AbstractRector implements
     }
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('symfony/framework-bundle', '>=3.0');
+        return new ComposerPackageConstraint('symfony/framework-bundle', '>=3.0 <5.0');
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -116,17 +116,24 @@ CODE_SAMPLE
             return null;
         }
         // special case for collections
+        $hasChangedCollection = \false;
         if ($this->formCollectionAnalyzer->isCollectionType($node)) {
-            $this->refactorCollectionOptions($node);
+            $hasChangedCollection = $this->refactorCollectionOptions($node);
         }
-        return $this->formInstanceToFormClassConstFetchConverter->processNewInstance($node, 1, 2);
+        $newMethodCall = $this->formInstanceToFormClassConstFetchConverter->processNewInstance($node, 1, 2);
+        if ($newMethodCall instanceof MethodCall) {
+            return $newMethodCall;
+        }
+        // collection options were mutated in place, report the change via the return value
+        return $hasChangedCollection ? $node : null;
     }
-    private function refactorCollectionOptions(MethodCall $methodCall): void
+    private function refactorCollectionOptions(MethodCall $methodCall): bool
     {
         $optionsArray = $this->formOptionsArrayMatcher->match($methodCall);
         if (!$optionsArray instanceof Array_) {
-            return;
+            return \false;
         }
+        $hasChanged = \false;
         foreach ($optionsArray->items as $arrayItem) {
             if (!$arrayItem instanceof ArrayItem) {
                 continue;
@@ -145,6 +152,8 @@ CODE_SAMPLE
                 continue;
             }
             $arrayItem->value = $this->nodeFactory->createClassConstReference($newClass->toString());
+            $hasChanged = \true;
         }
+        return $hasChanged;
     }
 }

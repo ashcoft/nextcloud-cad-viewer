@@ -7,7 +7,7 @@ declare (strict_types=1);
  */
 namespace RectorPrefix202610\Nette\Utils;
 
-use function array_merge, checkdate, implode, is_numeric, is_string, preg_replace_callback, sprintf, time, trim;
+use function is_string;
 /**
  * Extends PHP's DateTime with strict validation and additional factory methods.
  */
@@ -57,7 +57,6 @@ class DateTime extends \DateTime implements \JsonSerializable
     }
     /**
      * Returns a new DateTime object formatted according to the specified format.
-     * @return static|false
      * @param string|\DateTimeZone|null $timezone
      */
     public static function createFromFormat(string $format, string $datetime, $timezone = null)
@@ -115,7 +114,7 @@ class DateTime extends \DateTime implements \JsonSerializable
             return '';
         }, $datetime);
         if ($ctr) {
-            parent::__construct($absPart, $timezone);
+            parent::__construct(trim($absPart), $timezone);
             $this->handleErrors($datetime);
         } elseif (trim($absPart)) {
             parent::modify($absPart) && $this->handleErrors($datetime);

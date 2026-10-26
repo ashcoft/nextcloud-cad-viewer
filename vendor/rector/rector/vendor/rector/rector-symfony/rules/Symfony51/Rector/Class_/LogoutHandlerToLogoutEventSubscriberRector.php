@@ -9,14 +9,14 @@ use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\Type\ObjectType;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\Symfony\Enum\SymfonyClass;
 use Rector\Symfony\NodeFactory\GetSubscribedEventsClassMethodFactory;
 use Rector\Symfony\NodeFactory\OnLogoutClassMethodFactory;
 use Rector\Symfony\ValueObject\EventReferenceToMethodName;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @changelog https://github.com/symfony/symfony/pull/36243
  *
@@ -101,6 +101,13 @@ CODE_SAMPLE
     {
         if (!$this->isObjectType($node, $this->logoutHandlerObjectType)) {
             return null;
+        }
+        // already converted on a previous pass; the class type can still resolve to the handler
+        // interface from stale reflection, so check the implements list structurally
+        foreach ($node->implements as $implement) {
+            if ($this->isName($implement, SymfonyClass::EVENT_SUBSCRIBER_INTERFACE)) {
+                return null;
+            }
         }
         // 1. replace LogoutHandlerInterface with EventSubscriberInterface
         foreach ($node->implements as $key => $implement) {

@@ -10,10 +10,10 @@ use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\PHPUnit\NodeFactory\AssertCallFactory;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @changelog https://github.com/sebastianbergmann/phpunit/blob/master/ChangeLog-8.0.md
  * @changelog https://github.com/sebastianbergmann/phpunit/commit/90e9e0379584bdf34220322e202617cd56d8ba65
@@ -40,7 +40,7 @@ final class AssertEqualsParameterToSpecificMethodsTypeRector extends AbstractRec
      */
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('phpunit/phpunit', '>=7.5');
+        return new ComposerPackageConstraint('phpunit/phpunit', '>=7.5 <11.0');
     }
     public function __construct(AssertCallFactory $assertCallFactory, TestsNodeAnalyzer $testsNodeAnalyzer, ValueResolver $valueResolver)
     {
@@ -112,15 +112,22 @@ CODE_SAMPLE
         if ($newMethodCall !== null) {
             return $newMethodCall;
         }
+        $hasChanged = \false;
         if (isset($node->args[4])) {
             // add new node only in case of non-default value
             unset($node->args[4]);
+            $hasChanged = \true;
         }
-        return $this->processAssertEqualsWithDelta($node);
+        $newMethodCall = $this->processAssertEqualsWithDelta($node);
+        if ($newMethodCall !== null) {
+            return $newMethodCall;
+        }
+        return $hasChanged ? $node : null;
     }
     /**
+     * @template TCall of MethodCall|StaticCall
      * @param \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\StaticCall $call
-     * @return \PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\MethodCall|null
+     * @return ($call is MethodCall ? MethodCall : StaticCall)|null
      */
     private function processAssertEqualsIgnoringCase($call)
     {
@@ -141,8 +148,9 @@ CODE_SAMPLE
         return $newMethodCall;
     }
     /**
+     * @template TCall of MethodCall|StaticCall
      * @param \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\StaticCall $call
-     * @return \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\StaticCall|null
+     * @return ($call is MethodCall ? MethodCall : StaticCall)|null
      */
     private function processAssertEqualsCanonicalizing($call)
     {
@@ -165,8 +173,9 @@ CODE_SAMPLE
         return $newMethodCall;
     }
     /**
+     * @template TCall of MethodCall|StaticCall
      * @param \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\StaticCall $call
-     * @return \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\StaticCall|null
+     * @return ($call is MethodCall ? MethodCall : StaticCall)|null
      */
     private function processAssertEqualsWithDelta($call)
     {
@@ -178,7 +187,8 @@ CODE_SAMPLE
         $thirdArg = $call->getArgs()[3];
         unset($call->args[3]);
         if ($this->valueResolver->isValue($thirdArg->value, 0.0)) {
-            return null;
+            // default delta removed in place, no dedicated method needed
+            return $call;
         }
         $newMethodCall = $this->assertCallFactory->createCallWithName($call, 'assertEqualsWithDelta');
         $newMethodCall->args[0] = $call->args[0];

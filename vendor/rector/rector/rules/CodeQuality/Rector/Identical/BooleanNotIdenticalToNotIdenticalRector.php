@@ -8,8 +8,8 @@ use PhpParser\Node\Expr\BinaryOp\Identical;
 use PhpParser\Node\Expr\BinaryOp\NotIdentical;
 use PhpParser\Node\Expr\BooleanNot;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\CodeQuality\Rector\Identical\BooleanNotIdenticalToNotIdenticalRector\BooleanNotIdenticalToNotIdenticalRectorTest
  */
@@ -78,17 +78,16 @@ CODE_SAMPLE
     }
     private function processIdentical(Identical $identical): ?NotIdentical
     {
-        $leftType = $this->getType($identical->left);
-        if (!$leftType->isBoolean()->yes()) {
+        // cheap structural guard first, so getType() runs only on the "!$a === $b" shape
+        if (!$identical->left instanceof BooleanNot) {
             return null;
         }
-        $rightType = $this->getType($identical->right);
-        if (!$rightType->isBoolean()->yes()) {
+        if (!$this->getType($identical->left)->isBoolean()->yes()) {
             return null;
         }
-        if ($identical->left instanceof BooleanNot) {
-            return new NotIdentical($identical->left->expr, $identical->right);
+        if (!$this->getType($identical->right)->isBoolean()->yes()) {
+            return null;
         }
-        return null;
+        return new NotIdentical($identical->left->expr, $identical->right);
     }
 }

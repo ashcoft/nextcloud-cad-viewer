@@ -24,13 +24,13 @@ use PhpParser\Node\Stmt\If_;
 use PhpParser\Node\Stmt\Return_;
 use PhpParser\Node\Stmt\Switch_;
 use PHPStan\Analyser\Scope;
-use Rector\Naming\Naming\VariableNaming;
+use Rector\DowngradePhp\Naming\VariableNaming;
 use Rector\NodeAnalyzer\ExprInTopStmtMatcher;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PhpParser\Enum\NodeGroup;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @changelog https://wiki.php.net/rfc/array_key_first_last
  *
@@ -87,23 +87,18 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?array
     {
-        $exprArrayKeyFirst = $this->exprInTopStmtMatcher->match($node, function (Node $subNode): bool {
+        // single subtree traversal matching either name, instead of one full traversal per name
+        $funcCall = $this->exprInTopStmtMatcher->match($node, function (Node $subNode): bool {
             if (!$subNode instanceof FuncCall) {
                 return \false;
             }
-            return $this->isName($subNode, 'array_key_first');
+            return $this->isName($subNode, 'array_key_first') || $this->isName($subNode, 'array_key_last');
         });
-        if ($exprArrayKeyFirst instanceof FuncCall) {
-            return $this->refactorArrayKeyFirst($exprArrayKeyFirst, $node);
-        }
-        $exprArrayKeyLast = $this->exprInTopStmtMatcher->match($node, function (Node $subNode): bool {
-            if (!$subNode instanceof FuncCall) {
-                return \false;
+        if ($funcCall instanceof FuncCall) {
+            if ($this->isName($funcCall, 'array_key_first')) {
+                return $this->refactorArrayKeyFirst($funcCall, $node);
             }
-            return $this->isName($subNode, 'array_key_last');
-        });
-        if ($exprArrayKeyLast instanceof FuncCall) {
-            return $this->refactorArrayKeyLast($exprArrayKeyLast, $node);
+            return $this->refactorArrayKeyLast($funcCall, $node);
         }
         return null;
     }

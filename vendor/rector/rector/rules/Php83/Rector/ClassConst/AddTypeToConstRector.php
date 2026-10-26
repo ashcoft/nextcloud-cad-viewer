@@ -26,11 +26,11 @@ use Rector\Configuration\Parameter\FeatureFlags;
 use Rector\DeadCode\PhpDoc\TagRemover\VarTagRemover;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php83\Rector\ClassConst\AddTypeToConstRector\AddTypeToConstRectorTest
  */
@@ -92,7 +92,7 @@ CODE_SAMPLE
         if ($classConsts === []) {
             return null;
         }
-        $parentClassReflections = $this->getParentReflections($className);
+        $parentClassReflections = null;
         $hasChanged = \false;
         foreach ($classConsts as $classConst) {
             $valueTypes = [];
@@ -104,10 +104,11 @@ CODE_SAMPLE
                 if ($node->isAbstract() && !$classConst->isPrivate()) {
                     continue;
                 }
-                if ($this->isConstGuardedByParents($constNode, $parentClassReflections)) {
+                if ($this->canBeInherited($classConst, $node)) {
                     continue;
                 }
-                if ($this->canBeInherited($classConst, $node)) {
+                $parentClassReflections ??= $this->getParentReflections($className);
+                if ($this->isConstGuardedByParents($constNode, $parentClassReflections)) {
                     continue;
                 }
                 $valueTypes[] = $this->findValueType($constNode->value);
@@ -140,7 +141,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::TYPED_CLASS_CONSTANTS;
+        return PhpVersion::PHP_83;
     }
     /**
      * @param ClassReflection[] $parentClassReflections

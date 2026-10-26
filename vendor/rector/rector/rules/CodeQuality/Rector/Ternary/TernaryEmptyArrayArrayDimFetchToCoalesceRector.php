@@ -10,8 +10,8 @@ use PhpParser\Node\Expr\BooleanNot;
 use PhpParser\Node\Expr\Empty_;
 use PhpParser\Node\Expr\Ternary;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\CodeQuality\Rector\Ternary\TernaryEmptyArrayArrayDimFetchToCoalesceRector\TernaryEmptyArrayArrayDimFetchToCoalesceRectorTest
  */
@@ -65,12 +65,12 @@ CODE_SAMPLE
         if (!$node->if instanceof ArrayDimFetch) {
             return null;
         }
-        $emptyExprType = $this->getType($negagedExpr->expr);
-        if (!$emptyExprType->isArray()->yes()) {
-            return null;
-        }
         $dimFetchVar = $node->if->var;
         if (!$this->nodeComparator->areNodesEqual($negagedExpr->expr, $dimFetchVar)) {
+            return null;
+        }
+        $emptyExprType = $this->getType($negagedExpr->expr);
+        if (!$emptyExprType->isArray()->yes()) {
             return null;
         }
         return new Coalesce($node->if, $node->else);

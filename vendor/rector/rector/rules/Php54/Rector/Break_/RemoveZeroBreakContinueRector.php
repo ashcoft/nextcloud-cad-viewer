@@ -12,10 +12,10 @@ use PhpParser\Node\Stmt\Continue_;
 use PHPStan\Type\Constant\ConstantIntegerType;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php54\Rector\Break_\RemoveZeroBreakContinueRector\RemoveZeroBreakContinueRectorTest
  */
@@ -31,7 +31,7 @@ final class RemoveZeroBreakContinueRector extends AbstractRector implements MinP
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::NO_ZERO_BREAK;
+        return PhpVersion::PHP_54;
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -99,9 +99,11 @@ CODE_SAMPLE
         return null;
     }
     /**
+     * @template TNode of Break_|Continue_
      * @param \PhpParser\Node\Stmt\Break_|\PhpParser\Node\Stmt\Continue_ $stmt
+     * @return TNode|null
      */
-    private function processVariableNum($stmt, Variable $numVariable): ?Node
+    private function processVariableNum($stmt, Variable $numVariable)
     {
         $staticType = $this->getType($numVariable);
         if ($staticType->isConstantValue()->yes()) {

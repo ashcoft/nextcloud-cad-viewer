@@ -3,6 +3,7 @@
 declare (strict_types=1);
 namespace Rector\DeadCode\Rector\ClassMethod;
 
+use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
@@ -19,8 +20,8 @@ use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\PhpDocParser\PhpDocParser\PhpDocNodeTraverser;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\ClassMethod\RemoveNullTagValueNodeRector\RemoveNullTagValueNodeRectorTest
  */
@@ -76,6 +77,10 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
+        // null param/return/var tags can only live in a docblock; skip nodes without one
+        if (!$node->getDocComment() instanceof Doc) {
+            return null;
+        }
         if ($node instanceof Expression || $node instanceof Property) {
             return $this->processVarTagNull($node);
         }
@@ -132,9 +137,11 @@ CODE_SAMPLE
         });
     }
     /**
+     * @template TNode of Expression|Property
      * @param \PhpParser\Node\Stmt\Expression|\PhpParser\Node\Stmt\Property $node
+     * @return TNode|null
      */
-    private function processVarTagNull($node): ?Node
+    private function processVarTagNull($node)
     {
         $phpdocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($node);
         $varTagValueNode = $phpdocInfo->getVarTagValueNode();

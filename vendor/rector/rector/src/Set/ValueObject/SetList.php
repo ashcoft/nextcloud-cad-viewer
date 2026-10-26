@@ -3,9 +3,6 @@
 declare (strict_types=1);
 namespace Rector\Set\ValueObject;
 
-/**
- * @api
- */
 final class SetList
 {
     /**
@@ -27,11 +24,6 @@ final class SetList
     public const DEAD_CODE = __DIR__ . '/../../../config/set/dead-code.php';
     /**
      * @deprecated Niche set for a rarely used extension, it is empty now and will be removed.
-     * Register RenameClassRector and RenameMethodRector with your own configuration instead.
-     * @var string
-     */
-    public const GMAGICK_TO_IMAGICK = __DIR__ . '/../../../config/set/gmagick-to-imagick.php';
-    /**
      * @var string
      */
     public const NAMING = __DIR__ . '/../../../config/set/naming.php';

@@ -13,10 +13,10 @@ use PHPStan\Type\ObjectType;
 use Rector\NodeTypeResolver\TypeAnalyzer\StringTypeAnalyzer;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @changelog https://symfony.com/blog/new-in-symfony-4-3-simpler-event-dispatching
  *
@@ -39,7 +39,7 @@ final class MakeDispatchFirstArgumentEventRector extends AbstractRector implemen
     }
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('symfony/event-dispatcher', '>=4.3');
+        return new ComposerPackageConstraint('symfony/event-dispatcher', '>=4.3 <7.0');
     }
     public function getRuleDefinition(): RuleDefinition
     {

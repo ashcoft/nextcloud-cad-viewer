@@ -12,10 +12,10 @@ use PHPStan\Reflection\ParameterReflection;
 use PHPStan\Reflection\ParametersAcceptorSelector;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\CodeQuality\Rector\Attribute\ExplicitAttributeNamedArgsRector\ExplicitAttributeNamedArgsRectorTest
  */
@@ -57,6 +57,10 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
+        // no arguments to name
+        if ($node->args === []) {
+            return null;
+        }
         $methodReflection = $this->reflectionResolver->resolveConstructorReflectionFromAttribute($node);
         if (!$methodReflection instanceof MethodReflection) {
             return null;
@@ -74,7 +78,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::NAMED_ARGUMENTS;
+        return PhpVersion::PHP_80;
     }
     /**
      * Resolve the positional arguments to name, as a position => parameter-name map, or [] when

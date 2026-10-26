@@ -14,11 +14,11 @@ use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\TypeDeclaration\NodeAnalyzer\ReturnAnalyzer;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see https://3v4l.org/51uu0
  * @see https://3v4l.org/ktJnk
@@ -42,7 +42,7 @@ final class SleepToSerializeRector extends AbstractRector implements MinPhpVersi
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::DEPRECATED_METHOD_SLEEP;
+        return PhpVersion::PHP_85;
     }
     public function getRuleDefinition(): RuleDefinition
     {

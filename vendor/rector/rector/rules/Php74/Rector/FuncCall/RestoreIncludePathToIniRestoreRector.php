@@ -9,10 +9,10 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\String_;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see https://3v4l.org/Kcs98
  * @see \Rector\Tests\Php74\Rector\FuncCall\RestoreIncludePathToIniRestoreRector\RestoreIncludePathToIniRestoreRectorTest
@@ -21,7 +21,7 @@ final class RestoreIncludePathToIniRestoreRector extends AbstractRector implemen
 {
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::DEPRECATE_RESTORE_INCLUDE_PATH;
+        return PhpVersion::PHP_74;
     }
     public function getRuleDefinition(): RuleDefinition
     {
