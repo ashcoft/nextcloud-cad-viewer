@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\CadViewer\Controller;
 
+use OCA\CadViewer\Config\AppConfig;
 use OCA\CadViewer\Service\ThumbnailService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -41,6 +42,7 @@ class FileController extends Controller
         private readonly LoggerInterface $logger,
         private readonly IURLGenerator $urlGenerator,
         private readonly ThumbnailService $thumbnailService,
+        private readonly AppConfig $appConfig,
     ) {
         parent::__construct($appName, $request);
     }
@@ -378,6 +380,15 @@ class FileController extends Controller
             if (!$file->isUpdateable()) {
                 return new DataResponse(
                     ['error' => self::ERR_ACCESS_DENIED],
+                    Http::STATUS_FORBIDDEN
+                );
+            }
+
+            // The administrator can turn previews off; then there is no point
+            // in storing thumbnails nothing will serve.
+            if ($this->appConfig->getPreviews() !== 'yes') {
+                return new DataResponse(
+                    ['error' => 'Previews are disabled'],
                     Http::STATUS_FORBIDDEN
                 );
             }
