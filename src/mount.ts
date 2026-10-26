@@ -37,6 +37,7 @@ export function readRecentDrawings(container: HTMLElement): RecentDrawing[] {
       && typeof drawing.path === 'string'
       && typeof drawing.extension === 'string'
       && typeof drawing.mtime === 'number'
+      && typeof drawing.hasPreview === 'boolean'
     )
   })
 }

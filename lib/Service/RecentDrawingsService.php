@@ -14,6 +14,7 @@ use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
+use OCP\IPreview;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
@@ -43,6 +44,7 @@ class RecentDrawingsService
     public function __construct(
         private readonly IRootFolder $rootFolder,
         private readonly IUserSession $userSession,
+        private readonly IPreview $preview,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -50,7 +52,7 @@ class RecentDrawingsService
     /**
      * Return the most recently modified DWG/DXF files of the current user.
      *
-     * @return list<array{id: int, name: string, path: string, extension: string, mtime: int}>
+     * @return list<array{id: int, name: string, path: string, extension: string, mtime: int, hasPreview: bool}>
      */
     public function getRecentDrawings(int $limit = self::DEFAULT_LIMIT): array
     {
@@ -61,7 +63,7 @@ class RecentDrawingsService
 
         try {
             $userFolder = $this->rootFolder->getUserFolder($user->getUID());
-            $drawings = $this->collect(
+            [$drawings, $files] = $this->collect(
                 $userFolder->getRecent(self::RECENT_SCAN_LIMIT),
                 $userFolder,
             );
@@ -82,7 +84,35 @@ class RecentDrawingsService
             static fn (array $a, array $b): int => $b['mtime'] <=> $a['mtime'],
         );
 
-        return array_slice($drawings, 0, min($limit, self::RECENT_SCAN_LIMIT));
+        $result = [];
+        foreach (array_slice($drawings, 0, min($limit, self::RECENT_SCAN_LIMIT)) as $drawing) {
+            // Only check the preview state of the drawings that are actually
+            // shown: each check reads the app's thumbnail storage.
+            $drawing['hasPreview'] = $this->hasPreview($files[$drawing['id']] ?? null);
+            $result[] = $drawing;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Whether a stored preview exists for a drawing.
+     *
+     * A preview is only stored after the viewer rendered the drawing once, so
+     * most drawings fall back to the generic icon.
+     */
+    private function hasPreview(?File $file): bool
+    {
+        if ($file === null) {
+            return false;
+        }
+
+        try {
+            return $this->preview->isAvailable($file);
+        } catch (\Throwable) {
+            // Keep the drawing listed; the client falls back to the icon.
+            return false;
+        }
     }
 
     /**
@@ -90,11 +120,15 @@ class RecentDrawingsService
      *
      * @param Node[] $nodes
      *
-     * @return list<array{id: int, name: string, path: string, extension: string, mtime: int}>
+     * @return array{
+     *     0: list<array{id: int, name: string, path: string, extension: string, mtime: int}>,
+     *     1: array<int, File>
+     * }
      */
     private function collect(array $nodes, Folder $userFolder): array
     {
         $drawings = [];
+        $files = [];
 
         foreach ($nodes as $node) {
             if (!$node instanceof File || !$node->isReadable()) {
@@ -121,8 +155,9 @@ class RecentDrawingsService
                 'extension' => $extension,
                 'mtime' => $node->getMTime(),
             ];
+            $files[$node->getId()] = $node;
         }
 
-        return array_values($drawings);
+        return [array_values($drawings), $files];
     }
 }

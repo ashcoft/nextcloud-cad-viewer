@@ -20,15 +20,25 @@
       <ul class="cad-start__grid">
         <li v-for="drawing in recent" :key="drawing.id">
           <a class="cad-start__card" :href="viewerUrl(drawing.id)" :title="drawing.path">
-            <svg
-              class="cad-start__icon"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path d="M7 2a2 2 0 0 0-2 2v1H3a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2V4a2 2 0 0 0-2-2H7zm0 2h10v2H7V4zm0 4h10v2H7V8zm0 4h6v2H7v-2z" />
-            </svg>
+            <span class="cad-start__thumb">
+              <img
+                v-if="drawing.hasPreview && !failedPreviews.includes(drawing.id)"
+                :src="previewUrl(drawing)"
+                alt=""
+                loading="lazy"
+                @error="markPreviewFailed(drawing.id)"
+              >
+              <svg
+                v-else
+                class="cad-start__icon"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M7 2a2 2 0 0 0-2 2v1H3a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2V4a2 2 0 0 0-2-2H7zm0 2h10v2H7V4zm0 4h10v2H7V8zm0 4h6v2H7v-2z" />
+              </svg>
+            </span>
             <span class="cad-start__card-body">
               <span class="cad-start__name">{{ drawing.name }}</span>
               <span class="cad-start__path">{{ folderOf(drawing.path) }}</span>
@@ -118,6 +128,26 @@ function formatMtime(mtime: number): string {
   }).format(new Date(mtime * 1000))
 }
 
+/**
+ * Build the URL of Nextcloud's preview endpoint for a drawing.
+ *
+ * The app's preview provider only has an image after the viewer has rendered
+ * the drawing once; `hasPreview` keeps the client from requesting one before
+ * that.
+ */
+function previewUrl(drawing: RecentDrawing): string {
+  const params = new URLSearchParams({
+    fileId: String(drawing.id),
+    x: '320',
+    y: '200',
+    a: '0',
+    mimeFallback: 'false',
+    v: String(drawing.mtime),
+  })
+
+  return `${generateUrl('/core/preview')}?${params.toString()}`
+}
+
 export default defineComponent({
   name: 'CadStartPage',
   props: {
@@ -132,8 +162,15 @@ export default defineComponent({
     const fileName = ref('Drawing.dxf')
     const nameInput = ref<HTMLInputElement | null>(null)
     const dialogElement = ref<HTMLDialogElement | null>(null)
+    const failedPreviews = ref<number[]>([])
 
     const filesUrl = generateUrl('/apps/files/')
+
+    function markPreviewFailed(fileId: number): void {
+      if (!failedPreviews.value.includes(fileId)) {
+        failedPreviews.value = [...failedPreviews.value, fileId]
+      }
+    }
 
     function openDialog(): void {
       error.value = null
@@ -184,7 +221,10 @@ export default defineComponent({
       fileName,
       nameInput,
       dialogElement,
+      failedPreviews,
       filesUrl,
+      markPreviewFailed,
+      previewUrl,
       openDialog,
       closeDialog,
       handleDialogClosed,
@@ -225,7 +265,13 @@ export default defineComponent({
 
 .cad-start__subtitle {
   margin: 0;
-  color: var(--color-text-maxcontrast);
+  color: #000;
+}
+
+/* Keep the instruction readable when Nextcloud runs a dark theme. */
+[data-theme-dark] .cad-start__subtitle,
+[data-theme-dark-highcontrast] .cad-start__subtitle {
+  color: var(--color-main-text);
 }
 
 .cad-start__actions {
@@ -255,11 +301,12 @@ export default defineComponent({
 
 .cad-start__card {
   display: flex;
-  gap: 0.85rem;
+  flex-direction: column;
+  gap: 0.75rem;
   align-items: flex-start;
   box-sizing: border-box;
   height: 100%;
-  padding: 1rem;
+  padding: 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-large, 12px);
   background: var(--color-main-background);
@@ -275,10 +322,28 @@ export default defineComponent({
   text-decoration: none;
 }
 
+.cad-start__thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: var(--border-radius, 4px);
+  background: var(--color-background-dark);
+}
+
+.cad-start__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .cad-start__icon {
   flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
   color: var(--color-primary-element);
 }
 
@@ -286,6 +351,7 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  width: 100%;
   min-width: 0;
 }
 

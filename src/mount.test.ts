@@ -12,6 +12,7 @@ const drawings: RecentDrawing[] = [
     path: '/Projects/plan.dwg',
     extension: 'dwg',
     mtime: 1_700_000_000,
+    hasPreview: true,
   },
   {
     id: 8,
@@ -19,6 +20,7 @@ const drawings: RecentDrawing[] = [
     path: '/section.dxf',
     extension: 'dxf',
     mtime: 1_700_000_100,
+    hasPreview: false,
   },
 ]
 

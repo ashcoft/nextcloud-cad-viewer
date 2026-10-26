@@ -18,4 +18,6 @@ export interface RecentDrawing {
   extension: string
   /** Modification time as a Unix timestamp in seconds. */
   mtime: number
+  /** Whether Nextcloud has a stored preview thumbnail for the drawing. */
+  hasPreview: boolean
 }

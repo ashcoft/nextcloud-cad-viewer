@@ -20,6 +20,7 @@ use OCA\CadViewer\Service\RecentDrawingsService;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\IPreview;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -54,6 +55,7 @@ class RecentDrawingsServiceTest extends TestCase
         ?Folder $userFolder = null,
         ?IUserSession $userSession = null,
         ?LoggerInterface $logger = null,
+        ?IPreview $preview = null,
     ): RecentDrawingsService {
         if ($userSession === null) {
             $user = $this->createMock(IUser::class);
@@ -77,9 +79,15 @@ class RecentDrawingsServiceTest extends TestCase
         $rootFolder = $this->createMock(IRootFolder::class);
         $rootFolder->method('getUserFolder')->with('alice')->willReturn($userFolder);
 
+        if ($preview === null) {
+            $preview = $this->createMock(IPreview::class);
+            $preview->method('isAvailable')->willReturn(true);
+        }
+
         return new RecentDrawingsService(
             $rootFolder,
             $userSession,
+            $preview,
             $logger ?? $this->createMock(LoggerInterface::class),
         );
     }
@@ -103,6 +111,21 @@ class RecentDrawingsServiceTest extends TestCase
         $this->assertSame('/newer.DXF', $result[0]['path']);
         $this->assertSame('dxf', $result[0]['extension']);
         $this->assertSame(200, $result[0]['mtime']);
+        $this->assertTrue($result[0]['hasPreview']);
+    }
+
+    public function testReportsWhenNoPreviewIsAvailable(): void
+    {
+        $preview = $this->createMock(IPreview::class);
+        $preview->method('isAvailable')->willReturn(false);
+
+        $userFolder = $this->createMock(Folder::class);
+        $userFolder->method('getRecent')->willReturn([$this->file(5, 'plan.dwg')]);
+
+        $result = $this->service($userFolder, null, null, $preview)->getRecentDrawings();
+
+        $this->assertCount(1, $result);
+        $this->assertFalse($result[0]['hasPreview']);
     }
 
     public function testSkipsNonDrawingsUnreadableAndOversizedFiles(): void
