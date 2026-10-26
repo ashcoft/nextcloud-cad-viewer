@@ -10,6 +10,7 @@ A native Nextcloud app providing DWG and DXF file viewing capabilities based on 
 ## ✨ Features
 
 - 🎨 **View DWG and DXF files** directly in Nextcloud web interface
+- 🗂️ **Start page** with your recent drawings and a blank drawing shortcut
 - ⚡ **Fast, browser-based rendering** using WebGL technology
 - 🔍 **Interactive controls**: Zoom, pan, and fit-to-view
 - 📐 **Layer management**: Toggle layer visibility on/off
@@ -104,6 +105,11 @@ Once installed, the CAD Viewer integrates seamlessly with Nextcloud:
    - Toggle layers
    - Switch between dark/light themes
    - Enter fullscreen mode
+
+Opening **CAD Viewer** from the Nextcloud app menu shows a start page with the
+drawings you worked on recently. From there you can reopen one of them or
+create a blank drawing: the app saves a new, empty DXF file in your home folder
+and opens it in the viewer.
 
 > **Note:** The app opens CAD drawings in its own full-page viewer rather than
 > in the Nextcloud Viewer. The bundled Nextcloud Viewer is a Vue 2 application

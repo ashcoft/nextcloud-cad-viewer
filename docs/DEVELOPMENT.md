@@ -94,6 +94,8 @@ The app integrates with Nextcloud through:
 
 ## API Endpoints
 Registered in `routes.php`:
+- `GET /` - Start page with recent drawings and a blank drawing shortcut
+- `POST /api/blank` - Create a blank DXF drawing and return its file id
 - `GET /api/file/{fileId}` - Get file content
 - `GET /api/preview/{fileId}` - Get file preview
 - `POST /api/thumbnail/{fileId}` - Store a browser-rendered preview thumbnail
