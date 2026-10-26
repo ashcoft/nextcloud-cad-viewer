@@ -12,7 +12,9 @@ import releaseConfig from '../../release.config.js'
 
 interface ReleaseRule {
   type?: string
+  scope?: string | null
   breaking?: boolean
+  revert?: boolean
   release: string | false
 }
 
@@ -37,13 +39,16 @@ describe('release policy', () => {
     expect(ruleFor((rule) => rule.breaking === true)?.release).toBe('major')
   })
 
-  it('releases a minor version for features', () => {
-    expect(ruleFor((rule) => rule.type === 'feat')?.release).toBe('minor')
+  it.each(['feat', 'perf'])('releases a minor version for %s', (type) => {
+    expect(ruleFor((rule) => rule.type === type)?.release).toBe('minor')
+  })
+
+  it('releases a minor version for fix(deps)', () => {
+    const rule = ruleFor((r) => r.type === 'fix' && r.scope === 'deps')
+    expect(rule?.release).toBe('minor')
   })
 
   it.each([
-    'fix',
-    'perf',
     'refactor',
     'docs',
     'style',
@@ -57,6 +62,15 @@ describe('release policy', () => {
     // `release: false` is required (a missing rule would fall back to the
     // commit-analyzer's default patch rules).
     expect(ruleFor((rule) => rule.type === type)?.release).toBe(false)
+  })
+
+  it('does not release for a plain fix, only fix(deps)', () => {
+    // `false` outranks other release types, so a plain `{ type: 'fix',
+    // release: false }` would also suppress fix(deps); the exclusions are
+    // therefore scope-narrowed instead.
+    expect(ruleFor((rule) => rule.type === 'fix' && rule.scope === null)?.release).toBe(false)
+    expect(ruleFor((rule) => rule.type === 'fix' && rule.scope === '!(deps)')?.release).toBe(false)
+    expect(ruleFor((rule) => rule.type === 'fix' && rule.scope === undefined)).toBeUndefined()
   })
 
   it('never maps a non-breaking commit to a patch release', () => {
@@ -84,6 +98,8 @@ describe('release policy (behaviour)', () => {
 
   it.each([
     ['feat: add layer panel', 'minor'],
+    ['perf: faster parse', 'minor'],
+    ['fix(deps): bump @mlightcad/data-viewer', 'minor'],
     ['feat: new thing\n\nBREAKING CHANGE: removes X', 'major'],
     ['feat!: drop legacy API', 'major'],
   ])('releases %j as %s', (message, expected) => {
@@ -92,14 +108,13 @@ describe('release policy (behaviour)', () => {
 
   it.each([
     'fix: correct worker url',
-    'fix(deps): bump @mlightcad/cad-viewer',
+    'fix(ui): scoped bug fix',
     'chore(deps): bump element-plus from 2.14.6 to 2.14.7',
     'chore(actions): bump pullfrog/pullfrog from 0.1.85 to 0.1.95',
     'docs: update README',
     'test: add unit tests',
     'ci: pin setup-php',
     'refactor: split loader',
-    'perf: faster parse',
     'revert: undo a change',
     'Revert "feat: add layer panel"\n\nThis reverts commit abc123.',
   ])('does not release for %j', (message) => {

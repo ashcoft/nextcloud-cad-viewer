@@ -137,17 +137,20 @@ Releases use [semantic-release](https://github.com/semantic-release/semantic-rel
 | Commit Type | Release Type |
 |-------------|-------------|
 | BREAKING CHANGE (`feat!` or a `BREAKING CHANGE:` footer) | major |
-| `feat` | minor |
-| `fix`, `chore`, `docs`, `refactor`, `perf`, `test`, `build`, `ci`, `style`, `revert`, `deps` | none |
+| `feat`, `perf`, `fix(deps)` | minor |
+| `fix`, `chore`, `docs`, `refactor`, `test`, `build`, `ci`, `style`, `revert`, `deps` | none |
 
-Releases are deliberately limited to features and breaking changes, so
-dependency bumps and maintenance commits do not create a release each. See
-`release.config.js`; to cut patch releases for fixes again, set the `fix` rule
-to `release: 'patch'`.
+Releases are deliberately limited, so dependency bumps and maintenance commits
+do not create a release each. See `release.config.js`; note that the `fix`
+rules are scope-narrowed, because a `release: false` rule outranks other
+release types and a plain `{ type: 'fix', release: false }` would also
+suppress `fix(deps)`.
 
 Example commit messages:
 ```
 feat: add new viewer feature      # → minor release
+perf: speed up rendering          # → minor release
+fix(deps): bump @mlightcad/...    # → minor release
 feat!: drop the legacy API        # → major release
 fix: resolve rendering issue      # → no release
 chore(deps): bump element-plus    # → no release

@@ -6,20 +6,30 @@ module.exports = {
       {
         preset: 'conventionalcommits',
         /*
-         * Release policy: only feature work and breaking changes cut a release.
+         * Release policy: only features and release-worthy fixes cut a release.
          *
-         *   feat! / BREAKING CHANGE -> major
-         *   feat                    -> minor
-         *   everything else         -> no release
+         *   feat! / BREAKING CHANGE  -> major
+         *   feat                     -> minor
+         *   perf                     -> minor
+         *   fix(deps)                -> minor
+         *   fix                      -> no release
+         *   everything else          -> no release
          *
-         * Dependency bumps and maintenance commits (chore(deps), fix(deps),
-         * chore(actions), docs, test, ci, refactor, perf, build) are kept out
-         * of releases on purpose: they used to produce a patch release each,
-         * which flooded the tags. Use `release: false` (not a missing rule) so
-         * the commit-analyzer's default patch rules do not re-enable them.
+         * Dependency bumps and maintenance commits (chore(deps),
+         * chore(actions), docs, test, ci, refactor) are kept out of releases on
+         * purpose: they used to produce a patch release each, which flooded the
+         * tags.
          *
-         * To cut patch releases for bug fixes again, change `fix` to
-         * `release: 'patch'`.
+         * Two subtleties, both verified against the real commit-analyzer:
+         *
+         * 1. Use `release: false` (not a missing rule). The analyzer falls back
+         *    to its built-in patch rules when no custom rule matches, so
+         *    omitting a type would re-enable it.
+         * 2. `false` outranks any other type in compareReleaseTypes, so a plain
+         *    `{ type: 'fix', release: false }` would also suppress
+         *    `fix(deps)`. The fix rules are therefore scope-narrowed: `deps` is
+         *    release-worthy (minor), and both an unscoped fix and any other
+         *    scope are excluded explicitly.
          */
         releaseRules: [
           { breaking: true, release: 'major' },
@@ -28,8 +38,10 @@ module.exports = {
           // analyzer falls back to its default revert -> patch rule.
           { revert: true, release: false },
           { type: 'feat', release: 'minor' },
-          { type: 'fix', release: false },
-          { type: 'perf', release: false },
+          { type: 'perf', release: 'minor' },
+          { type: 'fix', scope: 'deps', release: 'minor' },
+          { type: 'fix', scope: null, release: false },
+          { type: 'fix', scope: '!(deps)', release: false },
           { type: 'refactor', release: false },
           { type: 'docs', release: false },
           { type: 'style', release: false },

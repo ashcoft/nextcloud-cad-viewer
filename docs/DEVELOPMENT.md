@@ -143,7 +143,7 @@ Only these commit types cut a release:
 | Commit | Release |
 | --- | --- |
 | breaking change (`feat!` / `BREAKING CHANGE:`) | major |
-| `feat` | minor |
+| `feat`, `perf`, `fix(deps)` | minor |
 | everything else (`fix`, `chore`, `docs`, `test`, `ci`, ...) | none |
 
 Dependency bumps and maintenance commits therefore do not create a release
