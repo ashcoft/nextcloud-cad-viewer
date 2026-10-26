@@ -1,3 +1,48 @@
+# [1.0.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.6.7...v1.0.0) (2026-10-26)
+
+
+### Bug Fixes
+
+* **release:** anchor the analyzer resolution on semantic-release's entry point ([6464bd0](https://github.com/ashcoft/nextcloud-cad-viewer/commit/6464bd0977bfe387dbe2cb77f009cf6106293314))
+* **release:** suppress git-style reverts and verify the policy behaviourally ([cf69e89](https://github.com/ashcoft/nextcloud-cad-viewer/commit/cf69e8957c5d69e3198f6f8e8f373d4e8a05e929))
+
+
+### chore
+
+* **release:** only cut releases for features and breaking changes ([2cb4be9](https://github.com/ashcoft/nextcloud-cad-viewer/commit/2cb4be95466c5457d35db43f74c40391f3042ba9))
+* **release:** treat perf and fix(deps) as minor releases ([fdf1e72](https://github.com/ashcoft/nextcloud-cad-viewer/commit/fdf1e72f39b8382cdd06ae76aed42d2ed4c45bea))
+
+
+### BREAKING CHANGES
+
+* **release:** -> major
+  everything else   -> no release
+
+A plain `{ type: 'fix', release: false }` cannot be combined with
+`fix(deps): minor`: `release: false` outranks every other type in
+compareReleaseTypes, so it also suppressed fix(deps). The fix rules are
+therefore scope-narrowed (scope: 'deps' -> minor; scope: null and
+scope: '!(deps)' -> no release), verified against the real analyzer.
+
+- release.config.js: perf -> minor, fix(deps) -> minor, scope-narrowed fix.
+- tests: cover perf, fix(deps), plain fix, and scoped fix behaviourally.
+- AGENTS.md / docs/DEVELOPMENT.md: document the revised table.
+
+Co-authored-by: openhands <openhands@all-hands.dev>
+* **release:** -> major
+  feat            -> minor
+  everything else -> no release
+
+Use `release: false` (not an omitted rule) so the commit-analyzer's built-in
+patch rules cannot re-enable a type. This stops dependency bumps
+(chore(deps), fix(deps), chore(actions)) from releasing.
+
+- release.config.js: new releaseRules.
+- AGENTS.md / docs/DEVELOPMENT.md: document the policy and the automated flow.
+- tests/unit/releaseConfig.spec.ts: lock the policy in.
+
+Co-authored-by: openhands <openhands@all-hands.dev>
+
 ## [0.6.7](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v0.6.6...v0.6.7) (2026-10-26)
 
 
