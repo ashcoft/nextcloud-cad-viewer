@@ -6,6 +6,8 @@ return [
     'routes' => [
         ['name' => 'view#index', 'url' => '/', 'verb' => 'GET'],
         ['name' => 'view#view', 'url' => '/view', 'verb' => 'GET'],
+        // Create a blank DXF drawing and open it in the viewer
+        ['name' => 'view#createBlank', 'url' => '/api/blank', 'verb' => 'POST'],
         // Runtime worker/WASM assets. The viewer loads its MTEXT worker from
         // "./assets/<name>" relative to the page; with URL rewriting off that
         // is this route. With rewriting on the web server serves them statically.

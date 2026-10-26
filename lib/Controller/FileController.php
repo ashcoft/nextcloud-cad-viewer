@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\CadViewer\Controller;
 
+use OCA\CadViewer\AppInfo\Application;
 use OCA\CadViewer\Config\AppConfig;
 use OCA\CadViewer\Service\ThumbnailService;
 use OCP\AppFramework\Controller;
@@ -29,7 +30,9 @@ use Psr\Log\LoggerInterface;
 
 class FileController extends Controller
 {
-    private const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    /** Shared with the start page so both enforce the same limit. */
+    private const MAX_FILE_SIZE = Application::MAX_FILE_SIZE;
+
     private const ALLOWED_EXTENSIONS = ['dwg', 'dxf'];
     private const ERR_FILE_NOT_FOUND = 'File not found';
     private const ERR_ACCESS_DENIED = 'Access denied';

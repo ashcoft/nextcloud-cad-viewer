@@ -27,6 +27,16 @@ Once the CAD Viewer app is installed and enabled in your Nextcloud instance, you
 3. **Click** on the DWG or DXF file
 4. The CAD Viewer will automatically open and load the drawing
 
+### Start Page
+
+Opening **CAD Viewer** from the Nextcloud app menu shows the start page:
+
+- **Recent drawings** lists the DWG/DXF files you opened or changed most
+  recently. Click a card to open that drawing.
+- **New blank drawing** asks for a file name and creates an empty DXF file in
+  your home folder, then opens it in the viewer.
+- **Browse files** takes you to the Files app to pick any other drawing.
+
 ---
 
 ## Opening CAD Files

@@ -27,6 +27,14 @@ class Application extends App implements IBootstrap
     public const CANONICAL_DWG_MIME = 'application/dwg';
     public const CANONICAL_DXF_MIME = 'image/vnd.dxf';
 
+    /**
+     * Largest drawing the viewer loads, in bytes.
+     *
+     * Shared by the API that streams files and the start page, so a listed
+     * drawing is always one the viewer will open.
+     */
+    public const MAX_FILE_SIZE = 50 * 1024 * 1024;
+
     public const MIME_TYPES = [
         'application/acad' => 'dwg',
         'application/autocad_dwg' => 'dwg',
