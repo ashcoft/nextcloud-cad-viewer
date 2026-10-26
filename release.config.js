@@ -5,17 +5,36 @@ module.exports = {
       '@semantic-release/commit-analyzer',
       {
         preset: 'conventionalcommits',
+        /*
+         * Release policy: only feature work and breaking changes cut a release.
+         *
+         *   feat! / BREAKING CHANGE -> major
+         *   feat                    -> minor
+         *   everything else         -> no release
+         *
+         * Dependency bumps and maintenance commits (chore(deps), fix(deps),
+         * chore(actions), docs, test, ci, refactor, perf, build) are kept out
+         * of releases on purpose: they used to produce a patch release each,
+         * which flooded the tags. Use `release: false` (not a missing rule) so
+         * the commit-analyzer's default patch rules do not re-enable them.
+         *
+         * To cut patch releases for bug fixes again, change `fix` to
+         * `release: 'patch'`.
+         */
         releaseRules: [
-          { type: 'feat', release: 'minor' },
-          { type: 'fix', release: 'patch' },
-          { type: 'refactor', release: 'patch' },
-          { type: 'perf', release: 'patch' },
-          { type: 'chore', release: 'patch' },
-          { type: 'docs', release: 'patch' },
-          { type: 'test', release: 'patch' },
-          { type: 'build', release: 'patch' },
-          { type: 'ci', release: 'patch' },
           { breaking: true, release: 'major' },
+          { type: 'feat', release: 'minor' },
+          { type: 'fix', release: false },
+          { type: 'perf', release: false },
+          { type: 'refactor', release: false },
+          { type: 'docs', release: false },
+          { type: 'style', release: false },
+          { type: 'test', release: false },
+          { type: 'build', release: false },
+          { type: 'ci', release: false },
+          { type: 'chore', release: false },
+          { type: 'revert', release: false },
+          { type: 'deps', release: false },
         ],
       },
     ],

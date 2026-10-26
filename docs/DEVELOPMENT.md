@@ -127,12 +127,27 @@ pnpm run dev -- --stats
 6. Submit PR with description
 
 ## Release Process
-1. Update version in `package.json` and `appinfo/info.xml`
-2. Update `CHANGELOG.md`
-3. Build: `pnpm run build`
-4. Commit: `git commit -m "v1.0.0 release"`
-5. Tag: `git tag v1.0.0`
-6. Push: `git push origin main --tags`
+Releases are automated with [semantic-release](https://semantic-release.gitbook.io/)
+and driven by conventional commit messages. Do not bump versions or tag
+manually.
+
+1. Merge your change to `main` (or `stable`) using a conventional commit
+   message.
+2. `release.yml` runs semantic-release, which decides the version, bumps
+   `package.json` and `appinfo/info.xml`, updates `CHANGELOG.md`, creates the
+   tag and a draft GitHub Release, then builds and attaches the app archives
+   and publishes the release.
+
+Only these commit types cut a release:
+
+| Commit | Release |
+| --- | --- |
+| breaking change (`feat!` / `BREAKING CHANGE:`) | major |
+| `feat` | minor |
+| everything else (`fix`, `chore`, `docs`, `test`, `ci`, ...) | none |
+
+Dependency bumps and maintenance commits therefore do not create a release
+each. See `release.config.js` to change the policy.
 
 ## Resources
 - [Nextcloud Development Guide](https://docs.nextcloud.com/server/latest/developer_manual/)

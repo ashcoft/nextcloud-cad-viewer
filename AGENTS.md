@@ -130,22 +130,28 @@ pnpm run stylelint    # Stylelint
 
 Releases use [semantic-release](https://github.com/semantic-release/semantic-release) with conventional commits:
 
-1. All conventional commit types trigger a release (patch by default)
+1. Only `feat` and breaking changes trigger a release; other commit types do not
 2. When PR is merged to `main` or `stable`, semantic-release runs first, bumps the version and creates a draft GitHub Release
 3. The workflow then builds the tagged version of the Nextcloud app and attaches the archives (tar.gz and zip) to that release before publishing it
 
 | Commit Type | Release Type |
 |-------------|-------------|
+| BREAKING CHANGE (`feat!` or a `BREAKING CHANGE:` footer) | major |
 | `feat` | minor |
-| `fix`, `chore`, `docs`, `refactor`, `perf`, `test`, `build`, `ci` | patch |
-| BREAKING CHANGE | major |
+| `fix`, `chore`, `docs`, `refactor`, `perf`, `test`, `build`, `ci`, `style`, `revert`, `deps` | none |
+
+Releases are deliberately limited to features and breaking changes, so
+dependency bumps and maintenance commits do not create a release each. See
+`release.config.js`; to cut patch releases for fixes again, set the `fix` rule
+to `release: 'patch'`.
 
 Example commit messages:
 ```
 feat: add new viewer feature      # → minor release
-fix: resolve rendering issue       # → patch release
-chore: update dependencies        # → patch release
-docs: update README               # → patch release
+feat!: drop the legacy API        # → major release
+fix: resolve rendering issue      # → no release
+chore(deps): bump element-plus    # → no release
+docs: update README               # → no release
 ```
 
 ### Release Workflow Details
