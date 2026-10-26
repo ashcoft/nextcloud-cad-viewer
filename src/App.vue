@@ -54,6 +54,10 @@ export default defineComponent({
     const retryFileId = ref<string | null>(null)
     const isUnmounted = ref(false)
 
+    // Cancels an in-flight thumbnail capture when the viewer loads another
+    // drawing or unmounts, so a stale capture cannot be uploaded.
+    let captureAbort: AbortController | null = null
+
     // Browser animation frame function for polling
     const raf = globalThis.requestAnimationFrame.bind(globalThis)
 
@@ -136,11 +140,31 @@ export default defineComponent({
 
       loading.value = false
 
-      // Render and cache a thumbnail so the Files app can show it. Thumbnails
-      // are a progressive enhancement; failures are non-fatal.
-      if (!error.value && !getUnmountedState()) {
-        void uploadCadThumbnail(String(fid), result.meta.etag)
+      startThumbnailCapture(fid, result.meta.name, result.meta.etag)
+    }
+
+    /**
+     * Render and cache a thumbnail so the Files app can show it.
+     *
+     * Thumbnails are a progressive enhancement; failures are non-fatal. Any
+     * capture already in flight is cancelled first, so only the drawing that is
+     * currently open can be uploaded.
+     */
+    function startThumbnailCapture(
+      fid: string | number,
+      fileName: string,
+      etag: string,
+    ): void {
+      if (error.value || getUnmountedState()) {
+        return
       }
+
+      captureAbort?.abort()
+      captureAbort = new AbortController()
+      void uploadCadThumbnail(String(fid), etag, {
+        fileName,
+        signal: captureAbort.signal,
+      })
     }
 
     onMounted(async () => {
@@ -155,6 +179,8 @@ export default defineComponent({
 
     onBeforeUnmount(() => {
       isUnmounted.value = true
+      captureAbort?.abort()
+      captureAbort = null
       viewerInstance.value?.dispose()
       viewerInstance.value = null
     })
@@ -165,6 +191,8 @@ export default defineComponent({
       error.value = null
       loading.value = true
 
+      captureAbort?.abort()
+      captureAbort = null
       viewerInstance.value?.dispose()
 
       const result = await fetchCadFile(retryFileId.value)
@@ -183,6 +211,10 @@ export default defineComponent({
         error.value = result.error ?? appTranslation('Failed to load file')
       }
       loading.value = false
+
+      if (result.ok) {
+        startThumbnailCapture(retryFileId.value, result.meta.name, result.meta.etag)
+      }
     }
 
     return {

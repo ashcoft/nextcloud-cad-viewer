@@ -34,6 +34,7 @@ describe('captureCanvasThumbnail', () => {
 
     expect(result).toBe(DATA_URL)
     expect(context2d.fillStyle).toBe('#ffffff')
+    expect(context2d.fillRect).toHaveBeenCalledWith(0, 0, 512, 256)
     expect(context2d.drawImage).toHaveBeenCalledWith(expect.anything(), 0, 0, 512, 256)
     expect(HTMLCanvasElement.prototype.toDataURL).toHaveBeenCalledWith('image/png')
   })
@@ -53,13 +54,19 @@ describe('captureCanvasThumbnail', () => {
   })
 })
 
-type ActivatedListener = (args: { doc?: { isReusableUntitled?: boolean } }) => void
+
+interface FakeDoc {
+  fileName?: string
+  isReusableUntitled?: boolean
+}
+
+type ActivatedListener = (args: { doc?: FakeDoc }) => void
 
 /**
- * Builds a fake viewer whose documentActivated event can be fired by the test,
- * so the capture timing logic runs for real.
+ * Builds a fake viewer whose documentActivated event the test can fire, so the
+ * capture timing logic runs for real.
  */
-function makeFakeManager(options: { reusableUntitled?: boolean } = {}) {
+function makeFakeManager(initialDoc: FakeDoc) {
   const listeners: ActivatedListener[] = []
   const render = jest.fn()
   const waitUntilIdle = jest.fn().mockResolvedValue(true)
@@ -73,7 +80,7 @@ function makeFakeManager(options: { reusableUntitled?: boolean } = {}) {
 
   const manager = {
     curView: view,
-    curDocument: { isReusableUntitled: options.reusableUntitled ?? false },
+    curDocument: initialDoc,
     events: {
       documentActivated: {
         addEventListener: (fn: ActivatedListener) => listeners.push(fn),
@@ -94,14 +101,19 @@ function makeFakeManager(options: { reusableUntitled?: boolean } = {}) {
  * Simulates the viewer activating a document: the manager's current document
  * changes, then the event fires.
  */
-function activateDrawing(
-  fake: ReturnType<typeof makeFakeManager>,
-  reusableUntitled: boolean,
-): void {
-  fake.manager.curDocument = { isReusableUntitled: reusableUntitled }
+function activateDrawing(fake: ReturnType<typeof makeFakeManager>, doc: FakeDoc): void {
+  fake.manager.curDocument = doc
   for (const listener of [...fake.listeners]) {
-    listener({ doc: { isReusableUntitled: reusableUntitled } })
+    listener({ doc })
   }
+}
+
+/** Wait until the capture has registered its activation listener. */
+async function waitForListener(fake: ReturnType<typeof makeFakeManager>): Promise<void> {
+  for (let i = 0; i < 50 && fake.listeners.length === 0; i++) {
+    await Promise.resolve()
+  }
+  expect(fake.listeners.length).toBeGreaterThan(0)
 }
 
 function mockDocManager(manager: unknown) {
@@ -131,45 +143,88 @@ describe('captureCadThumbnail', () => {
     jest.dontMock('@mlightcad/cad-simple-viewer')
   })
 
-  it('renders and captures once a drawing is open', async () => {
-    const { manager, render } = makeFakeManager({ reusableUntitled: false })
-    mockDocManager(manager)
-
-    const { captureCadThumbnail: capture } = await import('./cadThumbnail')
-    const result = await capture()
-
-    expect(result).toBe(DATA_URL)
-    expect(render).toHaveBeenCalled()
-  })
-
-  it('waits for a real drawing before capturing, and skips the placeholder', async () => {
-    const fake = makeFakeManager({ reusableUntitled: true })
+  it('renders before reading the canvas, once the drawing is open', async () => {
+    const fake = makeFakeManager({ fileName: 'plan.dwg', isReusableUntitled: false })
     mockDocManager(fake.manager)
 
     const { captureCadThumbnail: capture } = await import('./cadThumbnail')
-    const pending = capture({ timeoutMs: 100 })
+    const result = await capture({ fileName: 'plan.dwg' })
+
+    expect(result).toBe(DATA_URL)
+    // The buffer is not preserved, so the render must precede the read.
+    const renderOrder = fake.render.mock.invocationCallOrder[0]
+    const readOrder = (HTMLCanvasElement.prototype.toDataURL as jest.Mock).mock
+      .invocationCallOrder[0]
+    expect(renderOrder).toBeLessThan(readOrder)
+  })
+
+  it('waits for the requested drawing and ignores the placeholder', async () => {
+    const fake = makeFakeManager({ isReusableUntitled: true })
+    mockDocManager(fake.manager)
+
+    const { captureCadThumbnail: capture } = await import('./cadThumbnail')
+    const pending = capture({ fileName: 'plan.dwg', timeoutMs: 500 })
+    await waitForListener(fake)
 
     // The placeholder document must not trigger a capture.
+    activateDrawing(fake, { isReusableUntitled: true })
     await Promise.resolve()
     expect(fake.render).not.toHaveBeenCalled()
 
-    activateDrawing(fake, true)
+    // A leftover drawing from an earlier viewer session must be ignored too.
+    activateDrawing(fake, { fileName: 'other.dwg', isReusableUntitled: false })
     await Promise.resolve()
     expect(fake.render).not.toHaveBeenCalled()
 
-    activateDrawing(fake, false)
+    activateDrawing(fake, { fileName: 'plan.dwg', isReusableUntitled: false })
 
     expect(await pending).toBe(DATA_URL)
     expect(fake.render).toHaveBeenCalled()
   })
 
-  it('returns null when no drawing opened before the timeout', async () => {
-    const { manager } = makeFakeManager({ reusableUntitled: true })
-    mockDocManager(manager)
+  it('returns null when a different drawing is already open', async () => {
+    const fake = makeFakeManager({ fileName: 'other.dwg', isReusableUntitled: false })
+    mockDocManager(fake.manager)
 
     const { captureCadThumbnail: capture } = await import('./cadThumbnail')
 
-    expect(await capture({ timeoutMs: 10 })).toBeNull()
+    expect(await capture({ fileName: 'plan.dwg', timeoutMs: 10 })).toBeNull()
+    expect(fake.render).not.toHaveBeenCalled()
+  })
+
+  it('returns null when the scene never becomes idle', async () => {
+    const fake = makeFakeManager({ fileName: 'plan.dwg', isReusableUntitled: false })
+    fake.waitUntilIdle.mockResolvedValue(false)
+    mockDocManager(fake.manager)
+
+    const { captureCadThumbnail: capture } = await import('./cadThumbnail')
+
+    expect(await capture({ fileName: 'plan.dwg' })).toBeNull()
+    expect(fake.render).not.toHaveBeenCalled()
+  })
+
+  it('returns null when the capture is aborted', async () => {
+    const fake = makeFakeManager({ isReusableUntitled: true })
+    mockDocManager(fake.manager)
+
+    const { captureCadThumbnail: capture } = await import('./cadThumbnail')
+    const controller = new AbortController()
+    const pending = capture({ fileName: 'plan.dwg', timeoutMs: 500, signal: controller.signal })
+    await waitForListener(fake)
+
+    controller.abort()
+
+    expect(await pending).toBeNull()
+    expect(fake.render).not.toHaveBeenCalled()
+  })
+
+  it('returns null when no drawing opened before the timeout', async () => {
+    const fake = makeFakeManager({ isReusableUntitled: true })
+    mockDocManager(fake.manager)
+
+    const { captureCadThumbnail: capture } = await import('./cadThumbnail')
+
+    expect(await capture({ fileName: 'plan.dwg', timeoutMs: 10 })).toBeNull()
   })
 
   it('returns null when the viewer is not loaded', async () => {
@@ -177,6 +232,6 @@ describe('captureCadThumbnail', () => {
 
     const { captureCadThumbnail: capture } = await import('./cadThumbnail')
 
-    expect(await capture()).toBeNull()
+    expect(await capture({ fileName: 'plan.dwg' })).toBeNull()
   })
 })

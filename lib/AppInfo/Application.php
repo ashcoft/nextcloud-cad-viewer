@@ -18,6 +18,7 @@ use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
+use OCP\Files\Events\Node\BeforeNodeDeletedEvent;
 use OCP\Files\Events\Node\NodeDeletedEvent;
 
 class Application extends App implements IBootstrap
@@ -80,8 +81,11 @@ class Application extends App implements IBootstrap
             CadPreviewProvider::MIME_TYPE_REGEX
         );
 
-        // Drop cached thumbnails when their drawing is deleted.
+        // Drop cached thumbnails when their drawing is deleted. The "before"
+        // event is also handled, because a folder deletion reports only the
+        // folder itself and the drawings inside it must be found first.
         $context->registerEventListener(NodeDeletedEvent::class, DeleteThumbnail::class);
+        $context->registerEventListener(BeforeNodeDeletedEvent::class, DeleteThumbnail::class);
     }
 
     /**

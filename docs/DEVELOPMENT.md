@@ -102,10 +102,22 @@ Example requests:
 ```bash
 curl http://localhost/index.php/apps/cad_viewer/api/file/123
 curl http://localhost/index.php/apps/cad_viewer/api/preview/123
-curl -X POST http://localhost/index.php/apps/cad_viewer/api/thumbnail/123 \
-  -H 'Content-Type: application/json' \
-  -d '{"image":"data:image/png;base64,...","etag":"<file etag>"}'
 ```
+
+The thumbnail endpoint is called by the viewer, not by hand. It requires an
+authenticated session plus the request token, and the `etag` must match the
+file's current version:
+
+```bash
+curl -X POST http://localhost/index.php/apps/cad_viewer/api/thumbnail/123 \
+  -b 'oc_sessionPassphrase=...; <session cookies>' \
+  -H 'requesttoken: <request token>' \
+  -H 'Content-Type: application/json' \
+  -d '{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAADElEQVQImWP4//8/AAX+Av5Y8msOAAAAAElFTkSuQmCC","etag":"<file etag>"}'
+```
+
+A successful upload returns `{"status":"ok"}`. A stale `etag` returns
+`409 Conflict`, and a storage failure returns `500`.
 
 ## Debugging
 ### Browser Console

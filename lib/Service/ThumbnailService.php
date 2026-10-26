@@ -30,6 +30,7 @@ class ThumbnailService
     private const APP_ID = 'cad_viewer';
     private const FOLDER = 'thumbnails';
     private const MAX_DECODED_BYTES = 5 * 1024 * 1024; // 5MB
+    private const MAX_DIMENSION = 4096;
     private const PNG_SIGNATURE = "\x89PNG\r\n\x1a\n";
 
     public function __construct(
@@ -61,7 +62,20 @@ class ThumbnailService
     }
 
     /**
+     * Outcome of a thumbnail upload attempt.
+     *
+     * The controller maps these to distinct HTTP statuses so a storage failure
+     * is not reported to the client as a version conflict.
+     */
+    public const STORED = 'stored';
+    public const STALE = 'stale';
+    public const FAILED = 'failed';
+
+    /**
      * Store a thumbnail for a file, replacing any previous one.
+     *
+     * The new image is written before the superseded versions are removed, so a
+     * failed write never destroys a usable preview.
      *
      * @param File $file The file the thumbnail belongs to.
      * @param string $binary Validated PNG bytes.
@@ -69,35 +83,39 @@ class ThumbnailService
      *        When it does not match the file's current etag the upload is
      *        stale (the file changed after it was downloaded) and is rejected.
      *
-     * @return bool True when the thumbnail was stored.
+     * @return string One of {@see self::STORED}, {@see self::STALE} or
+     *         {@see self::FAILED}.
      */
-    public function storeThumbnail(File $file, string $binary, ?string $clientEtag = null): bool
+    public function storeThumbnail(File $file, string $binary, ?string $clientEtag = null): string
     {
         if ($clientEtag !== null && $clientEtag !== '' && $clientEtag !== $file->getEtag()) {
             $this->logger->info('CAD Viewer: discarding stale thumbnail upload', [
                 'fileId' => $file->getId(),
             ]);
-            return false;
+            return self::STALE;
         }
 
         try {
             $folder = $this->getFolder(true);
             if ($folder === null) {
-                return false;
+                return self::FAILED;
             }
 
-            // A new etag means a new file name; drop the superseded versions so
-            // the cache does not grow with every edit of the drawing.
-            $this->deleteThumbnails($folder, (int) $file->getId());
+            $name = $this->thumbnailName($file);
+            $folder->newFile($name, $binary);
 
-            $folder->newFile($this->thumbnailName($file), $binary);
-            return true;
+            // Only once the replacement is safely stored: a new etag means a
+            // new file name, so drop the superseded versions to keep the cache
+            // from growing with every edit of the drawing.
+            $this->deleteThumbnailsExcept($folder, (int) $file->getId(), $name);
+
+            return self::STORED;
         } catch (\Throwable $e) {
             $this->logger->warning('CAD Viewer: failed to store thumbnail', [
                 'fileId' => $file->getId(),
                 'exception' => $e,
             ]);
-            return false;
+            return self::FAILED;
         }
     }
 
@@ -119,6 +137,41 @@ class ThumbnailService
                 'exception' => $e,
             ]);
         }
+    }
+
+    /**
+     * File ids that currently have at least one cached thumbnail.
+     *
+     * Used by the prune job, which cannot know the id of a drawing that was
+     * deleted as part of a folder.
+     *
+     * @return list<int>
+     */
+    public function listCachedFileIds(): array
+    {
+        $folder = $this->getFolder(false);
+        if ($folder === null) {
+            return [];
+        }
+
+        $ids = [];
+        try {
+            foreach ($folder->getDirectoryListing() as $existing) {
+                $name = $existing->getName();
+                $separator = strpos($name, '-');
+                if ($separator === false) {
+                    continue;
+                }
+                $ids[(int) substr($name, 0, $separator)] = true;
+            }
+        } catch (\Throwable $e) {
+            $this->logger->warning('CAD Viewer: failed to list thumbnails', [
+                'exception' => $e,
+            ]);
+            return [];
+        }
+
+        return array_keys($ids);
     }
 
     /**
@@ -146,11 +199,45 @@ class ThumbnailService
         // a real image, otherwise a bad upload would replace a usable preview
         // with something the preview pipeline cannot render.
         $info = @getimagesizefromstring($binary);
-        if ($info === false || $info[0] < 1 || $info[1] < 1) {
+        if ($info === false || $info[2] !== IMAGETYPE_PNG || $info[0] < 1 || $info[1] < 1) {
+            return null;
+        }
+
+        // The byte cap does not bound the decoded bitmap: a small, highly
+        // compressible PNG can declare huge dimensions and exhaust memory in
+        // the preview pipeline.
+        if ($info[0] > self::MAX_DIMENSION || $info[1] > self::MAX_DIMENSION) {
+            return null;
+        }
+
+        // getimagesizefromstring() reads only the header, so a PNG with a
+        // complete IHDR chunk but no pixel data would pass. Decode it fully
+        // before it replaces an existing preview.
+        if (!$this->isDecodableImage($binary)) {
             return null;
         }
 
         return ['binary' => $binary, 'mimeType' => 'image/png'];
+    }
+
+    /**
+     * Whether the bytes decode to an actual bitmap.
+     */
+    private function isDecodableImage(string $binary): bool
+    {
+        if (!function_exists('imagecreatefromstring')) {
+            // Without GD the header checks above are the best available guard.
+            return true;
+        }
+
+        $image = @imagecreatefromstring($binary);
+        if ($image === false) {
+            return false;
+        }
+
+        imagedestroy($image);
+
+        return true;
     }
 
     /**
@@ -187,9 +274,20 @@ class ThumbnailService
      */
     private function deleteThumbnails(ISimpleFolder $folder, int $fileId): void
     {
+        $this->deleteThumbnailsExcept($folder, $fileId, null);
+    }
+
+    /**
+     * Delete every thumbnail belonging to the file id, keeping one name.
+     *
+     * @param string|null $keepName Name to leave in place, or null to remove all.
+     */
+    private function deleteThumbnailsExcept(ISimpleFolder $folder, int $fileId, ?string $keepName): void
+    {
         $prefix = $fileId . '-';
         foreach ($folder->getDirectoryListing() as $existing) {
-            if (str_starts_with($existing->getName(), $prefix)) {
+            $name = $existing->getName();
+            if ($name !== $keepName && str_starts_with($name, $prefix)) {
                 $existing->delete();
             }
         }

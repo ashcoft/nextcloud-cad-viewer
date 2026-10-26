@@ -98,14 +98,18 @@ namespace OCP\Files {
     interface FileInfo
     {
         public function getMimeType(): string;
+
+        public function getName(): string;
+
+        public function isCreatable();
     }
 
-    interface Node
+    interface Node extends FileInfo
     {
         public function getId(): int;
     }
 
-    interface File extends Node, FileInfo
+    interface File extends Node
     {
         public function getEtag(): string;
 

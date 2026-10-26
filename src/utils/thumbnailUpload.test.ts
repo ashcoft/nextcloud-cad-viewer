@@ -25,12 +25,32 @@ describe('uploadCadThumbnail', () => {
     mockedCapture.mockResolvedValue('data:image/png;base64,AAAA')
     mockedPost.mockResolvedValue({ data: { status: 'ok' } })
 
-    await uploadCadThumbnail(42, 'etag-a')
+    await uploadCadThumbnail(42, 'etag-a', { fileName: 'plan.dwg' })
 
+    expect(mockedCapture).toHaveBeenCalledWith({
+      fileName: 'plan.dwg',
+      signal: undefined,
+    })
     expect(mockedPost).toHaveBeenCalledWith(
       '/apps/cad_viewer/api/thumbnail/42',
       { image: 'data:image/png;base64,AAAA', etag: 'etag-a' },
     )
+  })
+
+  it('passes the abort signal through to the capture', async () => {
+    mockedCapture.mockResolvedValue('data:image/png;base64,AAAA')
+    mockedPost.mockResolvedValue({ data: { status: 'ok' } })
+    const controller = new AbortController()
+
+    await uploadCadThumbnail(42, 'etag-a', {
+      fileName: 'plan.dwg',
+      signal: controller.signal,
+    })
+
+    expect(mockedCapture).toHaveBeenCalledWith({
+      fileName: 'plan.dwg',
+      signal: controller.signal,
+    })
   })
 
   it('does not upload when no drawing was captured', async () => {

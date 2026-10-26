@@ -26,6 +26,7 @@ use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent;
+use OCP\Files\Events\Node\BeforeNodeDeletedEvent;
 use OCP\Files\Events\Node\NodeDeletedEvent;
 use OCP\Files\IMimeTypeDetector;
 use OCP\IConfig;
@@ -93,20 +94,22 @@ class ApplicationTest extends TestCase
 
         $app->register($context);
 
-        // Two viewer events plus the thumbnail cleanup listener.
-        $this->assertCount(count($expected) + 1, $calls);
+        // Two viewer events plus the two thumbnail cleanup listeners.
+        $this->assertCount(count($expected) + 2, $calls);
         foreach ($expected as $event) {
             $matches = array_filter($calls, static fn (array $call): bool => $call[0] === $event);
             $this->assertCount(1, $matches, "Expected exactly one registration for {$event}");
             $this->assertSame(LoadViewer::class, array_values($matches)[0][1]);
         }
 
-        $deletedMatches = array_filter(
-            $calls,
-            static fn (array $call): bool => $call[0] === NodeDeletedEvent::class
-        );
-        $this->assertCount(1, $deletedMatches);
-        $this->assertSame(DeleteThumbnail::class, array_values($deletedMatches)[0][1]);
+        foreach ([NodeDeletedEvent::class, BeforeNodeDeletedEvent::class] as $event) {
+            $deletedMatches = array_filter(
+                $calls,
+                static fn (array $call): bool => $call[0] === $event
+            );
+            $this->assertCount(1, $deletedMatches, "Expected exactly one registration for {$event}");
+            $this->assertSame(DeleteThumbnail::class, array_values($deletedMatches)[0][1]);
+        }
     }
 
     /**

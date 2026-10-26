@@ -39,7 +39,8 @@ class ThumbnailServiceTest extends TestCase
     private function validPng(): string
     {
         return (string) base64_decode(
-            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAA7EAAAO'
+            . 'xAGVKw4bAAAADElEQVQImWP4//8/AAX+Av5Y8msOAAAAAElFTkSuQmCC',
             true
         );
     }
@@ -139,13 +140,49 @@ class ThumbnailServiceTest extends TestCase
         $this->assertNull($this->service(new InMemoryFolder())->decodePngDataUrl($dataUrl));
     }
 
+    /**
+     * A PNG whose header declares huge dimensions must be rejected: the byte
+     * cap does not bound the decoded bitmap.
+     */
+    public function testRejectsImageWithHugeDimensions(): void
+    {
+        $png = $this->pngWithDimensions(20000, 20000);
+        $dataUrl = 'data:image/png;base64,' . base64_encode($png);
+
+        $this->assertNull($this->service(new InMemoryFolder())->decodePngDataUrl($dataUrl));
+    }
+
+    /**
+     * A PNG with a complete IHDR chunk but no pixel data is not decodable and
+     * must not replace a working preview.
+     */
+    public function testRejectsTruncatedPng(): void
+    {
+        // Signature + IHDR chunk header + 1x1 dimensions, then nothing.
+        $png = "\x89PNG\r\n\x1a\n\x00\x00\x00\x0dIHDR"
+            . pack('N', 1) . pack('N', 1) . "\x08\x06\x00\x00\x00";
+        $dataUrl = 'data:image/png;base64,' . base64_encode($png);
+
+        $this->assertNull($this->service(new InMemoryFolder())->decodePngDataUrl($dataUrl));
+    }
+
+    /**
+     * Build a PNG with the requested dimensions but no real pixel data, so only
+     * the dimension guard can reject it.
+     */
+    private function pngWithDimensions(int $width, int $height): string
+    {
+        return "\x89PNG\r\n\x1a\n\x00\x00\x00\x0dIHDR"
+            . pack('N', $width) . pack('N', $height) . "\x08\x06\x00\x00\x00";
+    }
+
     public function testStoresAndReturnsThumbnail(): void
     {
         $folder = new InMemoryFolder();
         $service = $this->service($folder);
         $file = $this->file(42, 'etag-a');
 
-        $this->assertTrue($service->storeThumbnail($file, $this->validPng(), 'etag-a'));
+        $this->assertSame(ThumbnailService::STORED, $service->storeThumbnail($file, $this->validPng(), 'etag-a'));
 
         $this->assertNotNull($service->getThumbnail($file));
         $this->assertSame(['42-etag-a.png'], array_keys($folder->files));
@@ -176,7 +213,10 @@ class ThumbnailServiceTest extends TestCase
         $folder = new InMemoryFolder();
         $service = $this->service($folder);
 
-        $this->assertFalse($service->storeThumbnail($this->file(42, 'etag-b'), $this->validPng(), 'etag-a'));
+        $this->assertSame(
+            ThumbnailService::STALE,
+            $service->storeThumbnail($this->file(42, 'etag-b'), $this->validPng(), 'etag-a')
+        );
         $this->assertSame([], $folder->files);
     }
 
@@ -185,7 +225,10 @@ class ThumbnailServiceTest extends TestCase
         $folder = new InMemoryFolder();
         $service = $this->service($folder);
 
-        $this->assertTrue($service->storeThumbnail($this->file(42, 'etag-a'), $this->validPng()));
+        $this->assertSame(
+            ThumbnailService::STORED,
+            $service->storeThumbnail($this->file(42, 'etag-a'), $this->validPng())
+        );
     }
 
     public function testDeleteForFileIdRemovesEveryVersion(): void
@@ -199,6 +242,39 @@ class ThumbnailServiceTest extends TestCase
         $service->deleteForFileId(42);
 
         $this->assertSame(['7-etag-a.png'], array_keys($folder->files));
+    }
+
+    /**
+     * A failed write must not destroy the preview that is already stored.
+     */
+    public function testFailedWriteKeepsExistingThumbnail(): void
+    {
+        $folder = new InMemoryFolder();
+        $service = $this->service($folder);
+
+        $this->assertSame(
+            ThumbnailService::STORED,
+            $service->storeThumbnail($this->file(42, 'etag-a'), $this->validPng(), 'etag-a')
+        );
+
+        $failing = new class () {
+            public function getFolder(string $name): ISimpleFolder
+            {
+                throw new \RuntimeException('app data unavailable');
+            }
+        };
+
+        $factory = $this->createMock(IAppDataFactory::class);
+        $factory->method('get')->willReturn($failing);
+        $logger = $this->createMock(LoggerInterface::class);
+        $failingService = new ThumbnailService($factory, $logger);
+
+        $this->assertSame(
+            ThumbnailService::FAILED,
+            $failingService->storeThumbnail($this->file(42, 'etag-b'), $this->validPng(), 'etag-b')
+        );
+        // The etag-a preview must survive the failed etag-b write.
+        $this->assertSame(['42-etag-a.png'], array_keys($folder->files));
     }
 
     public function testGetThumbnailReturnsNullWhenMissing(): void

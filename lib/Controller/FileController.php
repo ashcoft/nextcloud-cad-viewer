@@ -399,18 +399,30 @@ class FileController extends Controller
             }
 
             $etag = $this->request->getParam('etag');
-            $stored = $this->thumbnailService->storeThumbnail(
-                $file,
-                $decoded['binary'],
-                is_string($etag) ? $etag : null,
-            );
+            if (!is_string($etag) || $etag === '') {
+                // The etag ties the image to the version it was rendered from;
+                // without it a stale image could be accepted.
+                return new DataResponse(
+                    ['error' => 'Missing file version'],
+                    Http::STATUS_BAD_REQUEST
+                );
+            }
 
-            if (!$stored) {
+            $result = $this->thumbnailService->storeThumbnail($file, $decoded['binary'], $etag);
+
+            if ($result === ThumbnailService::STALE) {
                 // The drawing changed after the viewer downloaded it, so this
                 // image does not describe the current version.
                 return new DataResponse(
                     ['error' => 'Stale thumbnail'],
                     Http::STATUS_CONFLICT
+                );
+            }
+
+            if ($result === ThumbnailService::FAILED) {
+                return new DataResponse(
+                    ['error' => self::ERR_INTERNAL_SERVER_ERROR],
+                    Http::STATUS_INTERNAL_SERVER_ERROR
                 );
             }
 

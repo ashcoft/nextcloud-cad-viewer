@@ -3,6 +3,16 @@ export interface CadThumbnailOptions {
   longSide?: number
   /** How long to wait for the drawing to finish opening and rendering. */
   timeoutMs?: number
+  /**
+   * File name of the drawing being opened.
+   *
+   * The viewer keeps one document manager for the whole page, so a drawing from
+   * a previous viewer session can still be active when this runs. Only an
+   * activation whose document carries this name is captured.
+   */
+  fileName?: string
+  /** Aborts the capture, e.g. when the viewer unmounts. */
+  signal?: AbortSignal
 }
 
 /**
@@ -18,19 +28,42 @@ interface CadViewLike {
   waitUntilIdle(timeoutMs?: number): Promise<boolean>
 }
 
+interface CadDocumentLike {
+  fileName?: string
+  isReusableUntitled?: boolean
+}
+
 interface DocumentActivatedArgs {
-  doc?: { isReusableUntitled?: boolean }
+  doc?: CadDocumentLike
 }
 
 interface CadDocManagerLike {
   curView: CadViewLike
-  curDocument: { isReusableUntitled?: boolean }
+  curDocument?: CadDocumentLike
   events: {
     documentActivated: {
       addEventListener(listener: (args: DocumentActivatedArgs) => void): void
       removeEventListener(listener: (args: DocumentActivatedArgs) => void): void
     }
   }
+}
+
+/**
+ * Whether a document is the drawing we are waiting for.
+ *
+ * Matching on the file name also rejects the viewer's untitled start-up
+ * placeholder and any drawing left over from a previous viewer session. The
+ * `isReusableUntitled` flag is only consulted when present, so the check keeps
+ * working on viewer versions that do not expose it.
+ */
+function isTargetDocument(doc: CadDocumentLike | undefined, fileName?: string): boolean {
+  if (!doc || doc.isReusableUntitled === true) {
+    return false
+  }
+  if (fileName !== undefined && fileName !== '') {
+    return doc.fileName === fileName
+  }
+  return typeof doc.fileName === 'string' && doc.fileName !== ''
 }
 
 function nextFrame(): Promise<void> {
@@ -95,46 +128,54 @@ async function getDocManager(): Promise<CadDocManagerLike | null> {
 }
 
 /**
- * Wait until a real drawing (not the viewer's placeholder) has been activated.
+ * Wait until the requested drawing has been activated.
  *
- * Resolves immediately when a drawing is already open, so a fast load is not
- * mistaken for "nothing happened". Falls back to the timeout when the event
- * never arrives, so the caller still attempts a capture.
+ * Resolves `true` once a `documentActivated` event carries the target drawing.
+ * The event must arrive after this call, so a document left over from an
+ * earlier viewer session is never mistaken for the new one. Resolves `false`
+ * when the timeout elapses or the capture is aborted.
  */
 async function waitForDrawing(
   manager: CadDocManagerLike,
+  fileName: string | undefined,
   timeoutMs: number,
-): Promise<void> {
-  if (manager.curDocument?.isReusableUntitled === false) {
-    return
+  signal?: AbortSignal,
+): Promise<boolean> {
+  if (isTargetDocument(manager.curDocument, fileName)) {
+    return true
+  }
+  if (signal?.aborted) {
+    return false
   }
 
-  // Annotated rather than `new Promise<void>`: the Jest Babel config parses
+  // Annotated rather than `new Promise<boolean>`: the Jest Babel config parses
   // `.ts` as TSX, where an explicit type argument on a `new` expression is
   // rejected.
-  const activated: Promise<void> = new Promise((resolve) => {
+  const activated: Promise<boolean> = new Promise((resolve) => {
     let settled = false
-    const finish = () => {
+    const finish = (matched: boolean) => {
       if (settled) {
         return
       }
       settled = true
       clearTimeout(timer)
+      signal?.removeEventListener('abort', onAbort)
       manager.events.documentActivated.removeEventListener(onActivated)
-      resolve()
+      resolve(matched)
     }
     const onActivated = (args: DocumentActivatedArgs) => {
-      // Ignore the placeholder document the viewer creates at start-up.
-      if (args?.doc?.isReusableUntitled === false) {
-        finish()
+      if (isTargetDocument(args?.doc, fileName)) {
+        finish(true)
       }
     }
+    const onAbort = () => finish(false)
 
-    const timer = setTimeout(finish, timeoutMs)
+    const timer = setTimeout(() => finish(false), timeoutMs)
+    signal?.addEventListener('abort', onAbort, { once: true })
     manager.events.documentActivated.addEventListener(onActivated)
   })
 
-  await activated
+  return activated
 }
 
 /**
@@ -147,21 +188,20 @@ async function waitForDrawing(
  *
  * Reuses the viewer's document manager (webpack dedupes
  * `@mlightcad/cad-simple-viewer` into a single instance) and returns null when
- * no drawing is available.
+ * the requested drawing never becomes ready.
  */
 export async function captureCadThumbnail(options: CadThumbnailOptions = {}): Promise<string | null> {
-  const { longSide = 512, timeoutMs = 20000 } = options
+  const { longSide = 512, timeoutMs = 20000, fileName, signal } = options
 
   const manager = await getDocManager()
   if (!manager) {
     return null
   }
 
-  await waitForDrawing(manager, timeoutMs)
-
-  // No real drawing opened (still the start-up placeholder, e.g. because the
-  // file failed to parse). Capturing now would upload a blank preview.
-  if (manager.curDocument?.isReusableUntitled !== false) {
+  if (!(await waitForDrawing(manager, fileName, timeoutMs, signal))) {
+    return null
+  }
+  if (signal?.aborted) {
     return null
   }
 
@@ -170,13 +210,27 @@ export async function captureCadThumbnail(options: CadThumbnailOptions = {}): Pr
     return null
   }
 
+  let idle: boolean | undefined
   try {
-    await view.waitUntilIdle?.(timeoutMs)
+    idle = await view.waitUntilIdle?.(timeoutMs)
   } catch {
-    // Best effort: fall through and capture whatever is on screen.
+    idle = false
+  }
+
+  // A partial render must not be cached under the drawing's etag, or every
+  // later preview request would keep serving an unfinished image.
+  if (idle === false) {
+    return null
+  }
+  if (signal?.aborted) {
+    return null
   }
 
   await nextFrame()
+
+  if (signal?.aborted) {
+    return null
+  }
 
   try {
     // Re-draw so the buffer holds a complete frame, then read it back before

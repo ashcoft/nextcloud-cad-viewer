@@ -10,15 +10,22 @@ import { captureCadThumbnail } from './cadThumbnail'
  * moved past, so an edit made while the drawing was open cannot end up as the
  * preview of the newer version.
  *
+ * `fileName` pins the capture to the drawing that was just opened, and
+ * `signal` lets the caller cancel it when the viewer unmounts.
+ *
  * Failures are swallowed: thumbnails are a progressive enhancement and must
  * never surface an error to the user.
  */
 export async function uploadCadThumbnail(
   fileId: number | string,
   etag?: string,
+  options: { fileName?: string; signal?: AbortSignal } = {},
 ): Promise<void> {
   try {
-    const dataUrl = await captureCadThumbnail()
+    const dataUrl = await captureCadThumbnail({
+      fileName: options.fileName,
+      signal: options.signal,
+    })
     if (!dataUrl) {
       return
     }
