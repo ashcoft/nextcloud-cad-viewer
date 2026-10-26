@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace OCA\CadViewer\Controller;
 
+use OCA\CadViewer\Config\AppConfig;
+use OCA\CadViewer\Service\ThumbnailService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -38,7 +40,9 @@ class FileController extends Controller
         private readonly IRootFolder $rootFolder,
         private readonly IUserSession $userSession,
         private readonly LoggerInterface $logger,
-        private readonly IURLGenerator $urlGenerator
+        private readonly IURLGenerator $urlGenerator,
+        private readonly ThumbnailService $thumbnailService,
+        private readonly AppConfig $appConfig,
     ) {
         parent::__construct($appName, $request);
     }
@@ -234,6 +238,7 @@ class FileController extends Controller
                 'size' => $file->getSize(),
                 'mimeType' => $file->getMimeType(),
                 'path' => $file->getPath(),
+                'etag' => $file->getEtag(),
                 'url' => $downloadUrl,
                 'contentType' => 'application/octet-stream',
             ]);
@@ -344,6 +349,95 @@ class FileController extends Controller
             $response = new StreamResponse($stream);
             $response->addHeader('Content-Type', $file->getMimeType());
             return $response;
+        } catch (\Throwable $e) {
+            return $this->_handleFileError($e, $fileId);
+        }
+    }
+
+    /**
+     * Store a browser-rendered PNG thumbnail for a CAD file.
+     *
+     * CAD files cannot be rendered server-side, so the viewer uploads the
+     * thumbnail it rendered. The JSON body is
+     * `{"image": "data:image/png;base64,...", "etag": "<version>"}`.
+     *
+     * Only users who may modify the file are allowed to set its thumbnail:
+     * otherwise a read-only share recipient could change the preview everyone
+     * else sees.
+     *
+     * @NoAdminRequired
+     */
+    public function thumbnail(int $fileId): DataResponse
+    {
+        try {
+            $file = $this->_resolveFile($fileId);
+
+            $errorResponse = $this->_validateFileConstraints($file, $fileId);
+            if ($errorResponse !== null) {
+                return $errorResponse;
+            }
+
+            if (!$file->isUpdateable()) {
+                return new DataResponse(
+                    ['error' => self::ERR_ACCESS_DENIED],
+                    Http::STATUS_FORBIDDEN
+                );
+            }
+
+            // The administrator can turn previews off; then there is no point
+            // in storing thumbnails nothing will serve.
+            if ($this->appConfig->getPreviews() !== 'yes') {
+                return new DataResponse(
+                    ['error' => 'Previews are disabled'],
+                    Http::STATUS_FORBIDDEN
+                );
+            }
+
+            $dataUrl = $this->request->getParam('image');
+            if (!is_string($dataUrl) || $dataUrl === '') {
+                return new DataResponse(
+                    ['error' => 'Missing image data'],
+                    Http::STATUS_BAD_REQUEST
+                );
+            }
+
+            $decoded = $this->thumbnailService->decodePngDataUrl($dataUrl);
+            if ($decoded === null) {
+                return new DataResponse(
+                    ['error' => 'Invalid image data'],
+                    Http::STATUS_BAD_REQUEST
+                );
+            }
+
+            $etag = $this->request->getParam('etag');
+            if (!is_string($etag) || $etag === '') {
+                // The etag ties the image to the version it was rendered from;
+                // without it a stale image could be accepted.
+                return new DataResponse(
+                    ['error' => 'Missing file version'],
+                    Http::STATUS_BAD_REQUEST
+                );
+            }
+
+            $result = $this->thumbnailService->storeThumbnail($file, $decoded['binary'], $etag);
+
+            if ($result === ThumbnailService::STALE) {
+                // The drawing changed after the viewer downloaded it, so this
+                // image does not describe the current version.
+                return new DataResponse(
+                    ['error' => 'Stale thumbnail'],
+                    Http::STATUS_CONFLICT
+                );
+            }
+
+            if ($result === ThumbnailService::FAILED) {
+                return new DataResponse(
+                    ['error' => self::ERR_INTERNAL_SERVER_ERROR],
+                    Http::STATUS_INTERNAL_SERVER_ERROR
+                );
+            }
+
+            return new DataResponse(['status' => 'ok']);
         } catch (\Throwable $e) {
             return $this->_handleFileError($e, $fileId);
         }

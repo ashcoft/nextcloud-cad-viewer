@@ -48,6 +48,10 @@ module.exports = tseslint.config(
         HTMLElement: 'readonly',
         File: 'readonly',
         Blob: 'readonly',
+        AbortController: 'readonly',
+        AbortSignal: 'readonly',
+        requestAnimationFrame: 'readonly',
+        HTMLCanvasElement: 'readonly',
       },
     },
     rules: {

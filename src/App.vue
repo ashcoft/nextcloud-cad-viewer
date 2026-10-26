@@ -22,6 +22,8 @@
 import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
 import { fetchCadFile } from './utils/fetchCadFile'
+import { getCurrentCadDocument, type PreviousCadDocument } from './utils/cadThumbnail'
+import { uploadCadThumbnail } from './utils/thumbnailUpload'
 
 // Global translation function from Nextcloud
 declare global {
@@ -52,6 +54,14 @@ export default defineComponent({
     const viewerInstance = ref<ViewerInstance | null>(null)
     const retryFileId = ref<string | null>(null)
     const isUnmounted = ref(false)
+
+    // Cancels an in-flight thumbnail capture when the viewer loads another
+    // drawing or unmounts, so a stale capture cannot be uploaded.
+    let captureAbort: AbortController | null = null
+
+    // Document that was active before the current drawing was opened, used to
+    // reject a leftover drawing that happens to share the file name.
+    let previousDocument: PreviousCadDocument | undefined
 
     // Browser animation frame function for polling
     const raf = globalThis.requestAnimationFrame.bind(globalThis)
@@ -120,6 +130,9 @@ export default defineComponent({
       const container = viewerContainer.value
       if (container?.isConnected) {
         try {
+          // Snapshot the active document before mounting, so a drawing left
+          // over from an earlier session cannot be captured as this one.
+          previousDocument = await getCurrentCadDocument()
           viewerInstance.value = await loadCADViewer(container, {
             localFile: result.file,
             fileName: result.meta.name,
@@ -134,6 +147,33 @@ export default defineComponent({
       }
 
       loading.value = false
+
+      startThumbnailCapture(fid, result.meta.name, result.meta.etag)
+    }
+
+    /**
+     * Render and cache a thumbnail so the Files app can show it.
+     *
+     * Thumbnails are a progressive enhancement; failures are non-fatal. Any
+     * capture already in flight is cancelled first, so only the drawing that is
+     * currently open can be uploaded.
+     */
+    function startThumbnailCapture(
+      fid: string | number,
+      fileName: string,
+      etag: string,
+    ): void {
+      if (error.value || getUnmountedState()) {
+        return
+      }
+
+      captureAbort?.abort()
+      captureAbort = new AbortController()
+      void uploadCadThumbnail(String(fid), etag, {
+        fileName,
+        signal: captureAbort.signal,
+        previousDocument,
+      })
     }
 
     onMounted(async () => {
@@ -148,6 +188,8 @@ export default defineComponent({
 
     onBeforeUnmount(() => {
       isUnmounted.value = true
+      captureAbort?.abort()
+      captureAbort = null
       viewerInstance.value?.dispose()
       viewerInstance.value = null
     })
@@ -158,11 +200,14 @@ export default defineComponent({
       error.value = null
       loading.value = true
 
+      captureAbort?.abort()
+      captureAbort = null
       viewerInstance.value?.dispose()
 
       const result = await fetchCadFile(retryFileId.value)
       if (result.ok) {
         try {
+          previousDocument = await getCurrentCadDocument()
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
             localFile: result.file,
             fileName: result.meta.name,
@@ -176,6 +221,10 @@ export default defineComponent({
         error.value = result.error ?? appTranslation('Failed to load file')
       }
       loading.value = false
+
+      if (result.ok) {
+        startThumbnailCapture(retryFileId.value, result.meta.name, result.meta.etag)
+      }
     }
 
     return {

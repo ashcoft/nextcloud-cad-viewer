@@ -44,6 +44,8 @@ namespace OCP\AppFramework\Bootstrap {
     interface IRegistrationContext
     {
         public function registerEventListener(string $eventClass, string $listenerClass): void;
+
+        public function registerPreviewProvider(string $previewProviderClass, string $mimeTypeRegex): void;
     }
 
     interface IBootContext
@@ -91,6 +93,116 @@ namespace OCP\Files {
         public function getId(string $mimetype): int;
 
         public function updateFilecache(string $ext, int $mimeTypeId): int;
+    }
+
+    interface FileInfo
+    {
+        public function getMimeType(): string;
+
+        public function getName(): string;
+
+        public function isCreatable();
+    }
+
+    interface Node extends FileInfo
+    {
+        public function getId(): int;
+    }
+
+    interface File extends Node
+    {
+        public function getEtag(): string;
+
+        public function getContent(): string;
+    }
+}
+
+namespace OCP\Files\Events\Node {
+    abstract class AbstractNodeEvent extends \OCP\EventDispatcher\Event
+    {
+        public function __construct(private readonly \OCP\Files\Node $node)
+        {
+            parent::__construct();
+        }
+
+        public function getNode(): \OCP\Files\Node
+        {
+            return $this->node;
+        }
+    }
+
+    class NodeDeletedEvent extends AbstractNodeEvent
+    {
+    }
+}
+
+namespace OCP\Files\AppData {
+    interface IAppDataFactory
+    {
+        public function get(string $appId): mixed;
+    }
+}
+
+namespace OCP\Files\SimpleFS {
+    interface ISimpleFile
+    {
+        public function getName(): string;
+
+        public function getContent(): string;
+
+        public function delete(): void;
+    }
+
+    interface ISimpleFolder
+    {
+        /** @return list<ISimpleFile> */
+        public function getDirectoryListing(): array;
+
+        public function fileExists(string $name): bool;
+
+        public function getFile(string $name): ISimpleFile;
+
+        public function newFile(string $name, mixed $content = null): ISimpleFile;
+    }
+}
+
+namespace OCP {
+    interface IImage
+    {
+    }
+
+    class Image implements IImage
+    {
+        public function loadFromData(string $str): mixed
+        {
+            return false;
+        }
+
+        public function width(): int
+        {
+            return 0;
+        }
+
+        public function height(): int
+        {
+            return 0;
+        }
+
+        public function scaleDownToFit(int $maxWidth, int $maxHeight): bool
+        {
+            return true;
+        }
+    }
+}
+
+namespace OCP\Preview {
+    interface IProviderV2
+    {
+        public function getMimeType(): string;
+
+        public function isAvailable(\OCP\Files\FileInfo $file): bool;
+
+        public function getThumbnail(\OCP\Files\File $file, int $maxX, int $maxY): ?\OCP\IImage;
     }
 }
 

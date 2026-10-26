@@ -17,6 +17,7 @@ A native Nextcloud app providing DWG and DXF file viewing capabilities based on 
 - 🖥️ **Fullscreen mode** for detailed viewing
 - 📱 **Responsive design** that works on desktop and mobile
 - 🔒 **Secure integration** with Nextcloud's file permissions
+- 🖼️ **Preview thumbnails** in the Files app for drawings you have opened
 - 🔄 **Easy updates** from upstream cad-viewer
 - 🧪 **Fully tested** and compatible with Nextcloud 34-35
 
@@ -115,6 +116,20 @@ Once installed, the CAD Viewer integrates seamlessly with Nextcloud:
 |--------|-----------|------------|
 | AutoCAD DWG | `.dwg` | `application/acad`, `application/autocad_dwg`, `application/dwg`, `application/x-autocad`, `application/x-dwg`, `image/vnd.dwg` |
 | AutoCAD DXF | `.dxf` | `image/vnd.dxf`, `application/dxf`, `application/x-dxf`, `image/x-dxf` |
+
+### Preview Thumbnails
+
+CAD rendering needs WebGL, so a preview cannot be produced server-side. Instead
+the viewer captures the rendered drawing after it finishes opening, uploads the
+PNG, and the app serves it back to the Files grid. Thumbnails therefore appear
+only for drawings that have been opened at least once; before that the generic
+file icon is shown.
+
+Only users who can modify a file may set its thumbnail, and an upload is
+rejected when the drawing changed after it was downloaded, so the preview
+always matches the current version. Thumbnails are stored under the app's data
+directory (not in the user's files) and are removed when the drawing is
+deleted.
 
 ## 🛠️ Development
 
