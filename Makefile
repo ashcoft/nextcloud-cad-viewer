@@ -65,6 +65,7 @@ $(app_dir):
 		--exclude='*.md' \
 		--exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='src' \
 		--exclude='tests' --exclude='vendor-bin' --exclude='docs' --exclude='wiki' \
+		--exclude='scripts' \
 		--exclude='LICENSES' --exclude='AGENTS.md' \
 		--exclude='build' --exclude='*.tar.gz' --exclude='*.zip' \
 		--exclude='*.lock' --exclude='pnpm-lock.yaml' --exclude='composer.lock' \
