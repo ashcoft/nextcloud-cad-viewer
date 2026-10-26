@@ -24,6 +24,8 @@ use OCP\Files\NotPermittedException;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
+use OCP\Lock\ILockingProvider;
+use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
 class FileController extends Controller
@@ -43,6 +45,7 @@ class FileController extends Controller
         private readonly IURLGenerator $urlGenerator,
         private readonly ThumbnailService $thumbnailService,
         private readonly AppConfig $appConfig,
+        private readonly ILockingProvider $lockingProvider,
     ) {
         parent::__construct($appName, $request);
     }
@@ -238,7 +241,9 @@ class FileController extends Controller
                 'size' => $file->getSize(),
                 'mimeType' => $file->getMimeType(),
                 'path' => $file->getPath(),
+                'directory' => $this->getUserDirectory($file),
                 'etag' => $file->getEtag(),
+                'canSave' => $this->canSave($file),
                 'url' => $downloadUrl,
                 'contentType' => 'application/octet-stream',
             ]);
@@ -352,6 +357,189 @@ class FileController extends Controller
         } catch (\Throwable $e) {
             return $this->_handleFileError($e, $fileId);
         }
+    }
+
+    /**
+     * Save new drawing content back to a CAD file.
+     *
+     * The viewer can edit a drawing and serialise it to DXF, so a save writes
+     * the posted DXF text over the file. Only DXF can be written: the bundled
+     * LibreDWG converter parses DWG but has no encoder, so a DWG file is
+     * rejected rather than silently replaced with DXF content.
+     *
+     * The etag the client loaded is required and checked, so a save based on a
+     * stale copy is refused instead of overwriting someone else's edit.
+     *
+     * @NoAdminRequired
+     */
+    public function save(int $fileId): DataResponse
+    {
+        try {
+            $file = $this->_resolveFile($fileId);
+
+            $errorResponse = $this->_validateFileConstraints($file, $fileId);
+            if ($errorResponse !== null) {
+                return $errorResponse;
+            }
+
+            if (!$file->isUpdateable()) {
+                return new DataResponse(
+                    ['error' => self::ERR_ACCESS_DENIED],
+                    Http::STATUS_FORBIDDEN
+                );
+            }
+
+            if (!$this->canSave($file)) {
+                return new DataResponse(
+                    ['error' => 'This file type cannot be saved. Only DXF files can be written.'],
+                    Http::STATUS_UNSUPPORTED_MEDIA_TYPE
+                );
+            }
+
+            $content = $this->request->getParam('content');
+            if (!is_string($content) || $content === '') {
+                return new DataResponse(
+                    ['error' => 'Missing file content'],
+                    Http::STATUS_BAD_REQUEST
+                );
+            }
+
+            // The viewer re-serialises the drawing, so the result can be larger
+            // than the file that was loaded. Refuse an oversized save rather
+            // than write a file this app can no longer open.
+            if (strlen($content) > self::MAX_FILE_SIZE) {
+                return new DataResponse(
+                    ['error' => 'File too large. Maximum supported size is 50MB.'],
+                    Http::STATUS_REQUEST_ENTITY_TOO_LARGE
+                );
+            }
+
+            $etag = $this->request->getParam('etag');
+            if (!is_string($etag) || $etag === '') {
+                return new DataResponse(
+                    ['error' => 'Missing file version'],
+                    Http::STATUS_BAD_REQUEST
+                );
+            }
+
+            return $this->writeWithLock($file, $fileId, $content, $etag);
+        } catch (\Throwable $e) {
+            return $this->_handleFileError($e, $fileId);
+        }
+    }
+
+    /**
+     * Write the new content while holding an exclusive lock on the file.
+     *
+     * The version is re-checked *inside* the lock, so two saves based on the
+     * same etag cannot both pass and the later one silently discard the first
+     * edit: the second sees the new etag and is refused with 409.
+     */
+    private function writeWithLock(File $file, int $fileId, string $content, string $etag): DataResponse
+    {
+        $lockPath = $file->getPath();
+        $locked = false;
+
+        try {
+            $this->lockingProvider->acquireLock($lockPath, ILockingProvider::LOCK_EXCLUSIVE);
+            $locked = true;
+
+            // Re-resolve the node under the lock. A Nextcloud Node caches its
+            // FileInfo from before the lock, so getEtag() on the original node
+            // would still report the version this request started from and two
+            // overlapping saves would both pass.
+            $file = $this->_resolveFile($fileId);
+
+            $current = $file->getEtag();
+            if ($etag !== $current) {
+                $this->logger->info('CAD Viewer: refusing save, file changed', ['fileId' => $fileId]);
+                return new DataResponse(
+                    ['error' => 'The file was changed by someone else. Reload it before saving.'],
+                    Http::STATUS_CONFLICT
+                );
+            }
+
+            $file->putContent($content);
+            clearstatcache();
+
+            $this->logger->info('CAD Viewer: Saved file', [
+                'fileId' => $fileId,
+                'size' => $file->getSize(),
+            ]);
+
+            return new DataResponse([
+                'etag' => $file->getEtag(),
+                'size' => $file->getSize(),
+                'mtime' => $file->getMTime(),
+            ]);
+        } catch (LockedException $e) {
+            return new DataResponse(
+                ['error' => 'The file is locked.'],
+                Http::STATUS_CONFLICT
+            );
+        } catch (NotPermittedException $e) {
+            return new DataResponse(
+                ['error' => self::ERR_ACCESS_DENIED],
+                Http::STATUS_FORBIDDEN
+            );
+        } finally {
+            if ($locked) {
+                try {
+                    $this->lockingProvider->releaseLock($lockPath, ILockingProvider::LOCK_EXCLUSIVE);
+                } catch (\Throwable $e) {
+                    $this->logger->warning('CAD Viewer: failed to release save lock', [
+                        'fileId' => $fileId,
+                        'exception' => $e,
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Whether the drawing can be written back.
+     *
+     * Only DXF is supported: the bundled converter can parse DWG but cannot
+     * encode it, so a DWG would have to be written as DXF under a .dwg name.
+     */
+    private function canSave(File $file): bool
+    {
+        if (!$file->isUpdateable()) {
+            return false;
+        }
+
+        $extension = strtolower(pathinfo($file->getName(), PATHINFO_EXTENSION));
+
+        return $extension === 'dxf';
+    }
+
+    /**
+     * The user-visible folder the file lives in, for "back to Files" links.
+     *
+     * `Node::getPath()` returns the full storage path, which includes the
+     * user's `files` mount segment (`/alice/files/plans/plan.dxf`). Resolving it
+     * against the user folder yields the folder as the Files app names it
+     * (`/plans`), including `/` for a file in the user's root.
+     */
+    private function getUserDirectory(File $file): string
+    {
+        $user = $this->userSession->getUser();
+        if ($user === null) {
+            return '/';
+        }
+
+        try {
+            $userFolder = $this->rootFolder->getUserFolder($user->getUID());
+            $relative = $userFolder->getRelativePath($file->getParent()->getPath());
+        } catch (\Throwable) {
+            return '/';
+        }
+
+        if ($relative === null || $relative === '') {
+            return '/';
+        }
+
+        return '/' . ltrim($relative, '/');
     }
 
     /**

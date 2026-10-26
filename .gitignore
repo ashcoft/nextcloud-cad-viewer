@@ -82,3 +82,9 @@ assets/
 # Playwright
 playwright-report/
 test-results/
+
+# PHP CS Fixer cache
+.php-cs-fixer.cache
+
+# PHPUnit cache
+/tests/.phpunit.cache/

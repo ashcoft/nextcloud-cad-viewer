@@ -97,23 +97,65 @@ namespace OCP\Files {
 
     interface FileInfo
     {
-        public function getMimeType(): string;
+        public function getEtag();
 
-        public function getName(): string;
+        public function getSize($includeMounts = true);
+
+        public function getMtime();
+
+        public function getName();
+
+        public function getPath();
+
+        public function getMimetype(): string;
+
+        public function getId();
+
+        public function isReadable();
+
+        public function isUpdateable();
 
         public function isCreatable();
+
+        public function isDeletable();
     }
 
     interface Node extends FileInfo
     {
-        public function getId(): int;
+        public function getId();
+
+        public function getPath();
+
+        public function getName();
+
+        public function getSize($includeMounts = true);
+
+        public function getEtag();
+
+        public function getParent();
+
+        public function isUpdateable();
+
+        public function isReadable();
     }
 
     interface File extends Node
     {
-        public function getEtag(): string;
+        public function getContent();
 
-        public function getContent(): string;
+        public function putContent($data);
+
+        public function getMimeType(): string;
+
+        public function getEtag();
+
+        public function getName();
+
+        public function getPath();
+
+        public function getParent();
+
+        public function getMTime();
     }
 }
 

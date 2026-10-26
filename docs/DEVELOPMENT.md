@@ -99,6 +99,7 @@ Registered in `routes.php`:
 - `GET /api/file/{fileId}` - Get file content
 - `GET /api/preview/{fileId}` - Get file preview
 - `POST /api/thumbnail/{fileId}` - Store a browser-rendered preview thumbnail
+- `POST /api/save/{fileId}` - Save edited DXF content back to the file
 
 Example requests:
 ```bash
