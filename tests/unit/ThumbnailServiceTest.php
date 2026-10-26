@@ -185,7 +185,7 @@ class ThumbnailServiceTest extends TestCase
         $this->assertSame(ThumbnailService::STORED, $service->storeThumbnail($file, $this->validPng(), 'etag-a'));
 
         $this->assertNotNull($service->getThumbnail($file));
-        $this->assertSame(['42-etag-a.png'], array_keys($folder->files));
+        $this->assertSame(['etag-a.png'], array_keys($this->fileFolder($folder, 42)->files));
     }
 
     /**
@@ -200,7 +200,7 @@ class ThumbnailServiceTest extends TestCase
         $service->storeThumbnail($this->file(42, 'etag-a'), $this->validPng(), 'etag-a');
         $service->storeThumbnail($this->file(42, 'etag-b'), $this->validPng(), 'etag-b');
 
-        $this->assertSame(['42-etag-b.png'], array_keys($folder->files));
+        $this->assertSame(['etag-b.png'], array_keys($this->fileFolder($folder, 42)->files));
     }
 
     /**
@@ -217,7 +217,7 @@ class ThumbnailServiceTest extends TestCase
             ThumbnailService::STALE,
             $service->storeThumbnail($this->file(42, 'etag-b'), $this->validPng(), 'etag-a')
         );
-        $this->assertSame([], $folder->files);
+        $this->assertSame([], $folder->folders);
     }
 
     public function testUploadWithoutEtagIsAccepted(): void
@@ -241,7 +241,8 @@ class ThumbnailServiceTest extends TestCase
 
         $service->deleteForFileId(42);
 
-        $this->assertSame(['7-etag-a.png'], array_keys($folder->files));
+        // Only file 42's folder is gone; file 7 keeps its thumbnail.
+        $this->assertSame([7], array_keys($folder->folders));
     }
 
     /**
@@ -274,11 +275,19 @@ class ThumbnailServiceTest extends TestCase
             $failingService->storeThumbnail($this->file(42, 'etag-b'), $this->validPng(), 'etag-b')
         );
         // The etag-a preview must survive the failed etag-b write.
-        $this->assertSame(['42-etag-a.png'], array_keys($folder->files));
+        $this->assertSame(['etag-a.png'], array_keys($this->fileFolder($folder, 42)->files));
     }
 
     public function testGetThumbnailReturnsNullWhenMissing(): void
     {
         $this->assertNull($this->service(new InMemoryFolder())->getThumbnail($this->file(42, 'etag-a')));
+    }
+
+    /**
+     * The per-file folder the service stores a file's thumbnails in.
+     */
+    private function fileFolder(InMemoryFolder $root, int $fileId): InMemoryFolder
+    {
+        return $root->folders[(string) $fileId];
     }
 }

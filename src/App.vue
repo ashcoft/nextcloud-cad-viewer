@@ -22,7 +22,7 @@
 import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
 import { fetchCadFile } from './utils/fetchCadFile'
-import { getCurrentCadDocument } from './utils/cadThumbnail'
+import { getCurrentCadDocument, type PreviousCadDocument } from './utils/cadThumbnail'
 import { uploadCadThumbnail } from './utils/thumbnailUpload'
 
 // Global translation function from Nextcloud
@@ -61,7 +61,7 @@ export default defineComponent({
 
     // Document that was active before the current drawing was opened, used to
     // reject a leftover drawing that happens to share the file name.
-    let previousDocument: unknown
+    let previousDocument: PreviousCadDocument | undefined
 
     // Browser animation frame function for polling
     const raf = globalThis.requestAnimationFrame.bind(globalThis)

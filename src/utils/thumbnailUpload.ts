@@ -1,6 +1,6 @@
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { captureCadThumbnail } from './cadThumbnail'
+import { captureCadThumbnail, type PreviousCadDocument } from './cadThumbnail'
 
 /**
  * Render and upload a thumbnail for a CAD file so the Files app can show it.
@@ -19,7 +19,7 @@ import { captureCadThumbnail } from './cadThumbnail'
 export async function uploadCadThumbnail(
   fileId: number | string,
   etag?: string,
-  options: { fileName?: string; signal?: AbortSignal; previousDocument?: unknown } = {},
+  options: { fileName?: string; signal?: AbortSignal; previousDocument?: PreviousCadDocument } = {},
 ): Promise<void> {
   try {
     const dataUrl = await captureCadThumbnail({

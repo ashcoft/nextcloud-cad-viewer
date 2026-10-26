@@ -65,13 +65,14 @@ class DeleteThumbnail implements IEventListener
             return;
         }
 
-        // Deleting a non-CAD file cannot have a thumbnail, so skip it rather
-        // than listing the shared thumbnail folder for every deletion.
-        if (!$this->isCadFile($node)) {
-            return;
+        // A drawing may have been renamed since its thumbnail was cached (for
+        // example plan.dwg to plan.bak), so the current extension cannot decide
+        // whether an image exists. Ask the cache instead: the per-file layout
+        // makes this a single folder lookup rather than a directory scan.
+        $fileId = (int) $node->getId();
+        if ($this->thumbnailService->hasThumbnail($fileId)) {
+            $this->thumbnailService->deleteForFileId($fileId);
         }
-
-        $this->thumbnailService->deleteForFileId((int) $node->getId());
     }
 
     /**

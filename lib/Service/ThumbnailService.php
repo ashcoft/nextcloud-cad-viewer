@@ -22,8 +22,10 @@ use Psr\Log\LoggerInterface;
  * a drawing preview on its own. The viewer renders the drawing, uploads the
  * resulting PNG, and the preview provider serves it back for the Files grid.
  *
- * Thumbnails are keyed by file id and etag so a drawing that changes gets a
- * fresh preview. Only the newest thumbnail per file is kept.
+ * Layout: `thumbnails/<file id>/<etag>.png`. Keying the file by etag gives a
+ * drawing that changed a fresh preview, and grouping by file id lets the whole
+ * entry be removed with a single folder delete, without scanning a shared
+ * directory. Only the newest thumbnail per file is kept.
  */
 class ThumbnailService
 {
@@ -32,6 +34,16 @@ class ThumbnailService
     private const MAX_DECODED_BYTES = 5 * 1024 * 1024; // 5MB
     private const MAX_DIMENSION = 4096;
     private const PNG_SIGNATURE = "\x89PNG\r\n\x1a\n";
+
+    /**
+     * Outcome of a thumbnail upload attempt.
+     *
+     * The controller maps these to distinct HTTP statuses so a storage failure
+     * is not reported to the client as a version conflict.
+     */
+    public const STORED = 'stored';
+    public const STALE = 'stale';
+    public const FAILED = 'failed';
 
     public function __construct(
         private readonly IAppDataFactory $appDataFactory,
@@ -44,7 +56,7 @@ class ThumbnailService
      */
     public function getThumbnail(File $file): ?ISimpleFile
     {
-        $folder = $this->getFolder(false);
+        $folder = $this->getFileFolder((int) $file->getId(), false);
         if ($folder === null) {
             return null;
         }
@@ -60,16 +72,6 @@ class ThumbnailService
             return null;
         }
     }
-
-    /**
-     * Outcome of a thumbnail upload attempt.
-     *
-     * The controller maps these to distinct HTTP statuses so a storage failure
-     * is not reported to the client as a version conflict.
-     */
-    public const STORED = 'stored';
-    public const STALE = 'stale';
-    public const FAILED = 'failed';
 
     /**
      * Store a thumbnail for a file, replacing any previous one.
@@ -96,7 +98,7 @@ class ThumbnailService
         }
 
         try {
-            $folder = $this->getFolder(true);
+            $folder = $this->getFileFolder((int) $file->getId(), true);
             if ($folder === null) {
                 return self::FAILED;
             }
@@ -105,9 +107,12 @@ class ThumbnailService
             $folder->newFile($name, $binary);
 
             // Only once the replacement is safely stored: a new etag means a
-            // new file name, so drop the superseded versions to keep the cache
-            // from growing with every edit of the drawing.
-            $this->deleteThumbnailsExcept($folder, (int) $file->getId(), $name);
+            // new file name, so drop the superseded versions.
+            foreach ($folder->getDirectoryListing() as $existing) {
+                if ($existing->getName() !== $name) {
+                    $existing->delete();
+                }
+            }
 
             return self::STORED;
         } catch (\Throwable $e) {
@@ -120,58 +125,44 @@ class ThumbnailService
     }
 
     /**
+     * Whether a file has a cached thumbnail.
+     *
+     * A single existence check, so callers can skip work for files that were
+     * never opened.
+     */
+    public function hasThumbnail(int $fileId): bool
+    {
+        $folder = $this->getFileFolder($fileId, false);
+        if ($folder === null) {
+            return false;
+        }
+
+        try {
+            return $folder->getDirectoryListing() !== [];
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
      * Remove every cached thumbnail belonging to a file id.
      */
     public function deleteForFileId(int $fileId): void
     {
-        $folder = $this->getFolder(false);
+        $folder = $this->getFileFolder($fileId, false);
         if ($folder === null) {
             return;
         }
 
         try {
-            $this->deleteThumbnails($folder, $fileId);
+            // One folder delete instead of scanning a shared directory.
+            $folder->delete();
         } catch (\Throwable $e) {
             $this->logger->warning('CAD Viewer: failed to delete thumbnails', [
                 'fileId' => $fileId,
                 'exception' => $e,
             ]);
         }
-    }
-
-    /**
-     * File ids that currently have at least one cached thumbnail.
-     *
-     * Used by the prune job, which cannot know the id of a drawing that was
-     * deleted as part of a folder.
-     *
-     * @return list<int>
-     */
-    public function listCachedFileIds(): array
-    {
-        $folder = $this->getFolder(false);
-        if ($folder === null) {
-            return [];
-        }
-
-        $ids = [];
-        try {
-            foreach ($folder->getDirectoryListing() as $existing) {
-                $name = $existing->getName();
-                $separator = strpos($name, '-');
-                if ($separator === false) {
-                    continue;
-                }
-                $ids[(int) substr($name, 0, $separator)] = true;
-            }
-        } catch (\Throwable $e) {
-            $this->logger->warning('CAD Viewer: failed to list thumbnails', [
-                'exception' => $e,
-            ]);
-            return [];
-        }
-
-        return array_keys($ids);
     }
 
     /**
@@ -241,9 +232,39 @@ class ThumbnailService
     }
 
     /**
-     * Resolve the thumbnail folder, optionally creating it.
+     * Resolve the per-file thumbnail folder, optionally creating it.
      */
-    private function getFolder(bool $create): ?ISimpleFolder
+    private function getFileFolder(int $fileId, bool $create): ?ISimpleFolder
+    {
+        $root = $this->getRootFolder($create);
+        if ($root === null) {
+            return null;
+        }
+
+        $name = (string) $fileId;
+        try {
+            return $root->getFolder($name);
+        } catch (\Throwable) {
+            if (!$create) {
+                return null;
+            }
+
+            try {
+                return $root->newFolder($name);
+            } catch (\Throwable $e) {
+                $this->logger->warning('CAD Viewer: failed to create thumbnail folder', [
+                    'fileId' => $fileId,
+                    'exception' => $e,
+                ]);
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Resolve the shared thumbnail root folder, optionally creating it.
+     */
+    private function getRootFolder(bool $create): ?ISimpleFolder
     {
         try {
             $appData = $this->appDataFactory->get(self::APP_ID);
@@ -261,7 +282,7 @@ class ThumbnailService
             try {
                 return $appData->newFolder(self::FOLDER);
             } catch (\Throwable $e) {
-                $this->logger->warning('CAD Viewer: failed to create thumbnail folder', [
+                $this->logger->warning('CAD Viewer: failed to create thumbnail root folder', [
                     'exception' => $e,
                 ]);
                 return null;
@@ -269,32 +290,8 @@ class ThumbnailService
         }
     }
 
-    /**
-     * Delete every thumbnail whose name belongs to the given file id.
-     */
-    private function deleteThumbnails(ISimpleFolder $folder, int $fileId): void
-    {
-        $this->deleteThumbnailsExcept($folder, $fileId, null);
-    }
-
-    /**
-     * Delete every thumbnail belonging to the file id, keeping one name.
-     *
-     * @param string|null $keepName Name to leave in place, or null to remove all.
-     */
-    private function deleteThumbnailsExcept(ISimpleFolder $folder, int $fileId, ?string $keepName): void
-    {
-        $prefix = $fileId . '-';
-        foreach ($folder->getDirectoryListing() as $existing) {
-            $name = $existing->getName();
-            if ($name !== $keepName && str_starts_with($name, $prefix)) {
-                $existing->delete();
-            }
-        }
-    }
-
     private function thumbnailName(File $file): string
     {
-        return $file->getId() . '-' . $file->getEtag() . '.png';
+        return $file->getEtag() . '.png';
     }
 }

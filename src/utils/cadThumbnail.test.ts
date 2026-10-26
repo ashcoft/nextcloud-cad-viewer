@@ -206,7 +206,7 @@ describe('captureCadThumbnail', () => {
     const pending = capture({
       fileName: 'plan.dwg',
       timeoutMs: 500,
-      previousDocument: leftover,
+      previousDocument: { ref: leftover, fileName: 'plan.dwg' },
     })
     await waitForListener(fake)
 
@@ -229,8 +229,67 @@ describe('captureCadThumbnail', () => {
     const { captureCadThumbnail: capture } = await import('./cadThumbnail')
 
     expect(
-      await capture({ fileName: 'plan.dwg', timeoutMs: 10, previousDocument: leftover }),
+      await capture({
+        fileName: 'plan.dwg',
+        timeoutMs: 10,
+        previousDocument: { ref: leftover, fileName: 'plan.dwg' },
+      }),
     ).toBeNull()
+    expect(fake.render).not.toHaveBeenCalled()
+  })
+
+  /**
+   * The viewer reuses its untitled start-up document for the first file,
+   * mutating it in place, so that document must be accepted once it carries
+   * the target name.
+   */
+  it('accepts a reused untitled document once it has the target name', async () => {
+    const reused: FakeDoc = { isReusableUntitled: false }
+    const fake = makeFakeManager(reused)
+    mockDocManager(fake.manager)
+
+    const { captureCadThumbnail: capture } = await import('./cadThumbnail')
+    const pending = capture({
+      fileName: 'plan.dwg',
+      timeoutMs: 500,
+      previousDocument: { ref: reused, fileName: undefined },
+    })
+    await waitForListener(fake)
+
+    // The same object, now carrying the target name.
+    reused.fileName = 'plan.dwg'
+    activateDrawing(fake, reused)
+
+    expect(await pending).toBe(DATA_URL)
+    expect(fake.render).toHaveBeenCalled()
+  })
+
+  /**
+   * The viewer supports several documents; if another drawing becomes active
+   * before the canvas is read, the image would be stored under the wrong file.
+   */
+  it('returns null when another drawing becomes active before the read', async () => {
+    const fake = makeFakeManager({ fileName: 'plan.dwg', isReusableUntitled: false })
+    mockDocManager(fake.manager)
+
+    // Switch the active document while the idle wait is in flight.
+    let resolveIdle: (value: boolean) => void = () => {}
+    const idle: Promise<boolean> = new Promise((resolve) => {
+      resolveIdle = resolve
+    })
+    fake.waitUntilIdle.mockReturnValue(idle)
+
+    const { captureCadThumbnail: capture } = await import('./cadThumbnail')
+    const pending = capture({ fileName: 'plan.dwg' })
+
+    // Wait until the capture is blocked on the idle wait.
+    while (fake.waitUntilIdle.mock.calls.length === 0) {
+      await Promise.resolve()
+    }
+    fake.manager.curDocument = { fileName: 'other.dwg', isReusableUntitled: false }
+    resolveIdle(true)
+
+    expect(await pending).toBeNull()
     expect(fake.render).not.toHaveBeenCalled()
   })
 

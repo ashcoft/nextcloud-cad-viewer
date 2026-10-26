@@ -14,13 +14,26 @@ export interface CadThumbnailOptions {
   /** Aborts the capture, e.g. when the viewer unmounts. */
   signal?: AbortSignal
   /**
-   * Document that was active before this drawing was opened.
+   * The document that was active before this drawing was opened, as returned
+   * by {@link getCurrentCadDocument}.
    *
    * The viewer keeps one document manager for the whole page, so the document
-   * from a previous session can still be active when this runs. A document that
-   * is this very object is the old one, even if it has the same file name.
+   * from a previous session can still be active when this runs.
    */
-  previousDocument?: unknown
+  previousDocument?: PreviousCadDocument
+}
+
+/**
+ * Snapshot of the document that was active before a drawing was opened.
+ *
+ * The object identity alone is not enough: the viewer reuses its untitled
+ * start-up document for the first file, mutating it in place. `fileName` is
+ * therefore recorded as it was at snapshot time, so a document that already
+ * carried the target name can be told apart from one that was reused.
+ */
+export interface PreviousCadDocument {
+  ref: unknown
+  fileName?: string
 }
 
 /**
@@ -60,10 +73,14 @@ interface CadDocManagerLike {
  * Whether a document is the drawing we are waiting for.
  *
  * Matching on the file name rejects the viewer's untitled start-up placeholder
- * and a drawing left over from a previous session. When the caller reports the
- * document that was active before this load, that exact object is also rejected:
- * reopening the same file name (a changed drawing, or the same name in another
- * folder) must still wait for the fresh activation.
+ * and a drawing left over from a previous session.
+ *
+ * When the caller reports the document that was active before this load, that
+ * object is rejected only while it still carries the name it had then. The
+ * viewer reuses its untitled document for the first file (mutating it in
+ * place), so once it has been given the target name it is the drawing we want;
+ * a document that already had the target name before the load is the leftover
+ * one and must keep waiting.
  *
  * The `isReusableUntitled` flag is only consulted when present, so the check
  * keeps working on viewer versions that do not expose it.
@@ -71,12 +88,17 @@ interface CadDocManagerLike {
 function isTargetDocument(
   doc: CadDocumentLike | undefined,
   fileName?: string,
-  previousDocument?: unknown,
+  previousDocument?: PreviousCadDocument,
 ): boolean {
   if (!doc || doc.isReusableUntitled === true) {
     return false
   }
-  if (previousDocument !== undefined && doc === previousDocument) {
+  if (
+    previousDocument !== undefined
+    && doc === previousDocument.ref
+    && doc.fileName === previousDocument.fileName
+  ) {
+    // Unchanged since the snapshot: still the previous document.
     return false
   }
   if (fileName !== undefined && fileName !== '') {
@@ -147,16 +169,22 @@ async function getDocManager(): Promise<CadDocManagerLike | null> {
 }
 
 /**
- * The document currently active in the viewer, if any.
+ * Snapshot the document currently active in the viewer, if any.
  *
  * Call this before opening a drawing and pass the result as
  * {@link CadThumbnailOptions.previousDocument}, so a document left over from an
- * earlier session cannot be mistaken for the drawing being opened now.
+ * earlier session cannot be mistaken for the drawing being opened now. The
+ * document's name is captured alongside it, because the viewer reuses its
+ * untitled document in place for the first file.
  */
-export async function getCurrentCadDocument(): Promise<unknown> {
+export async function getCurrentCadDocument(): Promise<PreviousCadDocument | undefined> {
   const manager = await getDocManager()
+  const doc = manager?.curDocument
+  if (!doc) {
+    return undefined
+  }
 
-  return manager?.curDocument
+  return { ref: doc, fileName: doc.fileName }
 }
 
 /**
@@ -172,21 +200,21 @@ async function waitForDrawing(
   fileName: string | undefined,
   timeoutMs: number,
   signal?: AbortSignal,
-  previousDocument?: unknown,
-): Promise<boolean> {
+  previousDocument?: PreviousCadDocument,
+): Promise<CadDocumentLike | null> {
   if (isTargetDocument(manager.curDocument, fileName, previousDocument)) {
-    return true
+    return manager.curDocument ?? null
   }
   if (signal?.aborted) {
-    return false
+    return null
   }
 
-  // Annotated rather than `new Promise<boolean>`: the Jest Babel config parses
-  // `.ts` as TSX, where an explicit type argument on a `new` expression is
-  // rejected.
-  const activated: Promise<boolean> = new Promise((resolve) => {
+  // Annotated rather than `new Promise<CadDocumentLike | null>`: the Jest Babel
+  // config parses `.ts` as TSX, where an explicit type argument on a `new`
+  // expression is rejected.
+  const activated: Promise<CadDocumentLike | null> = new Promise((resolve) => {
     let settled = false
-    const finish = (matched: boolean) => {
+    const finish = (doc: CadDocumentLike | null) => {
       if (settled) {
         return
       }
@@ -194,16 +222,16 @@ async function waitForDrawing(
       clearTimeout(timer)
       signal?.removeEventListener('abort', onAbort)
       manager.events.documentActivated.removeEventListener(onActivated)
-      resolve(matched)
+      resolve(doc)
     }
     const onActivated = (args: DocumentActivatedArgs) => {
       if (isTargetDocument(args?.doc, fileName, previousDocument)) {
-        finish(true)
+        finish(args.doc ?? null)
       }
     }
-    const onAbort = () => finish(false)
+    const onAbort = () => finish(null)
 
-    const timer = setTimeout(() => finish(false), timeoutMs)
+    const timer = setTimeout(() => finish(null), timeoutMs)
     signal?.addEventListener('abort', onAbort, { once: true })
     manager.events.documentActivated.addEventListener(onActivated)
   })
@@ -231,7 +259,8 @@ export async function captureCadThumbnail(options: CadThumbnailOptions = {}): Pr
     return null
   }
 
-  if (!(await waitForDrawing(manager, fileName, timeoutMs, signal, previousDocument))) {
+  const matched = await waitForDrawing(manager, fileName, timeoutMs, signal, previousDocument)
+  if (matched === null) {
     return null
   }
   if (signal?.aborted) {
@@ -262,6 +291,13 @@ export async function captureCadThumbnail(options: CadThumbnailOptions = {}): Pr
   await nextFrame()
 
   if (signal?.aborted) {
+    return null
+  }
+
+  // The viewer supports several documents and switches the active one when
+  // another drawing opens, so the canvas must still belong to the drawing that
+  // was matched; otherwise the image would be stored under the wrong file.
+  if (manager.curDocument !== matched) {
     return null
   }
 

@@ -50,23 +50,41 @@ class DeleteThumbnailTest extends TestCase
         $file->method('getName')->willReturn('plan.dwg');
 
         $service = $this->createMock(ThumbnailService::class);
+        $service->expects($this->once())->method('hasThumbnail')->with(42)->willReturn(true);
         $service->expects($this->once())->method('deleteForFileId')->with(42);
 
         (new DeleteThumbnail($service))->handle(new NodeDeletedEvent($file));
     }
 
     /**
-     * A non-CAD deletion cannot have a thumbnail, so it must not scan the
-     * shared thumbnail folder.
+     * A file without a cached thumbnail must not be deleted from the cache.
      */
-    public function testIgnoresNonCadFiles(): void
+    public function testIgnoresFilesWithoutAThumbnail(): void
     {
         $file = $this->createMock(File::class);
         $file->method('getId')->willReturn(42);
         $file->method('getName')->willReturn('report.pdf');
 
         $service = $this->createMock(ThumbnailService::class);
+        $service->method('hasThumbnail')->willReturn(false);
         $service->expects($this->never())->method('deleteForFileId');
+
+        (new DeleteThumbnail($service))->handle(new NodeDeletedEvent($file));
+    }
+
+    /**
+     * A drawing renamed after its thumbnail was cached must still be cleaned
+     * up, even though its extension is no longer a CAD one.
+     */
+    public function testRemovesThumbnailOfARenamedDrawing(): void
+    {
+        $file = $this->createMock(File::class);
+        $file->method('getId')->willReturn(42);
+        $file->method('getName')->willReturn('plan.bak');
+
+        $service = $this->createMock(ThumbnailService::class);
+        $service->expects($this->once())->method('hasThumbnail')->with(42)->willReturn(true);
+        $service->expects($this->once())->method('deleteForFileId')->with(42);
 
         (new DeleteThumbnail($service))->handle(new NodeDeletedEvent($file));
     }
