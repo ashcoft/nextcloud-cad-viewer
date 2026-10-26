@@ -7,20 +7,19 @@ use PhpParser\Node;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Nop;
-use Rector\Contract\Rector\HTMLAverseRectorInterface;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\PhpParser\Node\FileNode;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\TypeDeclaration\NodeAnalyzer\DeclareStrictTypeFinder;
 use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\PHPUnit\Tests\CodeQuality\Rector\StmtsAwareInterface\DeclareStrictTypesTestsRector\DeclareStrictTypesTestsRectorTest
  */
-final class DeclareStrictTypesTestsRector extends AbstractRector implements HTMLAverseRectorInterface, MinPhpVersionInterface
+final class DeclareStrictTypesTestsRector extends AbstractRector implements MinPhpVersionInterface
 {
     /**
      * @readonly
@@ -99,7 +98,7 @@ CODE_SAMPLE
      */
     private function hasPHPUnitTestClass(array $nodes): bool
     {
-        $class = $this->betterNodeFinder->findFirstNonAnonymousClass($nodes);
+        $class = $this->betterNodeFinder->findFirst($nodes, static fn(Node $node): bool => $node instanceof Class_ && !$node->isAnonymous());
         if (!$class instanceof Class_) {
             return \false;
         }

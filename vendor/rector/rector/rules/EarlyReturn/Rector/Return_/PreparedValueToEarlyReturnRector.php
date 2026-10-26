@@ -21,8 +21,8 @@ use Rector\NodeManipulator\IfManipulator;
 use Rector\PhpParser\Enum\NodeGroup;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\EarlyReturn\Rector\Return_\PreparedValueToEarlyReturnRector\PreparedValueToEarlyReturnRectorTest
  */
@@ -174,11 +174,11 @@ CODE_SAMPLE
         }
         foreach ($bareSingleAssignIfs as $bareSingleAssignIf) {
             $assign = $bareSingleAssignIf->getAssign();
-            $isVariableUsed = (bool) $this->betterNodeFinder->findFirst([$bareSingleAssignIf->getIfCondExpr(), $assign->expr], fn(Node $node): bool => $this->nodeComparator->areNodesEqual($node, $returnedExpr));
-            if ($isVariableUsed) {
+            if (!$this->nodeComparator->areNodesEqual($assign->var, $returnedExpr)) {
                 return \false;
             }
-            if (!$this->nodeComparator->areNodesEqual($assign->var, $returnedExpr)) {
+            $isVariableUsed = (bool) $this->betterNodeFinder->findFirst([$bareSingleAssignIf->getIfCondExpr(), $assign->expr], fn(Node $node): bool => $this->nodeComparator->areNodesEqual($node, $returnedExpr));
+            if ($isVariableUsed) {
                 return \false;
             }
         }

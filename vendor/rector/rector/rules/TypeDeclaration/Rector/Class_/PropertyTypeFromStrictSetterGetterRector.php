@@ -27,14 +27,14 @@ use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\TypeDeclaration\TypeInferer\PropertyTypeInferer\GetterTypeDeclarationPropertyTypeInferer;
 use Rector\TypeDeclaration\TypeInferer\PropertyTypeInferer\SetterTypeDeclarationPropertyTypeInferer;
 use Rector\ValueObject\MethodName;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\Class_\PropertyTypeFromStrictSetterGetterRector\PropertyTypeFromStrictSetterGetterRectorTest
  */
@@ -121,8 +121,11 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
+        $classReflection = $this->reflectionResolver->resolveClassReflection($node);
+        if (!$classReflection instanceof ClassReflection) {
+            return null;
+        }
         $hasChanged = \false;
-        $classReflection = null;
         foreach ($node->getProperties() as $property) {
             if ($property->type instanceof Node) {
                 continue;
@@ -130,23 +133,17 @@ CODE_SAMPLE
             if (!$property->isPrivate()) {
                 continue;
             }
-            // constructor assignment can set a different type than the setter/getter → skip
-            if ($this->isAssignedInConstructor($node, $property)) {
-                continue;
-            }
             $getterSetterPropertyType = $this->matchGetterSetterIdenticalType($property, $node);
             if (!$getterSetterPropertyType instanceof Type) {
+                continue;
+            }
+            // constructor assignment can set a different type than the setter/getter → skip
+            if ($this->isAssignedInConstructor($node, $property)) {
                 continue;
             }
             $hasPropertyDefaultNull = $this->hasPropertyDefaultNull($property);
             if (!$hasPropertyDefaultNull && !$this->isDefaultExprTypeCompatible($property, $getterSetterPropertyType)) {
                 continue;
-            }
-            if (!$classReflection instanceof ClassReflection) {
-                $classReflection = $this->reflectionResolver->resolveClassReflection($node);
-            }
-            if (!$classReflection instanceof ClassReflection) {
-                return null;
             }
             if (!$this->makePropertyTypedGuard->isLegal($property, $classReflection, \false)) {
                 continue;
@@ -166,7 +163,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::TYPED_PROPERTIES;
+        return PhpVersion::PHP_74;
     }
     private function matchGetterSetterIdenticalType(Property $property, Class_ $class): ?Type
     {

@@ -7,8 +7,8 @@ use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @changelog https://wiki.php.net/rfc/new_without_parentheses
  *
@@ -41,13 +41,19 @@ CODE_SAMPLE
         if (!$node->var instanceof New_) {
             return null;
         }
-        $oldTokens = $this->file->getOldTokens();
+        $oldTokens = $this->getFile()->getOldTokens();
         $startTokenPos = $node->getStartTokenPos();
         $endTokenPos = $node->getEndTokenPos();
         if (!isset($oldTokens[$startTokenPos], $oldTokens[$endTokenPos])) {
             return null;
         }
-        if ((string) $oldTokens[$node->getStartTokenPos()] === '(') {
+        // source already wraps the new in parentheses
+        if ((string) $oldTokens[$startTokenPos] === '(') {
+            return null;
+        }
+        // idempotency: on a previous pass the opening paren was prepended to the New_ var token,
+        // so check that token too, otherwise the rule keeps wrapping the same call every pass
+        if (strncmp((string) $oldTokens[$node->var->getStartTokenPos()], '(', strlen('(')) === 0) {
             return null;
         }
         $oldTokens[$node->var->getStartTokenPos()]->text = '(' . $oldTokens[$node->var->getStartTokenPos()];

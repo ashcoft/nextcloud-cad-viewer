@@ -19,8 +19,8 @@ use Rector\NodeFactory\NamedVariableFactory;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @changelog https://wiki.php.net/rfc/variable_syntax_tweaks#arbitrary_expression_support_for_new_and_instanceof
  *
@@ -95,7 +95,7 @@ CODE_SAMPLE
     }
     private function isBetweenParentheses(Node $node): bool
     {
-        $oldTokens = $this->file->getOldTokens();
+        $oldTokens = $this->getFile()->getOldTokens();
         $previousTokenPos = $node->getStartTokenPos() - 1;
         while ($previousTokenPos >= 0) {
             $token = $oldTokens[$previousTokenPos] ?? null;
@@ -115,6 +115,7 @@ CODE_SAMPLE
      */
     private function refactorAssign(array $assigns, Expression $expression): ?array
     {
+        $hasChanged = \false;
         foreach ($assigns as $assign) {
             if (!$assign->expr instanceof New_ && !$assign->expr instanceof Instanceof_) {
                 continue;
@@ -129,6 +130,7 @@ CODE_SAMPLE
             }
             // mandatory to remove parentheses
             $newOrInstanceof->setAttribute(AttributeKey::ORIGINAL_NODE, null);
+            $hasChanged = \true;
             if ($isAllowed) {
                 continue;
             }
@@ -143,7 +145,8 @@ CODE_SAMPLE
             $newOrInstanceof->class = $variable;
             return [new Expression($exprAssign), $expression];
         }
-        return null;
+        // parentheses were removed in place, report the change so it gets printed
+        return $hasChanged ? [$expression] : null;
     }
     /**
      * @return Expression[]|null

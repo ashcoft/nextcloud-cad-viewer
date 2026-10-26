@@ -8,9 +8,9 @@ use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Name;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\ConfiguredCodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\Validation\RectorAssert;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Renaming\Rector\ConstFetch\RenameConstantRector\RenameConstantRectorTest
@@ -55,14 +55,17 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
-        foreach ($this->oldToNewConstants as $oldConstant => $newConstant) {
-            if (!$this->isName($node->name, $oldConstant)) {
-                continue;
-            }
-            $node->name = new Name($newConstant);
-            return $node;
+        $constantName = $this->getName($node->name);
+        if ($constantName === null) {
+            return null;
         }
-        return null;
+        // constant names are case-sensitive, look the rename up directly instead of scanning the map
+        $newConstant = $this->oldToNewConstants[$constantName] ?? null;
+        if ($newConstant === null) {
+            return null;
+        }
+        $node->name = new Name($newConstant);
+        return $node;
     }
     /**
      * @param mixed[] $configuration

@@ -9,8 +9,8 @@ use PhpParser\Node\Scalar\String_;
 use Rector\DowngradePhp73\Tokenizer\FollowedByNewlineOnlyMaybeWithSemicolonAnalyzer;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DowngradePhp73\Rector\String_\DowngradeFlexibleHeredocSyntaxRector\DowngradeFlexibleHeredocSyntaxRectorTest
  */
@@ -24,6 +24,11 @@ final class DowngradeFlexibleHeredocSyntaxRector extends AbstractRector
      * @var int[]
      */
     private const HERENOW_DOC_KINDS = [String_::KIND_HEREDOC, String_::KIND_NOWDOC];
+    /**
+     * Marker left on the doc indentation attribute once flattened, so a later pass skips the node
+     * @var string
+     */
+    private const REMOVED_DOC_INDENTATION = '__REMOVED__';
     public function __construct(FollowedByNewlineOnlyMaybeWithSemicolonAnalyzer $followedByNewlineOnlyMaybeWithSemicolonAnalyzer)
     {
         $this->followedByNewlineOnlyMaybeWithSemicolonAnalyzer = $followedByNewlineOnlyMaybeWithSemicolonAnalyzer;
@@ -64,12 +69,16 @@ CODE_SAMPLE
         }
         // skip correctly indented
         $docIndentation = (string) $node->getAttribute(AttributeKey::DOC_INDENTATION);
-        if ($docIndentation === '' && $this->followedByNewlineOnlyMaybeWithSemicolonAnalyzer->isFollowed($this->file, $node)) {
+        if ($docIndentation === '' && $this->followedByNewlineOnlyMaybeWithSemicolonAnalyzer->isFollowed($this->getFile(), $node)) {
             return null;
         }
-        $node->setAttribute(AttributeKey::DOC_INDENTATION, '__REMOVED__');
+        // already flattened on a previous pass, re-running would keep appending newlines
+        if ($docIndentation === self::REMOVED_DOC_INDENTATION) {
+            return null;
+        }
+        $node->setAttribute(AttributeKey::DOC_INDENTATION, self::REMOVED_DOC_INDENTATION);
         $node->setAttribute(AttributeKey::ORIGINAL_NODE, null);
-        $tokens = $this->file->getOldTokens();
+        $tokens = $this->getFile()->getOldTokens();
         if (isset($tokens[$node->getEndTokenPos()], $tokens[$node->getEndTokenPos() + 1])) {
             $tokens[$node->getEndTokenPos() + 1]->text = "\n" . $tokens[$node->getEndTokenPos() + 1]->text;
         }

@@ -9,10 +9,10 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php73\Rector\ConstFetch\SensitiveConstantNameRector\SensitiveConstantNameRectorTest
  */
@@ -33,7 +33,7 @@ final class SensitiveConstantNameRector extends AbstractRector implements MinPhp
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::DEPRECATE_INSENSITIVE_CONSTANT_NAME;
+        return PhpVersion::PHP_73;
     }
     public function getRuleDefinition(): RuleDefinition
     {
@@ -70,15 +70,15 @@ CODE_SAMPLE
         if (in_array($uppercasedConstantName, self::PHP_RESERVED_CONSTANTS, \true)) {
             return null;
         }
-        // constant is defined in current lower/upper case
-        if ($this->reflectionProvider->hasConstant(new Name($constantName), null)) {
-            return null;
-        }
         // is uppercase, all good
         if ($constantName === $uppercasedConstantName) {
             return null;
         }
         if (strpos($uppercasedConstantName, '\\') !== \false || strpos($uppercasedConstantName, '(') !== \false || strpos($uppercasedConstantName, "'") !== \false) {
+            return null;
+        }
+        // constant is defined in current lower/upper case
+        if ($this->reflectionProvider->hasConstant(new Name($constantName), null)) {
             return null;
         }
         $node->name = new FullyQualified($uppercasedConstantName);

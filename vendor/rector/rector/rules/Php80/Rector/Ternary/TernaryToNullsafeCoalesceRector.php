@@ -15,13 +15,12 @@ use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticPropertyFetch;
 use PhpParser\Node\Expr\Ternary;
 use PhpParser\Node\Expr\Variable;
-use PHPStan\Type\TypeCombinator;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see https://wiki.php.net/rfc/nullsafe_operator
  *
@@ -95,7 +94,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::NULLSAFE_OPERATOR;
+        return PhpVersion::PHP_80;
     }
     /**
      * Resolves the expression compared against null, for both "null !== $a" and "$a !== null" orders.
@@ -154,13 +153,14 @@ CODE_SAMPLE
     /**
      * Guards the "?? $fallback" rewrite.
      *
-     * The ternary and the coalesce only agree while the call itself cannot return null:
+     * The ternary and the coalesce only agree while the call itself cannot return null,
+     * so "mixed" and untyped calls are skipped too:
      *
      *     null !== $a ? $a->find() : ''   // $a->find() returning null yields null
      *     $a?->find() ?? ''               // $a->find() returning null yields ''
      */
     private function shouldSkipCoalesceFallback(Expr $callExpr): bool
     {
-        return TypeCombinator::containsNull($this->getType($callExpr));
+        return !$this->getType($callExpr)->isNull()->no();
     }
 }

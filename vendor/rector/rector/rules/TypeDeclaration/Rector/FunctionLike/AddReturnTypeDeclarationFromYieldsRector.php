@@ -9,14 +9,14 @@ use PhpParser\Node\Stmt\Function_;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\TypeDeclarationDocblocks\NodeFinder\YieldNodeFinder;
 use Rector\TypeDeclarationDocblocks\TypeResolver\YieldTypeResolver;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VendorLocker\NodeVendorLocker\ClassMethodReturnTypeOverrideGuard;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\FunctionLike\AddReturnTypeDeclarationFromYieldsRector\AddReturnTypeDeclarationFromYieldsRectorTest
  */
@@ -82,15 +82,15 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
-        $scope = ScopeFetcher::fetch($node);
-        $yieldNodes = $this->yieldNodeFinder->find($node);
-        if ($yieldNodes === []) {
-            return null;
-        }
         // skip already filled type
         if ($node->returnType instanceof Node && $this->isNames($node->returnType, ['Iterator', 'Generator', 'Traversable', 'iterable'])) {
             return null;
         }
+        $yieldNodes = $this->yieldNodeFinder->find($node);
+        if ($yieldNodes === []) {
+            return null;
+        }
+        $scope = ScopeFetcher::fetch($node);
         if ($node instanceof ClassMethod && $this->classMethodReturnTypeOverrideGuard->shouldSkipClassMethod($node, $scope)) {
             return null;
         }
@@ -104,6 +104,6 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::SCALAR_TYPES;
+        return PhpVersion::PHP_70;
     }
 }

@@ -15,8 +15,8 @@ use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\If_;
 use Rector\NodeManipulator\BinaryOpManipulator;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\CodeQuality\Rector\Expression\InlineIfToExplicitIfRector\InlineIfToExplicitIfRectorTest
  */
@@ -105,8 +105,7 @@ CODE_SAMPLE
      */
     private function isSameLocalMethodCallChain($booleanExpr): bool
     {
-        $leaves = [];
-        $this->collectOperands($booleanExpr, $leaves);
+        $leaves = $this->collectOperands($booleanExpr);
         $firstMethodCall = null;
         foreach ($leaves as $leaf) {
             if (!$leaf instanceof MethodCall) {
@@ -126,15 +125,13 @@ CODE_SAMPLE
         return $firstMethodCall instanceof MethodCall;
     }
     /**
-     * @param Expr[] $leaves
+     * @return Expr[]
      */
-    private function collectOperands(Expr $expr, array &$leaves): void
+    private function collectOperands(Expr $expr): array
     {
         if ($expr instanceof BooleanAnd || $expr instanceof BooleanOr) {
-            $this->collectOperands($expr->left, $leaves);
-            $this->collectOperands($expr->right, $leaves);
-            return;
+            return array_merge($this->collectOperands($expr->left), $this->collectOperands($expr->right));
         }
-        $leaves[] = $expr;
+        return [$expr];
     }
 }

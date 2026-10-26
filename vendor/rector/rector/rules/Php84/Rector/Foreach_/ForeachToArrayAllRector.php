@@ -7,12 +7,12 @@ use PhpParser\Node;
 use Rector\Php84\NodeFactory\ForeachToArrayAnyAllFactory;
 use Rector\PhpParser\Enum\NodeGroup;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\ValueObject\PolyfillPackage;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Rector\VersionBonding\Contract\RelatedPolyfillInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php84\Rector\Foreach_\ForeachToArrayAllRector\ForeachToArrayAllRectorTest
  */
@@ -69,7 +69,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::ARRAY_ALL;
+        return PhpVersion::PHP_84;
     }
     public function providePolyfillPackage(): string
     {

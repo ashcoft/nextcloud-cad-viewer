@@ -44,9 +44,9 @@ final class NodeNameResolver
     private array $nodeNameResolvers;
     /**
      * Used to check if a string might contain a regex or fnmatch pattern
-     * @var mixed[]
+     * @var string
      */
-    private const REGEX_WILDCARD_CHARS = ['*', '#', '~', '/'];
+    private const REGEX_WILDCARD_CHARS = '*#~/';
     /**
      * @var array<string, NodeNameResolverInterface|null>
      */
@@ -138,9 +138,6 @@ final class NodeNameResolver
         }
         return (string) $node->name;
     }
-    /**
-     * @api
-     */
     public function areNamesEqual(Node $firstNode, Node $secondNode): bool
     {
         $secondResolvedName = $this->getName($secondNode);
@@ -150,8 +147,6 @@ final class NodeNameResolver
         return $this->isName($firstNode, $secondResolvedName);
     }
     /**
-     * @api
-     *
      * @param Name[]|Node[] $nodes
      * @return string[]
      */
@@ -186,10 +181,8 @@ final class NodeNameResolver
         if (strcasecmp($resolvedName, $desiredName) === 0) {
             return \true;
         }
-        foreach (self::REGEX_WILDCARD_CHARS as $char) {
-            if (strpos($desiredName, $char) !== \false) {
-                throw new ShouldNotHappenException('Matching of regular expressions is no longer supported. Use $this->getName() and compare with e.g. str_ends_with() or str_starts_with() instead.');
-            }
+        if (strpbrk($desiredName, self::REGEX_WILDCARD_CHARS) !== \false) {
+            throw new ShouldNotHappenException('Matching of regular expressions is no longer supported. Use $this->getName() and compare with e.g. str_ends_with() or str_starts_with() instead.');
         }
         return \false;
     }

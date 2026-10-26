@@ -12,22 +12,23 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\Int_;
+use Rector\Configuration\Deprecation\Contract\DeprecatedInterface;
 use Rector\Doctrine\Enum\DoctrineClass;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see https://github.com/doctrine/dbal/pull/6504/files
  *
- * @see \Rector\Doctrine\Tests\Dbal42\Rector\New_\AddArrayResultColumnNamesRector\AddArrayResultColumnNamesRectorTest
+ * @deprecated This rule is deprecated, as ArrayResult is rarely used and the guessed column keys need manual correction anyway.
  */
-final class AddArrayResultColumnNamesRector extends AbstractRector implements ComposerPackageConstraintInterface
+final class AddArrayResultColumnNamesRector extends AbstractRector implements ComposerPackageConstraintInterface, DeprecatedInterface
 {
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('doctrine/dbal', '>=4.2');
+        return new ComposerPackageConstraint('doctrine/dbal', '>=4.2 <6.0');
     }
     public function getRuleDefinition(): RuleDefinition
     {

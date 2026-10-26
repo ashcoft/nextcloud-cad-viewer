@@ -3,6 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Php80\Rector\Property;
 
+use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\AttributeGroup;
 use PhpParser\Node\Param;
@@ -18,18 +19,15 @@ use Rector\BetterPhpDocParser\ValueObject\PhpDocAttributeKey;
 use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Naming\Naming\UseImportsResolver;
-use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Php80\NodeFactory\NestedAttrGroupsFactory;
 use Rector\Php80\ValueObject\AnnotationPropertyToAttributeClass;
 use Rector\Php80\ValueObject\NestedAnnotationToAttribute;
 use Rector\Php80\ValueObject\NestedDoctrineTagAndAnnotationToAttribute;
-use Rector\PhpParser\Node\FileNode;
 use Rector\Rector\AbstractRector;
-use Rector\StaticTypeMapper\ValueObject\Type\FullyQualifiedObjectType;
+use Rector\RuleDoc\CodeSample\ConfiguredCodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Php80\Rector\Property\NestedAnnotationToAttributeRector\NestedAnnotationToAttributeRectorTest
@@ -109,6 +107,10 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
+        // nested annotations converted to attributes only come from a docblock; skip nodes without one
+        if (!$node->getDocComment() instanceof Doc) {
+            return null;
+        }
         $phpDocInfo = $this->phpDocInfoFactory->createFromNode($node);
         if (!$phpDocInfo instanceof PhpDocInfo) {
             return null;
@@ -121,7 +123,6 @@ CODE_SAMPLE
         // 3. Reprint docblock
         $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($node);
         $node->attrGroups = array_merge($node->attrGroups, $attributeGroups);
-        $this->completeExtraUseImports($attributeGroups);
         return $node;
     }
     /**
@@ -178,25 +179,5 @@ CODE_SAMPLE
             return $nestedAnnotationToAttribute;
         }
         return null;
-    }
-    /**
-     * @param AttributeGroup[] $attributeGroups
-     */
-    private function completeExtraUseImports(array $attributeGroups): void
-    {
-        $fileNode = $this->file->getFileNode();
-        if (!$fileNode instanceof FileNode) {
-            return;
-        }
-        $pendingImports = $fileNode->getPendingImports();
-        foreach ($attributeGroups as $attributeGroup) {
-            foreach ($attributeGroup->attrs as $attr) {
-                $namespacedAttrName = $attr->name->getAttribute(AttributeKey::EXTRA_USE_IMPORT);
-                if (!is_string($namespacedAttrName)) {
-                    continue;
-                }
-                $pendingImports->addUseImport(new FullyQualifiedObjectType($namespacedAttrName));
-            }
-        }
     }
 }

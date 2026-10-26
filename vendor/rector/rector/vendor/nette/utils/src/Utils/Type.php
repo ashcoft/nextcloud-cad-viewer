@@ -8,7 +8,7 @@ declare (strict_types=1);
 namespace RectorPrefix202610\Nette\Utils;
 
 use RectorPrefix202610\Nette;
-use function array_map, array_search, array_splice, array_values, count, explode, implode, is_a, is_resource, is_string, strcasecmp, strtolower, substr, trim;
+use function count, is_resource, is_string;
 /**
  * PHP type reflection.
  */
@@ -132,7 +132,7 @@ final class Type
     }
     /**
      * Returns a union type that accepts both the current type and the given type.
-     * @param string|$this $type
+     * @param mixed $type
      */
     public function with($type): self
     {
@@ -143,7 +143,7 @@ final class Type
             case $type->allows($this):
                 return $type;
             default:
-                return new self(array_unique(array_merge($this->isIntersection() ? [$this] : $this->types, $type->isIntersection() ? [$type] : $type->types), \SORT_REGULAR), '|');
+                return new self(array_unique(array_merge($this->isIntersection() ? [$this] : $this->types, is_array($type->isIntersection() ? [$type] : $type->types) ? $type->isIntersection() ? [$type] : $type->types : iterator_to_array($type->isIntersection() ? [$type] : $type->types)), \SORT_REGULAR));
         }
     }
     /**
@@ -220,7 +220,7 @@ final class Type
     }
     /**
      * Checks whether a value of the given type could be assigned to this type.
-     * @param string|$this $type
+     * @param mixed $type
      */
     public function allows($type): bool
     {

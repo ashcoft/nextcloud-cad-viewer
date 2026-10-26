@@ -10,17 +10,16 @@ use Rector\Configuration\Deprecation\Contract\DeprecatedInterface;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Exception\ShouldNotHappenException;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\ConfiguredCodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @deprecated This rule is deprecated, as unwrapping nested calls to |> pipes depends on the context of surrounding code. It can create extremely long chains that break readability, and where to draw the line is a personal preference.
  */
 final class NestedFuncCallsToPipeOperatorRector extends AbstractRector implements MinPhpVersionInterface, ConfigurableRectorInterface, DeprecatedInterface
 {
     /**
-     * @api
      * @var string
      */
     public const MINIMUM_DEPTH = 'minimum_depth';
@@ -68,6 +67,6 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::PIPE_OPERATOER;
+        return PhpVersion::PHP_85;
     }
 }

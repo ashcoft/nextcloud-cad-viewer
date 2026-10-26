@@ -16,8 +16,8 @@ use Rector\DowngradePhp80\NodeAnalyzer\UnnamedArgumentResolver;
 use Rector\NodeAnalyzer\ArgsAnalyzer;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DowngradePhp80\Rector\MethodCall\DowngradeNamedArgumentRector\DowngradeNamedArgumentRectorTest
  */
@@ -90,10 +90,12 @@ CODE_SAMPLE
         return $this->removeNamedArguments($node, $args);
     }
     /**
-     * @param Arg[] $args
+     * @template TNode of MethodCall|StaticCall|New_|FuncCall
      * @param \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\New_|\PhpParser\Node\Expr\FuncCall $node
+     * @param Arg[] $args
+     * @return TNode|null
      */
-    private function removeNamedArguments($node, array $args): ?Node
+    private function removeNamedArguments($node, array $args)
     {
         if ($node instanceof New_) {
             $functionLikeReflection = $this->reflectionResolver->resolveMethodReflectionFromNew($node);

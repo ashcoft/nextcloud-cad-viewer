@@ -6,15 +6,14 @@ namespace Rector\CodingStyle\Rector\If_;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\If_;
 use PhpParser\Token;
-use Rector\Contract\Rector\HTMLAverseRectorInterface;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\CodingStyle\Rector\If_\AlternativeIfToBracketRector\AlternativeIfToBracketRectorTest
  */
-final class AlternativeIfToBracketRector extends AbstractRector implements HTMLAverseRectorInterface
+final class AlternativeIfToBracketRector extends AbstractRector
 {
     public function getRuleDefinition(): RuleDefinition
     {
@@ -46,6 +45,9 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
+        if ($this->getFile()->containsHTML()) {
+            return null;
+        }
         if (!$this->isAlternativeSyntax($node)) {
             return null;
         }

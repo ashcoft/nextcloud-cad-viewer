@@ -30,8 +30,6 @@ final class RectorParser
         $this->privatesAccessor = $privatesAccessor;
     }
     /**
-     * @api used by rector-symfony
-     *
      * @return Stmt[]
      */
     public function parseFile(string $filePath): array
@@ -61,6 +59,7 @@ final class RectorParser
     private function resolveStmtsAndTokens(Parser $parser, string $fileContent): StmtsAndTokens
     {
         $stmts = $parser->parseString($fileContent);
+        /** @var \PhpParser\Parser $innerParser */
         $innerParser = $this->privatesAccessor->getPrivateProperty($parser, 'parser');
         $tokens = $innerParser->getTokens();
         return new StmtsAndTokens($stmts, $tokens);

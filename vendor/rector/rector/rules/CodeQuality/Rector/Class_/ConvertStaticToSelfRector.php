@@ -17,8 +17,8 @@ use Rector\Configuration\Parameter\FeatureFlags;
 use Rector\Enum\ObjectReference;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see https://3v4l.org/TQIcH
  * @see https://3v4l.org/VbcrN
@@ -69,15 +69,25 @@ CODE_SAMPLE
     {
         $hasChanged = \false;
         $isFinal = $node->isFinal() || FeatureFlags::treatClassesAsFinal($node);
-        $scope = ScopeFetcher::fetch($node);
-        $classReflection = $scope->getClassReflection();
+        $scope = null;
+        $classReflection = $this->fetchClassLikeReflection($node);
         if (!$classReflection instanceof ClassReflection) {
             return null;
         }
-        $this->traverseNodesWithCallable($node->stmts, function (Node $subNode) use (&$hasChanged, $classReflection, $isFinal, $scope): ?Node {
+        $this->traverseNodesWithCallable($node->stmts, function (Node $subNode) use (&$hasChanged, $classReflection, $isFinal, &$scope, $node): ?Node {
             if (!$subNode instanceof StaticPropertyFetch && !$subNode instanceof StaticCall && !$subNode instanceof ClassConstFetch) {
                 return null;
             }
+            if (!$subNode->class instanceof Name) {
+                return null;
+            }
+            if (!$this->isName($subNode->class, ObjectReference::STATIC)) {
+                return null;
+            }
+            if (!$subNode->name instanceof Identifier) {
+                return null;
+            }
+            $scope ??= ScopeFetcher::fetch($node);
             if ($this->shouldSkip($subNode, $classReflection, $isFinal, $scope)) {
                 return null;
             }
@@ -92,15 +102,6 @@ CODE_SAMPLE
      */
     private function shouldSkip($node, ClassReflection $classReflection, bool $isFinal, Scope $scope): bool
     {
-        if (!$node->class instanceof Name) {
-            return \true;
-        }
-        if (!$this->isName($node->class, ObjectReference::STATIC)) {
-            return \true;
-        }
-        if (!$node->name instanceof Identifier) {
-            return \true;
-        }
         $name = (string) $this->getName($node->name);
         switch (\true) {
             case $node instanceof StaticPropertyFetch:

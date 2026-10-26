@@ -29,9 +29,9 @@ use Rector\PhpParser\Enum\NodeGroup;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\ValueObject\MethodName;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\Assign\RemoveUnusedVariableAssignRector\RemoveUnusedVariableAssignRectorTest
  */
@@ -113,11 +113,14 @@ CODE_SAMPLE
         if ($stmts === null || $stmts === []) {
             return null;
         }
-        // we cannot be sure here
+        $assignedVariableNamesByStmtPosition = $this->resolvedAssignedVariablesByStmtPosition($stmts);
+        if ($assignedVariableNamesByStmtPosition === []) {
+            return null;
+        }
+        // we cannot be sure here, deep walk only when there is a candidate to remove
         if ($this->shouldSkip($stmts)) {
             return null;
         }
-        $assignedVariableNamesByStmtPosition = $this->resolvedAssignedVariablesByStmtPosition($stmts);
         $hasChanged = \false;
         foreach ($assignedVariableNamesByStmtPosition as $stmtPosition => $variableName) {
             if ($this->stmtsManipulator->isVariableUsedInNextStmt($node, $stmtPosition + 1, $variableName)) {
@@ -205,19 +208,21 @@ CODE_SAMPLE
         });
     }
     /**
-     * @param string[] $refVariableNames
+     * @return string[]
      */
-    private function collectAssignRefVariableNames(Stmt $stmt, array &$refVariableNames): void
+    private function collectAssignRefVariableNames(Stmt $stmt): array
     {
         if (!NodeGroup::isStmtAwareNode($stmt)) {
-            return;
+            return [];
         }
+        $refVariableNames = [];
         $this->traverseNodesWithCallable($stmt, function (Node $subNode) use (&$refVariableNames): Node {
             if ($subNode instanceof AssignRef && $subNode->var instanceof Variable) {
                 $refVariableNames[] = (string) $this->getName($subNode->var);
             }
             return $subNode;
         });
+        return $refVariableNames;
     }
     /**
      * @param array<int, Stmt> $stmts
@@ -229,7 +234,7 @@ CODE_SAMPLE
         $refVariableNames = [];
         foreach ($stmts as $key => $stmt) {
             if (!$stmt instanceof Expression) {
-                $this->collectAssignRefVariableNames($stmt, $refVariableNames);
+                $refVariableNames = array_merge($refVariableNames, $this->collectAssignRefVariableNames($stmt));
                 continue;
             }
             if ($stmt->expr instanceof AssignRef && $stmt->expr->var instanceof Variable) {

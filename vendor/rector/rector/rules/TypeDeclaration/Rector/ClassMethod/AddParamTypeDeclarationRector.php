@@ -16,12 +16,12 @@ use Rector\NodeTypeResolver\TypeComparator\TypeComparator;
 use Rector\Php\PhpVersionProvider;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\ConfiguredCodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\TypeDeclaration\ValueObject\AddParamTypeDeclaration;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VendorLocker\ParentClassMethodTypeOverrideGuard;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\AddParamTypeDeclarationRector\AddParamTypeDeclarationRectorTest
@@ -45,9 +45,9 @@ final class AddParamTypeDeclarationRector extends AbstractRector implements Conf
      */
     private ParentClassMethodTypeOverrideGuard $parentClassMethodTypeOverrideGuard;
     /**
-     * @var AddParamTypeDeclaration[]
+     * @var array<string, AddParamTypeDeclaration[]>
      */
-    private array $addParamTypeDeclarations = [];
+    private array $addParamTypeDeclarationsByMethod = [];
     private bool $hasChanged = \false;
     public function __construct(TypeComparator $typeComparator, PhpVersionProvider $phpVersionProvider, StaticTypeMapper $staticTypeMapper, ParentClassMethodTypeOverrideGuard $parentClassMethodTypeOverrideGuard)
     {
@@ -89,6 +89,10 @@ CODE_SAMPLE
     public function refactor(Node $node): ?Node
     {
         $this->hasChanged = \false;
+        // skip class without parents/interfaces, there is no param type to mimic
+        if ($node instanceof Class_ && !$node->extends instanceof Name && $node->implements === []) {
+            return null;
+        }
         // skip guarded classes, where adding a param type would break child classes
         if ($this->parentClassMethodTypeOverrideGuard->isTypeGuardedClass($node)) {
             return null;
@@ -98,10 +102,10 @@ CODE_SAMPLE
                 continue;
             }
             $methodName = $this->getName($classMethod);
-            foreach ($this->addParamTypeDeclarations as $addParamTypeDeclaration) {
-                if (!$this->nodeNameResolver->isStringName($methodName, $addParamTypeDeclaration->getMethodName())) {
-                    continue;
-                }
+            if ($methodName === null) {
+                continue;
+            }
+            foreach ($this->addParamTypeDeclarationsByMethod[strtolower($methodName)] ?? [] as $addParamTypeDeclaration) {
                 if (!$this->isObjectType($node, $addParamTypeDeclaration->getObjectType())) {
                     continue;
                 }
@@ -119,7 +123,10 @@ CODE_SAMPLE
     public function configure(array $configuration): void
     {
         Assert::allIsAOf($configuration, AddParamTypeDeclaration::class);
-        $this->addParamTypeDeclarations = $configuration;
+        $this->addParamTypeDeclarationsByMethod = [];
+        foreach ($configuration as $addParamTypeDeclaration) {
+            $this->addParamTypeDeclarationsByMethod[strtolower($addParamTypeDeclaration->getMethodName())][] = $addParamTypeDeclaration;
+        }
     }
     /**
      * @param \PhpParser\Node\Stmt\Class_|\PhpParser\Node\Stmt\Interface_ $classLike
@@ -157,7 +164,7 @@ CODE_SAMPLE
         $this->hasChanged = \true;
         // remove it
         if ($addParamTypeDeclaration->getParamType() instanceof MixedType) {
-            if ($this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::MIXED_TYPE)) {
+            if ($this->phpVersionProvider->isAtLeastPhpVersion(PhpVersion::PHP_80)) {
                 $param->type = $paramTypeNode;
                 return;
             }

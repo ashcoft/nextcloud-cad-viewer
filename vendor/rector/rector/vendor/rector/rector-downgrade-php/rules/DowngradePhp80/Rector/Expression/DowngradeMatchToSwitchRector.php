@@ -30,13 +30,13 @@ use PhpParser\Node\Stmt\Return_;
 use PhpParser\Node\Stmt\Switch_;
 use PhpParser\NodeVisitor;
 use PHPStan\Analyser\Scope;
-use Rector\Naming\Naming\VariableNaming;
+use Rector\DowngradePhp\Naming\VariableNaming;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Php72\NodeFactory\AnonymousFunctionFactory;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @changelog https://wiki.php.net/rfc/match_expression_v2
  *
@@ -196,8 +196,9 @@ CODE_SAMPLE
         return $matchScope->getParentScope() === $containerScope->getParentScope();
     }
     /**
+     * @template TNode of Arg|FuncCall|Assign|Expression|Return_
      * @param \PhpParser\Node\Arg|\PhpParser\Node\Expr\FuncCall|\PhpParser\Node\Expr\Assign|\PhpParser\Node\Stmt\Expression|\PhpParser\Node\Stmt\Return_ $containerArrowFunction
-     * @return \PhpParser\Node\Arg|\PhpParser\Node\Expr\FuncCall|\PhpParser\Node\Expr\Assign|\PhpParser\Node\Stmt\Expression|\PhpParser\Node\Stmt\Return_|null
+     * @return TNode|null
      */
     private function refactorInArrowFunction($containerArrowFunction, ArrowFunction $arrowFunction, Match_ $match)
     {

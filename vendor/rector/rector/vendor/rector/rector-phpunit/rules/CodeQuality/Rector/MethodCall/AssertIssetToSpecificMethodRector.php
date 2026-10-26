@@ -13,8 +13,8 @@ use Rector\PHPUnit\Enum\AssertMethod;
 use Rector\PHPUnit\NodeAnalyzer\IdentifierManipulator;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\PHPUnit\Tests\CodeQuality\Rector\MethodCall\AssertIssetToSpecificMethodRector\AssertIssetToSpecificMethodRectorTest
  */
@@ -83,9 +83,11 @@ final class AssertIssetToSpecificMethodRector extends AbstractRector
         return $this->refactorArrayDimFetchNode($node, $issetExpr);
     }
     /**
+     * @template TNode of MethodCall|StaticCall
      * @param \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\StaticCall $node
+     * @return TNode
      */
-    private function refactorArrayDimFetchNode($node, ArrayDimFetch $arrayDimFetch): Node
+    private function refactorArrayDimFetchNode($node, ArrayDimFetch $arrayDimFetch)
     {
         $this->identifierManipulator->renameNodeWithMap($node, [AssertMethod::ASSERT_TRUE => 'assertArrayHasKey', AssertMethod::ASSERT_FALSE => 'assertArrayNotHasKey']);
         $oldArgs = $node->getArgs();

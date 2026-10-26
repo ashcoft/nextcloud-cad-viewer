@@ -24,10 +24,10 @@ use Rector\Php80\ValueObject\MatchResult;
 use Rector\PhpParser\Enum\NodeGroup;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php80\Rector\Switch_\ChangeSwitchToMatchRector\ChangeSwitchToMatchRectorTest
  */
@@ -117,7 +117,7 @@ CODE_SAMPLE
                 continue;
             }
             $isReturn = $this->matchSwitchAnalyzer->isReturnCondsAndExprs($condAndExprs);
-            if ($this->nodeTypeResolver->getType($stmt->cond) instanceof ObjectType) {
+            if ($this->getType($stmt->cond) instanceof ObjectType) {
                 continue;
             }
             $matchResult = $this->matchFactory->createFromCondAndExprs($stmt->cond, $condAndExprs, $nextStmt);
@@ -162,7 +162,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::MATCH_EXPRESSION;
+        return PhpVersion::PHP_80;
     }
     private function castMatchCond(Match_ $match): void
     {

@@ -18,9 +18,9 @@ use Rector\NodeTypeResolver\TypeComparator\TypeComparator;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\FunctionLike\AddClosureParamTypeForArrayReduceRector\AddClosureParamTypeForArrayReduceRectorTest
  */
@@ -73,12 +73,12 @@ CODE_SAMPLE
         if (!$this->isName($node, 'array_reduce')) {
             return null;
         }
-        $funcReflection = $this->reflectionResolver->resolveFunctionLikeReflectionFromCall($node);
-        if (!$funcReflection instanceof NativeFunctionReflection) {
-            return null;
-        }
         $args = $node->getArgs();
         if (!isset($args[1]) || !$args[1]->value instanceof Closure) {
+            return null;
+        }
+        $funcReflection = $this->reflectionResolver->resolveFunctionLikeReflectionFromCall($node);
+        if (!$funcReflection instanceof NativeFunctionReflection) {
             return null;
         }
         $closureType = $this->getType($args[1]->value);

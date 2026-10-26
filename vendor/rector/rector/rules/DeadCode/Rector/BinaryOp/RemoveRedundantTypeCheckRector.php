@@ -16,8 +16,8 @@ use PHPStan\Type\TypeCombinator;
 use Rector\NodeAnalyzer\ExprAnalyzer;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\BinaryOp\RemoveRedundantTypeCheckRector\RemoveRedundantTypeCheckRectorTest
  */
@@ -99,11 +99,11 @@ CODE_SAMPLE
         if (!$nullComparedExpr instanceof Variable) {
             return null;
         }
-        // the docblock type can be wider than the real value
-        if ($this->exprAnalyzer->isNonTypedFromParam($nullComparedExpr)) {
+        if (!$booleanOr->right instanceof BooleanNot) {
             return null;
         }
-        if (!$booleanOr->right instanceof BooleanNot) {
+        // the docblock type can be wider than the real value
+        if ($this->exprAnalyzer->isNonTypedFromParam($nullComparedExpr)) {
             return null;
         }
         $funcCall = $this->matchTypeCheckFuncCall($booleanOr->right->expr, $nullComparedExpr);
@@ -129,6 +129,9 @@ CODE_SAMPLE
     private function refactorBooleanAnd(BooleanAnd $booleanAnd): ?Expr
     {
         if (!$booleanAnd->left instanceof Variable) {
+            return null;
+        }
+        if (!$booleanAnd->right instanceof FuncCall) {
             return null;
         }
         // the docblock type can be wider than the real value

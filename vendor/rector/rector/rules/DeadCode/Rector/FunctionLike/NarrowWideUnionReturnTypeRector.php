@@ -34,12 +34,12 @@ use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\TypeDeclaration\TypeInferer\SilentVoidResolver;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\FunctionLike\NarrowWideUnionReturnTypeRector\NarrowWideUnionReturnTypeRectorTest
  */
@@ -120,7 +120,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::NULLABLE_TYPE;
+        return PhpVersion::PHP_71;
     }
     /**
      * @return array<class-string<Node>>
@@ -259,7 +259,7 @@ CODE_SAMPLE
     private function resolveNativeReturnTypes(Expr $expr): array
     {
         if (!$expr instanceof Ternary || !$this->hasVendorClassConstFetch($expr->cond)) {
-            $type = $this->nodeTypeResolver->getType($expr);
+            $type = $this->getType($expr);
             // native type may be narrowed by assertions even when the resolved scope is unreachable
             if ($type instanceof NeverType) {
                 return [$type];
@@ -273,7 +273,7 @@ CODE_SAMPLE
     {
         $classConstFetches = $this->betterNodeFinder->findInstanceOf($expr, ClassConstFetch::class);
         foreach ($classConstFetches as $classConstFetch) {
-            $classType = $this->nodeTypeResolver->getType($classConstFetch->class);
+            $classType = $this->getType($classConstFetch->class);
             if (!$classType instanceof ObjectType) {
                 continue;
             }

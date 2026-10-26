@@ -28,10 +28,10 @@ use Rector\PHPUnit\NodeFinder\MethodCallNodeFinder;
 use Rector\PHPUnit\PHPUnit100\NodeDecorator\WillReturnIfNodeDecorator;
 use Rector\PHPUnit\PHPUnit100\NodeFactory\WillReturnCallbackFactory;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\PHPUnit\Tests\PHPUnit100\Rector\StmtsAwareInterface\WithConsecutiveRector\WithConsecutiveRectorTest
  */
@@ -66,7 +66,7 @@ final class WithConsecutiveRector extends AbstractRector implements ComposerPack
      */
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('phpunit/phpunit', '>=10.0');
+        return new ComposerPackageConstraint('phpunit/phpunit', '>=10.0 <12.0');
     }
     public function __construct(TestsNodeAnalyzer $testsNodeAnalyzer, WillReturnCallbackFactory $willReturnCallbackFactory, MethodCallRemover $methodCallRemover, MethodCallNodeFinder $methodCallNodeFinder, \Rector\PHPUnit\PHPUnit100\Rector\StmtsAwareInterface\ExpectsMethodCallDecorator $expectsMethodCallDecorator, WillReturnIfNodeDecorator $willReturnIfNodeDecorator)
     {
@@ -194,7 +194,7 @@ CODE_SAMPLE
         return $this->refactorToWillReturnCallback($withConsecutiveMethodCall, $returnStmt, $referenceVariable, $expectsCall, $node, $willReturnOnConsecutiveMethodCall);
     }
     /**
-     * @return Stmt[]
+     * @return array{Expression, Expression}
      * @param \PhpParser\Node\Stmt\Return_|\PhpParser\Node\Stmt\Expression|null $returnStmt
      * @param \PhpParser\Node\Expr|\PhpParser\Node\Expr\Variable|null $referenceVariable
      * @param \PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\MethodCall $expectsCall

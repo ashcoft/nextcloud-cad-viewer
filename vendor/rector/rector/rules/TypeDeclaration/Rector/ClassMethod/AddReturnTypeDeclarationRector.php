@@ -17,13 +17,13 @@ use Rector\Php\PhpVersionProvider;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
+use Rector\RuleDoc\CodeSample\ConfiguredCodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\StaticTypeMapper\ValueObject\Type\SimpleStaticType;
 use Rector\TypeDeclaration\ValueObject\AddReturnTypeDeclaration;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VendorLocker\ParentClassMethodTypeOverrideGuard;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\AddReturnTypeDeclarationRector\AddReturnTypeDeclarationRectorTest
@@ -47,9 +47,9 @@ final class AddReturnTypeDeclarationRector extends AbstractRector implements Con
      */
     private ReflectionResolver $reflectionResolver;
     /**
-     * @var AddReturnTypeDeclaration[]
+     * @var array<string, AddReturnTypeDeclaration[]>
      */
-    private array $methodReturnTypes = [];
+    private array $methodReturnTypesByMethod = [];
     private bool $hasChanged = \false;
     public function __construct(PhpVersionProvider $phpVersionProvider, ParentClassMethodTypeOverrideGuard $parentClassMethodTypeOverrideGuard, StaticTypeMapper $staticTypeMapper, ReflectionResolver $reflectionResolver)
     {
@@ -95,13 +95,14 @@ CODE_SAMPLE
         if ($this->parentClassMethodTypeOverrideGuard->isTypeGuardedClass($node)) {
             return null;
         }
-        foreach ($this->methodReturnTypes as $methodReturnType) {
-            $objectType = $methodReturnType->getObjectType();
-            if (!$this->isObjectType($node, $objectType)) {
+        foreach ($node->getMethods() as $classMethod) {
+            $methodName = $this->getName($classMethod);
+            if ($methodName === null) {
                 continue;
             }
-            foreach ($node->getMethods() as $classMethod) {
-                if (!$this->isName($classMethod, $methodReturnType->getMethod())) {
+            foreach ($this->methodReturnTypesByMethod[strtolower($methodName)] ?? [] as $methodReturnType) {
+                $objectType = $methodReturnType->getObjectType();
+                if (!$this->isObjectType($node, $objectType)) {
                     continue;
                 }
                 $this->processClassMethodNodeWithTypehints($classMethod, $node, $methodReturnType->getReturnType(), $objectType);
@@ -118,7 +119,10 @@ CODE_SAMPLE
     public function configure(array $configuration): void
     {
         Assert::allIsAOf($configuration, AddReturnTypeDeclaration::class);
-        $this->methodReturnTypes = $configuration;
+        $this->methodReturnTypesByMethod = [];
+        foreach ($configuration as $methodReturnType) {
+            $this->methodReturnTypesByMethod[strtolower($methodReturnType->getMethod())][] = $methodReturnType;
+        }
     }
     private function processClassMethodNodeWithTypehints(ClassMethod $classMethod, Class_ $class, Type $newType, ObjectType $objectType): void
     {
@@ -130,12 +134,12 @@ CODE_SAMPLE
             }
         }
         // remove it
-        if ($newType instanceof MixedType && !$this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::MIXED_TYPE)) {
+        if ($newType instanceof MixedType && !$this->phpVersionProvider->isAtLeastPhpVersion(PhpVersion::PHP_80)) {
             $classMethod->returnType = null;
             return;
         }
-        $classReflection = $this->reflectionResolver->resolveClassReflection($classMethod);
         if ($classMethod->returnType instanceof Node && $newType instanceof SimpleStaticType) {
+            $classReflection = $this->reflectionResolver->resolveClassReflection($classMethod);
             if (!$classReflection instanceof ClassReflection) {
                 return;
             }

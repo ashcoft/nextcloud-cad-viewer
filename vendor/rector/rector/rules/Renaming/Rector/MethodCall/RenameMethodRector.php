@@ -25,8 +25,8 @@ use Rector\Reflection\ReflectionResolver;
 use Rector\Renaming\Contract\MethodCallRenameInterface;
 use Rector\Renaming\ValueObject\MethodCallRename;
 use Rector\Renaming\ValueObject\MethodCallRenameWithArrayKey;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\ConfiguredCodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Renaming\Rector\MethodCall\RenameMethodRector\RenameMethodRectorTest
@@ -46,9 +46,9 @@ final class RenameMethodRector extends AbstractRector implements ConfigurableRec
      */
     private ReflectionProvider $reflectionProvider;
     /**
-     * @var MethodCallRenameInterface[]
+     * @var array<string, MethodCallRenameInterface[]>
      */
-    private array $methodCallRenames = [];
+    private array $methodCallRenamesByOldMethod = [];
     public function __construct(ClassManipulator $classManipulator, ReflectionResolver $reflectionResolver, ReflectionProvider $reflectionProvider)
     {
         $this->classManipulator = $classManipulator;
@@ -91,7 +91,12 @@ CODE_SAMPLE
     public function configure(array $configuration): void
     {
         Assert::allIsAOf($configuration, MethodCallRenameInterface::class);
-        $this->methodCallRenames = $configuration;
+        // bucket by old method name, so a node matches only the few renames sharing its name,
+        // instead of scanning the whole configured list per node
+        $this->methodCallRenamesByOldMethod = [];
+        foreach ($configuration as $methodCallRename) {
+            $this->methodCallRenamesByOldMethod[strtolower($methodCallRename->getOldMethod())][] = $methodCallRename;
+        }
     }
     /**
      * @param \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\NullsafeMethodCall|\PhpParser\Node\Expr\StaticCall $call
@@ -135,8 +140,9 @@ CODE_SAMPLE
         return $this->classManipulator->hasParentMethodOrInterface($methodCallRename->getObjectType(), $methodCallRename->getOldMethod());
     }
     /**
+     * @template TClassLike of Class_|Trait_|Interface_
      * @param \PhpParser\Node\Stmt\Class_|\PhpParser\Node\Stmt\Trait_|\PhpParser\Node\Stmt\Interface_ $classOrInterface
-     * @return \PhpParser\Node\Stmt\Class_|\PhpParser\Node\Stmt\Trait_|\PhpParser\Node\Stmt\Interface_|null
+     * @return TClassLike|null
      */
     private function refactorClass($classOrInterface, Scope $scope)
     {
@@ -147,7 +153,7 @@ CODE_SAMPLE
             if ($methodName === null) {
                 continue;
             }
-            foreach ($this->methodCallRenames as $methodCallRename) {
+            foreach ($this->methodCallRenamesByOldMethod[strtolower($methodName)] ?? [] as $methodCallRename) {
                 if ($this->shouldSkipRename($methodName, $classMethod, $methodCallRename, $classOrInterface, $classReflection)) {
                     continue;
                 }
@@ -190,7 +196,7 @@ CODE_SAMPLE
         if ($callName === null) {
             return null;
         }
-        foreach ($this->methodCallRenames as $methodCallRename) {
+        foreach ($this->methodCallRenamesByOldMethod[strtolower($callName)] ?? [] as $methodCallRename) {
             if (!$this->nodeNameResolver->isStringName($callName, $methodCallRename->getOldMethod())) {
                 continue;
             }

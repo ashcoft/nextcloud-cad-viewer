@@ -6,10 +6,10 @@ namespace Rector\Php73\Rector\FuncCall;
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php73\Rector\FuncCall\SensitiveDefineRector\SensitiveDefineRectorTest
  */
@@ -17,7 +17,7 @@ final class SensitiveDefineRector extends AbstractRector implements MinPhpVersio
 {
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::DEPRECATE_INSENSITIVE_CONSTANT_DEFINE;
+        return PhpVersion::PHP_73;
     }
     public function getRuleDefinition(): RuleDefinition
     {

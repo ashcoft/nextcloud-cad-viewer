@@ -8,8 +8,8 @@ use PhpParser\Node\Scalar\String_;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\ConfiguredCodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Renaming\Rector\String_\RenameStringRector\RenameStringRectorTest
@@ -62,13 +62,15 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
-        foreach ($this->stringChanges as $oldValue => $newValue) {
-            if (!$this->valueResolver->isValue($node, $oldValue)) {
-                continue;
-            }
-            return new String_($newValue);
+        $value = $this->valueResolver->getValue($node);
+        if (!is_string($value)) {
+            return null;
         }
-        return null;
+        $newValue = $this->stringChanges[$value] ?? null;
+        if ($newValue === null) {
+            return null;
+        }
+        return new String_($newValue);
     }
     /**
      * @param mixed[] $configuration

@@ -18,8 +18,8 @@ use Rector\NodeAnalyzer\ClassAnalyzer;
 use Rector\NodeManipulator\ClassMethodManipulator;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ClassReflectionAnalyzer;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\StaticCall\RemoveParentCallWithoutParentRector\RemoveParentCallWithoutParentRectorTest
  */
@@ -131,12 +131,12 @@ CODE_SAMPLE
     }
     private function shouldSkipClass(Class_ $class): bool
     {
-        // skip cases when parent class reflection is not found
-        if ($class->extends instanceof FullyQualified && !$this->reflectionProvider->hasClass($class->extends->toString())) {
+        // currently the classMethodManipulator isn't able to find usages of anonymous classes
+        if ($this->classAnalyzer->isAnonymousClass($class)) {
             return \true;
         }
-        // currently the classMethodManipulator isn't able to find usages of anonymous classes
-        return $this->classAnalyzer->isAnonymousClass($class);
+        // skip cases when parent class reflection is not found
+        return $class->extends instanceof FullyQualified && !$this->reflectionProvider->hasClass($class->extends->toString());
     }
     private function doesCalledMethodExistInParent(StaticCall $staticCall, Class_ $class): bool
     {

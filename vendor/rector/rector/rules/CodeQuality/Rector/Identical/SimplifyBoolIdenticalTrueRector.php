@@ -10,8 +10,8 @@ use PhpParser\Node\Expr\BinaryOp\NotIdentical;
 use PhpParser\Node\Expr\BooleanNot;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\CodeQuality\Rector\Identical\SimplifyBoolIdenticalTrueRector\SimplifyBoolIdenticalTrueRectorTest
  */
@@ -63,10 +63,15 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
-        if ($this->isBooleanButNotTrueAndFalse($node->left)) {
-            return $this->processBoolTypeToNotBool($node, $node->left, $node->right);
+        // the rule only applies when one side is a true/false constant;
+        // check it first to avoid the expensive native type resolution below
+        if ($this->valueResolver->isTrueOrFalse($node->right)) {
+            if ($this->isBooleanButNotTrueAndFalse($node->left)) {
+                return $this->processBoolTypeToNotBool($node, $node->left, $node->right);
+            }
+            return null;
         }
-        if ($this->isBooleanButNotTrueAndFalse($node->right)) {
+        if ($this->valueResolver->isTrueOrFalse($node->left) && $this->isBooleanButNotTrueAndFalse($node->right)) {
             return $this->processBoolTypeToNotBool($node, $node->right, $node->left);
         }
         return null;

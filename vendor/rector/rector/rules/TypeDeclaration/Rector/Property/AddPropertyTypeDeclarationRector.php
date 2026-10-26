@@ -5,35 +5,19 @@ namespace Rector\TypeDeclaration\Rector\Property;
 
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Property;
-use PHPStan\Reflection\ClassReflection;
 use PHPStan\Type\StringType;
+use Rector\Configuration\Deprecation\Contract\DeprecatedInterface;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Exception\ShouldNotHappenException;
-use Rector\PHPStan\ScopeFetcher;
-use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
-use Rector\StaticTypeMapper\StaticTypeMapper;
+use Rector\RuleDoc\CodeSample\ConfiguredCodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\TypeDeclaration\ValueObject\AddPropertyTypeDeclaration;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
- * @see \Rector\Tests\TypeDeclaration\Rector\Property\AddPropertyTypeDeclarationRector\AddPropertyTypeDeclarationRectorTest
+ * @deprecated This rule is deprecated, as too niche and never used, not part of any set. Write a custom rule for the exact project case instead.
  */
-final class AddPropertyTypeDeclarationRector extends AbstractRector implements ConfigurableRectorInterface
+final class AddPropertyTypeDeclarationRector extends AbstractRector implements ConfigurableRectorInterface, DeprecatedInterface
 {
-    /**
-     * @readonly
-     */
-    private StaticTypeMapper $staticTypeMapper;
-    /**
-     * @var AddPropertyTypeDeclaration[]
-     */
-    private array $addPropertyTypeDeclarations = [];
-    public function __construct(StaticTypeMapper $staticTypeMapper)
-    {
-        $this->staticTypeMapper = $staticTypeMapper;
-    }
     public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Add type to property by added rules, mostly public/property by parent type', [new ConfiguredCodeSample(<<<'CODE_SAMPLE'
@@ -62,45 +46,12 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
-        // type is already known
-        if ($node->type !== null) {
-            return null;
-        }
-        $scope = ScopeFetcher::fetch($node);
-        $classReflection = $scope->getClassReflection();
-        if (!$classReflection instanceof ClassReflection) {
-            return null;
-        }
-        foreach ($this->addPropertyTypeDeclarations as $addPropertyTypeDeclaration) {
-            if (!$this->isClassReflectionType($classReflection, $addPropertyTypeDeclaration->getClass())) {
-                continue;
-            }
-            if (!$this->isName($node, $addPropertyTypeDeclaration->getPropertyName())) {
-                continue;
-            }
-            $typeNode = $this->staticTypeMapper->mapPHPStanTypeToPhpParserNode($addPropertyTypeDeclaration->getType(), TypeKind::PROPERTY);
-            if (!$typeNode instanceof Node) {
-                // invalid configuration
-                throw new ShouldNotHappenException();
-            }
-            $node->type = $typeNode;
-            return $node;
-        }
-        return null;
+        throw new ShouldNotHappenException(sprintf('"%s" rule is deprecated, as too niche and part of no set; write a custom rule for the exact project case instead', self::class));
     }
     /**
      * @param mixed[] $configuration
      */
     public function configure(array $configuration): void
     {
-        Assert::allIsAOf($configuration, AddPropertyTypeDeclaration::class);
-        $this->addPropertyTypeDeclarations = $configuration;
-    }
-    private function isClassReflectionType(ClassReflection $classReflection, string $type): bool
-    {
-        if ($classReflection->hasTraitUse($type)) {
-            return \true;
-        }
-        return $classReflection->is($type);
     }
 }

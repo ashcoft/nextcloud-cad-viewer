@@ -9,15 +9,15 @@ use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ObjectType;
 use Rector\Php80\NodeAnalyzer\PhpAttributeAnalyzer;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\Symfony\Helper\MessengerHelper;
 use Rector\Symfony\NodeManipulator\ClassManipulator;
 use Rector\Symfony\ValueObject\ServiceDefinition;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Symfony\Tests\Symfony62\Rector\Class_\MessageHandlerInterfaceToAttributeRector\MessageHandlerToAttributeRectorTest
  */
@@ -48,7 +48,7 @@ final class MessageHandlerInterfaceToAttributeRector extends AbstractRector impl
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::ATTRIBUTES;
+        return PhpVersion::PHP_80;
     }
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {

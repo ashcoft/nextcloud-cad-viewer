@@ -3,6 +3,7 @@
 declare (strict_types=1);
 namespace Rector\TypeDeclarationDocblocks\Rector\Property;
 
+use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\ClassConst;
@@ -18,8 +19,8 @@ use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclarationDocblocks\Rector\Property\MergePhpstanDocTagIntoNativeRector\MergePhpstanDocTagIntoNativeRectorTest
  */
@@ -78,6 +79,10 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
+        // @phpstan-* tags can only live in a docblock; skip nodes without one
+        if (!$node->getDocComment() instanceof Doc) {
+            return null;
+        }
         $phpDocInfo = $this->phpDocInfoFactory->createFromNode($node);
         if (!$phpDocInfo instanceof PhpDocInfo) {
             return null;
@@ -86,8 +91,17 @@ CODE_SAMPLE
         $phpstanParamNames = [];
         $phpstanVarNames = [];
         $hasPhpstanReturn = \false;
+        $nativeDescriptions = [];
         foreach ($phpDocNode->children as $phpDocChildNode) {
             if (!$phpDocChildNode instanceof PhpDocTagNode) {
+                continue;
+            }
+            // remember native tag descriptions, so they survive when the native tag is overruled
+            if (in_array($phpDocChildNode->name, self::PHPSTAN_TAG_TO_NATIVE_TAG, \true)) {
+                $tagValueNode = $phpDocChildNode->value;
+                if (($tagValueNode instanceof ParamTagValueNode || $tagValueNode instanceof VarTagValueNode || $tagValueNode instanceof ReturnTagValueNode) && $tagValueNode->description !== '') {
+                    $nativeDescriptions[$this->resolveTagKey($tagValueNode)] = $tagValueNode->description;
+                }
                 continue;
             }
             if ($phpDocChildNode->name === '@phpstan-param' && $phpDocChildNode->value instanceof ParamTagValueNode) {
@@ -115,6 +129,11 @@ CODE_SAMPLE
             // promote the @phpstan-* tag to its native counterpart
             $nativeTagName = self::PHPSTAN_TAG_TO_NATIVE_TAG[$phpDocChildNode->name] ?? null;
             if ($nativeTagName !== null) {
+                // keep the description of the overruled native tag
+                $tagValueNode = $phpDocChildNode->value;
+                if (($tagValueNode instanceof ParamTagValueNode || $tagValueNode instanceof VarTagValueNode || $tagValueNode instanceof ReturnTagValueNode) && $tagValueNode->description === '') {
+                    $tagValueNode->description = $nativeDescriptions[$this->resolveTagKey($tagValueNode)] ?? '';
+                }
                 $phpDocNode->children[$key] = new PhpDocTagNode($nativeTagName, $phpDocChildNode->value);
                 $hasChanged = \true;
             }
@@ -151,5 +170,18 @@ CODE_SAMPLE
             return $hasPhpstanReturn;
         }
         return \false;
+    }
+    /**
+     * @param \PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode|\PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode|\PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode $tagValueNode
+     */
+    private function resolveTagKey($tagValueNode): string
+    {
+        if ($tagValueNode instanceof ParamTagValueNode) {
+            return '@param ' . $tagValueNode->parameterName;
+        }
+        if ($tagValueNode instanceof VarTagValueNode) {
+            return '@var ' . $tagValueNode->variableName;
+        }
+        return '@return';
     }
 }

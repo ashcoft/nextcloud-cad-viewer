@@ -21,10 +21,10 @@ use PHPStan\Type\UnionType;
 use Rector\PhpParser\Node\FileNode;
 use Rector\PhpParser\NodeFinder\PropertyFetchFinder;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php71\Rector\Assign\AssignArrayToStringRector\AssignArrayToStringRectorTest
  */
@@ -40,7 +40,7 @@ final class AssignArrayToStringRector extends AbstractRector implements MinPhpVe
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::NO_ASSIGN_ARRAY_TO_STRING;
+        return PhpVersion::PHP_71;
     }
     public function getRuleDefinition(): RuleDefinition
     {

@@ -17,8 +17,8 @@ use Rector\Php\ReservedKeywordAnalyzer;
 use Rector\PhpParser\Enum\NodeGroup;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\If_\RemoveOverriddenAssignBeforeIfElseRector\RemoveOverriddenAssignBeforeIfElseRectorTest
  */
@@ -100,15 +100,15 @@ CODE_SAMPLE
         }
         $hasChanged = \false;
         foreach ($node->stmts as $key => $stmt) {
-            $variableName = $this->matchOverridableAssignVariableName($stmt);
-            if ($variableName === null) {
-                continue;
-            }
             $nextStmt = $node->stmts[$key + 1] ?? null;
             if (!$nextStmt instanceof If_) {
                 continue;
             }
             if (!$nextStmt->else instanceof Else_ || $nextStmt->elseifs !== []) {
+                continue;
+            }
+            $variableName = $this->matchOverridableAssignVariableName($stmt);
+            if ($variableName === null) {
                 continue;
             }
             // the initial value is still read when the condition uses it

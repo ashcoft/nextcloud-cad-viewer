@@ -9,11 +9,11 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\Symfony\Enum\SymfonyClass;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see https://github.com/symfony/symfony/blob/8.0/UPGRADE-8.0.md#security
  *
@@ -74,6 +74,13 @@ CODE_SAMPLE
             unset($node->stmts[$key]);
             $hasChanged = \true;
             if ($classMethodStmts !== []) {
+                // prefer __serialize(), as that is what PHP actually uses during serialization
+                $magicSerializeClassMethod = $node->getMethod('__serialize');
+                if ($magicSerializeClassMethod instanceof ClassMethod) {
+                    // prepend before the "(array) $this" cast, so cleared properties are excluded
+                    $magicSerializeClassMethod->stmts = array_merge($classMethodStmts, $magicSerializeClassMethod->stmts ?? []);
+                    continue;
+                }
                 // make part of serialize method if it exists
                 $serializeClassMethod = $node->getMethod('serialize');
                 if ($serializeClassMethod instanceof ClassMethod) {

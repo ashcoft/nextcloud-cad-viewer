@@ -4,27 +4,21 @@ declare (strict_types=1);
 namespace Rector\PhpParser;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr;
-use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\NullsafeMethodCall;
 use PhpParser\Node\Expr\StaticCall;
-use PhpParser\Node\Name;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Enum_;
-use PhpParser\Node\Stmt\Function_;
 use PhpParser\Node\Stmt\Interface_;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\Stmt\Trait_;
 use PHPStan\Reflection\ClassReflection;
-use PHPStan\Reflection\FunctionReflection;
 use PHPStan\Reflection\MethodReflection;
-use PHPStan\Reflection\Php\PhpFunctionReflection;
 use PHPStan\Reflection\Php\PhpPropertyReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\NodeNameResolver\NodeNameResolver;
@@ -88,7 +82,6 @@ final class AstResolver
         $this->betterNodeFinder = $betterNodeFinder;
     }
     /**
-     * @api downgrade
      * @return \PhpParser\Node\Stmt\Class_|\PhpParser\Node\Stmt\Trait_|\PhpParser\Node\Stmt\Interface_|\PhpParser\Node\Stmt\Enum_|null
      */
     public function resolveClassFromName(string $className)
@@ -125,34 +118,6 @@ final class AstResolver
         return $classMethod;
     }
     /**
-     * @param \PhpParser\Node\Expr\FuncCall|\PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\New_|\PhpParser\Node\Expr\NullsafeMethodCall $call
-     * @return \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Stmt\Function_|null
-     */
-    public function resolveClassMethodOrFunctionFromCall($call)
-    {
-        if ($call instanceof FuncCall) {
-            return $this->resolveFunctionFromFuncCall($call);
-        }
-        return $this->resolveClassMethodFromCall($call);
-    }
-    public function resolveFunctionFromFunctionReflection(FunctionReflection $functionReflection): ?Function_
-    {
-        if (!$functionReflection instanceof PhpFunctionReflection) {
-            return null;
-        }
-        $fileName = $functionReflection->getFileName();
-        $nodes = $this->parseFileNameToDecoratedNodes($fileName);
-        $functionName = $functionReflection->getName();
-        /** @var Function_|null $functionNode */
-        $functionNode = $this->betterNodeFinder->findFirst($nodes, function (Node $node) use ($functionName): bool {
-            if (!$node instanceof Function_) {
-                return \false;
-            }
-            return $this->nodeNameResolver->isName($node, $functionName);
-        });
-        return $functionNode;
-    }
-    /**
      * @param class-string $className
      */
     public function resolveClassMethod(string $className, string $methodName): ?ClassMethod
@@ -182,13 +147,13 @@ final class AstResolver
             }
             return $this->resolveClassMethod($className, MethodName::CONSTRUCT);
         }
+        $methodName = $this->nodeNameResolver->getName($call->name);
+        if ($methodName === null) {
+            return null;
+        }
         $callerStaticType = $call instanceof MethodCall || $call instanceof NullsafeMethodCall ? $this->nodeTypeResolver->getType($call->var) : $this->nodeTypeResolver->getType($call->class);
         $className = ClassNameFromObjectTypeResolver::resolve($callerStaticType);
         if ($className === null) {
-            return null;
-        }
-        $methodName = $this->nodeNameResolver->getName($call->name);
-        if ($methodName === null) {
             return null;
         }
         return $this->resolveClassMethod($className, $methodName);
@@ -345,17 +310,5 @@ final class AstResolver
             return \false;
         });
         return $paramNode;
-    }
-    private function resolveFunctionFromFuncCall(FuncCall $funcCall): ?Function_
-    {
-        if ($funcCall->name instanceof Expr) {
-            return null;
-        }
-        $functionName = new Name((string) $this->nodeNameResolver->getName($funcCall));
-        if (!$this->reflectionProvider->hasFunction($functionName, null)) {
-            return null;
-        }
-        $functionReflection = $this->reflectionProvider->getFunction($functionName, null);
-        return $this->resolveFunctionFromFunctionReflection($functionReflection);
     }
 }

@@ -12,8 +12,8 @@ use PhpParser\Node\Stmt\Function_;
 use Rector\DowngradePhp73\Tokenizer\FollowedByCommaAnalyzer;
 use Rector\DowngradePhp73\Tokenizer\TrailingCommaRemover;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DowngradePhp80\Rector\ClassMethod\DowngradeTrailingCommasInParamUseRector\DowngradeTrailingCommasInParamUseRectorTest
  */
@@ -82,10 +82,14 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
-        if ($node instanceof Closure) {
-            $this->processUses($node);
+        $hasChanged = \false;
+        if ($node instanceof Closure && $this->processUses($node) instanceof Node) {
+            $hasChanged = \true;
         }
-        return $this->processParams($node);
+        if ($this->processParams($node) instanceof Node) {
+            $hasChanged = \true;
+        }
+        return $hasChanged ? $node : null;
     }
     private function processUses(Closure $node): ?Node
     {
@@ -105,20 +109,22 @@ CODE_SAMPLE
         return $this->cleanTrailingComma($node, $node->params);
     }
     /**
-     * @param ClosureUse[]|Param[] $array
+     * @template TNode of Closure|ClassMethod|Function_
      * @param \PhpParser\Node\Expr\Closure|\PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Stmt\Function_ $node
+     * @param ClosureUse[]|Param[] $array
+     * @return TNode|null
      */
-    private function cleanTrailingComma($node, array $array): ?Node
+    private function cleanTrailingComma($node, array $array)
     {
         $lastPosition = array_key_last($array);
         if ($lastPosition === null) {
             return null;
         }
         $last = $array[$lastPosition];
-        if (!$this->followedByCommaAnalyzer->isFollowed($this->file, $last)) {
+        if (!$this->followedByCommaAnalyzer->isFollowed($this->getFile(), $last)) {
             return null;
         }
-        $this->trailingCommaRemover->remove($this->file, $last);
+        $this->trailingCommaRemover->remove($this->getFile(), $last);
         return $node;
     }
 }

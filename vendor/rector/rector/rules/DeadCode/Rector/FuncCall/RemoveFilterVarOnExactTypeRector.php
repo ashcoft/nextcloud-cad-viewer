@@ -7,8 +7,8 @@ use PhpParser\Node;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\FuncCall;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\FuncCall\RemoveFilterVarOnExactTypeRector\RemoveFilterVarOnExactTypeRectorTest
  */
@@ -53,6 +53,9 @@ CODE_SAMPLE
             return null;
         }
         $constantFilterName = $secondArgValue->name->toString();
+        if (!in_array($constantFilterName, ['FILTER_VALIDATE_INT', 'FILTER_VALIDATE_FLOAT', 'FILTER_VALIDATE_BOOLEAN', 'FILTER_VALIDATE_BOOL'], \true)) {
+            return null;
+        }
         $valueType = $this->nodeTypeResolver->getNativeType($firstArgValue);
         if ($constantFilterName === 'FILTER_VALIDATE_INT' && $valueType->isInteger()->yes()) {
             return $firstArgValue;

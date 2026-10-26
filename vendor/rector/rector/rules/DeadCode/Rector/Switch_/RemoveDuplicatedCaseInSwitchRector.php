@@ -11,8 +11,8 @@ use PhpParser\Node\Stmt\Return_;
 use PhpParser\Node\Stmt\Switch_;
 use Rector\PhpParser\Printer\BetterStandardPrinter;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\Switch_\RemoveDuplicatedCaseInSwitchRector\RemoveDuplicatedCaseInSwitchRectorTest
  */
@@ -146,8 +146,13 @@ CODE_SAMPLE
         if ($currentCase->stmts[0] instanceof Break_ && $nextCase->stmts[0] instanceof Break_) {
             return $this->areSwitchStmtsEqualsConsideringComments($currentCase, $nextCase);
         }
-        if (!$this->nodeComparator->areNodesEqual($currentCase->stmts, $nextCase->stmts)) {
+        if (count($currentCase->stmts) !== count($nextCase->stmts)) {
             return \false;
+        }
+        foreach ($currentCase->stmts as $key => $currentStmt) {
+            if (!$this->nodeComparator->areNodesEqual($currentStmt, $nextCase->stmts[$key])) {
+                return \false;
+            }
         }
         $found = \false;
         foreach ($currentCase->stmts as $stmt) {

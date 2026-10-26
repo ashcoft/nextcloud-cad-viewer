@@ -9,9 +9,9 @@ use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Name\FullyQualified;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\ConfiguredCodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\Transform\ValueObject\StaticCallToNew;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 use RectorPrefix202610\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Transform\Rector\StaticCall\StaticCallToNewRector\StaticCallToNewRectorTest
@@ -19,9 +19,9 @@ use RectorPrefix202610\Webmozart\Assert\Assert;
 final class StaticCallToNewRector extends AbstractRector implements ConfigurableRectorInterface
 {
     /**
-     * @var StaticCallToNew[]
+     * @var array<string, StaticCallToNew[]>
      */
-    private array $staticCallsToNews = [];
+    private array $staticCallsToNewsByMethod = [];
     public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Change static call to new instance', [new ConfiguredCodeSample(<<<'CODE_SAMPLE'
@@ -56,15 +56,16 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
-        foreach ($this->staticCallsToNews as $staticCallToNew) {
+        $methodName = $this->getName($node->name);
+        if ($methodName === null) {
+            return null;
+        }
+        $class = $this->getName($node->class);
+        if ($class === null) {
+            return null;
+        }
+        foreach ($this->staticCallsToNewsByMethod[strtolower($methodName)] ?? [] as $staticCallToNew) {
             if (!$this->isName($node->class, $staticCallToNew->getClass())) {
-                continue;
-            }
-            if (!$this->isName($node->name, $staticCallToNew->getMethod())) {
-                continue;
-            }
-            $class = $this->getName($node->class);
-            if ($class === null) {
                 continue;
             }
             return new New_(new FullyQualified($class), $node->args);
@@ -77,6 +78,9 @@ CODE_SAMPLE
     public function configure(array $configuration): void
     {
         Assert::allIsAOf($configuration, StaticCallToNew::class);
-        $this->staticCallsToNews = $configuration;
+        $this->staticCallsToNewsByMethod = [];
+        foreach ($configuration as $staticCallToNew) {
+            $this->staticCallsToNewsByMethod[strtolower($staticCallToNew->getMethod())][] = $staticCallToNew;
+        }
     }
 }

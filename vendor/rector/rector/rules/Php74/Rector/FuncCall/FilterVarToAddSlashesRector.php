@@ -8,10 +8,10 @@ use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php74\Rector\FuncCall\FilterVarToAddSlashesRector\FilterVarToAddSlashesRectorTest
  */
@@ -19,7 +19,7 @@ final class FilterVarToAddSlashesRector extends AbstractRector implements MinPhp
 {
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::FILTER_VAR_TO_ADD_SLASHES;
+        return PhpVersion::PHP_74;
     }
     public function getRuleDefinition(): RuleDefinition
     {

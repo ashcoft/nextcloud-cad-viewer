@@ -19,8 +19,8 @@ use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Php72\NodeFactory\AnonymousFunctionFactory;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @changelog https://www.php.net/manual/en/functions.arrow.php
  *
@@ -79,6 +79,11 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): Closure
     {
+        // convert a directly nested arrow function in the same pass, so a deep chain
+        // downgrades in one traverse instead of one level per pass
+        if ($node->expr instanceof ArrowFunction) {
+            $node->expr = $this->refactor($node->expr);
+        }
         $stmts = [new Return_($node->expr)];
         $anonymousFunctionFactory = $this->anonymousFunctionFactory->create($node->params, $stmts, $node->returnType, $node->static);
         if ($node->expr instanceof Assign && $node->expr->expr instanceof Variable) {

@@ -91,7 +91,6 @@ final class PropertyFetchFinder
         return $this->findPropertyFetchesInClassLike($class, $nodes, $propertyName, $hasTrait, $scope);
     }
     /**
-     * @api used by other Rector packages
      * @return PropertyFetch[]|StaticPropertyFetch[]|NullsafePropertyFetch[]
      * @param \PhpParser\Node\Stmt\Class_|\PhpParser\Node\Stmt\ClassMethod $node
      */
@@ -185,6 +184,10 @@ final class PropertyFetchFinder
                 return \false;
             }
             if ($subNode instanceof PropertyFetch) {
+                // cheap name mismatch bail before the anonymous-class reflection lookup
+                if (!$this->nodeNameResolver->isName($subNode->name, $propertyName)) {
+                    return \false;
+                }
                 if ($this->isInAnonymous($subNode, $class, $hasTrait)) {
                     return \false;
                 }

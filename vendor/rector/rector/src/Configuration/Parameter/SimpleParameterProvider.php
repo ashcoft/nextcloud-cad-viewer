@@ -5,10 +5,8 @@ namespace Rector\Configuration\Parameter;
 
 use Rector\Configuration\Option;
 use Rector\Exception\ShouldNotHappenException;
+use Rector\Skipper\FileSystem\PathNormalizer;
 use RectorPrefix202610\Webmozart\Assert\Assert;
-/**
- * @api
- */
 final class SimpleParameterProvider
 {
     /**
@@ -18,7 +16,7 @@ final class SimpleParameterProvider
      *
      * @var array<Option::*>
      */
-    private const CACHE_IGNORED_PARAMETER_NAMES = [Option::SOURCE, Option::PARALLEL, Option::PARALLEL_JOB_SIZE, Option::PARALLEL_MAX_NUMBER_OF_PROCESSES, Option::PARALLEL_JOB_TIMEOUT_IN_SECONDS, Option::MEMORY_LIMIT, Option::NO_DIFFS, Option::CACHE_DIR, Option::CONTAINER_CACHE_DIRECTORY, Option::EDITOR_URL, Option::ABSOLUTE_FILE_PATH, Option::REPORT_UNUSED_SKIPS, Option::IS_RECTORCONFIG_BUILDER_RECREATED, Option::IS_RUN_NARROWED, Option::IS_CACHED_RUN, Option::SKIPPED_RECTOR_RULES, Option::SKIPPED_NON_RECTOR_CLASSES, Option::SKIPPED_START_WITH_SHORT_OPEN_TAG_FILES, Option::DEPRECATED_PHP_SETS_METHODS, Option::DEPRECATED_ATTRIBUTES_SETS_ARGS, Option::DEPRECATED_COMPOSER_BASED_ARGS, Option::LEVEL_OVERFLOWS, Option::CACHE_META_EXTENSIONS, Option::COMPOSER_BOUND_RULE_CONFIGURATIONS, Option::ROOT_STANDALONE_REGISTERED_RULES, Option::SET_REGISTERED_RULES];
+    private const CACHE_IGNORED_PARAMETER_NAMES = [Option::SOURCE, Option::PARALLEL, Option::PARALLEL_JOB_SIZE, Option::PARALLEL_MAX_NUMBER_OF_PROCESSES, Option::PARALLEL_JOB_TIMEOUT_IN_SECONDS, Option::MEMORY_LIMIT, Option::NO_DIFFS, Option::CACHE_DIR, Option::CONTAINER_CACHE_DIRECTORY, Option::EDITOR_URL, Option::ABSOLUTE_FILE_PATH, Option::REPORT_UNUSED_SKIPS, Option::IS_RECTORCONFIG_BUILDER_RECREATED, Option::IS_RUN_NARROWED, Option::IS_CACHED_RUN, Option::SKIPPED_RECTOR_RULES, Option::SKIPPED_NON_RECTOR_CLASSES, Option::SKIPPED_START_WITH_SHORT_OPEN_TAG_FILES, Option::DEPRECATED_ATTRIBUTES_SETS_ARGS, Option::DEPRECATED_COMPOSER_BASED_ARGS, Option::LEVEL_OVERFLOWS, Option::COMPOSER_BOUND_RULE_CONFIGURATIONS, Option::ROOT_STANDALONE_REGISTERED_RULES, Option::SET_REGISTERED_RULES];
     /**
      * Parameters compared by direction instead of the strict hash: adding a rule/set or removing a
      * skip means more work and must drop the cache, while removing a rule/set or adding a skip is
@@ -121,7 +119,6 @@ final class SimpleParameterProvider
         return self::$parameters[$name] ?? $default;
     }
     /**
-     * @api
      * Strict hash for cache invalidation. Ignored and directionally compared parameters are left
      * out, so only a real change to an output-affecting parameter drops the cache.
      */
@@ -139,10 +136,9 @@ final class SimpleParameterProvider
             $strictParameters[$pathParameterName] = self::relativizeProjectPaths($strictParameters[$pathParameterName], $projectPathPrefix);
         }
         ksort($strictParameters);
-        return sha1(serialize($strictParameters));
+        return sha1(serialize(self::canonicalizeObjects($strictParameters, [])));
     }
     /**
-     * @api
      * @return array{rules: mixed[], sets: mixed[], skip: mixed[]}
      */
     public static function provideCacheDirectionalParameters(): array
@@ -164,13 +160,47 @@ final class SimpleParameterProvider
                 $parameters[$key] = self::relativizeProjectPaths($value, $projectPathPrefix);
                 continue;
             }
-            if (is_string($value) && strncmp($value, $projectPathPrefix, strlen($projectPathPrefix)) === 0) {
-                $parameters[$key] = (string) substr($value, strlen($projectPathPrefix));
+            if (!is_string($value)) {
+                continue;
+            }
+            // compared with normalized separators: on Windows getcwd() reports backslashes,
+            // while a config path built with "/" keeps them, although both name the same directory
+            $normalizedValue = PathNormalizer::normalize($value);
+            if (strncmp($normalizedValue, $projectPathPrefix, strlen($projectPathPrefix)) === 0) {
+                $parameters[$key] = (string) substr($normalizedValue, strlen($projectPathPrefix));
             }
         }
         return $parameters;
     }
     /**
+     * serialize() writes object properties in declaration order, which differs for the same class
+     * between runtimes: PHPStan Turbo replaces e.g. PHPStan\Type\MixedType with a native class
+     * declaring its properties in another order. The main process and the Turbo workers would then
+     * hash the same configuration differently and keep clearing each other's cache.
+     *
+     * @param array<int, true> $visitedObjectIds
+     * @param mixed $value
+     * @return mixed
+     */
+    private static function canonicalizeObjects($value, array $visitedObjectIds)
+    {
+        if (is_array($value)) {
+            return array_map(static fn($item) => self::canonicalizeObjects($item, $visitedObjectIds), $value);
+        }
+        if (!is_object($value)) {
+            return $value;
+        }
+        $objectId = spl_object_id($value);
+        if (isset($visitedObjectIds[$objectId])) {
+            return get_class($value);
+        }
+        $visitedObjectIds[$objectId] = \true;
+        $properties = (array) $value;
+        ksort($properties);
+        return [get_class($value) => self::canonicalizeObjects($properties, $visitedObjectIds)];
+    }
+    /**
+     * Normalized to "/" separators, so the prefix compares alike with config paths on every platform.
      * Empty when the working directory cannot be resolved, which makes the relativizing above a
      * no-op rather than a wrong answer.
      */
@@ -180,7 +210,7 @@ final class SimpleParameterProvider
         if ($currentDirectory === \false) {
             return '';
         }
-        return rtrim($currentDirectory, '/') . '/';
+        return rtrim(PathNormalizer::normalize($currentDirectory), '/') . '/';
     }
     /**
      * @param Option::* $name

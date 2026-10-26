@@ -9,13 +9,14 @@ use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name\FullyQualified;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\UnionType;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\Rector\AbstractRector;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
  * @see \Rector\PHPUnit\Tests\CodeQuality\Rector\MethodCall\AssertEmptyNullableObjectToAssertInstanceofRector\AssertEmptyNullableObjectToAssertInstanceofRectorTest
  */
@@ -90,6 +91,10 @@ CODE_SAMPLE
         }
         $pureType = TypeCombinator::removeNull($firstArgType);
         if (!$pureType instanceof ObjectType) {
+            return null;
+        }
+        // anonymous class has no writable class name, PHPStan uses an internal AnonymousClass<hash> name
+        if ($pureType->getClassReflection() instanceof ClassReflection && $pureType->getClassReflection()->isAnonymous()) {
             return null;
         }
         $node->name = new Identifier('assertInstanceOf');

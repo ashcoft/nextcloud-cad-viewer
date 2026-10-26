@@ -13,11 +13,11 @@ use Rector\NodeAnalyzer\ArgsAnalyzer;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VendorLocker\NodeVendorLocker\ClassMethodReturnTypeOverrideGuard;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromSymfonySerializerRector\ReturnTypeFromSymfonySerializerRectorTest
  */
@@ -76,7 +76,7 @@ CODE_SAMPLE
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::HAS_RETURN_TYPE;
+        return PhpVersion::PHP_70;
     }
     /**
      * @param ClassMethod $node
@@ -87,10 +87,6 @@ CODE_SAMPLE
             return null;
         }
         if ($node->returnType instanceof Node) {
-            return null;
-        }
-        $scope = ScopeFetcher::fetch($node);
-        if ($this->classMethodReturnTypeOverrideGuard->shouldSkipClassMethod($node, $scope)) {
             return null;
         }
         if (count($node->stmts) !== 1) {
@@ -104,6 +100,10 @@ CODE_SAMPLE
             return null;
         }
         if ($returnExpr->isFirstClassCallable()) {
+            return null;
+        }
+        $scope = ScopeFetcher::fetch($node);
+        if ($this->classMethodReturnTypeOverrideGuard->shouldSkipClassMethod($node, $scope)) {
             return null;
         }
         if (!$this->isObjectType($returnExpr->var, new ObjectType('Symfony\Component\Serializer\Serializer'))) {

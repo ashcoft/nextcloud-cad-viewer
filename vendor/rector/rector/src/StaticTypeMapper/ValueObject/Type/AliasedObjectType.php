@@ -9,9 +9,6 @@ use PhpParser\Node\UseItem;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 use Rector\StaticTypeMapper\Resolver\ClassNameFromObjectTypeResolver;
-/**
- * @api
- */
 final class AliasedObjectType extends ObjectType
 {
     /**
@@ -43,7 +40,7 @@ final class AliasedObjectType extends ObjectType
         return $this->getClassName();
     }
     /**
-     * @param $this|\Rector\StaticTypeMapper\ValueObject\Type\FullyQualifiedObjectType $comparedObjectType
+     * @param mixed $comparedObjectType
      */
     public function areShortNamesEqual($comparedObjectType): bool
     {

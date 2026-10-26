@@ -4,38 +4,18 @@ declare (strict_types=1);
 namespace Rector\TypeDeclaration\Rector\While_;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr;
-use PhpParser\Node\Expr\Assign;
-use PhpParser\Node\Expr\BinaryOp\NotIdentical;
-use PhpParser\Node\Expr\Instanceof_;
-use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\Do_;
 use PhpParser\Node\Stmt\While_;
-use PHPStan\Type\ObjectType;
-use PHPStan\Type\Type;
-use Rector\PhpParser\Node\Value\ValueResolver;
+use Rector\Configuration\Deprecation\Contract\DeprecatedInterface;
+use Rector\Exception\ShouldNotHappenException;
 use Rector\Rector\AbstractRector;
-use Rector\TypeDeclaration\TypeAnalyzer\NullableTypeAnalyzer;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 /**
- * @see \Rector\Tests\TypeDeclaration\Rector\While_\WhileNullableToInstanceofRector\WhileNullableToInstanceofRectorTest
+ * @deprecated This rule is deprecated. Use ExplicitNullableObjectInstanceRector instead, which handles nullable object checks across all condition idioms.
  */
-final class WhileNullableToInstanceofRector extends AbstractRector
+final class WhileNullableToInstanceofRector extends AbstractRector implements DeprecatedInterface
 {
-    /**
-     * @readonly
-     */
-    private NullableTypeAnalyzer $nullableTypeAnalyzer;
-    /**
-     * @readonly
-     */
-    private ValueResolver $valueResolver;
-    public function __construct(NullableTypeAnalyzer $nullableTypeAnalyzer, ValueResolver $valueResolver)
-    {
-        $this->nullableTypeAnalyzer = $nullableTypeAnalyzer;
-        $this->valueResolver = $valueResolver;
-    }
     public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Change while null compare to strict instanceof check', [new CodeSample(<<<'CODE_SAMPLE'
@@ -74,38 +54,6 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
-        if ($node->cond instanceof Assign) {
-            return null;
-        }
-        if ($node->cond instanceof NotIdentical) {
-            return $this->refactorNotIdentical($node, $node->cond);
-        }
-        $condNullableObjectType = $this->nullableTypeAnalyzer->resolveNullableObjectType($node->cond);
-        if (!$condNullableObjectType instanceof Type) {
-            return null;
-        }
-        $node->cond = $this->createInstanceof($node->cond, $condNullableObjectType);
-        return $node;
-    }
-    private function createInstanceof(Expr $expr, ObjectType $objectType): Instanceof_
-    {
-        $fullyQualified = new FullyQualified($objectType->getClassName());
-        return new Instanceof_($expr, $fullyQualified);
-    }
-    /**
-     * @param \PhpParser\Node\Stmt\While_|\PhpParser\Node\Stmt\Do_ $while
-     * @return \PhpParser\Node\Stmt\While_|\PhpParser\Node\Stmt\Do_|null
-     */
-    private function refactorNotIdentical($while, NotIdentical $notIdentical)
-    {
-        if (!$this->valueResolver->isNull($notIdentical->right)) {
-            return null;
-        }
-        $condNullableObjectType = $this->nullableTypeAnalyzer->resolveNullableObjectType($notIdentical->left);
-        if (!$condNullableObjectType instanceof ObjectType) {
-            return null;
-        }
-        $while->cond = $this->createInstanceof($notIdentical->left, $condNullableObjectType);
-        return $while;
+        throw new ShouldNotHappenException(sprintf('"%s" rule is deprecated, use ExplicitNullableObjectInstanceRector instead', self::class));
     }
 }

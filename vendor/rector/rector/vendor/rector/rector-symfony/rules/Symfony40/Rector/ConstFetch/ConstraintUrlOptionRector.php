@@ -11,10 +11,10 @@ use PhpParser\Node\Expr\New_;
 use PHPStan\Type\ObjectType;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * Ref: https://github.com/symfony/symfony/blob/master/UPGRADE-4.0.md#validator
  *
@@ -36,7 +36,7 @@ final class ConstraintUrlOptionRector extends AbstractRector implements Composer
     }
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
-        return new ComposerPackageConstraint('symfony/validator', '>=4.0');
+        return new ComposerPackageConstraint('symfony/validator', '>=4.0 <7.0');
     }
     public function getRuleDefinition(): RuleDefinition
     {

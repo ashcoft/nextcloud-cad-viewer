@@ -15,15 +15,15 @@ use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\Symfony\CodeQuality\NodeAnalyzer\AttributePresenceDetector;
 use Rector\Symfony\Enum\SensioAttribute;
 use Rector\Symfony\Enum\SymfonyAttribute;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\ComposerPackageConstraintInterface;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Rector\VersionBonding\ValueObject\ComposerPackageConstraint;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @changelog https://github.com/symfony/symfony/pull/45415#issuecomment-1077625813
  * @changelog https://github.com/symfony/symfony/pull/46907
@@ -57,7 +57,7 @@ final class SecurityAttributeToIsGrantedAttributeRector extends AbstractRector i
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::ATTRIBUTES;
+        return PhpVersion::PHP_80;
     }
     public function provideComposerPackageConstraint(): ComposerPackageConstraint
     {
@@ -112,6 +112,10 @@ CODE_SAMPLE
      */
     public function refactor(Node $node): ?Node
     {
+        // nothing to convert without attributes - bail before the reflection lookup in detect()
+        if ($node->attrGroups === []) {
+            return null;
+        }
         if (!$this->attributePresenceDetector->detect(SensioAttribute::SECURITY)) {
             return null;
         }

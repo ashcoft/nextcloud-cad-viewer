@@ -20,9 +20,9 @@ use PhpParser\Node\Expr\UnaryMinus;
 use PhpParser\Node\Scalar\Int_;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Rector\AbstractRector;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
 use Rector\ValueObject\Application\File;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\DeadCode\Rector\Plus\RemoveDeadZeroAndOneOperationRector\RemoveDeadZeroAndOneOperationRectorTest
  */
@@ -68,7 +68,21 @@ CODE_SAMPLE
             return $this->processAssignOp($node);
         }
         // -, +
-        return $this->processBinaryOp($node);
+        $result = $this->processBinaryOp($node);
+        if (!$result instanceof Expr) {
+            return null;
+        }
+        // the chosen operand can be a same-class operation that still carries a dead 0/1 at its own
+        // top level (e.g. 0 + 5 + 0 returns 0 + 5); such a returned node is skip-marked for this rule,
+        // so reduce its chain here to finish in a single pass
+        while ($result instanceof Plus || $result instanceof Minus || $result instanceof Mul || $result instanceof Div) {
+            $reduced = $this->processBinaryOp($result);
+            if (!$reduced instanceof Expr || $reduced === $result) {
+                break;
+            }
+            $result = $reduced;
+        }
+        return $result;
     }
     private function processAssignOp(AssignOp $assignOp): ?Expr
     {
@@ -122,6 +136,9 @@ CODE_SAMPLE
      */
     private function processBinaryPlusAndMinus($binaryOp): ?Expr
     {
+        if (!$this->isLiteralZero($binaryOp->left) && !$this->isLiteralZero($binaryOp->right)) {
+            return null;
+        }
         if (!$this->areNumberType($binaryOp)) {
             return null;
         }
@@ -176,6 +193,9 @@ CODE_SAMPLE
     private function processBinaryMulAndDiv($binaryOp): ?Expr
     {
         if ($binaryOp->left instanceof ClassConstFetch || $binaryOp->right instanceof ClassConstFetch) {
+            return null;
+        }
+        if (!$this->isLiteralOne($binaryOp->left) && !$this->isLiteralOne($binaryOp->right)) {
             return null;
         }
         if (!$this->areNumberType($binaryOp)) {

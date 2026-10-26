@@ -17,10 +17,10 @@ use PhpParser\Node\Scalar\String_;
 use PHPStan\Type\Constant\ConstantStringType;
 use Rector\NodeAnalyzer\ExprAnalyzer;
 use Rector\Rector\AbstractRector;
-use Rector\ValueObject\PhpVersionFeature;
+use Rector\RuleDoc\CodeSample\CodeSample;
+use Rector\RuleDoc\RuleDefinition;
+use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
-use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\Php71\Rector\BinaryOp\BinaryOpBetweenNumberAndStringRector\BinaryOpBetweenNumberAndStringRectorTest
  */
@@ -36,7 +36,7 @@ final class BinaryOpBetweenNumberAndStringRector extends AbstractRector implemen
     }
     public function provideMinPhpVersion(): int
     {
-        return PhpVersionFeature::BINARY_OP_NUMBER_STRING;
+        return PhpVersion::PHP_71;
     }
     public function getRuleDefinition(): RuleDefinition
     {

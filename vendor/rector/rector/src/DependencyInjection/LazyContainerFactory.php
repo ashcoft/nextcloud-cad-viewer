@@ -3,19 +3,19 @@
 declare (strict_types=1);
 namespace Rector\DependencyInjection;
 
-use RectorPrefix202610\Doctrine\Inflector\Inflector;
-use RectorPrefix202610\Doctrine\Inflector\Rules\English\InflectorFactory;
 use PhpParser\Lexer;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\ScopeFactory;
+use PHPStan\BetterReflection\Reflector\Reflector;
 use PHPStan\Parser\Parser;
 use PHPStan\Php\PhpVersionFactory;
 use PHPStan\PhpDoc\TypeNodeResolver;
 use PHPStan\PhpDocParser\ParserConfig;
+use PHPStan\Reflection\ClassReflectionFactory;
 use PHPStan\Reflection\ReflectionProvider;
-use Rector\Application\ChangedNodeScopeRefresher;
 use Rector\Application\FileProcessor;
 use Rector\Application\Provider\CurrentFileProvider;
+use Rector\Application\RectorRegistry;
 use Rector\BetterPhpDocParser\Comment\CommentsMerger;
 use Rector\BetterPhpDocParser\Contract\BasePhpDocNodeVisitorInterface;
 use Rector\BetterPhpDocParser\PhpDocNodeVisitor\ArrayTypePhpDocNodeVisitor;
@@ -32,16 +32,14 @@ use Rector\Config\RectorConfig;
 use Rector\Configuration\ConfigurationRuleFilter;
 use Rector\Configuration\RenamedClassesDataCollector;
 use Rector\Console\Command\ComposerBasedCommand;
-use Rector\Console\Command\CustomRuleCommand;
 use Rector\Console\Command\ListRulesCommand;
 use Rector\Console\Command\ProcessCommand;
-use Rector\Console\Command\SetupCICommand;
 use Rector\Console\Command\ValidateConfigCommand;
 use Rector\Console\Command\WorkerCommand;
 use Rector\Console\ConsoleApplication;
+use Rector\Console\Rule\AllRectorRulesProvider;
 use Rector\Console\Style\SymfonyStyleFactory;
 use Rector\Contract\PhpParser\DecoratingNodeVisitorInterface;
-use Rector\NodeDecorator\CreatedByRuleDecorator;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\DependencyInjection\PHPStanServicesFactory;
 use Rector\NodeTypeResolver\NodeTypeResolver;
@@ -69,8 +67,6 @@ use Rector\PHPStanStaticTypeMapper\TypeMapper\ConditionalTypeMapper;
 use Rector\PHPStanStaticTypeMapper\TypeMapper\UnionTypeMapper;
 use Rector\PostRector\Application\PostFileProcessor;
 use Rector\Rector\AbstractRector;
-use Rector\Skipper\Skipper\Skipper;
-use Rector\Skipper\Skipper\UsedSkipCollector;
 use RectorPrefix202610\Symfony\Component\Console\Application;
 use RectorPrefix202610\Symfony\Component\Console\Style\SymfonyStyle;
 use RectorPrefix202610\Webmozart\Assert\Assert;
@@ -87,10 +83,7 @@ final class LazyContainerFactory
     /**
      * @var array<class-string>
      */
-    private const PUBLIC_PHPSTAN_SERVICE_TYPES = [ScopeFactory::class, TypeNodeResolver::class, NodeScopeResolver::class, ReflectionProvider::class, PhpVersionFactory::class];
-    /**
-     * @api used as next rectorConfig factory
-     */
+    private const PUBLIC_PHPSTAN_SERVICE_TYPES = [ScopeFactory::class, TypeNodeResolver::class, NodeScopeResolver::class, ReflectionProvider::class, PhpVersionFactory::class, Reflector::class, ClassReflectionFactory::class];
     public function create(): RectorConfig
     {
         $rectorConfig = new RectorConfig();
@@ -117,25 +110,19 @@ final class LazyContainerFactory
             }
             return $consoleApplication;
         });
-        $rectorConfig->singleton(Inflector::class, static function (): Inflector {
-            $inflectorFactory = new InflectorFactory();
-            return $inflectorFactory->build();
-        });
         $rectorConfig->singleton(ConfigurationRuleFilter::class);
         $rectorConfig->singleton(ProcessCommand::class);
         $rectorConfig->singleton(WorkerCommand::class);
         $rectorConfig->singleton(ValidateConfigCommand::class);
-        $rectorConfig->singleton(SetupCICommand::class);
+        $rectorConfig->singleton(AllRectorRulesProvider::class);
         $rectorConfig->singleton(ListRulesCommand::class);
-        $rectorConfig->singleton(CustomRuleCommand::class);
         $rectorConfig->singleton(ComposerBasedCommand::class);
     }
     private function registerFileProcessing(RectorConfig $rectorConfig): void
     {
         $rectorConfig->singleton(FileProcessor::class);
         $rectorConfig->singleton(PostFileProcessor::class);
-        // shared state: collects used skips across the skipper, the path skipper and the file processor
-        $rectorConfig->singleton(UsedSkipCollector::class);
+        $rectorConfig->singleton(RectorRegistry::class);
         $rectorConfig->singleton(DynamicSourceLocatorProvider::class, static function (RectorConfig $rectorConfig): DynamicSourceLocatorProvider {
             $phpStanServicesFactory = $rectorConfig->make(PHPStanServicesFactory::class);
             return $phpStanServicesFactory->createDynamicSourceLocatorProvider();
@@ -179,7 +166,7 @@ final class LazyContainerFactory
     private function registerRectorAutowiring(RectorConfig $rectorConfig): void
     {
         $rectorConfig->afterResolving(AbstractRector::class, static function (AbstractRector $rector) use ($rectorConfig): void {
-            $rector->autowire($rectorConfig->get(NodeNameResolver::class), $rectorConfig->get(NodeTypeResolver::class), $rectorConfig->get(SimpleCallableNodeTraverser::class), $rectorConfig->get(NodeFactory::class), $rectorConfig->get(Skipper::class), $rectorConfig->get(NodeComparator::class), $rectorConfig->get(CurrentFileProvider::class), $rectorConfig->get(CreatedByRuleDecorator::class), $rectorConfig->get(ChangedNodeScopeRefresher::class), $rectorConfig->get(CommentsMerger::class));
+            $rector->autowire($rectorConfig->get(NodeNameResolver::class), $rectorConfig->get(NodeTypeResolver::class), $rectorConfig->get(SimpleCallableNodeTraverser::class), $rectorConfig->get(NodeFactory::class), $rectorConfig->get(NodeComparator::class), $rectorConfig->get(CurrentFileProvider::class), $rectorConfig->get(CommentsMerger::class), $rectorConfig->get(ReflectionProvider::class));
         });
         $rectorConfig->autodiscover(__DIR__ . '/../StaticTypeMapper/PhpParser');
         $this->registerTagged($rectorConfig, self::BASE_PHP_DOC_NODE_VISITORS, BasePhpDocNodeVisitorInterface::class);
@@ -193,7 +180,6 @@ final class LazyContainerFactory
         $rectorConfig->autodiscover(__DIR__ . '/../NodeNameResolver/NodeNameResolver');
         $rectorConfig->autodiscover(__DIR__ . '/../NodeTypeResolver/NodeTypeResolver');
         $rectorConfig->autodiscover(__DIR__ . '/../ChangesReporting/Output');
-        $rectorConfig->autodiscover(__DIR__ . '/../../rules/CodingStyle/ClassNameImport/ClassNameImportSkipVoter');
         $rectorConfig->singleton(SymfonyStyle::class, static function (RectorConfig $rectorConfig): SymfonyStyle {
             $symfonyStyleFactory = $rectorConfig->make(SymfonyStyleFactory::class);
             return $symfonyStyleFactory->create();
