@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.1.0...v1.2.0) (2026-10-26)
+
+
+### Features
+
+* add Save and Exit to the viewer toolbar ([dabb902](https://github.com/ashcoft/nextcloud-cad-viewer/commit/dabb902b3d8043012081842ddce73e5f1918e50e))
+
 # [1.1.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.0.0...v1.1.0) (2026-10-26)
 
 
