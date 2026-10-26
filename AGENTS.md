@@ -130,7 +130,7 @@ pnpm run stylelint    # Stylelint
 
 Releases use [semantic-release](https://github.com/semantic-release/semantic-release) with conventional commits:
 
-1. Only `feat` and breaking changes trigger a release; other commit types do not
+1. Only `feat`, `perf`, `fix(deps)` and breaking changes trigger a release; other commit types do not
 2. When PR is merged to `main` or `stable`, semantic-release runs first, bumps the version and creates a draft GitHub Release
 3. The workflow then builds the tagged version of the Nextcloud app and attaches the archives (tar.gz and zip) to that release before publishing it
 
@@ -140,11 +140,11 @@ Releases use [semantic-release](https://github.com/semantic-release/semantic-rel
 | `feat`, `perf`, `fix(deps)` | minor |
 | `fix`, `chore`, `docs`, `refactor`, `test`, `build`, `ci`, `style`, `revert`, `deps` | none |
 
-Releases are deliberately limited, so dependency bumps and maintenance commits
-do not create a release each. See `release.config.js`; note that the `fix`
-rules are scope-narrowed, because a `release: false` rule outranks other
-release types and a plain `{ type: 'fix', release: false }` would also
-suppress `fix(deps)`.
+Releases are deliberately limited, so most maintenance and dependency commits
+do not create a release each (only `fix(deps)` dependency fixes do). See
+`release.config.js`; note that the `fix` rules are scope-narrowed, because a
+`release: false` rule outranks other release types and a plain
+`{ type: 'fix', release: false }` would also suppress `fix(deps)`.
 
 Example commit messages:
 ```
