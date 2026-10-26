@@ -93,7 +93,8 @@ class BlankDrawingServiceTest extends TestCase
     {
         $name = BlankDrawingService::normalizeFileName(str_repeat('a', 500));
 
-        $this->assertSame(BlankDrawingService::MAX_NAME_LENGTH + strlen('.dxf'), strlen($name));
+        // 100 characters of the name plus the ".dxf" extension.
+        $this->assertSame(104, strlen($name));
         $this->assertStringEndsWith('.dxf', $name);
     }
 
