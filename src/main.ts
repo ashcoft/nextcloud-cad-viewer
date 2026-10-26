@@ -4,8 +4,10 @@ import type { IFileAction } from '@nextcloud/files'
 import { generateUrl } from '@nextcloud/router'
 import CadViewerApp from './App.vue'
 import { createCadFileAction, SUPPORTED_MIMES } from './fileActions'
+import { registerCadMimetypeNames } from './mimetypes'
 import router from './router'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
+import { uploadCadThumbnail } from './utils/thumbnailUpload'
 import type { LoadResponse } from './types/loadResponse'
 
 // Type alias for file ID
@@ -259,6 +261,12 @@ const CadViewerHandlerComponent = defineComponent({
       }
 
       loading.value = false
+
+      // Render and cache a thumbnail so the Files app can show it. Runs after
+      // the viewer is visible; failures are non-fatal.
+      if (!error.value && !isUnmounted.value) {
+        void uploadCadThumbnail(fileId)
+      }
     }
 
     onMounted(async () => {
@@ -402,6 +410,7 @@ function mountStandaloneApp(): void {
 }
 
 function initializeCadViewerIntegration(): void {
+  registerCadMimetypeNames()
   registerFileActions()
   registerViewerHandler()
   mountStandaloneApp()

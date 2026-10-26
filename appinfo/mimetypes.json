@@ -21,5 +21,10 @@
         "application/x-autocad": "application/dwg",
         "application/x-dwg": "application/dwg",
         "image/vnd.dwg": "application/dwg"
+    },
+    "mimetypenames": {
+        "application/dwg": "CAD Drawing",
+        "application/dxf": "CAD Drawing",
+        "image/vnd.dxf": "CAD Drawing"
     }
 }

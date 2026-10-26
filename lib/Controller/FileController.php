@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\CadViewer\Controller;
 
+use OCA\CadViewer\Service\ThumbnailService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -38,7 +39,8 @@ class FileController extends Controller
         private readonly IRootFolder $rootFolder,
         private readonly IUserSession $userSession,
         private readonly LoggerInterface $logger,
-        private readonly IURLGenerator $urlGenerator
+        private readonly IURLGenerator $urlGenerator,
+        private readonly ThumbnailService $thumbnailService,
     ) {
         parent::__construct($appName, $request);
     }
@@ -344,6 +346,48 @@ class FileController extends Controller
             $response = new StreamResponse($stream);
             $response->addHeader('Content-Type', $file->getMimeType());
             return $response;
+        } catch (\Throwable $e) {
+            return $this->_handleFileError($e, $fileId);
+        }
+    }
+
+    /**
+     * Store a browser-rendered PNG thumbnail for a CAD file.
+     *
+     * CAD files cannot be rendered server-side, so the viewer uploads the
+     * thumbnail it rendered. The body is JSON: {"image": "data:image/png;base64,..."}.
+     *
+     * @NoAdminRequired
+     */
+    public function thumbnail(int $fileId): DataResponse
+    {
+        try {
+            $file = $this->_resolveFile($fileId);
+
+            $errorResponse = $this->_validateFileConstraints($file, $fileId);
+            if ($errorResponse !== null) {
+                return $errorResponse;
+            }
+
+            $dataUrl = $this->request->getParam('image');
+            if (!is_string($dataUrl) || $dataUrl === '') {
+                return new DataResponse(
+                    ['error' => 'Missing image data'],
+                    Http::STATUS_BAD_REQUEST
+                );
+            }
+
+            $decoded = $this->thumbnailService->decodePngDataUrl($dataUrl);
+            if ($decoded === null) {
+                return new DataResponse(
+                    ['error' => 'Invalid image data'],
+                    Http::STATUS_BAD_REQUEST
+                );
+            }
+
+            $this->thumbnailService->storeThumbnail($file, $decoded['binary']);
+
+            return new DataResponse(['status' => 'ok']);
         } catch (\Throwable $e) {
             return $this->_handleFileError($e, $fileId);
         }

@@ -44,6 +44,8 @@ namespace OCP\AppFramework\Bootstrap {
     interface IRegistrationContext
     {
         public function registerEventListener(string $eventClass, string $listenerClass): void;
+
+        public function registerPreviewProvider(string $previewProviderClass, string $mimeTypeRegex): void;
     }
 
     interface IBootContext

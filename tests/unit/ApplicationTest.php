@@ -89,6 +89,13 @@ class ApplicationTest extends TestCase
                 \OCA\CadViewer\Listener\LoadViewer::class,
             );
 
+        $mockContext->expects($this->exactly(1))
+            ->method('registerPreviewProvider')
+            ->with(
+                \OCA\CadViewer\Preview\CadPreviewProvider::class,
+                \OCA\CadViewer\Preview\CadPreviewProvider::MIME_TYPE_REGEX,
+            );
+
         $app->register($mockContext);
     }
 
@@ -179,6 +186,9 @@ class ApplicationTest extends TestCase
 
         $mockContext->expects($this->once())
             ->method('registerEventListener');
+
+        $mockContext->expects($this->once())
+            ->method('registerPreviewProvider');
 
         $app->register($mockContext);
     }

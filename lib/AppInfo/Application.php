@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace OCA\CadViewer\AppInfo;
 
 use OCA\CadViewer\Listener\LoadViewer;
+use OCA\CadViewer\Preview\CadPreviewProvider;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -63,6 +64,12 @@ class Application extends App implements IBootstrap
         $context->registerEventListener(
             \OCP\AppFramework\Http\Events\BeforeTemplateRenderedEvent::class,
             LoadViewer::class
+        );
+
+        // Serve CAD thumbnails that the browser viewer has rendered and cached
+        $context->registerPreviewProvider(
+            CadPreviewProvider::class,
+            CadPreviewProvider::MIME_TYPE_REGEX
         );
     }
 
