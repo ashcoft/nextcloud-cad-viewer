@@ -1,3 +1,16 @@
+# [1.3.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.2.0...v1.3.0) (2026-10-26)
+
+
+### Bug Fixes
+
+* address review feedback and CI failures ([7ddbf67](https://github.com/ashcoft/nextcloud-cad-viewer/commit/7ddbf67df910cbb732368fe8ea8ba0f85fb14cca))
+* resolve static analysis and phpunit failures ([cc786e4](https://github.com/ashcoft/nextcloud-cad-viewer/commit/cc786e47f83359d54961a46d28d4c9f815a1e00d))
+
+
+### Features
+
+* add start page with recent drawings and blank drawing ([fb47725](https://github.com/ashcoft/nextcloud-cad-viewer/commit/fb47725336d35de7b2282de57107ecb9281b9b4f))
+
 # [1.2.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.1.0...v1.2.0) (2026-10-26)
 
 
