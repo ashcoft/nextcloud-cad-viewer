@@ -1,11 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * SPDX-FileCopyrightText: 2024 CAD Viewer Contributors
  * SPDX-License-Identifier: MIT
  */
+
+declare(strict_types=1);
 
 namespace OCA\CadViewer\Preview;
 
@@ -29,7 +29,8 @@ class CadPreviewProvider implements IProviderV2
     /**
      * Matches every CAD MIME type the viewer supports.
      */
-    public const MIME_TYPE_REGEX = '/application\/(acad|autocad_dwg|dwg|x-autocad|x-dwg|dxf|x-dxf)|image\/vnd\.(dwg|dxf)|image\/x-dxf/';
+    public const MIME_TYPE_REGEX = '/application\/(acad|autocad_dwg|dwg|x-autocad|x-dwg|dxf|x-dxf)'
+        . '|image\/vnd\.(dwg|dxf)|image\/x-dxf/';
 
     public function __construct(
         private readonly ThumbnailService $thumbnailService,

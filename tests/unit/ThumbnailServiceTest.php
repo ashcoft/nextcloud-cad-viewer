@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Cad Viewer ThumbnailService test suite.
  *
@@ -13,149 +11,28 @@ declare(strict_types=1);
  * @covers \OCA\CadViewer\Service\ThumbnailService
  */
 
+declare(strict_types=1);
+
 namespace OCA\CadViewer\Tests\Unit;
 
-require_once __DIR__ . '/../stubs/OC/OC.php';
-
 use OCA\CadViewer\Service\ThumbnailService;
+use OCA\CadViewer\Tests\Fixtures\InMemoryFolder;
 use OCP\Files\AppData\IAppDataFactory;
 use OCP\Files\File;
-use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\Files\SimpleFS\ISimpleFolder;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
- * An in-memory ISimpleFolder so the service's real storage logic runs.
- */
-class InMemoryFolder implements ISimpleFolder
-{
-    /** @var array<string, InMemoryFile> */
-    public array $files = [];
-
-    public function getDirectoryListing(): array
-    {
-        return array_values($this->files);
-    }
-
-    public function fileExists(string $name): bool
-    {
-        return isset($this->files[$name]);
-    }
-
-    public function getFile(string $name): ISimpleFile
-    {
-        return $this->files[$name];
-    }
-
-    public function newFile(string $name, mixed $content = null): ISimpleFile
-    {
-        $file = new InMemoryFile($name, is_string($content) ? $content : '', $this);
-        $this->files[$name] = $file;
-        return $file;
-    }
-
-    public function remove(string $name): void
-    {
-        unset($this->files[$name]);
-    }
-
-    public function delete(): void
-    {
-        $this->files = [];
-    }
-
-    public function getName(): string
-    {
-        return 'thumbnails';
-    }
-
-    public function getFolder(string $name): ISimpleFolder
-    {
-        return $this;
-    }
-
-    public function newFolder(string $path): ISimpleFolder
-    {
-        return $this;
-    }
-}
-
-class InMemoryFile implements ISimpleFile
-{
-    public function __construct(
-        private readonly string $name,
-        private string $content,
-        private readonly ?InMemoryFolder $folder = null,
-    ) {
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    public function getContent(): string
-    {
-        return $this->content;
-    }
-
-    public function delete(): void
-    {
-        $this->folder?->remove($this->name);
-        $this->content = '';
-    }
-
-    public function getSize(): int|float
-    {
-        return strlen($this->content);
-    }
-
-    public function getETag(): string
-    {
-        return '';
-    }
-
-    public function getMTime(): int
-    {
-        return 0;
-    }
-
-    public function putContent($data): void
-    {
-        $this->content = (string) $data;
-    }
-
-    public function getMimeType(): string
-    {
-        return 'image/png';
-    }
-
-    public function getExtension(): string
-    {
-        return 'png';
-    }
-
-    public function read()
-    {
-        return $this->content;
-    }
-
-    public function write()
-    {
-        return true;
-    }
-}
-
-/**
  * Test suite for the ThumbnailService.
+ *
+ * The storage doubles live in tests/fixtures so the service's real logic runs
+ * against them rather than being mocked away.
  */
 #[AllowMockObjectsWithoutExpectations]
 class ThumbnailServiceTest extends TestCase
 {
-    private const PNG = "\x89PNG\r\n\x1a\n\x00\x00\x00\x0dIHDR";
-
     /**
      * A minimal valid 1x1 PNG so decodability checks can pass.
      */
@@ -236,7 +113,8 @@ class ThumbnailServiceTest extends TestCase
      */
     public function testRejectsSignatureOnlyPayload(): void
     {
-        $dataUrl = 'data:image/png;base64,' . base64_encode(self::PNG);
+        $signature = "\x89PNG\r\n\x1a\n\x00\x00\x00\x0dIHDR";
+        $dataUrl = 'data:image/png;base64,' . base64_encode($signature);
 
         $this->assertNull($this->service(new InMemoryFolder())->decodePngDataUrl($dataUrl));
     }

@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Cad Viewer DeleteThumbnail listener test suite.
  *
@@ -13,9 +11,9 @@ declare(strict_types=1);
  * @covers \OCA\CadViewer\Listener\DeleteThumbnail
  */
 
-namespace OCA\CadViewer\Tests\Unit;
+declare(strict_types=1);
 
-require_once __DIR__ . '/../stubs/OC/OC.php';
+namespace OCA\CadViewer\Tests\Unit;
 
 use OCA\CadViewer\Listener\DeleteThumbnail;
 use OCA\CadViewer\Service\ThumbnailService;
