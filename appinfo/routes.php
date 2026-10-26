@@ -18,6 +18,8 @@ return [
         ['name' => 'file#getFile', 'url' => '/api/file/{fileId}', 'verb' => 'GET'],
         // Preview endpoint
         ['name' => 'file#preview', 'url' => '/api/preview/{fileId}', 'verb' => 'GET'],
+        // Store a browser-rendered thumbnail for a CAD file
+        ['name' => 'file#thumbnail', 'url' => '/api/thumbnail/{fileId}', 'verb' => 'POST'],
         // Admin settings endpoint
         ['name' => 'AdminSettings#index', 'url' => '/settings/admin', 'verb' => 'GET'],
         ['name' => 'AdminSettings#settings', 'url' => '/settings/save', 'verb' => 'POST'],

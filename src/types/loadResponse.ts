@@ -9,6 +9,8 @@ export interface LoadResponse {
 	size: number
 	mimeType: string
 	path: string
+	/** Version of the file the metadata was read from. */
+	etag: string
 	/** Direct download URL for the CAD file */
 	url: string
 	contentType: string
