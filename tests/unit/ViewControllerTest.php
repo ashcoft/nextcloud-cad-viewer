@@ -102,15 +102,11 @@ class ViewControllerTest extends TestCase
 
     public function testBlankRouteIsAPostEndpoint(): void
     {
-        /** @var array{routes: list<array{name: string, url: string, verb: string}>} $routes */
-        $routes = require_once __DIR__ . '/../../appinfo/routes.php';
+        $routes = (string) file_get_contents(__DIR__ . '/../../appinfo/routes.php');
 
-        $blankRoutes = array_values(array_filter(
-            $routes['routes'],
-            static fn (array $route): bool => $route['name'] === 'view#createBlank',
-        ));
-
-        $this->assertCount(1, $blankRoutes);
-        $this->assertSame('POST', $blankRoutes[0]['verb']);
+        $this->assertStringContainsString(
+            "['name' => 'view#createBlank', 'url' => '/api/blank', 'verb' => 'POST']",
+            $routes,
+        );
     }
 }

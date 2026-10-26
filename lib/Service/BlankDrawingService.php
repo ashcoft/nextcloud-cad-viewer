@@ -131,11 +131,9 @@ DXF;
             }
         }
 
-        if ($lastError !== null) {
-            throw $lastError;
-        }
-
-        throw new NotPermittedException('Could not create the drawing');
+        // The loop always ends with a caught error: it either returns or
+        // records one on every attempt.
+        throw $lastError;
     }
 
     /**

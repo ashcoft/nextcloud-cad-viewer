@@ -30,6 +30,9 @@ use Psr\Log\LoggerInterface;
 
 class FileController extends Controller
 {
+    /** Shared with the start page so both enforce the same limit. */
+    private const MAX_FILE_SIZE = Application::MAX_FILE_SIZE;
+
     private const ALLOWED_EXTENSIONS = ['dwg', 'dxf'];
     private const ERR_FILE_NOT_FOUND = 'File not found';
     private const ERR_ACCESS_DENIED = 'Access denied';
@@ -107,13 +110,13 @@ class FileController extends Controller
         }
 
         // Check file size limit to prevent memory exhaustion
-        if ($fileSize > Application::MAX_FILE_SIZE) {
+        if ($fileSize > self::MAX_FILE_SIZE) {
             $this->logger->warning(
                 'CAD Viewer: File too large',
                 [
                     'fileId' => $fileId,
                     'size' => $fileSize,
-                    'limit' => Application::MAX_FILE_SIZE,
+                    'limit' => self::MAX_FILE_SIZE,
                 ]
             );
             return new DataResponse(
