@@ -12,17 +12,22 @@ namespace OCA\CadViewer\Config;
 use OCP\AppFramework\Services\IAppConfig;
 use Psr\Log\LoggerInterface;
 
+/**
+ * App-wide viewer settings, read and written from the admin settings page.
+ *
+ * Only settings the viewer actually honours are kept here: the theme it opens
+ * with, and whether previews may be rendered and stored at all.
+ */
 class AppConfig
 {
-    private const DEFAULT_THEME = 'light';
-    private const DEFAULT_PREVIEWS = 'yes';
-    private const DEFAULT_LIBRARIES = 'yes';
-    private const DEFAULT_AUTOSAVE = 'yes';
+    public const DEFAULT_THEME = 'light';
+    public const DEFAULT_PREVIEWS = 'yes';
+
+    public const THEMES = ['light', 'dark'];
+    public const YES_NO = ['yes', 'no'];
 
     private const KEY_THEME = 'Theme';
     private const KEY_PREVIEWS = 'Previews';
-    private const KEY_LIBRARIES = 'Libraries';
-    private const KEY_AUTOSAVE = 'Autosave';
 
     public function __construct(
         private readonly IAppConfig $config,
@@ -32,81 +37,50 @@ class AppConfig
 
     public function setTheme(string $theme): void
     {
-        $theme = strtolower(trim($theme));
-        if (!in_array($theme, ['light', 'dark'], true)) {
-            $theme = self::DEFAULT_THEME;
-        }
+        $theme = $this->normalize($theme, self::THEMES, self::DEFAULT_THEME);
         $this->logger->info('SetTheme: ' . $theme, ['app' => 'cad_viewer']);
         $this->config->setAppValueString(self::KEY_THEME, $theme);
     }
 
     public function getTheme(): string
     {
-        $val = $this->config->getAppValueString(self::KEY_THEME);
-        if (empty($val)) {
-            $val = self::DEFAULT_THEME;
-        }
-
-        return $val;
+        return $this->normalize(
+            $this->config->getAppValueString(self::KEY_THEME),
+            self::THEMES,
+            self::DEFAULT_THEME,
+        );
     }
 
     public function setPreviews(string $previews): void
     {
-        $previews = strtolower(trim($previews));
-        if (!in_array($previews, ['yes', 'no'], true)) {
-            $previews = self::DEFAULT_PREVIEWS;
-        }
+        $previews = $this->normalize($previews, self::YES_NO, self::DEFAULT_PREVIEWS);
         $this->logger->info('SetPreviews: ' . $previews, ['app' => 'cad_viewer']);
         $this->config->setAppValueString(self::KEY_PREVIEWS, $previews);
     }
 
     public function getPreviews(): string
     {
-        $val = $this->config->getAppValueString(self::KEY_PREVIEWS);
-        if (empty($val)) {
-            $val = self::DEFAULT_PREVIEWS;
-        }
-
-        return $val;
+        return $this->normalize(
+            $this->config->getAppValueString(self::KEY_PREVIEWS),
+            self::YES_NO,
+            self::DEFAULT_PREVIEWS,
+        );
     }
 
-    public function setLibraries(string $libraries): void
+    /**
+     * Lower-case and trim a value, falling back to the default when it is not
+     * one of the allowed ones.
+     *
+     * Applied on read as well as on write: a value written straight to the
+     * database (occ config:app:set) would otherwise reach the viewer unchecked
+     * and leave the settings form with no option selected.
+     *
+     * @param string[] $allowed
+     */
+    private function normalize(string $value, array $allowed, string $default): string
     {
-        $libraries = strtolower(trim($libraries));
-        if (!in_array($libraries, ['yes', 'no'], true)) {
-            $libraries = self::DEFAULT_LIBRARIES;
-        }
-        $this->logger->info('SetLibraries: ' . $libraries, ['app' => 'cad_viewer']);
-        $this->config->setAppValueString(self::KEY_LIBRARIES, $libraries);
-    }
+        $value = strtolower(trim($value));
 
-    public function getLibraries(): string
-    {
-        $val = $this->config->getAppValueString(self::KEY_LIBRARIES);
-        if (empty($val)) {
-            $val = self::DEFAULT_LIBRARIES;
-        }
-
-        return $val;
-    }
-
-    public function setAutosave(string $autosave): void
-    {
-        $autosave = strtolower(trim($autosave));
-        if (!in_array($autosave, ['yes', 'no'], true)) {
-            $autosave = self::DEFAULT_AUTOSAVE;
-        }
-        $this->logger->info('SetAutosave: ' . $autosave, ['app' => 'cad_viewer']);
-        $this->config->setAppValueString(self::KEY_AUTOSAVE, $autosave);
-    }
-
-    public function getAutosave(): string
-    {
-        $val = $this->config->getAppValueString(self::KEY_AUTOSAVE);
-        if (empty($val)) {
-            $val = self::DEFAULT_AUTOSAVE;
-        }
-
-        return $val;
+        return in_array($value, $allowed, true) ? $value : $default;
     }
 }

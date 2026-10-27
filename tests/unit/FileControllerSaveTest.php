@@ -67,6 +67,7 @@ class FileControllerSaveTest extends TestCase
         File $file,
         array $params = [],
         ?ILockingProvider $locking = null,
+        ?AppConfig $appConfig = null,
     ): FileController {
         $user = $this->createMock(IUser::class);
         $user->method('getUID')->willReturn('alice');
@@ -99,7 +100,7 @@ class FileControllerSaveTest extends TestCase
             $this->createMock(LoggerInterface::class),
             $this->createMock(IURLGenerator::class),
             $this->createMock(ThumbnailService::class),
-            $this->createMock(AppConfig::class),
+            $appConfig ?? $this->createMock(AppConfig::class),
             $locking ?? $this->createMock(ILockingProvider::class),
         );
     }
@@ -317,5 +318,22 @@ class FileControllerSaveTest extends TestCase
 
         $this->assertSame('/', $data['directory']);
         $this->assertFalse($data['canSave']);
+    }
+
+    /**
+     * The viewer theme is an admin setting, so the metadata the client mounts
+     * the viewer with has to carry it.
+     */
+    public function testLoadReportsTheConfiguredTheme(): void
+    {
+        $file = $this->dxfFile();
+        $file->method('getMimeType')->willReturn('image/vnd.dxf');
+
+        $appConfig = $this->createMock(AppConfig::class);
+        $appConfig->method('getTheme')->willReturn('dark');
+
+        $data = $this->controller($file, [], null, $appConfig)->load(42)->getData();
+
+        $this->assertSame('dark', $data['theme']);
     }
 }

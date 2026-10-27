@@ -1,53 +1,50 @@
-import { generateUrl } from '@nextcloud/router'
-import $ from 'jquery';
-import { translate as t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
+import { translate as t } from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
 
-$(function () {
-	OCA.CadViewer = OCA.CadViewer || {};
-	if (!OCA.CadViewer.AppName) {
-		OCA.CadViewer = {
-			AppName: 'cad_viewer'
-		};
-	}
+const APP_ID = 'cad_viewer'
 
-	$('#cad-viewer-save').click(async function () {
-		const fTheme = $('#theme option:selected').val();
-		const fAutosave = $('#autosave option:selected').val();
-		const fLibraries = $('#libraries option:selected').val();
-		const fPreviews = $('#previews option:selected').val();
+/**
+ * Wire the admin settings form: post every field on Save and report the
+ * outcome in the status region, so it is announced to screen readers too.
+ *
+ * Exported so tests can drive it against a rendered form.
+ */
+export function initSettingsForm() {
+  const saveButton = document.getElementById('cad-viewer-save')
+  const status = document.getElementById('cad-viewer-status')
+  if (!(saveButton instanceof HTMLButtonElement) || !(status instanceof HTMLElement)) {
+    return
+  }
 
-		const settings = {
-			theme: String(fTheme),
-			autosave: String(fAutosave),
-			libraries: String(fLibraries),
-			previews: String(fPreviews)
-		};
+  const fields = ['theme', 'previews']
 
-		const params = new URLSearchParams();
-		for (const key of Object.keys(settings)) {
-			if (typeof settings[key] === 'string') {
-				params.append(key, settings[key]);
-			}
-		}
+  saveButton.addEventListener('click', async () => {
+    const params = new URLSearchParams()
+    for (const name of fields) {
+      const select = document.getElementById(`cad-viewer-${name}`)
+      if (select instanceof HTMLSelectElement) {
+        params.append(name, select.value)
+      }
+    }
 
-		try {
-			await axios.post(
-				generateUrl('apps/' + OCA.CadViewer.AppName + '/settings/save'),
-				params
-			);
+    saveButton.disabled = true
+    status.textContent = ''
 
-			OC.dialogs.info(
-				t(OCA.CadViewer.AppName, 'Settings have been successfully saved')
-			);
-		} catch (error) {
-			const errorMessage = error.response?.data?.message
-				|| error.response?.data
-				|| error.message;
-			OC.dialogs.alert(
-				t(OCA.CadViewer.AppName, 'Error when trying to save settings')
-					+ ': ' + errorMessage
-			);
-		}
-	});
-});
+    try {
+      await axios.post(generateUrl(`apps/${APP_ID}/settings/save`), params)
+      status.textContent = t(APP_ID, 'Settings have been successfully saved')
+    } catch (error) {
+      status.textContent = t(APP_ID, 'Error when trying to save settings')
+      console.error('CAD Viewer: failed to save settings', error)
+    } finally {
+      saveButton.disabled = false
+    }
+  })
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSettingsForm, { once: true })
+} else {
+  initSettingsForm()
+}

@@ -249,6 +249,9 @@ class FileController extends Controller
                 'canSave' => $this->canSave($file),
                 'url' => $downloadUrl,
                 'contentType' => 'application/octet-stream',
+                // The viewer theme is an app-wide admin setting; the client
+                // applies it when it mounts the viewer.
+                'theme' => $this->appConfig->getTheme(),
             ]);
         } catch (\Throwable $e) {
             $this->logger->error(

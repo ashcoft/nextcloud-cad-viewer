@@ -1,10 +1,12 @@
-<?php // Scripts and styles are added in AdminSettingsController::index()?>
+<?php
+// Scripts and styles are added in AdminSettingsController::index().
+?>
 <div id="cad-viewer" class="section section-cad-viewer">
     <h2>CAD Viewer</h2>
 
     <div class="cad-viewer-setting">
-        <label for="theme"><?php p($l->t('Theme:')) ?></label>
-        <select id="theme">
+        <label for="cad-viewer-theme"><?php p($l->t('Theme:')) ?></label>
+        <select id="cad-viewer-theme">
             <option
                 value="light"
                 <?php if ($_['theme'] === 'light') {
@@ -18,49 +20,14 @@
                 } ?>
             ><?php p($l->t('Dark')) ?></option>
         </select>
+        <p class="cad-viewer-hint">
+            <?php p($l->t('Note: The theme used when a drawing is opened in the viewer.')) ?>
+        </p>
     </div>
 
     <div class="cad-viewer-setting">
-        <label for="autosave"><?php p($l->t('Activate autosave?')) ?></label>
-        <select id="autosave">
-            <option
-                value="yes"
-                <?php if ($_['autosave'] === 'yes') {
-                    echo ' selected';
-                } ?>
-            ><?php p($l->t('Yes')) ?></option>
-            <option
-                value="no"
-                <?php if ($_['autosave'] === 'no') {
-                    echo ' selected';
-                } ?>
-            ><?php p($l->t('No')) ?></option>
-        </select>
-        <p class="cad-viewer-hint"><?php p($l->t('Note: Autosave automatically saves the file while editing.')) ?></p>
-    </div>
-
-    <div class="cad-viewer-setting">
-        <label for="libraries"><?php p($l->t('Enable libraries?')) ?></label>
-        <select id="libraries">
-            <option
-                value="yes"
-                <?php if ($_['libraries'] === 'yes') {
-                    echo ' selected';
-                } ?>
-            ><?php p($l->t('Yes')) ?></option>
-            <option
-                value="no"
-                <?php if ($_['libraries'] === 'no') {
-                    echo ' selected';
-                } ?>
-            ><?php p($l->t('No')) ?></option>
-        </select>
-        <p class="cad-viewer-hint"><?php p($l->t('Note: Enable libraries to access CAD component libraries.')) ?></p>
-    </div>
-
-    <div class="cad-viewer-setting">
-        <label for="previews"><?php p($l->t('Enable file previews?')) ?></label>
-        <select id="previews">
+        <label for="cad-viewer-previews"><?php p($l->t('Enable file previews?')) ?></label>
+        <select id="cad-viewer-previews">
             <option
                 value="yes"
                 <?php if ($_['previews'] === 'yes') {
@@ -79,5 +46,8 @@
         </p>
     </div>
 
-    <a id="cad-viewer-save" class="button"><?php p($l->t('Save')) ?></a>
+    <button type="button" id="cad-viewer-save" class="button primary">
+        <?php p($l->t('Save')) ?>
+    </button>
+    <span id="cad-viewer-status" class="cad-viewer-status" role="status"></span>
 </div>
