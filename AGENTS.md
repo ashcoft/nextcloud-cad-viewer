@@ -130,7 +130,7 @@ pnpm run stylelint    # Stylelint
 
 Releases use [semantic-release](https://github.com/semantic-release/semantic-release) with conventional commits:
 
-1. Only `feat`, `perf`, `fix(deps)` and breaking changes trigger a release; other commit types do not
+1. `feat`, `perf`, `fix`, `fix(deps)` and breaking changes trigger a release; other commit types do not
 2. When PR is merged to `main` or `stable`, semantic-release runs first, bumps the version and creates a draft GitHub Release
 3. The workflow then builds the tagged version of the Nextcloud app and attaches the archives (tar.gz and zip) to that release before publishing it
 
@@ -138,10 +138,14 @@ Releases use [semantic-release](https://github.com/semantic-release/semantic-rel
 |-------------|-------------|
 | BREAKING CHANGE (`feat!` or a `BREAKING CHANGE:` footer) | major |
 | `feat`, `perf`, `fix(deps)` | minor |
-| `fix`, `chore`, `docs`, `refactor`, `test`, `build`, `ci`, `style`, `revert`, `deps` | none |
+| `fix` | patch |
+| `chore`, `docs`, `refactor`, `test`, `build`, `ci`, `style`, `revert`, `deps` | none |
 
-Releases are deliberately limited, so most maintenance and dependency commits
-do not create a release each (only `fix(deps)` dependency fixes do). See
+Releases are deliberately limited, so routine dependency bumps (`chore(deps)`)
+and maintenance commits do not create a release each. That noise came from
+`chore`, not from `fix`, so bug fixes are released as patches: a fix that lands
+on its own (for example a regression in a shipped version) must be able to reach
+users without waiting for a feature to be released alongside it. See
 `release.config.js`; note that the `fix` rules are scope-narrowed, because a
 `release: false` rule outranks other release types and a plain
 `{ type: 'fix', release: false }` would also suppress `fix(deps)`.
@@ -152,7 +156,7 @@ feat: add new viewer feature      # → minor release
 perf: speed up rendering          # → minor release
 fix(deps): bump @mlightcad/...    # → minor release
 feat!: drop the legacy API        # → major release
-fix: resolve rendering issue      # → no release
+fix: resolve rendering issue      # → patch release
 chore(deps): bump element-plus    # → no release
 docs: update README               # → no release
 ```

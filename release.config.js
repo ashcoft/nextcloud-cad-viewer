@@ -6,30 +6,33 @@ module.exports = {
       {
         preset: 'conventionalcommits',
         /*
-         * Release policy: only features and release-worthy fixes cut a release.
+         * Release policy: features, release-worthy fixes and bug fixes cut a
+         * release.
          *
          *   feat! / BREAKING CHANGE  -> major
          *   feat                     -> minor
          *   perf                     -> minor
          *   fix(deps)                -> minor
-         *   fix                      -> no release
+         *   fix                      -> patch
          *   everything else          -> no release
          *
          * Dependency bumps and maintenance commits (chore(deps),
          * chore(actions), docs, test, ci, refactor) are kept out of releases on
          * purpose: they used to produce a patch release each, which flooded the
-         * tags.
+         * tags. That noise comes from `chore`, not from `fix`, so bug fixes are
+         * released normally: a fix that lands on its own (for example a
+         * regression in a shipped version) must be able to reach users without
+         * waiting for a feature to be released alongside it.
          *
          * Two subtleties, both verified against the real commit-analyzer:
          *
-         * 1. Use `release: false` (not a missing rule). The analyzer falls back
-         *    to its built-in patch rules when no custom rule matches, so
-         *    omitting a type would re-enable it.
+         * 1. Use `release: false` (not a missing rule) for the types that must
+         *    not release. The analyzer falls back to its built-in patch rules
+         *    when no custom rule matches, so omitting a type would re-enable it.
          * 2. `false` outranks any other type in compareReleaseTypes, so a plain
          *    `{ type: 'fix', release: false }` would also suppress
          *    `fix(deps)`. The fix rules are therefore scope-narrowed: `deps` is
-         *    release-worthy (minor), and both an unscoped fix and any other
-         *    scope are excluded explicitly.
+         *    release-worthy (minor) and every other scope is a patch.
          */
         releaseRules: [
           { breaking: true, release: 'major' },
@@ -40,8 +43,8 @@ module.exports = {
           { type: 'feat', release: 'minor' },
           { type: 'perf', release: 'minor' },
           { type: 'fix', scope: 'deps', release: 'minor' },
-          { type: 'fix', scope: null, release: false },
-          { type: 'fix', scope: '!(deps)', release: false },
+          { type: 'fix', scope: null, release: 'patch' },
+          { type: 'fix', scope: '!(deps)', release: 'patch' },
           { type: 'refactor', release: false },
           { type: 'docs', release: false },
           { type: 'style', release: false },

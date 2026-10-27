@@ -1,10 +1,11 @@
 /// <reference types="jest" />
 /**
- * Release policy: only feature work and breaking changes cut a release.
+ * Release policy: features, release-worthy fixes and bug fixes cut a release.
  *
  * Dependency bumps and maintenance commits used to trigger a patch release
- * each, which flooded the tags. This guards the policy in release.config.js
- * so it cannot silently regress.
+ * each, which flooded the tags. Bug fixes are released as patches, so a fix
+ * that lands on its own still reaches users. This guards the policy in
+ * release.config.js so it cannot silently regress.
  */
 import { execFileSync } from 'node:child_process'
 import { resolve } from 'node:path'
@@ -64,18 +65,23 @@ describe('release policy', () => {
     expect(ruleFor((rule) => rule.type === type)?.release).toBe(false)
   })
 
-  it('does not release for a plain fix, only fix(deps)', () => {
+  it('releases a patch for a plain fix and for any non-deps scope', () => {
+    // The rules are scope-narrowed so that fix(deps) can stay a minor release:
     // `false` outranks other release types, so a plain `{ type: 'fix',
-    // release: false }` would also suppress fix(deps); the exclusions are
-    // therefore scope-narrowed instead.
-    expect(ruleFor((rule) => rule.type === 'fix' && rule.scope === null)?.release).toBe(false)
-    expect(ruleFor((rule) => rule.type === 'fix' && rule.scope === '!(deps)')?.release).toBe(false)
+    // release: false }` would suppress fix(deps) too.
+    expect(ruleFor((rule) => rule.type === 'fix' && rule.scope === null)?.release).toBe('patch')
+    expect(ruleFor((rule) => rule.type === 'fix' && rule.scope === '!(deps)')?.release).toBe('patch')
+    // An unscoped catch-all is not needed: the two rules above cover it.
     expect(ruleFor((rule) => rule.type === 'fix' && rule.scope === undefined)).toBeUndefined()
   })
 
-  it('never maps a non-breaking commit to a patch release', () => {
+  it('only maps fix commits to a patch release', () => {
+    // A patch release is reserved for fixes; nothing else may produce one.
     const patchRules = rules.filter((rule) => rule.release === 'patch')
-    expect(patchRules).toEqual([])
+    expect(patchRules.length).toBeGreaterThan(0)
+    for (const rule of patchRules) {
+      expect(rule.type).toBe('fix')
+    }
   })
 
   it('suppresses git-style reverts before the default rules can apply', () => {
@@ -100,6 +106,8 @@ describe('release policy (behaviour)', () => {
     ['feat: add layer panel', 'minor'],
     ['perf: faster parse', 'minor'],
     ['fix(deps): bump @mlightcad/data-viewer', 'minor'],
+    ['fix: correct worker url', 'patch'],
+    ['fix(ui): scoped bug fix', 'patch'],
     ['feat: new thing\n\nBREAKING CHANGE: removes X', 'major'],
     ['feat!: drop legacy API', 'major'],
   ])('releases %j as %s', (message, expected) => {
@@ -107,8 +115,6 @@ describe('release policy (behaviour)', () => {
   })
 
   it.each([
-    'fix: correct worker url',
-    'fix(ui): scoped bug fix',
     'chore(deps): bump element-plus from 2.14.6 to 2.14.7',
     'chore(actions): bump pullfrog/pullfrog from 0.1.85 to 0.1.95',
     'docs: update README',
