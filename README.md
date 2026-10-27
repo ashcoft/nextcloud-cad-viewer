@@ -1,4 +1,5 @@
 # Nextcloud CAD Viewer
+<img width="1699" height="643" alt="Screenshot 2026-10-27 at 22-27-49 CAD Viewer - HAVO cloud" src="https://github.com/user-attachments/assets/0ef34b85-80bc-4a88-8a0f-5f77b849e38e" />
 
 [![Latest Release](https://img.shields.io/github/v/release/ashcoft/nextcloud-cad-viewer)](https://github.com/ashcoft/nextcloud-cad-viewer/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
