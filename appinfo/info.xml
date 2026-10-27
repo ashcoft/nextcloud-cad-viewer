@@ -2,18 +2,25 @@
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
   <id>cad_viewer</id>
   <name>CAD Viewer</name>
-  <summary>DWG/DXF file viewer for Nextcloud</summary>
-  <description><![CDATA[A native Nextcloud app that provides DWG and DXF file viewing capabilities. Integrates [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer) - a fully web-based CAD viewer that runs entirely in the browser without backend server requirements.
+  <summary>View and edit DWG/DXF drawings in Nextcloud</summary>
+  <description><![CDATA[A native Nextcloud app that provides DWG and DXF viewing and editing, built on [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer) - a fully web-based CAD viewer that runs entirely in the browser without backend server requirements.
 
 **Supported formats:** DWG, DXF
 
 **Features:**
-- Start page with recent drawings and blank drawing creation
-- Zoom, pan, and fit-to-view controls
+- View DWG and DXF drawings directly in Nextcloud, without extra software
+- Fast, browser-based rendering using WebGL technology
+- Start page with your recent drawings and a shortcut to create a blank drawing
+- Interactive controls: zoom, pan, and fit-to-view
 - Layer visibility management
-- Dark/light theme
-- Fullscreen mode
-- Responsive design]]></description>
+- Save edits back to DXF files (DWG stays read-only)
+- Preview thumbnails in the Files app for drawings you have opened
+- Dark and light themes, plus fullscreen mode
+- Responsive design that works on desktop and mobile
+- Admin settings for theme, autosave, libraries, and previews
+- Secure integration with Nextcloud file permissions
+
+Tested and compatible with Nextcloud 34-35. See the [project README](https://github.com/ashcoft/nextcloud-cad-viewer#readme) for requirements, installation, and usage.]]></description>
   <version>1.3.1</version>
   <licence>MIT</licence>
   <author mail="dony@dony.me">CAD Viewer Contributors</author>
@@ -28,6 +35,7 @@
   </documentation>
   <category>files</category>
   <website>https://github.com/ashcoft/nextcloud-cad-viewer</website>
+  <discussion>https://github.com/ashcoft/nextcloud-cad-viewer/discussions</discussion>
   <bugs>https://github.com/ashcoft/nextcloud-cad-viewer/issues</bugs>
   <repository type="git">https://github.com/ashcoft/nextcloud-cad-viewer.git</repository>
   <screenshot>https://raw.githubusercontent.com/ashcoft/nextcloud-cad-viewer/main/docs/screenshot.png</screenshot>
