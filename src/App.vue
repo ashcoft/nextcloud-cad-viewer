@@ -351,6 +351,19 @@ export default defineComponent({
   background: #2b2b2b;
   border-bottom: 1px solid rgb(255 255 255 / 10%);
   flex: 0 0 auto;
+
+  /*
+   * The CAD viewer mounts its root as `position: fixed; inset: 0; z-index: 2`,
+   * and #cad-viewer-container's transform makes that container its containing
+   * block. The viewer therefore paints over this toolbar unless the toolbar
+   * sits in a higher stacking context of its own; without this the buttons are
+   * in the DOM but cannot be seen or clicked.
+   *
+   * It must also stay above .cad-viewer-overlay (z-index 10) so Exit remains
+   * usable while the loading or error overlay is shown.
+   */
+  position: relative;
+  z-index: 11;
 }
 
 .cad-viewer-toolbar__button {
