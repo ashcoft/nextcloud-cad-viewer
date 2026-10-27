@@ -4,8 +4,6 @@
 [![Nextcloud Version](https://img.shields.io/badge/Nextcloud-34-blue)](https://nextcloud.com)
 [![PHP Version](https://img.shields.io/badge/PHP-8.4-purple)](https://php.net)
 
-<img width="1715" height="920" alt="Screenshot 2026-10-27 at 22-27-49 CAD Viewer - HAVO cloud" src="https://github.com/user-attachments/assets/c6c04143-fdce-4f7b-a10d-2dd0980a29ce" />
-
 A native Nextcloud app providing DWG and DXF file viewing capabilities based on [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer). View your CAD drawings directly in Nextcloud without downloading or installing additional software.
 
 ## 📸 Screenshots
