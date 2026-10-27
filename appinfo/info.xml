@@ -2,7 +2,7 @@
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
   <id>cad_viewer</id>
   <name>CAD Viewer</name>
-  <summary>View and edit DWG/DXF drawings in Nextcloud</summary>
+  <summary>View DWG/DXF drawings and edit DXF files in Nextcloud</summary>
   <description><![CDATA[A native Nextcloud app that provides DWG and DXF viewing and editing, built on [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer) - a fully web-based CAD viewer that runs entirely in the browser without backend server requirements.
 
 **Supported formats:** DWG, DXF
