@@ -1,3 +1,12 @@
+## [1.3.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.3.0...v1.3.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* keep the toolbar above the overlay and test the real styles ([c2bb745](https://github.com/ashcoft/nextcloud-cad-viewer/commit/c2bb7454f799902e60e4bb3277705ab16ecbfab6))
+* release bug fixes as patch versions ([b80dc3d](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b80dc3d6fef7fe0e00c748025136ba3fafa74193))
+* show the Save/Exit toolbar above the viewer canvas ([1031843](https://github.com/ashcoft/nextcloud-cad-viewer/commit/103184315f53cd9467d122e0b40d7436ff329f05)), closes [#cad-viewer-container](https://github.com/ashcoft/nextcloud-cad-viewer/issues/cad-viewer-container)
+
 # [1.3.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.2.0...v1.3.0) (2026-10-26)
 
 
