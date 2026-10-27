@@ -163,10 +163,12 @@ Only these commit types cut a release:
 | --- | --- |
 | breaking change (`feat!` / `BREAKING CHANGE:`) | major |
 | `feat`, `perf`, `fix(deps)` | minor |
-| everything else (`fix`, `chore`, `docs`, `test`, `ci`, ...) | none |
+| `fix` | patch |
+| everything else (`chore`, `docs`, `test`, `ci`, ...) | none |
 
-Dependency bumps and maintenance commits therefore do not create a release
-each. See `release.config.js` to change the policy.
+Routine dependency bumps (`chore(deps)`) and maintenance commits therefore do
+not create a release each. Bug fixes do, so a fix that lands on its own still
+reaches users. See `release.config.js` to change the policy.
 
 ## Resources
 - [Nextcloud Development Guide](https://docs.nextcloud.com/server/latest/developer_manual/)
