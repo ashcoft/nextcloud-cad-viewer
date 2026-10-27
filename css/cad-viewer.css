@@ -35,6 +35,25 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+
+  /* Anchors the viewer root below, so it fills only this area. */
+  position: relative;
+}
+
+/*
+ * The viewer mounts its own root as `position: fixed; inset: 0; z-index: 2`,
+ * and the transform above makes #cad-viewer-container its containing block.
+ * That root therefore covered the whole container — including the Save/Exit
+ * toolbar — leaving the buttons in the DOM but painted over, so they could not
+ * be seen or clicked.
+ *
+ * Rendering it absolutely inside the canvas area keeps it below the toolbar and
+ * confines it to the drawing surface, without the app having to measure
+ * anything at runtime.
+ */
+.cad-viewer-canvas .ml-cad-viewer-container {
+  position: absolute;
+  inset: 0;
 }
 
 .cad-viewer-canvas canvas {
