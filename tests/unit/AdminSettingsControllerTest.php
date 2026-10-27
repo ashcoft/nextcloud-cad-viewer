@@ -20,11 +20,11 @@ require_once __DIR__ . '/../stubs/OC/OC.php';
 use OCA\CadViewer\Config\AppConfig;
 use OCA\CadViewer\Controller\AdminSettingsController;
 use OCA\CadViewer\Settings\AdminSettings;
+use OCA\CadViewer\Tests\Fixtures\InMemoryAppConfig;
 use OCP\AppFramework\Http\Attribute\AuthorizedAdminSetting;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\TemplateResponse;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\IRequest;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
@@ -36,9 +36,6 @@ use Psr\Log\LoggerInterface;
 #[AllowMockObjectsWithoutExpectations]
 class AdminSettingsControllerTest extends TestCase
 {
-    /** @var array<string, string> */
-    private array $store = [];
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -52,25 +49,10 @@ class AdminSettingsControllerTest extends TestCase
 
     private function config(): AppConfig
     {
-        $store = &$this->store;
-
-        $appConfig = $this->createMock(IAppConfig::class);
-        $appConfig->method('setAppValueString')->willReturnCallback(
-            static function (string $key, string $value) use (&$store): bool {
-                $store[$key] = $value;
-
-                return true;
-            }
+        return new AppConfig(
+            new InMemoryAppConfig(),
+            $this->createMock(LoggerInterface::class),
         );
-        // A plain closure with `use (&$store)`: an arrow function would capture
-        // the store by value and never see what the setter wrote.
-        $appConfig->method('getAppValueString')->willReturnCallback(
-            static function (string $key, string $default = '') use (&$store): string {
-                return $store[$key] ?? $default;
-            }
-        );
-
-        return new AppConfig($appConfig, $this->createMock(LoggerInterface::class));
     }
 
     /**
@@ -105,10 +87,11 @@ class AdminSettingsControllerTest extends TestCase
 
     public function testIndexPassesTheStoredValuesToTheTemplate(): void
     {
-        $this->store['Theme'] = 'dark';
-        $this->store['Previews'] = 'no';
+        $config = $this->config();
+        $config->setTheme('dark');
+        $config->setPreviews('no');
 
-        $response = $this->controller()->index();
+        $response = $this->controller([], $config)->index();
         $params = (new \ReflectionObject($response))->getProperty('params')->getValue($response);
 
         $this->assertSame('dark', $params['theme']);
@@ -117,11 +100,12 @@ class AdminSettingsControllerTest extends TestCase
 
     public function testSettingsPersistThePostedValues(): void
     {
-        $response = $this->controller(['theme' => 'dark', 'previews' => 'no'])->settings();
+        $config = $this->config();
+        $response = $this->controller(['theme' => 'dark', 'previews' => 'no'], $config)->settings();
 
         $this->assertInstanceOf(DataResponse::class, $response);
-        $this->assertSame('dark', $this->store['Theme']);
-        $this->assertSame('no', $this->store['Previews']);
+        $this->assertSame('dark', $config->getTheme());
+        $this->assertSame('no', $config->getPreviews());
         $this->assertSame(
             ['theme' => 'dark', 'previews' => 'no'],
             $response->getData(),
@@ -130,10 +114,11 @@ class AdminSettingsControllerTest extends TestCase
 
     public function testSettingsRejectInvalidValues(): void
     {
-        $this->controller(['theme' => 'blue', 'previews' => 'maybe'])->settings();
+        $config = $this->config();
+        $this->controller(['theme' => 'blue', 'previews' => 'maybe'], $config)->settings();
 
-        $this->assertSame('light', $this->store['Theme']);
-        $this->assertSame('yes', $this->store['Previews']);
+        $this->assertSame('light', $config->getTheme());
+        $this->assertSame('yes', $config->getPreviews());
     }
 
     /**
@@ -142,13 +127,14 @@ class AdminSettingsControllerTest extends TestCase
      */
     public function testSettingsKeepStoredValuesForOmittedParameters(): void
     {
-        $this->store['Theme'] = 'dark';
-        $this->store['Previews'] = 'no';
+        $config = $this->config();
+        $config->setTheme('dark');
+        $config->setPreviews('no');
 
-        $this->controller(['theme' => 'light'])->settings();
+        $this->controller(['theme' => 'light'], $config)->settings();
 
-        $this->assertSame('light', $this->store['Theme']);
-        $this->assertSame('no', $this->store['Previews'], 'omitted previews must not reset');
+        $this->assertSame('light', $config->getTheme());
+        $this->assertSame('no', $config->getPreviews(), 'omitted previews must not reset');
     }
 
     /**

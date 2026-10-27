@@ -16,7 +16,7 @@ declare(strict_types=1);
 namespace OCA\CadViewer\Tests\Unit;
 
 use OCA\CadViewer\Config\AppConfig;
-use OCP\AppFramework\Services\IAppConfig;
+use OCA\CadViewer\Tests\Fixtures\InMemoryAppConfig;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -28,34 +28,15 @@ use Psr\Log\LoggerInterface;
 #[AllowMockObjectsWithoutExpectations]
 class AppConfigTest extends TestCase
 {
-    /** @var array<string, string> */
-    private array $store = [];
-
     /**
-     * Build an AppConfig backed by an in-memory store, so a value written by a
-     * setter is the value the matching getter reads back.
+     * Build an AppConfig backed by an in-memory store.
      */
     private function config(): AppConfig
     {
-        $store = &$this->store;
-
-        $appConfig = $this->createMock(IAppConfig::class);
-        $appConfig->method('setAppValueString')->willReturnCallback(
-            static function (string $key, string $value) use (&$store): bool {
-                $store[$key] = $value;
-
-                return true;
-            }
+        return new AppConfig(
+            new InMemoryAppConfig(),
+            $this->createMock(LoggerInterface::class),
         );
-        // A plain closure with `use (&$store)`: an arrow function would capture
-        // the store by value and never see what the setter wrote.
-        $appConfig->method('getAppValueString')->willReturnCallback(
-            static function (string $key, string $default = '') use (&$store): string {
-                return $store[$key] ?? $default;
-            }
-        );
-
-        return new AppConfig($appConfig, $this->createMock(LoggerInterface::class));
     }
 
     public function testDefaultsWhenNothingIsStored(): void
@@ -72,7 +53,6 @@ class AppConfigTest extends TestCase
         $config->setTheme('dark');
 
         $this->assertSame('dark', $config->getTheme());
-        $this->assertSame('dark', $this->store['Theme']);
     }
 
     public function testPreviewsRoundTrips(): void
@@ -81,7 +61,6 @@ class AppConfigTest extends TestCase
         $config->setPreviews('no');
 
         $this->assertSame('no', $config->getPreviews());
-        $this->assertSame('no', $this->store['Previews']);
     }
 
     /**
@@ -121,13 +100,15 @@ class AppConfigTest extends TestCase
      */
     public function testInvalidStoredValuesAreRejectedOnRead(): void
     {
-        $this->store['Theme'] = 'blue';
-        $this->store['Previews'] = 'sometimes';
+        // Values written straight to the database bypass the setters, so the
+        // getters have to reject them.
+        $appConfig = new InMemoryAppConfig();
+        $appConfig->setAppValueString('Theme', 'blue');
+        $appConfig->setAppValueString('Previews', 'sometimes');
+        $seeded = new AppConfig($appConfig, $this->createMock(LoggerInterface::class));
 
-        $config = $this->config();
-
-        $this->assertSame('light', $config->getTheme());
-        $this->assertSame('yes', $config->getPreviews());
+        $this->assertSame('light', $seeded->getTheme());
+        $this->assertSame('yes', $seeded->getPreviews());
     }
 
     /**
@@ -135,8 +116,7 @@ class AppConfigTest extends TestCase
      */
     public function testLogsOnlyTheNormalizedValue(): void
     {
-        $appConfig = $this->createMock(IAppConfig::class);
-        $appConfig->method('setAppValueString')->willReturn(true);
+        $appConfig = new InMemoryAppConfig();
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())

@@ -35,45 +35,56 @@ class AppConfig
     ) {
     }
 
-    public function setTheme(string $theme): void
-    {
-        $theme = $this->normalize($theme, self::THEMES, self::DEFAULT_THEME);
-        $this->logger->info('SetTheme: ' . $theme, ['app' => 'cad_viewer']);
-        $this->config->setAppValueString(self::KEY_THEME, $theme);
-    }
-
     public function getTheme(): string
     {
-        return $this->normalize(
-            $this->config->getAppValueString(self::KEY_THEME),
-            self::THEMES,
-            self::DEFAULT_THEME,
-        );
+        return $this->read(self::KEY_THEME, self::THEMES, self::DEFAULT_THEME);
     }
 
-    public function setPreviews(string $previews): void
+    public function setTheme(string $theme): void
     {
-        $previews = $this->normalize($previews, self::YES_NO, self::DEFAULT_PREVIEWS);
-        $this->logger->info('SetPreviews: ' . $previews, ['app' => 'cad_viewer']);
-        $this->config->setAppValueString(self::KEY_PREVIEWS, $previews);
+        $this->write(self::KEY_THEME, 'SetTheme', $theme, self::THEMES, self::DEFAULT_THEME);
     }
 
     public function getPreviews(): string
     {
-        return $this->normalize(
-            $this->config->getAppValueString(self::KEY_PREVIEWS),
-            self::YES_NO,
-            self::DEFAULT_PREVIEWS,
-        );
+        return $this->read(self::KEY_PREVIEWS, self::YES_NO, self::DEFAULT_PREVIEWS);
+    }
+
+    public function setPreviews(string $previews): void
+    {
+        $this->write(self::KEY_PREVIEWS, 'SetPreviews', $previews, self::YES_NO, self::DEFAULT_PREVIEWS);
+    }
+
+    /**
+     * Read a setting, falling back to the default when the stored value is not
+     * one of the allowed ones.
+     *
+     * Validating on read matters as much as on write: a value written straight
+     * to the database (occ config:app:set) would otherwise reach the viewer
+     * unchecked and leave the settings form with no option selected.
+     *
+     * @param string[] $allowed
+     */
+    private function read(string $key, array $allowed, string $default): string
+    {
+        return $this->normalize($this->config->getAppValueString($key), $allowed, $default);
+    }
+
+    /**
+     * Store a setting after normalising it.
+     *
+     * @param string[] $allowed
+     */
+    private function write(string $key, string $label, string $value, array $allowed, string $default): void
+    {
+        $value = $this->normalize($value, $allowed, $default);
+        $this->logger->info($label . ': ' . $value, ['app' => 'cad_viewer']);
+        $this->config->setAppValueString($key, $value);
     }
 
     /**
      * Lower-case and trim a value, falling back to the default when it is not
      * one of the allowed ones.
-     *
-     * Applied on read as well as on write: a value written straight to the
-     * database (occ config:app:set) would otherwise reach the viewer unchecked
-     * and leave the settings form with no option selected.
      *
      * @param string[] $allowed
      */
