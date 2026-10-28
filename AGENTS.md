@@ -219,6 +219,44 @@ PR limits: 10 for npm/composer, 5 for actions.
 - Some tests require a full Nextcloud environment and may not pass in a minimal sandbox
 - Frontend builds require Node.js >= 24
 
+## Local Verification Tips
+
+The sandbox has no PHP, but `php:8.4-cli` runs the whole backend suite. The
+`OCP` stubs and the `gd`/`zip` extensions are needed first:
+
+```bash
+docker run --rm -v "$PWD":/app -w /app php:8.4-cli sh -c '
+  apt-get update -qq && apt-get install -y -qq libpng-dev libjpeg62-turbo-dev \
+    libfreetype6-dev libzip-dev
+  docker-php-ext-configure gd --with-freetype --with-jpeg
+  docker-php-ext-install -j4 gd zip
+  php -d memory_limit=512M vendor/bin/phpunit tests -c tests/phpunit.xml'
+```
+
+Without `gd` the PNG-decode test fails, and without `composer bin nextcloud-ocp
+require --dev nextcloud/ocp:dev-stable34` most tests error on a missing OCP class.
+
+Watch for these traps:
+
+- **`pnpm-lock.yaml` must match `package.json`.** CI installs with
+  `--frozen-lockfile`, so a dependency change without
+  `pnpm install --lockfile-only` fails *every* node job with
+  `ERR_PNPM_OUTDATED_LOCKFILE`, including lint and tests that look unrelated.
+- **A build regenerates tracked `js/*.LICENSE.txt` files.** Run
+  `git checkout -- js/` afterwards so the diff stays on source.
+- **`@vue/vue3-jest` cannot mount `.vue` files here** ("Must use import to load
+  ES Module"). Put logic in a plain `.ts` helper and test that, as
+  `src/utils/viewerOptions.ts` does.
+- **Babel's TS transform leaves call type arguments in place**, so
+  `new Promise<void>(...)` breaks Jest parsing. Use `new Promise(...)`.
+- **The `OC` stub declares several namespaces**, so it cannot go through the
+  PSR-4 autoloader. Require it inside `setUp()` rather than at file scope;
+  Codacy's PSR-1 `Files.SideEffects` rule flags a file-level require in a test
+  that also declares a class.
+- **Arrow functions capture by value.** A mock callback that must observe
+  writes needs `static function (...) use (&$store)`; `static fn` freezes the
+  array at its initial state.
+
 ---
 
 ## Semantic Release Configuration
