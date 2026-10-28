@@ -178,7 +178,7 @@ overrides:
   undici: ^8.0.0
   vue: 3.5.43
   vue-i18n: 11.4.6
-  '@ai-sdk/provider-utils': 5.0.69
+  '@ai-sdk/provider-utils': 5.0.70
   nanoid: 6.0.2
 
 importers:
@@ -396,8 +396,8 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/provider-utils@5.0.69':
-    resolution: {integrity: sha512-oGCXIoBKLpNrrAzJvltFHdBl20FJMyT+7edD9D4nwxoI8Scbj3y1EgKzjoF2XFhNYkMTcv1oTFDgUzLxdjqSKg==}
+  '@ai-sdk/provider-utils@5.0.70':
+    resolution: {integrity: sha512-nU213UNVHWDoEKIZ5Hm3uGPmfW7EBHC2GkIJJEDKh4HLQWgh/eizrW2jmY4efxWf7Tf/yTzKD0t6sd4kVUKlyQ==}
     engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -5769,23 +5769,23 @@ snapshots:
   '@ai-sdk/anthropic@2.0.87(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.3
-      '@ai-sdk/provider-utils': 5.0.69(zod@3.25.76)
+      '@ai-sdk/provider-utils': 5.0.70(zod@3.25.76)
       zod: 3.25.76
 
   '@ai-sdk/gateway@2.0.115(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.3
-      '@ai-sdk/provider-utils': 5.0.69(zod@3.25.76)
+      '@ai-sdk/provider-utils': 5.0.70(zod@3.25.76)
       '@vercel/oidc': 3.1.0
       zod: 3.25.76
 
   '@ai-sdk/openai@2.0.114(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.3
-      '@ai-sdk/provider-utils': 5.0.69(zod@3.25.76)
+      '@ai-sdk/provider-utils': 5.0.70(zod@3.25.76)
       zod: 3.25.76
 
-  '@ai-sdk/provider-utils@5.0.69(zod@3.25.76)':
+  '@ai-sdk/provider-utils@5.0.70(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 4.0.34
       '@standard-schema/spec': 1.1.0
@@ -5804,7 +5804,7 @@ snapshots:
 
   '@ai-sdk/vue@2.0.216(vue@3.5.43(@typescript/typescript6@6.0.2))(zod@3.25.76)':
     dependencies:
-      '@ai-sdk/provider-utils': 5.0.69(zod@3.25.76)
+      '@ai-sdk/provider-utils': 5.0.70(zod@3.25.76)
       ai: 5.0.216(zod@3.25.76)
       swrv: 1.2.0(vue@3.5.43(@typescript/typescript6@6.0.2))
     optionalDependencies:
@@ -8321,7 +8321,7 @@ snapshots:
     dependencies:
       '@ai-sdk/gateway': 2.0.115(zod@3.25.76)
       '@ai-sdk/provider': 2.0.3
-      '@ai-sdk/provider-utils': 5.0.69(zod@3.25.76)
+      '@ai-sdk/provider-utils': 5.0.70(zod@3.25.76)
       '@opentelemetry/api': 1.9.0
       zod: 3.25.76
 
