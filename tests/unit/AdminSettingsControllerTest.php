@@ -15,8 +15,6 @@ declare(strict_types=1);
 
 namespace OCA\CadViewer\Tests\Unit;
 
-require_once __DIR__ . '/../stubs/OC/OC.php';
-
 use OCA\CadViewer\Config\AppConfig;
 use OCA\CadViewer\Controller\AdminSettingsController;
 use OCA\CadViewer\Settings\AdminSettings;
@@ -39,6 +37,9 @@ class AdminSettingsControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // The stub declares several namespaces, so it cannot go through the
+        // PSR-4 autoloader and is loaded here rather than at file scope.
+        require_once __DIR__ . '/../stubs/OC/OC.php';
         // OCP\Util::addScript resolves a translation factory from the server
         // container, which the app's test bootstrap does not provide.
         \OC::$server = $this->createStub(\OCP\IServerContainerExtended::class);
