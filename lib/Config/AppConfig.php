@@ -37,7 +37,7 @@ class AppConfig
 
     public function getTheme(): string
     {
-        return $this->normalize($this->config->getAppValueString(self::KEY_THEME), self::THEMES, self::DEFAULT_THEME);
+        return $this->read(self::KEY_THEME, self::THEMES, self::DEFAULT_THEME);
     }
 
     public function setTheme(string $theme): void
@@ -47,12 +47,23 @@ class AppConfig
 
     public function getPreviews(): string
     {
-        return $this->normalize($this->config->getAppValueString(self::KEY_PREVIEWS), self::YES_NO, self::DEFAULT_PREVIEWS);
+        return $this->read(self::KEY_PREVIEWS, self::YES_NO, self::DEFAULT_PREVIEWS);
     }
 
     public function setPreviews(string $previews): void
     {
         $this->store(self::KEY_PREVIEWS, 'SetPreviews', $previews, self::YES_NO, self::DEFAULT_PREVIEWS);
+    }
+
+    /**
+     * Read a setting, falling back to the default when the stored value is not
+     * one of the allowed ones.
+     *
+     * @param string[] $allowed
+     */
+    private function read(string $key, array $allowed, string $default): string
+    {
+        return $this->normalize($this->config->getAppValueString($key), $allowed, $default);
     }
 
     /**
