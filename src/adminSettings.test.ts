@@ -5,7 +5,7 @@
  * the form, click Save, and assert on what was posted.
  */
 import axios from '@nextcloud/axios'
-import { initSettingsForm } from '../../src/adminSettings.js'
+import { initSettingsForm } from './adminSettings'
 
 const template = `
   <div id="cad-viewer" class="section section-cad-viewer">
@@ -97,6 +97,10 @@ describe('admin settings form', () => {
     button.click()
     await flush()
 
+    // Assert the request actually ran, otherwise a handler that never fired
+    // would leave the button enabled and still pass.
+    expect(axios.post).toHaveBeenCalledTimes(1)
+    expect(status()).toBe('Error when trying to save settings')
     expect(button.disabled).toBe(false)
     consoleError.mockRestore()
   })

@@ -233,8 +233,12 @@ docker run --rm -v "$PWD":/app -w /app php:8.4-cli sh -c '
   php -d memory_limit=512M vendor/bin/phpunit tests -c tests/phpunit.xml'
 ```
 
-Without `gd` the PNG-decode test fails, and without `composer bin nextcloud-ocp
-require --dev nextcloud/ocp:dev-stable34` most tests error on a missing OCP class.
+Without `gd` the PNG-decode test fails. Most tests also error on a missing OCP
+class until the stubs are installed with
+`composer bin nextcloud-ocp require --dev nextcloud/ocp:dev-stable34`. That
+command rewrites the tracked `vendor-bin/nextcloud-ocp/composer.json` and
+`composer.lock` (the repo pins `dev-master`), so it is for local, uncommitted
+use only — revert those two files before committing.
 
 Watch for these traps:
 
@@ -244,9 +248,13 @@ Watch for these traps:
   `ERR_PNPM_OUTDATED_LOCKFILE`, including lint and tests that look unrelated.
 - **A build regenerates tracked `js/*.LICENSE.txt` files.** Run
   `git checkout -- js/` afterwards so the diff stays on source.
-- **`@vue/vue3-jest` cannot mount `.vue` files here** ("Must use import to load
-  ES Module"). Put logic in a plain `.ts` helper and test that, as
-  `src/utils/viewerOptions.ts` does.
+- **`.vue` files cannot be mounted in Jest here.** `@vue/vue3-jest` has no Jest
+  30 release (latest is 29.2.6, against Jest 30.5.2), so an SFC import is
+  parsed as ESM and rejected with "Must use import to load ES Module". Put
+  logic in a plain `.ts` helper and test that, as `src/utils/viewerOptions.ts`
+  does, and read the SFC as text for structural assertions, as
+  `src/utils/viewerOptions.test.ts` and `tests/unit/assetController.spec.ts`
+  do.
 - **Babel's TS transform leaves call type arguments in place**, so
   `new Promise<void>(...)` breaks Jest parsing. Use `new Promise(...)`.
 - **The `OC` stub declares several namespaces**, so it cannot go through the

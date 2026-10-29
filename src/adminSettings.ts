@@ -10,7 +10,7 @@ const APP_ID = 'cad_viewer'
  *
  * Exported so tests can drive it against a rendered form.
  */
-export function initSettingsForm() {
+export function initSettingsForm(): void {
   const saveButton = document.getElementById('cad-viewer-save')
   const status = document.getElementById('cad-viewer-status')
   if (!(saveButton instanceof HTMLButtonElement) || !(status instanceof HTMLElement)) {
@@ -36,7 +36,10 @@ export function initSettingsForm() {
       status.textContent = t(APP_ID, 'Settings have been successfully saved')
     } catch (error) {
       status.textContent = t(APP_ID, 'Error when trying to save settings')
-      console.error('CAD Viewer: failed to save settings', error)
+      // Log only the HTTP status: the axios error carries
+      // config.headers.requesttoken, so it must never be logged whole.
+      const httpStatus = (error as { response?: { status?: number } } | null)?.response?.status
+      console.error('CAD Viewer: failed to save settings', httpStatus ?? 'request failed')
     } finally {
       saveButton.disabled = false
     }

@@ -12,17 +12,24 @@ namespace OCA\CadViewer\Tests\Fixtures;
 use OCP\AppFramework\Services\IAppConfig;
 
 /**
- * An IAppConfig backed by an array, so a value written by a setter is the value
+ * An IAppConfig backed by arrays, so a value written by a setter is the value
  * the matching getter reads back.
  *
  * A real implementation rather than a mock, following InMemoryFile and
  * InMemoryFolder: the value stored is the value read, which is exactly what the
  * settings tests need to assert round trips.
+ *
+ * Only app values are exercised by the app under test. The user-value methods
+ * are backed by their own array rather than stubbed out, so a future test that
+ * reaches for them cannot silently read back a default.
  */
 class InMemoryAppConfig implements IAppConfig
 {
     /** @var array<string, string> */
     public array $store = [];
+
+    /** @var array<string, string> Keyed by "<userId>|<key>". */
+    public array $userStore = [];
 
     public function getAppKeys(): array
     {
@@ -131,14 +138,16 @@ class InMemoryAppConfig implements IAppConfig
 
     public function setUserValue(string $userId, string $key, string $value, ?string $preCondition = null): void
     {
+        $this->userStore[$userId . '|' . $key] = $value;
     }
 
     public function getUserValue(string $userId, string $key, string $default = ''): string
     {
-        return $default;
+        return $this->userStore[$userId . '|' . $key] ?? $default;
     }
 
     public function deleteUserValue(string $userId, string $key): void
     {
+        unset($this->userStore[$userId . '|' . $key]);
     }
 }

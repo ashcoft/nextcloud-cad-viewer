@@ -113,11 +113,20 @@ class AdminSettingsControllerTest extends TestCase
         );
     }
 
+    /**
+     * Assert the raw stored value, not just what the getter returns: the getter
+     * normalises too, so it would hide a write that stored the invalid input
+     * verbatim.
+     */
     public function testSettingsRejectInvalidValues(): void
     {
-        $config = $this->config();
+        $appConfig = new InMemoryAppConfig();
+        $config = new AppConfig($appConfig, $this->createMock(LoggerInterface::class));
+
         $this->controller(['theme' => 'blue', 'previews' => 'maybe'], $config)->settings();
 
+        $this->assertSame('light', $appConfig->store['Theme']);
+        $this->assertSame('yes', $appConfig->store['Previews']);
         $this->assertSame('light', $config->getTheme());
         $this->assertSame('yes', $config->getPreviews());
     }
