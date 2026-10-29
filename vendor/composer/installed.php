@@ -3,7 +3,7 @@
         'name' => 'ashcoft/nextcloud-cad-viewer',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '46c959c80db3da11aa1a5cc4a616712b5dba5606',
+        'reference' => '7a6332985a9f990a2d00c5163d9360a6572e5d58',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -112,7 +112,7 @@
         'ashcoft/nextcloud-cad-viewer' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '46c959c80db3da11aa1a5cc4a616712b5dba5606',
+            'reference' => '7a6332985a9f990a2d00c5163d9360a6572e5d58',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -421,7 +421,7 @@
         'psalm/psalm' => array(
             'dev_requirement' => true,
             'provided' => array(
-                0 => '6.20.3',
+                0 => '6.20.4',
             ),
         ),
         'psr/container' => array(
@@ -832,9 +832,9 @@
             'dev_requirement' => true,
         ),
         'vimeo/psalm' => array(
-            'pretty_version' => '6.20.3',
-            'version' => '6.20.3.0',
-            'reference' => '23d217da099cc4a9a3bd03b644c1adf520022375',
+            'pretty_version' => '6.20.4',
+            'version' => '6.20.4.0',
+            'reference' => 'e53db692e6600cf729c88190b892bcf96e1c550e',
             'type' => 'project',
             'install_path' => __DIR__ . '/../vimeo/psalm',
             'aliases' => array(),
