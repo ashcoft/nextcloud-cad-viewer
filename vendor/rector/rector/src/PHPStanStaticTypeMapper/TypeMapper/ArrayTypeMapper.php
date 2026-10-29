@@ -4,9 +4,11 @@ declare (strict_types=1);
 namespace Rector\PHPStanStaticTypeMapper\TypeMapper;
 
 use PhpParser\Node\Identifier;
+use PHPStan\PhpDocParser\Ast\Type\ArrayTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
+use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\ClassStringType;
 use PHPStan\Type\Constant\ConstantArrayType;
@@ -17,8 +19,6 @@ use PHPStan\Type\MixedType;
 use PHPStan\Type\NeverType;
 use PHPStan\Type\Type;
 use PHPStan\Type\UnionType;
-use Rector\BetterPhpDocParser\ValueObject\Type\BracketsAwareUnionTypeNode;
-use Rector\BetterPhpDocParser\ValueObject\Type\SpacingAwareArrayTypeNode;
 use Rector\PHPStanStaticTypeMapper\Contract\TypeMapperInterface;
 use Rector\PHPStanStaticTypeMapper\PHPStanStaticTypeMapper;
 use Rector\TypeDeclaration\NodeTypeAnalyzer\DetailedTypeAnalyzer;
@@ -38,10 +38,6 @@ final class ArrayTypeMapper implements TypeMapperInterface
      * @readonly
      */
     private DetailedTypeAnalyzer $detailedTypeAnalyzer;
-    /**
-     * @var string
-     */
-    public const HAS_GENERIC_TYPE_PARENT = 'has_generic_type_parent';
     private PHPStanStaticTypeMapper $phpStanStaticTypeMapper;
     public function __construct(GenericClassStringTypeNormalizer $genericClassStringTypeNormalizer, DetailedTypeAnalyzer $detailedTypeAnalyzer)
     {
@@ -65,11 +61,25 @@ final class ArrayTypeMapper implements TypeMapperInterface
      */
     public function mapToPHPStanPhpDocTypeNode(Type $type): TypeNode
     {
+        return $this->splitUnionItemType($this->createArrayTypeNode($type));
+    }
+    /**
+     * @param ArrayType $type
+     */
+    public function mapToPhpParserNode(Type $type, string $typeKind): Identifier
+    {
+        return new Identifier('array');
+    }
+    /**
+     * Returns "(A|B)[]" as is, the union item type is split later
+     */
+    private function createArrayTypeNode(ArrayType $type): TypeNode
+    {
         // this cannot be handled by PHPStan $type->toPhpDocNode() as requires space removal around "|" in union type
         // then e.g. "int" instead of explicit number, and nice arrays
         $itemType = $type->getIterableValueType();
         $isGenericArray = $this->isGenericArrayCandidate($type);
-        if ($itemType instanceof UnionType && !$type instanceof ConstantArrayType && !$isGenericArray) {
+        if ($itemType instanceof UnionType && !$isGenericArray) {
             return $this->createArrayTypeNodeFromUnionType($itemType);
         }
         if ($itemType instanceof ArrayType && $this->isGenericArrayCandidate($itemType)) {
@@ -87,16 +97,58 @@ final class ArrayTypeMapper implements TypeMapperInterface
             }
         }
         $itemTypeNode = $this->phpStanStaticTypeMapper->mapToPHPStanPhpDocTypeNode($itemType);
-        return new SpacingAwareArrayTypeNode($itemTypeNode);
+        return new ArrayTypeNode($itemTypeNode);
     }
     /**
-     * @param ArrayType $type
+     * "(A|B)[]" becomes "A[]|B[]", or "array<int, A<X>|A<Y>>" when all items are generics of the same type
      */
-    public function mapToPhpParserNode(Type $type, string $typeKind): Identifier
+    private function splitUnionItemType(TypeNode $typeNode): TypeNode
     {
-        return new Identifier('array');
+        if (!$typeNode instanceof ArrayTypeNode || !$typeNode->type instanceof UnionTypeNode) {
+            return $typeNode;
+        }
+        $unionTypeNode = $typeNode->type;
+        if ($this->hasOnlySameGenericTypes($unionTypeNode)) {
+            return new GenericTypeNode(new IdentifierTypeNode('array'), [new IdentifierTypeNode('int'), $unionTypeNode]);
+        }
+        $arrayTypeNodes = [];
+        foreach ($unionTypeNode->types as $unionedTypeNode) {
+            $arrayTypeNodes[] = new ArrayTypeNode($unionedTypeNode);
+        }
+        return new UnionTypeNode($arrayTypeNodes);
     }
-    private function createArrayTypeNodeFromUnionType(UnionType $unionType): SpacingAwareArrayTypeNode
+    private function hasOnlySameGenericTypes(UnionTypeNode $unionTypeNode): bool
+    {
+        $genericTypeName = null;
+        foreach ($unionTypeNode->types as $unionedTypeNode) {
+            if (!$unionedTypeNode instanceof GenericTypeNode) {
+                return \false;
+            }
+            if (count($unionedTypeNode->genericTypes) !== 1) {
+                return \false;
+            }
+            $genericTypeName ??= $unionedTypeNode->type->name;
+            if ($genericTypeName !== $unionedTypeNode->type->name) {
+                return \false;
+            }
+        }
+        return \true;
+    }
+    /**
+     * Value type in "array<string, ...>" uses "array<A|B>" instead of "A[]|B[]"
+     */
+    private function createGenericArrayValueTypeNode(Type $itemType): TypeNode
+    {
+        if (!$itemType instanceof ArrayType) {
+            return $this->phpStanStaticTypeMapper->mapToPHPStanPhpDocTypeNode($itemType);
+        }
+        $arrayTypeNode = $this->createArrayTypeNode($itemType);
+        if ($arrayTypeNode instanceof ArrayTypeNode && ($arrayTypeNode->type instanceof UnionTypeNode || $arrayTypeNode->type instanceof ArrayTypeNode)) {
+            return new GenericTypeNode(new IdentifierTypeNode('array'), [$arrayTypeNode->type]);
+        }
+        return $this->splitUnionItemType($arrayTypeNode);
+    }
+    private function createArrayTypeNodeFromUnionType(UnionType $unionType): ArrayTypeNode
     {
         $unionedArrayType = [];
         foreach ($unionType->getTypes() as $unionedType) {
@@ -104,11 +156,11 @@ final class ArrayTypeMapper implements TypeMapperInterface
             $unionedArrayType[(string) $typeNode] = $typeNode;
         }
         if (count($unionedArrayType) > 1) {
-            return new SpacingAwareArrayTypeNode(new BracketsAwareUnionTypeNode($unionedArrayType));
+            return new ArrayTypeNode(new UnionTypeNode($unionedArrayType));
         }
         /** @var TypeNode $arrayType */
         $arrayType = array_shift($unionedArrayType);
-        return new SpacingAwareArrayTypeNode($arrayType);
+        return new ArrayTypeNode($arrayType);
     }
     private function isGenericArrayCandidate(ArrayType $arrayType): bool
     {
@@ -143,29 +195,21 @@ final class ArrayTypeMapper implements TypeMapperInterface
     private function createGenericArrayType(ArrayType $arrayType, bool $withKey = \false): GenericTypeNode
     {
         $itemType = $arrayType->getIterableValueType();
-        $itemTypeNode = $this->phpStanStaticTypeMapper->mapToPHPStanPhpDocTypeNode($itemType);
         $identifierTypeNode = new IdentifierTypeNode('array');
         // is class-string[] list only
         if ($this->isClassStringArrayType($arrayType)) {
             $withKey = \false;
         }
-        if ($withKey) {
-            $keyTypeNode = $this->phpStanStaticTypeMapper->mapToPHPStanPhpDocTypeNode($arrayType->getKeyType());
-            if ($itemTypeNode instanceof BracketsAwareUnionTypeNode && $this->isPairClassTooDetailed($itemType)) {
-                $genericTypes = [$keyTypeNode, $this->phpStanStaticTypeMapper->mapToPHPStanPhpDocTypeNode(new ClassStringType())];
-            } else {
-                $genericTypes = [$keyTypeNode, $itemTypeNode];
-            }
-        } else {
-            $genericTypes = [$itemTypeNode];
+        if (!$withKey) {
+            $itemTypeNode = $this->phpStanStaticTypeMapper->mapToPHPStanPhpDocTypeNode($itemType);
+            return new GenericTypeNode($identifierTypeNode, [$itemTypeNode]);
         }
-        // @see https://github.com/phpstan/phpdoc-parser/blob/98a088b17966bdf6ee25c8a4b634df313d8aa531/tests/PHPStan/Parser/PhpDocParserTest.php#L2692-L2696
-        foreach ($genericTypes as $genericType) {
-            /** @var TypeNode $genericType */
-            $genericType->setAttribute(self::HAS_GENERIC_TYPE_PARENT, $withKey);
+        $keyTypeNode = $this->phpStanStaticTypeMapper->mapToPHPStanPhpDocTypeNode($arrayType->getKeyType());
+        $itemTypeNode = $this->createGenericArrayValueTypeNode($itemType);
+        if ($itemTypeNode instanceof UnionTypeNode && $this->isPairClassTooDetailed($itemType)) {
+            $itemTypeNode = $this->phpStanStaticTypeMapper->mapToPHPStanPhpDocTypeNode(new ClassStringType());
         }
-        $identifierTypeNode->setAttribute(self::HAS_GENERIC_TYPE_PARENT, $withKey);
-        return new GenericTypeNode($identifierTypeNode, $genericTypes);
+        return new GenericTypeNode($identifierTypeNode, [$keyTypeNode, $itemTypeNode]);
     }
     private function isPairClassTooDetailed(Type $itemType): bool
     {

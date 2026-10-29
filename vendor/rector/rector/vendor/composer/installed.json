@@ -297,17 +297,17 @@
         },
         {
             "name": "entropy\/entropy",
-            "version": "0.4.35",
-            "version_normalized": "0.4.35.0",
+            "version": "0.4.36",
+            "version_normalized": "0.4.36.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/TomasVotruba\/entropy.git",
-                "reference": "ed23f8ef37a4a800804a1d1095ad4c35532053e4"
+                "reference": "9f08272a96275d22a9d9808a32581392920626db"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/TomasVotruba\/entropy\/zipball\/ed23f8ef37a4a800804a1d1095ad4c35532053e4",
-                "reference": "ed23f8ef37a4a800804a1d1095ad4c35532053e4",
+                "url": "https:\/\/api.github.com\/repos\/TomasVotruba\/entropy\/zipball\/9f08272a96275d22a9d9808a32581392920626db",
+                "reference": "9f08272a96275d22a9d9808a32581392920626db",
                 "shasum": ""
             },
             "require": {
@@ -330,7 +330,7 @@
                 "tomasvotruba\/type-coverage": "^2.2",
                 "tracy\/tracy": "^2.12"
             },
-            "time": "2026-10-23T13:34:34+00:00",
+            "time": "2026-10-26T16:46:17+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -345,7 +345,7 @@
             "description": "Entropy framework",
             "support": {
                 "issues": "https:\/\/github.com\/TomasVotruba\/entropy\/issues",
-                "source": "https:\/\/github.com\/TomasVotruba\/entropy\/tree\/0.4.35"
+                "source": "https:\/\/github.com\/TomasVotruba\/entropy\/tree\/0.4.36"
             },
             "install-path": "..\/entropy\/entropy"
         },
@@ -701,17 +701,17 @@
         },
         {
             "name": "phpstan\/phpdoc-parser",
-            "version": "2.3.6",
-            "version_normalized": "2.3.6.0",
+            "version": "2.3.11",
+            "version_normalized": "2.3.11.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/phpstan\/phpdoc-parser.git",
-                "reference": "1427af4647235b4a73b13940b1f1258d3584f36e"
+                "reference": "c9fb3e1560c6a33eca59c9a2fcb4d9925445a0a4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/phpstan\/phpdoc-parser\/zipball\/1427af4647235b4a73b13940b1f1258d3584f36e",
-                "reference": "1427af4647235b4a73b13940b1f1258d3584f36e",
+                "url": "https:\/\/api.github.com\/repos\/phpstan\/phpdoc-parser\/zipball\/c9fb3e1560c6a33eca59c9a2fcb4d9925445a0a4",
+                "reference": "c9fb3e1560c6a33eca59c9a2fcb4d9925445a0a4",
                 "shasum": ""
             },
             "require": {
@@ -728,7 +728,7 @@
                 "phpunit\/phpunit": "^9.6",
                 "symfony\/process": "^5.2"
             },
-            "time": "2026-09-27T20:07:45+00:00",
+            "time": "2026-10-28T10:46:50+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -745,7 +745,7 @@
             "description": "PHPDoc parser with support for nullable, intersection and generic types",
             "support": {
                 "issues": "https:\/\/github.com\/phpstan\/phpdoc-parser\/issues",
-                "source": "https:\/\/github.com\/phpstan\/phpdoc-parser\/tree\/2.3.6"
+                "source": "https:\/\/github.com\/phpstan\/phpdoc-parser\/tree\/2.3.11"
             },
             "install-path": "..\/phpstan\/phpdoc-parser"
         },
@@ -1465,12 +1465,12 @@
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/rectorphp\/rector-doctrine.git",
-                "reference": "34b412bedea6a3d55d5117a41008727a899efd93"
+                "reference": "4ad42f2ce06ae5ae07ae764f97e51da4cf733369"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-doctrine\/zipball\/34b412bedea6a3d55d5117a41008727a899efd93",
-                "reference": "34b412bedea6a3d55d5117a41008727a899efd93",
+                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-doctrine\/zipball\/4ad42f2ce06ae5ae07ae764f97e51da4cf733369",
+                "reference": "4ad42f2ce06ae5ae07ae764f97e51da4cf733369",
                 "shasum": ""
             },
             "require": {
@@ -1493,7 +1493,7 @@
                 "tomasvotruba\/type-coverage": "^2.3",
                 "tracy\/tracy": "^2.12"
             },
-            "time": "2026-10-25T22:59:01+00:00",
+            "time": "2026-10-28T15:50:30+00:00",
             "default-branch": true,
             "type": "rector-extension",
             "installation-source": "dist",
@@ -1522,12 +1522,12 @@
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/rectorphp\/rector-downgrade-php.git",
-                "reference": "6c26043dcb526b81e6a7d1399ba359c260623698"
+                "reference": "1c72ed53e9e073518b1dece72ba59fd63f91497c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-downgrade-php\/zipball\/6c26043dcb526b81e6a7d1399ba359c260623698",
-                "reference": "6c26043dcb526b81e6a7d1399ba359c260623698",
+                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-downgrade-php\/zipball\/1c72ed53e9e073518b1dece72ba59fd63f91497c",
+                "reference": "1c72ed53e9e073518b1dece72ba59fd63f91497c",
                 "shasum": ""
             },
             "require": {
@@ -1551,7 +1551,7 @@
                 "tomasvotruba\/type-coverage": "^2.3",
                 "tracy\/tracy": "^2.12"
             },
-            "time": "2026-10-24T09:01:02+00:00",
+            "time": "2026-10-28T08:45:12+00:00",
             "default-branch": true,
             "type": "rector-extension",
             "installation-source": "dist",
@@ -1580,12 +1580,12 @@
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/rectorphp\/rector-phpunit.git",
-                "reference": "b9df3d703c4f83494813b012f46e44a2c7cd1cd6"
+                "reference": "0a640f1388d9f4bbb74a9e4f4e076ec9f12effb2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-phpunit\/zipball\/b9df3d703c4f83494813b012f46e44a2c7cd1cd6",
-                "reference": "b9df3d703c4f83494813b012f46e44a2c7cd1cd6",
+                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-phpunit\/zipball\/0a640f1388d9f4bbb74a9e4f4e076ec9f12effb2",
+                "reference": "0a640f1388d9f4bbb74a9e4f4e076ec9f12effb2",
                 "shasum": ""
             },
             "require": {
@@ -1611,7 +1611,7 @@
                 "tomasvotruba\/type-coverage": "^2.3",
                 "tracy\/tracy": "^2.12"
             },
-            "time": "2026-10-25T22:55:54+00:00",
+            "time": "2026-10-28T15:50:18+00:00",
             "default-branch": true,
             "type": "rector-extension",
             "installation-source": "dist",
@@ -1640,12 +1640,12 @@
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/rectorphp\/rector-symfony.git",
-                "reference": "a3cfbf8a924f19d0375650b5886b23ea9764eff0"
+                "reference": "42c326ad7f6c30dc59b661f15b07963813833bd4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-symfony\/zipball\/a3cfbf8a924f19d0375650b5886b23ea9764eff0",
-                "reference": "a3cfbf8a924f19d0375650b5886b23ea9764eff0",
+                "url": "https:\/\/api.github.com\/repos\/rectorphp\/rector-symfony\/zipball\/42c326ad7f6c30dc59b661f15b07963813833bd4",
+                "reference": "42c326ad7f6c30dc59b661f15b07963813833bd4",
                 "shasum": ""
             },
             "require": {
@@ -1657,10 +1657,9 @@
                 "phpstan\/phpstan": "^2.2",
                 "phpstan\/phpstan-deprecation-rules": "^2.0",
                 "phpstan\/phpstan-webmozart-assert": "^2.0",
-                "phpunit\/phpunit": "^13.2",
-                "rector\/jack": "^1.0",
+                "phpunit\/phpunit": "^13.4",
                 "rector\/rector-src": "dev-main",
-                "rector\/swiss-knife": "^2.6",
+                "rector\/swiss-knife": "^2.7",
                 "shipmonk\/dead-code-detector": "^1.4",
                 "symfony\/config": "^8.1",
                 "symfony\/dependency-injection": "^6.4",
@@ -1673,13 +1672,12 @@
                 "symfony\/web-link": "^6.4",
                 "symfony\/yaml": "^6.4 || ^7.0",
                 "symplify\/easy-coding-standard": "^13.2",
-                "symplify\/phpstan-rules": "^14.12",
+                "symplify\/phpstan-rules": "^14.19",
                 "tomasvotruba\/class-leak": "^2.1",
-                "tomasvotruba\/type-coverage": "^2.3",
-                "tracy\/tracy": "^2.12",
+                "tomasvotruba\/type-coverage": "^2.5",
                 "twig\/twig": "^3.21"
             },
-            "time": "2026-10-26T08:32:37+00:00",
+            "time": "2026-10-28T15:50:34+00:00",
             "default-branch": true,
             "type": "rector-extension",
             "installation-source": "dist",
@@ -2191,17 +2189,17 @@
         },
         {
             "name": "symfony\/polyfill-intl-grapheme",
-            "version": "v1.43.0",
-            "version_normalized": "1.43.0.0",
+            "version": "v1.43.3",
+            "version_normalized": "1.43.3.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/symfony\/polyfill-intl-grapheme.git",
-                "reference": "5cac8f4db97208823aa353f59a01faad2da52c75"
+                "reference": "5a8f33c87aeecffce24e721b5064fab05f4becf8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/symfony\/polyfill-intl-grapheme\/zipball\/5cac8f4db97208823aa353f59a01faad2da52c75",
-                "reference": "5cac8f4db97208823aa353f59a01faad2da52c75",
+                "url": "https:\/\/api.github.com\/repos\/symfony\/polyfill-intl-grapheme\/zipball\/5a8f33c87aeecffce24e721b5064fab05f4becf8",
+                "reference": "5a8f33c87aeecffce24e721b5064fab05f4becf8",
                 "shasum": ""
             },
             "require": {
@@ -2210,7 +2208,7 @@
             "suggest": {
                 "ext-intl": "For best performance"
             },
-            "time": "2026-09-25T15:46:47+00:00",
+            "time": "2026-10-15T09:18:53+00:00",
             "type": "library",
             "extra": {
                 "thanks": {
@@ -2252,7 +2250,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https:\/\/github.com\/symfony\/polyfill-intl-grapheme\/tree\/v1.43.0"
+                "source": "https:\/\/github.com\/symfony\/polyfill-intl-grapheme\/tree\/v1.43.3"
             },
             "funding": [
                 {
@@ -2364,17 +2362,17 @@
         },
         {
             "name": "symfony\/polyfill-mbstring",
-            "version": "v1.43.0",
-            "version_normalized": "1.43.0.0",
+            "version": "v1.43.3",
+            "version_normalized": "1.43.3.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/symfony\/polyfill-mbstring.git",
-                "reference": "4d5d331bf731e0aedbc6b2f5e61135b7b7996a72"
+                "reference": "122889ed24dc000165bcbfd77ec412f15cbdfc6a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/symfony\/polyfill-mbstring\/zipball\/4d5d331bf731e0aedbc6b2f5e61135b7b7996a72",
-                "reference": "4d5d331bf731e0aedbc6b2f5e61135b7b7996a72",
+                "url": "https:\/\/api.github.com\/repos\/symfony\/polyfill-mbstring\/zipball\/122889ed24dc000165bcbfd77ec412f15cbdfc6a",
+                "reference": "122889ed24dc000165bcbfd77ec412f15cbdfc6a",
                 "shasum": ""
             },
             "require": {
@@ -2387,7 +2385,7 @@
             "suggest": {
                 "ext-mbstring": "For best performance"
             },
-            "time": "2026-09-24T15:19:04+00:00",
+            "time": "2026-10-28T09:35:49+00:00",
             "type": "library",
             "extra": {
                 "thanks": {
@@ -2428,7 +2426,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https:\/\/github.com\/symfony\/polyfill-mbstring\/tree\/v1.43.0"
+                "source": "https:\/\/github.com\/symfony\/polyfill-mbstring\/tree\/v1.43.3"
             },
             "funding": [
                 {
