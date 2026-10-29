@@ -114,6 +114,9 @@ module.exports = tseslint.config(
         module: 'readonly',
         require: 'readonly',
         exports: 'readonly',
+        HTMLElement: 'readonly',
+        HTMLButtonElement: 'readonly',
+        HTMLSelectElement: 'readonly',
       },
     },
     rules: {
