@@ -246,8 +246,10 @@ Watch for these traps:
   `--frozen-lockfile`, so a dependency change without
   `pnpm install --lockfile-only` fails *every* node job with
   `ERR_PNPM_OUTDATED_LOCKFILE`, including lint and tests that look unrelated.
-- **A build regenerates tracked `js/*.LICENSE.txt` files.** Run
-  `git checkout -- js/` afterwards so the diff stays on source.
+- **A build regenerates tracked `js/*.LICENSE.txt` files.** Check
+  `git diff --stat -- js/` afterwards and restore only those regenerated files
+  (for example `git checkout -- js/\*.LICENSE.txt`), so any unrelated `js/`
+  edit is not thrown away.
 - **`.vue` files cannot be mounted in Jest here.** `@vue/vue3-jest` has no Jest
   30 release (latest is 29.2.6, against Jest 30.5.2), so an SFC import is
   parsed as ESM and rejected with "Must use import to load ES Module". Put

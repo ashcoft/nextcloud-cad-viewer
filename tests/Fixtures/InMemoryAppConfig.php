@@ -136,6 +136,11 @@ class InMemoryAppConfig implements IAppConfig
         $this->store = [];
     }
 
+    /**
+     * $preCondition is not modelled: this fixture is never used for user
+     * values, and Nextcloud signals a failed precondition by throwing, which
+     * would need PreConditionNotMetException to reproduce.
+     */
     public function setUserValue(string $userId, string $key, string $value, ?string $preCondition = null): void
     {
         $this->userStore[$userId . '|' . $key] = $value;
