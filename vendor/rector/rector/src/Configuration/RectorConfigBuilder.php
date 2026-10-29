@@ -8,6 +8,7 @@ use RectorPrefix202610\Nette\Utils\Strings;
 use PhpParser\NodeVisitor;
 use Rector\Bridge\SetRectorsResolver;
 use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
+use Rector\Composer\InstalledPackageResolver;
 use Rector\Config\Level\CodeQualityLevel;
 use Rector\Config\Level\CodingStyleLevel;
 use Rector\Config\Level\DeadCodeLevel;
@@ -75,6 +76,10 @@ final class RectorConfigBuilder
      * @var array<class-string<ConfigurableRectorInterface>, mixed[]>
      */
     private array $rulesWithConfigurations = [];
+    /**
+     * @var array<array{class-string<ConfigurableRectorInterface>, mixed[], string, string}>
+     */
+    private array $composerBasedRules = [];
     /**
      * @var string[]
      */
@@ -189,6 +194,9 @@ final class RectorConfigBuilder
                 $rectorConfig->ruleWithConfiguration($rectorClass, $configuration);
             }
         }
+        foreach ($this->composerBasedRules as [$rectorClass, $configuration, $packageName, $versionConstraint]) {
+            $rectorConfig->ruleWithConfigurationComposerVersionBound($rectorClass, $configuration, $packageName, $versionConstraint);
+        }
         if ($this->fileExtensions !== []) {
             $rectorConfig->fileExtensions($this->fileExtensions);
         }
@@ -290,7 +298,7 @@ final class RectorConfigBuilder
      */
     public function withRootFiles(): self
     {
-        $rootPhpFilesFinder = (new Finder())->files()->in(getcwd())->depth(0)->ignoreDotFiles(\false)->ignoreVCSIgnored(\true)->name('*.php')->name('.*.php')->notName('.phpstorm.meta.php');
+        $rootPhpFilesFinder = (new Finder())->files()->in(getcwd())->depth(0)->ignoreDotFiles(\false)->ignoreVCSIgnored(\true)->name('*.php')->name('.*.php')->notName('.phpstorm.meta.php')->sortByName();
         foreach ($rootPhpFilesFinder as $rootPhpFileFinder) {
             $path = $rootPhpFileFinder->getRealPath();
             $this->paths[] = $path;
@@ -424,8 +432,15 @@ final class RectorConfigBuilder
         }
         return $this;
     }
+    /**
+     * Call it with no argument to load the sets of every package installed in the project.
+     * Any argument switches the detection off, and only the passed sets are loaded.
+     */
     public function withComposerBased(bool $twig = \false, bool $doctrine = \false, bool $phpunit = \false, bool $symfony = \false, bool $netteUtils = \false, bool $laravel = \false, bool $drupal = \false): self
     {
+        if (func_num_args() === 0) {
+            return $this->withComposerBased(...$this->resolveInstalledComposerBasedPackages());
+        }
         if ($laravel && class_exists('RectorLaravel\Set\LaravelSetList') && constant('RectorLaravel\Set\LaravelSetList::COMPOSER_BASED')) {
             $this->sets[] = LaravelSetList::COMPOSER_BASED;
         }
@@ -494,6 +509,18 @@ final class RectorConfigBuilder
     public function withConfiguredRule(string $rectorClass, array $configuration): self
     {
         $this->rulesWithConfigurations[$rectorClass][] = $configuration;
+        return $this;
+    }
+    /**
+     * Register the rule configuration only if the package version installed in the analysed project
+     * satisfies the version constraint, e.g. a class renamed in a specific framework version.
+     *
+     * @param class-string<ConfigurableRectorInterface> $rectorClass
+     * @param mixed[] $configuration
+     */
+    public function withComposerBasedRule(string $rectorClass, array $configuration, string $packageName, string $versionConstraint): self
+    {
+        $this->composerBasedRules[] = [$rectorClass, $configuration, $packageName, $versionConstraint];
         return $this;
     }
     public function withParallel(?int $timeoutSeconds = null, ?int $maxNumberOfProcess = null, ?int $jobSize = null): self
@@ -761,5 +788,23 @@ final class RectorConfigBuilder
         }
         $this->rules = array_merge($this->rules, $levelRules);
         return $this;
+    }
+    /**
+     * @return array<string, bool> withComposerBased() argument name => is any of its packages installed
+     */
+    private function resolveInstalledComposerBasedPackages(): array
+    {
+        $installedPackageResolver = new InstalledPackageResolver();
+        $installedPackages = [];
+        foreach (\Rector\Configuration\ComposerBasedTriggerPackages::PACKAGES_BY_ARGUMENT as $argumentName => $packageNames) {
+            $installedPackages[$argumentName] = \false;
+            foreach ($packageNames as $packageName) {
+                if ($installedPackageResolver->resolvePackageVersion($packageName) !== null) {
+                    $installedPackages[$argumentName] = \true;
+                    break;
+                }
+            }
+        }
+        return $installedPackages;
     }
 }

@@ -11,13 +11,12 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\NullableType;
 use PhpParser\Node\UnionType as PhpParserUnionType;
+use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\NeverType;
 use PHPStan\Type\Type;
 use PHPStan\Type\UnionType;
-use Rector\BetterPhpDocParser\ValueObject\Type\BracketsAwareUnionTypeNode;
-use Rector\BetterPhpDocParser\ValueObject\Type\SpacingAwareArrayTypeNode;
 use Rector\NodeAnalyzer\PropertyAnalyzer;
 use Rector\Php\PhpVersionProvider;
 use Rector\PHPStanStaticTypeMapper\Contract\TypeMapperInterface;
@@ -59,31 +58,22 @@ final class UnionTypeMapper implements TypeMapperInterface
     /**
      * @param UnionType $type
      */
-    public function mapToPHPStanPhpDocTypeNode(Type $type): BracketsAwareUnionTypeNode
+    public function mapToPHPStanPhpDocTypeNode(Type $type): UnionTypeNode
     {
         $unionTypesNodes = [];
-        $existingTypes = [];
         foreach ($type->getTypes() as $unionedType) {
             if ($unionedType instanceof ArrayType && $unionedType->getItemType() instanceof NeverType) {
                 $unionedType = new ArrayType($unionedType->getKeyType(), new MixedType());
             }
-            $unionedType = $this->phpStanStaticTypeMapper->mapToPHPStanPhpDocTypeNode($unionedType);
-            if ($unionedType instanceof SpacingAwareArrayTypeNode && $unionedType->type instanceof BracketsAwareUnionTypeNode) {
-                foreach ($unionedType->type->types as $key => $innerTypeNode) {
-                    $printedInnerType = (string) $innerTypeNode;
-                    if (in_array($printedInnerType, $existingTypes, \true)) {
-                        unset($unionedType->type->types[$key]);
-                        continue;
-                    }
-                    $existingTypes[] = $printedInnerType;
-                }
-                if ($unionedType->type->types === []) {
-                    continue;
-                }
+            $unionedTypeNode = $this->phpStanStaticTypeMapper->mapToPHPStanPhpDocTypeNode($unionedType);
+            // an array of union item type is mapped to "A[]|B[]", merge it into this union
+            $typeNodes = $unionedTypeNode instanceof UnionTypeNode ? $unionedTypeNode->types : [$unionedTypeNode];
+            // remove duplicates, e.g. "int[]|int[]"
+            foreach ($typeNodes as $typeNode) {
+                $unionTypesNodes[(string) $typeNode] = $typeNode;
             }
-            $unionTypesNodes[] = $unionedType;
         }
-        return new BracketsAwareUnionTypeNode($unionTypesNodes);
+        return new UnionTypeNode(array_values($unionTypesNodes));
     }
     /**
      * @param UnionType $type
@@ -105,7 +95,6 @@ final class UnionTypeMapper implements TypeMapperInterface
     {
         $totalTypes = count($phpParserUnionType->types);
         if ($totalTypes === 2) {
-            $phpParserUnionType->types = array_values($phpParserUnionType->types);
             $firstType = $phpParserUnionType->types[0];
             $secondType = $phpParserUnionType->types[1];
             try {
@@ -212,7 +201,6 @@ final class UnionTypeMapper implements TypeMapperInterface
      */
     private function removeRedundantIntersectionTypes(array $phpParserUnionedTypes): array
     {
-        $phpParserUnionedTypes = array_values($phpParserUnionedTypes);
         $typeNames = [];
         foreach ($phpParserUnionedTypes as $key => $phpParserUnionedType) {
             $typeNames[$key] = $this->resolveIntersectionPartNames($phpParserUnionedType);

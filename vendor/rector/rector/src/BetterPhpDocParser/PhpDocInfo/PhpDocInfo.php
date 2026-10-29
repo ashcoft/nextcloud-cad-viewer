@@ -6,6 +6,7 @@ namespace Rector\BetterPhpDocParser\PhpDocInfo;
 use RectorPrefix202610\Nette\Utils\Strings;
 use PHPStan\PhpDocParser\Ast\ConstExpr\ConstFetchNode;
 use PHPStan\PhpDocParser\Ast\Node;
+use PHPStan\PhpDocParser\Ast\NodeTraverser;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ExtendsTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\GenericTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ImplementsTagValueNode;
@@ -22,6 +23,7 @@ use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
 use PHPStan\PhpDocParser\Ast\Type\ConstTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
+use PHPStan\PhpDocParser\Parser\TokenIterator;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\Type;
 use Rector\BetterPhpDocParser\Annotation\AnnotationNaming;
@@ -29,11 +31,9 @@ use Rector\BetterPhpDocParser\PhpDoc\ArrayItemNode;
 use Rector\BetterPhpDocParser\PhpDoc\DoctrineAnnotationTagValueNode;
 use Rector\BetterPhpDocParser\PhpDoc\SpacelessPhpDocTagNode;
 use Rector\BetterPhpDocParser\PhpDocNodeFinder\PhpDocNodeByTypeFinder;
-use Rector\BetterPhpDocParser\ValueObject\Parser\BetterTokenIterator;
 use Rector\BetterPhpDocParser\ValueObject\PhpDocAttributeKey;
-use Rector\BetterPhpDocParser\ValueObject\Type\ShortenedIdentifierTypeNode;
 use Rector\Exception\ShouldNotHappenException;
-use Rector\PhpDocParser\PhpDocParser\PhpDocNodeTraverser;
+use Rector\PhpDocParser\PhpDocParser\PhpDocNodeVisitor\CallablePhpDocNodeVisitor;
 use Rector\StaticTypeMapper\Naming\NameScopeFactory;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\Validation\RectorAssert;
@@ -50,7 +50,11 @@ final class PhpDocInfo
     /**
      * @readonly
      */
-    private BetterTokenIterator $betterTokenIterator;
+    private PhpDocNode $originalPhpDocNode;
+    /**
+     * @readonly
+     */
+    private TokenIterator $tokenIterator;
     /**
      * @readonly
      */
@@ -81,21 +85,17 @@ final class PhpDocInfo
      */
     private const TAGS_TYPES_TO_NAMES = [ReturnTagValueNode::class => '@return', ParamTagValueNode::class => '@param', VarTagValueNode::class => '@var', MethodTagValueNode::class => '@method', PropertyTagValueNode::class => '@property', ExtendsTagValueNode::class => '@extends', ImplementsTagValueNode::class => '@implements'];
     private bool $isSingleLine = \false;
-    /**
-     * @readonly
-     */
-    private PhpDocNode $originalPhpDocNode;
-    public function __construct(PhpDocNode $phpDocNode, BetterTokenIterator $betterTokenIterator, StaticTypeMapper $staticTypeMapper, \PhpParser\Node $node, AnnotationNaming $annotationNaming, PhpDocNodeByTypeFinder $phpDocNodeByTypeFinder, NameScopeFactory $nameScopeFactory)
+    public function __construct(PhpDocNode $phpDocNode, PhpDocNode $originalPhpDocNode, TokenIterator $tokenIterator, StaticTypeMapper $staticTypeMapper, \PhpParser\Node $node, AnnotationNaming $annotationNaming, PhpDocNodeByTypeFinder $phpDocNodeByTypeFinder, NameScopeFactory $nameScopeFactory)
     {
         $this->phpDocNode = $phpDocNode;
-        $this->betterTokenIterator = $betterTokenIterator;
+        $this->originalPhpDocNode = $originalPhpDocNode;
+        $this->tokenIterator = $tokenIterator;
         $this->staticTypeMapper = $staticTypeMapper;
         $this->node = $node;
         $this->annotationNaming = $annotationNaming;
         $this->phpDocNodeByTypeFinder = $phpDocNodeByTypeFinder;
         $this->nameScopeFactory = $nameScopeFactory;
-        $this->originalPhpDocNode = clone $phpDocNode;
-        if (!$betterTokenIterator->containsTokenType(Lexer::TOKEN_PHPDOC_EOL)) {
+        if (!in_array(Lexer::TOKEN_PHPDOC_EOL, array_column($tokenIterator->getTokens(), Lexer::TYPE_OFFSET), \true)) {
             $this->isSingleLine = \true;
         }
     }
@@ -116,16 +116,9 @@ final class PhpDocInfo
     {
         return $this->originalPhpDocNode;
     }
-    /**
-     * @return list<array{string, int, int}>
-     */
-    public function getTokens(): array
+    public function getTokenIterator(): TokenIterator
     {
-        return $this->betterTokenIterator->getTokens();
-    }
-    public function getTokenCount(): int
-    {
-        return $this->betterTokenIterator->count();
+        return $this->tokenIterator;
     }
     public function getVarTagValueNode(string $tagName = '@var'): ?VarTagValueNode
     {
@@ -253,52 +246,48 @@ final class PhpDocInfo
         if ($name === '') {
             $name = null;
         }
-        $phpDocNodeTraverser = new PhpDocNodeTraverser();
-        $phpDocNodeTraverser->traverseWithCallable($this->phpDocNode, '', static function (Node $node) use ($typeToRemove, &$hasChanged, $name): ?int {
+        $phpDocNodeTraverser = new NodeTraverser([new CallablePhpDocNodeVisitor(static function (Node $node) use ($typeToRemove, &$hasChanged, $name): ?int {
             if ($node instanceof PhpDocTagNode && $node->value instanceof $typeToRemove) {
                 // keep special annotation for tools
                 if (strncmp($node->name, '@psalm-', strlen('@psalm-')) === 0) {
-                    return null;
+                    return NodeTraverser::DONT_TRAVERSE_CHILDREN;
                 }
                 if (strncmp($node->name, '@phpstan-', strlen('@phpstan-')) === 0) {
-                    return null;
+                    return NodeTraverser::DONT_TRAVERSE_CHILDREN;
                 }
                 if ($name !== null && $node->value instanceof VarTagValueNode && $node->value->variableName !== '$' . ltrim($name, '$')) {
-                    return PhpDocNodeTraverser::DONT_TRAVERSE_CHILDREN;
+                    return NodeTraverser::DONT_TRAVERSE_CHILDREN;
                 }
                 $hasChanged = \true;
-                return PhpDocNodeTraverser::NODE_REMOVE;
+                return NodeTraverser::REMOVE_NODE;
             }
             if (!$node instanceof $typeToRemove) {
                 return null;
             }
             $hasChanged = \true;
-            return PhpDocNodeTraverser::NODE_REMOVE;
-        });
+            return NodeTraverser::REMOVE_NODE;
+        })]);
+        $phpDocNodeTraverser->traverse([$this->phpDocNode]);
         return $hasChanged;
     }
     public function removeByName(string $tagName): bool
     {
         $tagName = '@' . ltrim($tagName, '@');
         $hasChanged = \false;
-        $phpDocNodeTraverser = new PhpDocNodeTraverser();
-        $phpDocNodeTraverser->traverseWithCallable($this->phpDocNode, '', static function (Node $node) use ($tagName, &$hasChanged): ?int {
+        $phpDocNodeTraverser = new NodeTraverser([new CallablePhpDocNodeVisitor(static function (Node $node) use ($tagName, &$hasChanged): ?int {
             if ($node instanceof PhpDocTagNode && $node->name === $tagName) {
                 $hasChanged = \true;
-                return PhpDocNodeTraverser::NODE_REMOVE;
+                return NodeTraverser::REMOVE_NODE;
             }
             return null;
-        });
+        })]);
+        $phpDocNodeTraverser->traverse([$this->phpDocNode]);
         return $hasChanged;
     }
     public function addTagValueNode(PhpDocTagValueNode $phpDocTagValueNode): void
     {
         if ($phpDocTagValueNode instanceof DoctrineAnnotationTagValueNode) {
-            if ($phpDocTagValueNode->identifierTypeNode instanceof ShortenedIdentifierTypeNode) {
-                $name = '@' . $phpDocTagValueNode->identifierTypeNode;
-            } else {
-                $name = '@\\' . $phpDocTagValueNode->identifierTypeNode;
-            }
+            $name = '@\\' . $phpDocTagValueNode->identifierTypeNode;
             $spacelessPhpDocTagNode = new SpacelessPhpDocTagNode($name, $phpDocTagValueNode);
             $this->addPhpDocTagNode($spacelessPhpDocTagNode);
             return;
@@ -315,7 +304,7 @@ final class PhpDocInfo
         if ($this->phpDocNode->children === []) {
             return \false;
         }
-        return $this->betterTokenIterator->count() === 0;
+        return $this->tokenIterator->getTokenCount() === 0;
     }
     public function isSingleLine(): bool
     {
@@ -449,9 +438,8 @@ final class PhpDocInfo
      */
     public function getConstFetchNodeClassNames(): array
     {
-        $phpDocNodeTraverser = new PhpDocNodeTraverser();
         $classNames = [];
-        $phpDocNodeTraverser->traverseWithCallable($this->phpDocNode, '', static function (Node $node) use (&$classNames): ?ConstTypeNode {
+        $phpDocNodeTraverser = new NodeTraverser([new CallablePhpDocNodeVisitor(static function (Node $node) use (&$classNames): ?ConstTypeNode {
             if (!$node instanceof ConstTypeNode) {
                 return null;
             }
@@ -460,7 +448,8 @@ final class PhpDocInfo
             }
             $classNames[] = $node->constExpr->getAttribute(PhpDocAttributeKey::RESOLVED_CLASS);
             return $node;
-        });
+        })]);
+        $phpDocNodeTraverser->traverse([$this->phpDocNode]);
         return $classNames;
     }
     /**
@@ -468,9 +457,8 @@ final class PhpDocInfo
      */
     public function getArrayItemNodeClassNames(): array
     {
-        $phpDocNodeTraverser = new PhpDocNodeTraverser();
         $classNames = [];
-        $phpDocNodeTraverser->traverseWithCallable($this->phpDocNode, '', static function (Node $node) use (&$classNames): ?ArrayItemNode {
+        $phpDocNodeTraverser = new NodeTraverser([new CallablePhpDocNodeVisitor(static function (Node $node) use (&$classNames): ?ArrayItemNode {
             if (!$node instanceof ArrayItemNode) {
                 return null;
             }
@@ -483,7 +471,8 @@ final class PhpDocInfo
                 $classNames[] = $resolvedKeyClass;
             }
             return $node;
-        });
+        })]);
+        $phpDocNodeTraverser->traverse([$this->phpDocNode]);
         return $classNames;
     }
     /**
