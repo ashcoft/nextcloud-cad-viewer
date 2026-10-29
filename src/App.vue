@@ -47,6 +47,7 @@ import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
 import { fetchCadFile } from './utils/fetchCadFile'
 import { getCurrentCadDocument, type PreviousCadDocument } from './utils/cadThumbnail'
 import { saveCadFile } from './utils/saveCadFile'
+import { viewerOptionsFor } from './utils/viewerOptions'
 import { uploadCadThumbnail } from './utils/thumbnailUpload'
 import type { LoadResponse } from './types/loadResponse'
 
@@ -167,9 +168,7 @@ export default defineComponent({
           // over from an earlier session cannot be captured as this one.
           previousDocument = await getCurrentCadDocument()
           viewerInstance.value = await loadCADViewer(container, {
-            localFile: result.file,
-            fileName: result.meta.name,
-            theme: 'dark',
+            ...viewerOptionsFor(result.meta, result.file),
           })
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err)
@@ -297,9 +296,7 @@ export default defineComponent({
         try {
           previousDocument = await getCurrentCadDocument()
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
-            localFile: result.file,
-            fileName: result.meta.name,
-            theme: 'dark',
+            ...viewerOptionsFor(result.meta, result.file),
           })
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err)

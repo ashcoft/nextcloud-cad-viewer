@@ -29,7 +29,7 @@ const runtimeAssets = [
 module.exports = {
   entry: {
     'cad-viewer': './src/main.ts',
-    'adminSettings': './src/adminSettings.js',
+    'adminSettings': './src/adminSettings.ts',
   },
   output: {
     path: path.resolve(__dirname, 'js'),

@@ -244,10 +244,16 @@ under **Settings** → **Administration** → **CAD Viewer**:
 
 | Setting | Options | Default | Description |
 |---------|---------|---------|-------------|
-| Theme | Light / Dark | Light | Default viewer theme |
-| Activate autosave | Yes / No | Yes | Automatically save while editing |
-| Enable libraries | Yes / No | Yes | Access CAD component libraries |
-| Enable file previews | Yes / No | Yes | Generate CAD file previews |
+| Theme | Light / Dark | Light | Theme the viewer opens a drawing with |
+| Enable file previews | Yes / No | Yes | Generate and store CAD file previews |
+
+Both settings are app-wide. Turning previews off stops new thumbnails being
+stored: the viewer still renders and uploads one, but the server refuses it with
+a 403. Existing thumbnails stay on disk and are simply not served, so they
+remain until their drawing is deleted.
+
+Autosave is not configurable: the viewer edits in memory and writes only when
+you press **Save** in its toolbar, so there is nothing to schedule.
 
 ## 🐛 Troubleshooting
 

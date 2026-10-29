@@ -224,9 +224,6 @@ importers:
       element-plus:
         specifier: 2.14.6
         version: 2.14.6(vue@3.5.43(@typescript/typescript6@6.0.2))
-      jquery:
-        specifier: ^4.0.0
-        version: 4.0.0
       lodash-es:
         specifier: 4.18.1
         version: 4.18.1
@@ -3957,9 +3954,6 @@ packages:
     peerDependenciesMeta:
       node-notifier:
         optional: true
-
-  jquery@4.0.0:
-    resolution: {integrity: sha512-TXCHVR3Lb6TZdtw1l3RTLf8RBWVGexdxL6AC8/e0xZKEpBflBsjh9/8LXw+dkNFuOyW9B7iB3O1sP7hS0Kiacg==}
 
   js-beautify@2.0.3:
     resolution: {integrity: sha512-cyFbh3tkPhknnTD/0bLf0T0yy2ZIbqL05mttzbt4y1Zfr7NxqXQZ62dkBLKs3oHH/lpjmDRAnciJiSUyOy8XwQ==}
@@ -9992,8 +9986,6 @@ snapshots:
       - esbuild-register
       - supports-color
       - ts-node
-
-  jquery@4.0.0: {}
 
   js-beautify@2.0.3:
     dependencies:

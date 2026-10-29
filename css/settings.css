@@ -1,37 +1,41 @@
 .section-cad-viewer {
-    padding: 20px;
+	padding: 20px;
 }
 
 .section-cad-viewer h2 {
-    font-weight: bold;
-    margin-bottom: 15px;
+	font-weight: bold;
+	margin-bottom: 15px;
 }
 
 .cad-viewer-setting {
-    margin-bottom: 15px;
+	margin-bottom: 15px;
 }
 
 .cad-viewer-setting label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
+	display: block;
+	font-weight: bold;
+	margin-bottom: 5px;
 }
 
-.cad-viewer-setting select,
-.cad-viewer-setting input[type="text"],
-.cad-viewer-setting textarea {
-    width: 300px;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+.cad-viewer-setting select {
+	width: 300px;
+	padding: 8px;
+	border: 1px solid var(--color-border, #ddd);
+	border-radius: var(--border-radius, 4px);
+	background-color: var(--color-main-background, #fff);
+	color: var(--color-main-text, #222);
 }
 
 .cad-viewer-hint {
-    color: #666;
-    font-size: 0.9em;
-    margin-top: 5px;
+	color: var(--color-text-maxcontrast, #666);
+	font-size: 0.9em;
+	margin-top: 5px;
 }
 
 #cad-viewer-save {
-    margin-top: 15px;
+	margin-top: 15px;
+}
+
+.cad-viewer-status {
+	margin-left: 10px;
 }

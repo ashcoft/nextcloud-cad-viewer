@@ -14,6 +14,8 @@ use OCA\CadViewer\Config\AppConfig;
 use OCA\CadViewer\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\AuthorizedAdminSetting;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IRequest;
 use OCP\Util;
@@ -28,39 +30,52 @@ class AdminSettingsController extends Controller
         parent::__construct($appName, $request);
     }
 
+    #[AuthorizedAdminSetting(settings: AdminSettings::class)]
+    #[NoCSRFRequired]
     public function index(): TemplateResponse
     {
-        $data = [
-            'theme' => $this->config->getTheme(),
-            'previews' => $this->config->getPreviews(),
-            'libraries' => $this->config->getLibraries(),
-            'autosave' => $this->config->getAutosave(),
-        ];
-
         Util::addScript(Application::APP_ID, 'adminSettings');
         Util::addStyle(Application::APP_ID, 'settings');
 
-        return new TemplateResponse($this->appName, 'adminSettings', $data, TemplateResponse::RENDER_AS_BLANK);
+        return new TemplateResponse(
+            $this->appName,
+            'adminSettings',
+            $this->currentSettings(),
+            TemplateResponse::RENDER_AS_BLANK,
+        );
     }
 
+    /**
+     * Persist the posted settings.
+     *
+     * A missing parameter keeps the stored value instead of falling back to the
+     * default: the form always posts every field, but a partial request must
+     * not silently reset the ones it omits.
+     */
     #[AuthorizedAdminSetting(settings: AdminSettings::class)]
-    public function settings(): array
+    public function settings(): DataResponse
     {
-        $theme = trim($this->request->getParam('theme', ''));
-        $previews = trim($this->request->getParam('previews', ''));
-        $libraries = trim($this->request->getParam('libraries', ''));
-        $autosave = trim($this->request->getParam('autosave', ''));
+        $this->config->setTheme($this->stringParam('theme', $this->config->getTheme()));
+        $this->config->setPreviews($this->stringParam('previews', $this->config->getPreviews()));
 
-        $this->config->setTheme($theme);
-        $this->config->setPreviews($previews);
-        $this->config->setLibraries($libraries);
-        $this->config->setAutosave($autosave);
+        return new DataResponse($this->currentSettings());
+    }
 
+    /**
+     * @return array{theme: string, previews: string}
+     */
+    private function currentSettings(): array
+    {
         return [
             'theme' => $this->config->getTheme(),
             'previews' => $this->config->getPreviews(),
-            'libraries' => $this->config->getLibraries(),
-            'autosave' => $this->config->getAutosave(),
         ];
+    }
+
+    private function stringParam(string $name, string $default): string
+    {
+        $value = $this->request->getParam($name, $default);
+
+        return is_string($value) ? $value : $default;
     }
 }

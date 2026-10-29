@@ -219,6 +219,54 @@ PR limits: 10 for npm/composer, 5 for actions.
 - Some tests require a full Nextcloud environment and may not pass in a minimal sandbox
 - Frontend builds require Node.js >= 24
 
+## Local Verification Tips
+
+The sandbox has no PHP, but `php:8.4-cli` runs the whole backend suite. The
+`OCP` stubs and the `gd`/`zip` extensions are needed first:
+
+```bash
+docker run --rm -v "$PWD":/app -w /app php:8.4-cli sh -c '
+  apt-get update -qq && apt-get install -y -qq libpng-dev libjpeg62-turbo-dev \
+    libfreetype6-dev libzip-dev
+  docker-php-ext-configure gd --with-freetype --with-jpeg
+  docker-php-ext-install -j4 gd zip
+  php -d memory_limit=512M vendor/bin/phpunit tests -c tests/phpunit.xml'
+```
+
+Without `gd` the PNG-decode test fails. Most tests also error on a missing OCP
+class until the stubs are installed with
+`composer bin nextcloud-ocp require --dev nextcloud/ocp:dev-stable34`. That
+command rewrites the tracked `vendor-bin/nextcloud-ocp/composer.json` and
+`composer.lock` (the repo pins `dev-master`), so it is for local, uncommitted
+use only — revert those two files before committing.
+
+Watch for these traps:
+
+- **`pnpm-lock.yaml` must match `package.json`.** CI installs with
+  `--frozen-lockfile`, so a dependency change without
+  `pnpm install --lockfile-only` fails *every* node job with
+  `ERR_PNPM_OUTDATED_LOCKFILE`, including lint and tests that look unrelated.
+- **A build regenerates tracked `js/*.LICENSE.txt` files.** Check
+  `git diff --stat -- js/` afterwards and restore only those regenerated files
+  (for example `git checkout -- js/\*.LICENSE.txt`), so any unrelated `js/`
+  edit is not thrown away.
+- **`.vue` files cannot be mounted in Jest here.** `@vue/vue3-jest` has no Jest
+  30 release (latest is 29.2.6, against Jest 30.5.2), so an SFC import is
+  parsed as ESM and rejected with "Must use import to load ES Module". Put
+  logic in a plain `.ts` helper and test that, as `src/utils/viewerOptions.ts`
+  does, and read the SFC as text for structural assertions, as
+  `src/utils/viewerOptions.test.ts` and `tests/unit/assetController.spec.ts`
+  do.
+- **Babel's TS transform leaves call type arguments in place**, so
+  `new Promise<void>(...)` breaks Jest parsing. Use `new Promise(...)`.
+- **The `OC` stub declares several namespaces**, so it cannot go through the
+  PSR-4 autoloader. Require it inside `setUp()` rather than at file scope;
+  Codacy's PSR-1 `Files.SideEffects` rule flags a file-level require in a test
+  that also declares a class.
+- **Arrow functions capture by value.** A mock callback that must observe
+  writes needs `static function (...) use (&$store)`; `static fn` freezes the
+  array at its initial state.
+
 ---
 
 ## Semantic Release Configuration

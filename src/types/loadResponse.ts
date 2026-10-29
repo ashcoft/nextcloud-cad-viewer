@@ -17,6 +17,8 @@ export interface LoadResponse {
 	canSave: boolean
 	/** Direct download URL for the CAD file */
 	url: string
+	/** Viewer theme chosen by the administrator. */
+	theme: 'light' | 'dark'
 	contentType: string
 	error?: string
 }
