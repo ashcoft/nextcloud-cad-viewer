@@ -1,3 +1,11 @@
+## [1.3.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.3.1...v1.3.2) (2026-10-29)
+
+
+### Bug Fixes
+
+* address review findings on the settings changes ([289b233](https://github.com/ashcoft/nextcloud-cad-viewer/commit/289b2334c9333cd940788aa212dba9dc5c47bbc7))
+* wire the theme setting through and drop settings the viewer ignores ([22d01de](https://github.com/ashcoft/nextcloud-cad-viewer/commit/22d01de1303b7591adc2a563fd7fcf86c0980142))
+
 ## [1.3.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.3.0...v1.3.1) (2026-10-27)
 
 
