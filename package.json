@@ -30,7 +30,7 @@
     "@mlightcad/cad-simple-viewer": "^1.5.8",
     "@mlightcad/cad-svg-plugin": "1.7.6",
     "@mlightcad/cad-viewer": "1.7.6",
-    "@mlightcad/data-model": "^1.15.12",
+    "@mlightcad/data-model": "^1.15.15",
     "@mlightcad/libredwg-converter": "3.15.14",
     "@nextcloud/axios": "^2.0.0",
     "@nextcloud/files": "^4.0.0",
