@@ -53,9 +53,10 @@ package for the full license text.
 4. AGPL-3.0 component (compatible with this app)
 ------------------------------------------------
 
-This app is licensed under the **MIT** license (`LICENSE`, `<licence>MIT</licence>`
-in `appinfo/info.xml`, `LICENSE`/`package.json`, and the SPDX headers in the
-sources). One of the Nextcloud libraries it bundles is AGPL-licensed:
+This app is licensed under the **MIT** license: `LICENSE`, `<licence>MIT</licence>`
+in `appinfo/info.xml`, `"license": "MIT"` in `package.json` and `composer.json`,
+and the SPDX headers in the sources. One of the Nextcloud libraries it bundles
+is AGPL-licensed:
 
   - `@nextcloud/files` (AGPL-3.0-or-later) — bundled into the frontend build;
     source: https://github.com/nextcloud-libraries/nextcloud-files
