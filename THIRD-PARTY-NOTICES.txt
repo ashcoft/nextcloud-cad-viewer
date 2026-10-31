@@ -49,3 +49,23 @@ The remaining bundled libraries (the CAD viewer UI, Three.js, Vue, Element
 Plus, DOMPurify and their dependencies) are distributed under their respective
 licenses; the generated `js/*.LICENSE.txt` files list them per bundle. See each
 package for the full license text.
+
+4. AGPL-3.0 component (compatible with this app)
+------------------------------------------------
+
+This app is licensed under the **MIT** license: `LICENSE`, `<licence>MIT</licence>`
+in `appinfo/info.xml`, `"license": "MIT"` in `package.json` and `composer.json`,
+and the SPDX headers in the sources. One of the Nextcloud libraries it bundles
+is AGPL-licensed:
+
+  - `@nextcloud/files` (AGPL-3.0-or-later) — bundled into the frontend build;
+    source: https://github.com/nextcloud-libraries/nextcloud-files
+
+The full AGPL-3.0 text distributed with this app is `COPYING.txt`; it is the
+license of that component, **not** of this app. MIT and AGPL-3.0 are compatible
+for distribution: this project's own code stays MIT, the bundled library keeps
+its AGPL license and its source is available at the URL above.
+
+`nextcloud/ocp` (AGPL-3.0-or-later) is a development-only type stub for the
+Nextcloud public API; it is not shipped in the app archive and therefore adds no
+obligations to the distributed app.

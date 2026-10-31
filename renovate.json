@@ -38,7 +38,7 @@
       "enabled": false
     },
     {
-      "description": "Disable updates for locked versions in overrides",
+      "description": "Disable updates for locked versions in overrides. vue-i18n is deliberately not listed: it silently fell behind the range in package.json that way, so it must be allowed to take patch/security updates",
       "matchPackageNames": [
         "@mlightcad/data-model",
         "@mlightcad/libredwg-converter",
@@ -47,8 +47,7 @@
         "@mlightcad/ribbon",
         "element-plus",
         "three",
-        "vue",
-        "vue-i18n"
+        "vue"
       ],
       "enabled": false
     }

@@ -28,13 +28,34 @@ overrides:
   '@mlightcad/mtext-renderer': '0.13.6'
   '@mlightcad/ribbon': '0.1.13'
   'element-plus': '2.14.6'
-  'fast-uri': '^4.0.0'
-  'js-yaml': '^5.2.2'
+  'fast-uri': '^4.2.3'
+  'js-yaml': '^5.4.1'
   'postcss': '^8.5.23'
   'three': '0.186.1'
-  'undici': '^8.0.0'
+  # Security: force undici >= 8.12.2 (certificate validation, cache and
+  # info-disclosure advisories reported by the dependency scanner)
+  'undici': '^8.12.2'
+  # Security: force axios >= 1.20.0 (prototype pollution / SSRF advisories)
+  'axios': '^1.20.0'
+  # Security: axios pulls follow-redirects, whose 1.16.0 has credential-leak
+  # advisories patched in 1.16.2
+  'follow-redirects': '^1.16.2'
+  # Security: handlebars <= 4.7.9 has two critical template-injection
+  # advisories (semantic-release toolchain only)
+  'handlebars': '^4.7.10'
+  # Security: source-map-js < 1.2.2 has a source-map parsing DoS
+  'source-map-js': '^1.2.2'
+  # Security: zod < 4.6.6 can exhaust memory on oversized collections.
+  # `ai@5` accepts `^3.25.76 || ^4.1.8`, so the v4 line is supported.
+  'zod': '^4.6.6'
+  # Security: dev tooling only. glob <= 14.0.1 and minimatch < 11.0.1 have
+  # ReDoS/traversal advisories; both are held at the earliest patched version.
+  'glob': '^14.0.2'
+  'minimatch': '^11.0.1'
   'vue': '3.5.43'
-  'vue-i18n': '11.4.6'
+  # Security: 11.4.6 was pinned below package.json's own range and carries the
+  # escapeParameter XSS advisories (patched in 11.4.14)
+  'vue-i18n': '^11.4.16'
   '@ai-sdk/provider-utils': '5.0.72'
   # Security: force nanoid >= 3.3.18 to fix infinite loop in customAlphabet/
   # customRandom when size is 0 (DoS via unvalidated attacker-controlled size, advisory #30)

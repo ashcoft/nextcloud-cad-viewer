@@ -322,6 +322,11 @@ For compatibility testing procedures, see [COMPATIBILITY.md](docs/COMPATIBILITY.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+Bundled third-party components keep their own licenses, which are listed in
+[THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt). In particular the bundled
+`@nextcloud/files` library is AGPL-3.0-or-later (its license text ships as
+`COPYING.txt`); that is compatible with this app's MIT license.
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
