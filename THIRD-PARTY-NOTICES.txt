@@ -62,4 +62,3 @@ obligations beyond those already accepted for the app:
   - `nextcloud/ocp` (AGPL-3.0-or-later) — development-only type stubs for the
     Nextcloud public API; not shipped in the app archive;
     source: https://github.com/nextcloud-deps/ocp
-
