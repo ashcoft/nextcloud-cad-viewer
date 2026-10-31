@@ -1,3 +1,12 @@
+# [1.4.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.3.2...v1.4.0) (2026-10-31)
+
+
+### Bug Fixes
+
+* **deps:** clear the remaining npm advisories ([0e560c3](https://github.com/ashcoft/nextcloud-cad-viewer/commit/0e560c3a7cee848b44d790337d2b931ba062598a))
+* **deps:** force follow-redirects >= 1.16.2 ([5a993ee](https://github.com/ashcoft/nextcloud-cad-viewer/commit/5a993ee95501067ec064ccdd3e29e64977e48517)), closes [hi#severity](https://github.com/hi/issues/severity)
+* **deps:** force undici >= 8.12.2 and axios >= 1.20.0 ([fa96980](https://github.com/ashcoft/nextcloud-cad-viewer/commit/fa96980ee64b6e2d6086d717c92a2b2937309a43))
+
 ## [1.3.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.3.1...v1.3.2) (2026-10-29)
 
 
