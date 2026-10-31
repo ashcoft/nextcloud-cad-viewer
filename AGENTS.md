@@ -112,7 +112,8 @@ pnpm run stylelint    # Stylelint
 ## GitHub Actions Workflows
 
 - All workflows use consistent **pinned hashes** for actions
-- Use `v` prefix for `shivammathur/setup-php` tags (e.g., `v2.37.0`)
+- `shivammathur/setup-php` must be pinned to the release commit with the version in a comment (e.g. `# v2.40.0`), never to the mutable `v2` tag: that tag is flagged for CVE-2026-46420 / GHSA-5wxr-w449-57cm
+- Never interpolate workflow inputs or `github.event.*` fields into a `run:` script or a `github-script` body — pass them through `env:` and read `$VAR` / `process.env.VAR` instead
 - Follows Nextcloud organization template patterns for CI/CD
 
 ### Key Workflows
