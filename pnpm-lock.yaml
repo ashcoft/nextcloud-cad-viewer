@@ -175,7 +175,8 @@ overrides:
   js-yaml: ^5.2.2
   postcss: ^8.5.23
   three: 0.186.1
-  undici: ^8.0.0
+  undici: ^8.12.2
+  axios: ^1.20.0
   vue: 3.5.43
   vue-i18n: 11.4.6
   '@ai-sdk/provider-utils': 5.0.72
@@ -214,7 +215,7 @@ importers:
         version: 2.6.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
       '@nextcloud/files':
         specifier: ^4.0.0
-        version: 4.1.1(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
+        version: 4.1.1(axios@1.21.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
       '@nextcloud/l10n':
         specifier: ^3.0.0
         version: 3.4.1
@@ -2683,10 +2684,10 @@ packages:
   axios-retry@4.5.0:
     resolution: {integrity: sha512-aR99oXhpEDGo0UuAlYcn2iGRds30k366Zfa05XWScR9QaQD4JYiP3/1Qt1u7YlefUOK+cn0CcwoL1oefavQUlQ==}
     peerDependencies:
-      axios: 0.x || 1.x
+      axios: ^1.20.0
 
-  axios@1.18.1:
-    resolution: {integrity: sha512-3nTvFlvpn9Zu/RkHUqtc7/+al4UpRW5az71ap5zccp6e8RAYEzhMTecX8Dz1wWDYrPpUoB1HAQEGEAEvUr7S9g==}
+  axios@1.21.0:
+    resolution: {integrity: sha512-YCzXMB53Q9PZBsh7yN7wtapit4WepwcHS2fP8QhGsBxSz5YtgYobV7GGlWlAJi+RxfU77GQTQi2DSLUma42EYA==}
 
   babel-jest@30.5.2:
     resolution: {integrity: sha512-ES8WeJ2fNWPEDunyAtUfJ12nHyaWUloCHdkfK2oW5uSoQSUmjNKdWiGaXJITJwvFEWoD/evHEg/QoCXAvLaQqQ==}
@@ -5350,8 +5351,8 @@ packages:
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
 
-  undici@8.10.0:
-    resolution: {integrity: sha512-HvltHd7avK13QIw/oLe4qoOLyoVSoafqJ2jYOrtMRBkbYT31eiBQ8O0ehRKZiEZCMEyLFQNIADpgCWC5fALvYQ==}
+  undici@8.12.3:
+    resolution: {integrity: sha512-+fdndUTwBP86cVjihTp21hZHo7d6oj1c/47XPA3lL8mM0XHs+C4EkcjmgRsFnFk2f/UONGDy9ItBItmXsLOQHw==}
     engines: {node: '>=22.19.0'}
 
   unicode-canonical-property-names-ecmascript@2.0.1:
@@ -5777,7 +5778,7 @@ snapshots:
   '@actions/http-client@4.0.1':
     dependencies:
       tunnel: 0.0.6
-      undici: 8.10.0
+      undici: 8.12.3
 
   '@actions/io@3.0.2': {}
 
@@ -5806,7 +5807,7 @@ snapshots:
       '@standard-schema/spec': 1.1.0
       '@workflow/serde': 4.1.0
       eventsource-parser: 3.1.0
-      undici: 8.10.0
+      undici: 8.12.3
       zod: 3.25.76
 
   '@ai-sdk/provider@2.0.3':
@@ -7344,7 +7345,7 @@ snapshots:
   '@nextcloud/axios@2.6.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)':
     dependencies:
       '@nextcloud/auth': 2.6.0
-      axios: 1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
+      axios: 1.21.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
     transitivePeerDependencies:
       - debug
       - supports-color
@@ -7360,7 +7361,7 @@ snapshots:
       '@types/semver': 7.7.1
       semver: 7.8.5
 
-  '@nextcloud/files@4.1.1(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)':
+  '@nextcloud/files@4.1.1(axios@1.21.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)':
     dependencies:
       '@nextcloud/auth': 2.6.0
       '@nextcloud/axios': 2.6.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
@@ -7370,7 +7371,7 @@ snapshots:
       '@nextcloud/paths': 3.1.0
       '@nextcloud/router': 3.2.0
       '@nextcloud/sharing': 0.4.0
-      axios-retry: 4.5.0(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))
+      axios-retry: 4.5.0(axios@1.21.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))
       is-svg: 6.1.0
       p-queue: 9.3.3
       typescript-event-target: 1.1.2
@@ -7405,7 +7406,7 @@ snapshots:
       '@nextcloud/initial-state': 3.0.0
       is-svg: 6.1.0
     optionalDependencies:
-      '@nextcloud/files': 4.1.1(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
+      '@nextcloud/files': 4.1.1(axios@1.21.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2))(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
 
   '@nextcloud/typings@1.10.0':
     dependencies:
@@ -7653,7 +7654,7 @@ snapshots:
       p-filter: 4.1.0
       semantic-release: 25.0.9(@typescript/typescript6@6.0.2)(supports-color@10.2.2)
       tinyglobby: 0.2.17
-      undici: 8.10.0
+      undici: 8.12.3
       url-join: 5.0.0
     transitivePeerDependencies:
       - kerberos
@@ -8455,12 +8456,12 @@ snapshots:
 
   asynckit@0.4.0: {}
 
-  axios-retry@4.5.0(axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)):
+  axios-retry@4.5.0(axios@1.21.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)):
     dependencies:
-      axios: 1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
+      axios: 1.21.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2)
       is-retry-allowed: 2.2.0
 
-  axios@1.18.1(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2):
+  axios@1.21.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2):
     dependencies:
       follow-redirects: 1.16.0(debug@4.4.3(supports-color@10.2.2))
       form-data: 4.0.6
@@ -11250,7 +11251,7 @@ snapshots:
 
   undici-types@8.9.0: {}
 
-  undici@8.10.0: {}
+  undici@8.12.3: {}
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 

@@ -32,7 +32,11 @@ overrides:
   'js-yaml': '^5.2.2'
   'postcss': '^8.5.23'
   'three': '0.186.1'
-  'undici': '^8.0.0'
+  # Security: force undici >= 8.12.2 (certificate validation, cache and
+  # info-disclosure advisories reported by the dependency scanner)
+  'undici': '^8.12.2'
+  # Security: force axios >= 1.20.0 (prototype pollution / SSRF advisories)
+  'axios': '^1.20.0'
   'vue': '3.5.43'
   'vue-i18n': '11.4.6'
   '@ai-sdk/provider-utils': '5.0.72'
