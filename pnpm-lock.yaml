@@ -177,6 +177,7 @@ overrides:
   three: 0.186.1
   undici: ^8.12.2
   axios: ^1.20.0
+  follow-redirects: ^1.16.2
   vue: 3.5.43
   vue-i18n: 11.4.6
   '@ai-sdk/provider-utils': 5.0.72
@@ -3414,8 +3415,8 @@ packages:
     resolution: {integrity: sha512-kWyh8ADvHBFz6ua5xYOPnUroZTT/bwWfrCeL0Wj1dzG4/YOmOcfJ99W8dOVyyynJN35rZ9aCOtHChqQovV7yog==}
     engines: {node: '>=6'}
 
-  follow-redirects@1.16.0:
-    resolution: {integrity: sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==}
+  follow-redirects@1.16.2:
+    resolution: {integrity: sha512-/kVP2U8z596Ia0gwFrwyIeo74ta5aVmSeU1FfAUMAmcEP5EP7zydmag3SLiN64NaRKef3lxsq7i/g7ltJQDGow==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -4245,7 +4246,7 @@ packages:
       html-minifier-terser: '*'
       imagemin: '*'
       lightningcss: '*'
-      postcss: '*'
+      postcss: ^8.5.23
       sharp: '*'
       svgo: '*'
       uglify-js: '*'
@@ -5524,7 +5525,7 @@ packages:
     resolution: {integrity: sha512-yTKOA4R/VN4jqjw4y5HrynFL8AK0Z3/Jt7eOJXEitsm0GMRHDBjCfCiuTiLP7OESvsZYo2pATCWhDqxC5ZrM6w==}
     peerDependencies:
       '@vue/compiler-sfc': '*'
-      vue: '*'
+      vue: 3.5.43
       webpack: ^4.1.0 || ^5.0.0-0
     peerDependenciesMeta:
       '@vue/compiler-sfc':
@@ -8463,7 +8464,7 @@ snapshots:
 
   axios@1.21.0(debug@4.4.3(supports-color@10.2.2))(supports-color@10.2.2):
     dependencies:
-      follow-redirects: 1.16.0(debug@4.4.3(supports-color@10.2.2))
+      follow-redirects: 1.16.2(debug@4.4.3(supports-color@10.2.2))
       form-data: 4.0.6
       https-proxy-agent: 5.0.1(supports-color@10.2.2)
       proxy-from-env: 2.1.0
@@ -9275,7 +9276,7 @@ snapshots:
 
   flru@1.0.2: {}
 
-  follow-redirects@1.16.0(debug@4.4.3(supports-color@10.2.2)):
+  follow-redirects@1.16.2(debug@4.4.3(supports-color@10.2.2)):
     optionalDependencies:
       debug: 4.4.3(supports-color@10.2.2)
 

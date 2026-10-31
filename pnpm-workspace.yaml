@@ -37,6 +37,9 @@ overrides:
   'undici': '^8.12.2'
   # Security: force axios >= 1.20.0 (prototype pollution / SSRF advisories)
   'axios': '^1.20.0'
+  # Security: axios pulls follow-redirects, whose 1.16.0 has credential-leak
+  # advisories patched in 1.16.2
+  'follow-redirects': '^1.16.2'
   'vue': '3.5.43'
   'vue-i18n': '11.4.6'
   '@ai-sdk/provider-utils': '5.0.72'
