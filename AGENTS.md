@@ -121,7 +121,6 @@ pnpm run stylelint    # Stylelint
 | Workflow                          | Purpose                              |
 | --------------------------------- | ------------------------------------ |
 | `release.yml`                    | Release with semantic-release         |
-| `dependabot-approve-merge.yml`   | Auto-approve and merge Dependabot PRs|
 | `lint-*.yml`                      | Code quality checks                  |
 | `phpunit-*.yml`                   | PHP unit tests                       |
 | `node-test.yml`                   | Frontend tests                       |
@@ -202,6 +201,10 @@ The repository uses Dependabot for automated dependency updates:
 | github-actions  | Weekly    | -                                          |
 
 PR limits: 10 for npm/composer, 5 for actions.
+
+Dependabot PRs are **not** auto-approved or auto-merged: the
+`dependabot-approve-merge.yml` workflow was removed. Renovate covers the same
+updates (see `renovate.json`) and merges go through the repository's merge queue.
 
 ---
 
