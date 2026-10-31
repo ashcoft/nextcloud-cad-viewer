@@ -1,0 +1,5 @@
+SPDX-FileCopyrightText: 2007 Free Software Foundation, Inc. <https://fsf.org/>
+SPDX-License-Identifier: AGPL-3.0-or-later
+SPDX-FileComment: Verbatim AGPL-3.0 text, distributed for the bundled
+ @nextcloud/files library. The app itself is MIT licensed - see LICENSE, and
+ appinfo/info.xml for the license the Nextcloud app store reads.

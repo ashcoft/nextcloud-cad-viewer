@@ -1,7 +1,7 @@
 {
   "name": "ashcoft/nextcloud-cad-viewer",
   "description": "A Nextcloud app to view CAD files in the browser",
-  "license": "AGPL-3.0-or-later",
+  "license": "MIT",
   "authors": [
     {
       "name": "ashcoft",
