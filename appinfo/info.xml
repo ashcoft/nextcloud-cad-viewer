@@ -21,7 +21,7 @@
 - Secure integration with Nextcloud file permissions
 
 Tested and compatible with Nextcloud 34-35. See the [project README](https://github.com/ashcoft/nextcloud-cad-viewer#readme) for requirements, installation, and usage.]]></description>
-  <version>1.4.0</version>
+  <version>1.5.0</version>
   <licence>MIT</licence>
   <author mail="dony@dony.me">CAD Viewer Contributors</author>
   <namespace>CadViewer</namespace>
