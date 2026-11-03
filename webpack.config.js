@@ -116,6 +116,13 @@ module.exports = {
     new webpack.IgnorePlugin({
       resourceRegExp: /^@mlightcad\/dxf-json-converter$/,
     }),
+    // cad-viewer 1.7.8 lazily imports the optional @mlightcad/cad-script-plugin
+    // (bare, /register and /style.css). The app ships no script console, so
+    // ignore the specifiers: the viewer catches the failed registration and
+    // leaves the palette tab hidden, as before the upgrade.
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^@mlightcad\/cad-script-plugin(\/.*)?$/,
+    }),
   ],
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.vue', '.json', '.cjs'],
