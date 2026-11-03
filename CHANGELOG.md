@@ -1,3 +1,11 @@
+# [1.7.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.6.0...v1.7.0) (2026-11-03)
+
+
+### Bug Fixes
+
+* **deps:** align mlightcad overrides with the 1.7.8 ecosystem ([3f8ca53](https://github.com/ashcoft/nextcloud-cad-viewer/commit/3f8ca53f782e54128604ed02bddf570438b4f41e))
+* **deps:** update mlightcad-ecosystem to v1.7.8 ([36b65dd](https://github.com/ashcoft/nextcloud-cad-viewer/commit/36b65dd268902da973d27eddf3276c67ee24e25d))
+
 # [1.6.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.5.0...v1.6.0) (2026-11-01)
 
 
