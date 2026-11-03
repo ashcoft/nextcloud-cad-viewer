@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.7.0...v1.8.0) (2026-11-03)
+
+
+### Bug Fixes
+
+* **deps:** sync three override to 0.187.0 so the bump takes effect ([1174200](https://github.com/ashcoft/nextcloud-cad-viewer/commit/117420086d14de63845d33c7ca48ad26575a51e2))
+
 # [1.7.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.6.0...v1.7.0) (2026-11-03)
 
 
