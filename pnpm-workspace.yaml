@@ -27,7 +27,7 @@ overrides:
   '@mlightcad/mtext-input-box': '0.3.6'
   '@mlightcad/mtext-renderer': '0.13.7'
   '@mlightcad/ribbon': '0.1.13'
-  'element-plus': '2.14.6'
+  'element-plus': '2.14.7'
   'fast-uri': '^4.2.3'
   'js-yaml': '^5.4.1'
   'postcss': '^8.5.23'

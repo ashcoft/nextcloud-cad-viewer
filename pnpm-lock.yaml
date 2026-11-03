@@ -170,7 +170,7 @@ overrides:
   '@mlightcad/mtext-input-box': 0.3.6
   '@mlightcad/mtext-renderer': 0.13.7
   '@mlightcad/ribbon': 0.1.13
-  element-plus: 2.14.6
+  element-plus: 2.14.7
   fast-uri: ^4.2.3
   js-yaml: ^5.4.1
   postcss: ^8.5.23
@@ -209,7 +209,7 @@ importers:
         version: 1.7.8(@mlightcad/cad-simple-viewer@1.7.8(@mlightcad/data-model@1.15.21)(@mlightcad/mtext-parser@1.5.7)(@mlightcad/mtext-renderer@0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0))(@mlightcad/three-renderer@1.7.8(@mlightcad/data-model@1.15.21)(@mlightcad/mtext-parser@1.5.7)(@mlightcad/mtext-renderer@0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0))(@velipso/polybool@1.1.1)(three@0.187.0))(lodash-es@4.18.1)(three@0.187.0))(@mlightcad/data-model@1.15.21)(@mlightcad/mtext-parser@1.5.7)(@mlightcad/mtext-renderer@0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0))
       '@mlightcad/cad-viewer':
         specifier: 1.7.8
-        version: 1.7.8(bec6f60def2e37131282e7e5a6d817e8)
+        version: 1.7.8(9e34d43c190f1bc727e6e84261149e3d)
       '@mlightcad/data-model':
         specifier: 1.15.21
         version: 1.15.21
@@ -229,8 +229,8 @@ importers:
         specifier: ^3.1.0
         version: 3.2.0
       element-plus:
-        specifier: 2.14.6
-        version: 2.14.6(vue@3.5.43(@typescript/typescript6@6.0.2))
+        specifier: 2.14.7
+        version: 2.14.7(vue@3.5.43(@typescript/typescript6@6.0.2))
       lodash-es:
         specifier: 4.18.1
         version: 4.18.1
@@ -1624,7 +1624,7 @@ packages:
       '@mlightcad/pdf-renderer': 1.7.8
       '@mlightcad/three-renderer': 1.7.8
       '@vueuse/core': ^11.1.0
-      element-plus: 2.14.6
+      element-plus: 2.14.7
       lodash-es: 4.17.21
       three: 0.187.0
       vue: 3.5.43
@@ -3204,8 +3204,8 @@ packages:
   electron-to-chromium@1.5.397:
     resolution: {integrity: sha512-khGTy9U9x02KEtsKM8vx5A62BsRmcOsIgDpWr1ImE32Ax8GxHGPHZf+Eu9H8zOOyHJnB0jTbseyTHbq2XCT8yw==}
 
-  element-plus@2.14.6:
-    resolution: {integrity: sha512-GH0fMoMgVEKkHimoaKvg5B00NmfPbQ+qxX6/JrO7F+dLAC3atrZr2Y2MoccHMxS22M7QE12/s0DG0Zs49iwJ/A==}
+  element-plus@2.14.7:
+    resolution: {integrity: sha512-lrG7pZyCS+mpCNVpzxxyu5r35+T6V0hzkAeIwn7HA6to772XSTHKuYCZG51OfzlqaxGbNegLxs650zAF1j43gA==}
     peerDependencies:
       vue: 3.5.43
 
@@ -7445,13 +7445,13 @@ snapshots:
       '@mlightcad/mtext-parser': 1.5.7
       '@mlightcad/mtext-renderer': 0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0)
 
-  '@mlightcad/cad-viewer@1.7.8(bec6f60def2e37131282e7e5a6d817e8)':
+  '@mlightcad/cad-viewer@1.7.8(9e34d43c190f1bc727e6e84261149e3d)':
     dependencies:
       '@mlightcad/cad-simple-viewer': 1.7.8(@mlightcad/data-model@1.15.21)(@mlightcad/mtext-parser@1.5.7)(@mlightcad/mtext-renderer@0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0))(@mlightcad/three-renderer@1.7.8(@mlightcad/data-model@1.15.21)(@mlightcad/mtext-parser@1.5.7)(@mlightcad/mtext-renderer@0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0))(@velipso/polybool@1.1.1)(three@0.187.0))(lodash-es@4.18.1)(three@0.187.0)
       '@mlightcad/data-model': 1.15.21
       '@mlightcad/three-renderer': 1.7.8(@mlightcad/data-model@1.15.21)(@mlightcad/mtext-parser@1.5.7)(@mlightcad/mtext-renderer@0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0))(@velipso/polybool@1.1.1)(three@0.187.0)
       '@vueuse/core': 11.3.0(vue@3.5.43(@typescript/typescript6@6.0.2))
-      element-plus: 2.14.6(vue@3.5.43(@typescript/typescript6@6.0.2))
+      element-plus: 2.14.7(vue@3.5.43(@typescript/typescript6@6.0.2))
       lodash-es: 4.18.1
       three: 0.187.0
       vue: 3.5.43(@typescript/typescript6@6.0.2)
@@ -9135,7 +9135,7 @@ snapshots:
 
   electron-to-chromium@1.5.397: {}
 
-  element-plus@2.14.6(vue@3.5.43(@typescript/typescript6@6.0.2)):
+  element-plus@2.14.7(vue@3.5.43(@typescript/typescript6@6.0.2)):
     dependencies:
       '@ctrl/tinycolor': 4.2.1
       '@element-plus/icons-vue': 2.3.2(vue@3.5.43(@typescript/typescript6@6.0.2))
