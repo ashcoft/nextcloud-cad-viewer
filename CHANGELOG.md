@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.8.0...v1.9.0) (2026-11-03)
+
+
+### Bug Fixes
+
+* **deps:** sync element-plus override to 2.14.7 so the bump takes effect ([7557fb8](https://github.com/ashcoft/nextcloud-cad-viewer/commit/7557fb88f09f37d97ce8d2f42387c7112a9d3ad3)), closes [#1269](https://github.com/ashcoft/nextcloud-cad-viewer/issues/1269)
+
 # [1.8.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.7.0...v1.8.0) (2026-11-03)
 
 
