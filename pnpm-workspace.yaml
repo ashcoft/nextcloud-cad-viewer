@@ -52,7 +52,7 @@ overrides:
   # ReDoS/traversal advisories; both are held at the earliest patched version.
   'glob': '^14.0.2'
   'minimatch': '^11.0.1'
-  'vue': '3.5.43'
+  'vue': '3.5.44'
   # Security: 11.4.6 was pinned below package.json's own range and carries the
   # escapeParameter XSS advisories (patched in 11.4.14)
   'vue-i18n': '^11.4.16'
