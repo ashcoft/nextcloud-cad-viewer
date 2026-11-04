@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.10.0...v1.11.0) (2026-11-04)
+
+
+### Bug Fixes
+
+* **deps:** bump stylelint-config-standard to 41 for stylelint 18 ([f139b1e](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f139b1e4f1372ad2eced42957dfcb923dab9943e))
+
 # [1.10.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.9.0...v1.10.0) (2026-11-03)
 
 
