@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.11.0...v1.12.0) (2026-11-04)
+
+
+### Bug Fixes
+
+* **deps:** sync vue override to 3.5.44 so the bump takes effect ([7190ddf](https://github.com/ashcoft/nextcloud-cad-viewer/commit/7190ddfb4ab26d387c51e26dfd4e519585feeded)), closes [#1377](https://github.com/ashcoft/nextcloud-cad-viewer/issues/1377)
+
 # [1.11.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.10.0...v1.11.0) (2026-11-04)
 
 
