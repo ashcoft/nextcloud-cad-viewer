@@ -54,9 +54,21 @@ web form asks for:
 - **Signature** — a signature over the app id using the private key:
 
   ```bash
+  # -A keeps the signature on one line; a wrapped signature is rejected.
   echo -n "cad_viewer" \
     | openssl dgst -sha512 -sign ~/.nextcloud/certificates/cad_viewer.key \
-    | openssl base64
+    | openssl base64 -A
+  ```
+
+  Paste only the Base64 text. Copying straight from a terminal can pick up the
+  shell prompt along with it, which makes the signature invalid; end the output
+  with a newline so the prompt lands on its own line:
+
+  ```bash
+  echo -n "cad_viewer" \
+    | openssl dgst -sha512 -sign ~/.nextcloud/certificates/cad_viewer.key \
+    | openssl base64 -A
+  echo
   ```
 
 ### 4. Add the repository secrets
@@ -92,9 +104,11 @@ The App Store then downloads the archive, verifies the signature and the
 To publish an existing release without re-running the pipeline:
 
 ```bash
-# 1. Sign the archive with the private key
+# 1. Sign the archive with the private key.
+#    -A keeps the Base64 on one line so it can be pasted straight into the
+#    JSON string below; the default wraps at 64 columns and breaks the body.
 openssl dgst -sha512 -sign ~/.nextcloud/certificates/cad_viewer.key \
-  cad_viewer.tar.gz | openssl base64
+  cad_viewer.tar.gz | openssl base64 -A
 
 # 2. Upload via the App Store web form, or the REST API:
 curl -X POST https://apps.nextcloud.com/api/v1/apps/releases \
