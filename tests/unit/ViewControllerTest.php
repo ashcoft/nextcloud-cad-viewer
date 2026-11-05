@@ -125,42 +125,22 @@ class ViewControllerTest extends TestCase
         ];
 
         foreach ($responses as $page => $response) {
-            $connectSrc = $this->directive($response->getContentSecurityPolicy()->buildPolicy(), 'connect-src');
-
-            $this->assertStringContainsString(
-                'https://cdn.jsdelivr.net',
-                $connectSrc,
+            $this->assertMatchesRegularExpression(
+                "/connect-src [^;]*https:\/\/cdn\.jsdelivr\.net/",
+                $response->getContentSecurityPolicy()->buildPolicy(),
                 $page . ' must allow connections to the font CDN',
             );
         }
     }
 
     /**
-     * The allowance is additive: the policy must not drop the 'self' default,
-     * or the viewer could no longer reach its own API endpoints.
+     * The allowance is additive: the policy must keep the 'self' default, or
+     * the viewer could no longer reach its own API endpoints.
      */
     public function testViewerCspKeepsTheSelfDefault(): void
     {
-        $connectSrc = $this->directive(
-            $this->controller()->view('42')->getContentSecurityPolicy()->buildPolicy(),
-            'connect-src',
-        );
+        $policy = $this->controller()->view('42')->getContentSecurityPolicy()->buildPolicy();
 
-        $this->assertStringContainsString("'self'", $connectSrc);
-    }
-
-    /**
-     * Extract a single directive from a built CSP string.
-     */
-    private function directive(string $policy, string $name): string
-    {
-        foreach (explode(';', $policy) as $part) {
-            $part = trim($part);
-            if (str_starts_with($part, $name . ' ')) {
-                return $part;
-            }
-        }
-
-        return '';
+        $this->assertMatchesRegularExpression("/connect-src [^;]*'self'/", $policy);
     }
 }
