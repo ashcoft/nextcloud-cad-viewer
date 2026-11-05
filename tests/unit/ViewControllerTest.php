@@ -114,23 +114,24 @@ class ViewControllerTest extends TestCase
      * The viewer library fetches its fonts from cdn.jsdelivr.net, and
      * Nextcloud's default Content-Security-Policy only allows connections to
      * 'self'. Without the explicit allowance the browser blocks the request
-     * and the viewer reports "Failed to get avaiable fonts". Both pages that
-     * can mount the viewer must allow the CDN.
+     * and the viewer reports "Failed to get avaiable fonts".
      */
-    public function testViewerPagesAllowTheFontCdn(): void
+    public function testViewerPageAllowsTheFontCdn(): void
     {
-        $responses = [
-            'start page' => $this->controller()->index(),
-            'viewer page' => $this->controller()->view('42'),
-        ];
+        $policy = $this->controller()->view('42')->getContentSecurityPolicy()->buildPolicy();
 
-        foreach ($responses as $page => $response) {
-            $this->assertMatchesRegularExpression(
-                "/connect-src [^;]*https:\/\/cdn\.jsdelivr\.net/",
-                $response->getContentSecurityPolicy()->buildPolicy(),
-                $page . ' must allow connections to the font CDN',
-            );
-        }
+        $this->assertMatchesRegularExpression("/connect-src [^;]*https:\/\/cdn\.jsdelivr\.net/", $policy);
+    }
+
+    /**
+     * The start page only lists recent drawings and links to the viewer, so it
+     * must not gain a third-party connection it never uses.
+     */
+    public function testStartPageDoesNotAllowTheFontCdn(): void
+    {
+        $policy = $this->controller()->index()->getContentSecurityPolicy()->buildPolicy();
+
+        $this->assertDoesNotMatchRegularExpression("/connect-src [^;]*cdn\.jsdelivr\.net/", $policy);
     }
 
     /**

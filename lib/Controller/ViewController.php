@@ -19,18 +19,6 @@ use Psr\Log\LoggerInterface;
 
 class ViewController extends Controller
 {
-    /**
-     * CDN the viewer library loads its fonts (and drawing templates) from.
-     *
-     * The library defaults its resource base URL to
-     * `https://cdn.jsdelivr.net/gh/mlightcad/cad-data`, which the app does not
-     * override. Nextcloud's default Content-Security-Policy only allows
-     * connections to 'self', so without an explicit allowance the browser
-     * blocks the `fetch()` for `fonts.json` and the font files. The library
-     * then surfaces a generic "Failed to get avaiable fonts" message.
-     */
-    private const VIEWER_RESOURCE_CDN = 'https://cdn.jsdelivr.net';
-
     public function __construct(
         string $appName,
         IRequest $request,
@@ -52,9 +40,11 @@ class ViewController extends Controller
     #[NoCSRFRequired]
     public function index(): TemplateResponse
     {
-        return $this->allowViewerResources(new TemplateResponse(Application::APP_ID, 'start', [
+        // No CDN allowance here: this page only lists recent drawings and
+        // links to the viewer, so it never fetches the viewer's resources.
+        return new TemplateResponse(Application::APP_ID, 'start', [
             'recentDrawings' => $this->recentDrawings->getRecentDrawings(),
-        ]));
+        ]);
     }
 
     /**
@@ -75,9 +65,9 @@ class ViewController extends Controller
      * Let the viewer page reach the CDN it loads fonts and templates from.
      *
      * The library fetches `fonts.json` and the font binaries with `fetch()`,
-     * which the browser checks against `connect-src`. The MTEXT worker is
-     * same-origin (served by AssetController) and inherits the document
-     * policy, so this single directive covers it too.
+     * which the browser checks against `connect-src`. The MTEXT worker runs in
+     * its own context, so it needs the same allowance on the response that
+     * serves its script; see AssetController.
      *
      * The policy is merged with Nextcloud's defaults by CSPMiddleware, so the
      * existing 'self' entries stay in place.
@@ -85,7 +75,7 @@ class ViewController extends Controller
     private function allowViewerResources(TemplateResponse $response): TemplateResponse
     {
         $policy = new ContentSecurityPolicy();
-        $policy->addAllowedConnectDomain(self::VIEWER_RESOURCE_CDN);
+        $policy->addAllowedConnectDomain(Application::VIEWER_RESOURCE_CDN);
         $response->setContentSecurityPolicy($policy);
 
         return $response;
