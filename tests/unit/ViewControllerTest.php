@@ -109,4 +109,58 @@ class ViewControllerTest extends TestCase
             $routes,
         );
     }
+
+    /**
+     * The viewer library fetches its fonts from cdn.jsdelivr.net, and
+     * Nextcloud's default Content-Security-Policy only allows connections to
+     * 'self'. Without the explicit allowance the browser blocks the request
+     * and the viewer reports "Failed to get avaiable fonts". Both pages that
+     * can mount the viewer must allow the CDN.
+     */
+    public function testViewerPagesAllowTheFontCdn(): void
+    {
+        $responses = [
+            'start page' => $this->controller()->index(),
+            'viewer page' => $this->controller()->view('42'),
+        ];
+
+        foreach ($responses as $page => $response) {
+            $connectSrc = $this->directive($response->getContentSecurityPolicy()->buildPolicy(), 'connect-src');
+
+            $this->assertStringContainsString(
+                'https://cdn.jsdelivr.net',
+                $connectSrc,
+                $page . ' must allow connections to the font CDN',
+            );
+        }
+    }
+
+    /**
+     * The allowance is additive: the policy must not drop the 'self' default,
+     * or the viewer could no longer reach its own API endpoints.
+     */
+    public function testViewerCspKeepsTheSelfDefault(): void
+    {
+        $connectSrc = $this->directive(
+            $this->controller()->view('42')->getContentSecurityPolicy()->buildPolicy(),
+            'connect-src',
+        );
+
+        $this->assertStringContainsString("'self'", $connectSrc);
+    }
+
+    /**
+     * Extract a single directive from a built CSP string.
+     */
+    private function directive(string $policy, string $name): string
+    {
+        foreach (explode(';', $policy) as $part) {
+            $part = trim($part);
+            if (str_starts_with($part, $name . ' ')) {
+                return $part;
+            }
+        }
+
+        return '';
+    }
 }
