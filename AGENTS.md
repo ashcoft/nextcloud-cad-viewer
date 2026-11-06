@@ -227,6 +227,7 @@ updates (see `renovate.json`) and merges go through the repository's merge queue
 - Local Psalm analysis may fail if the target PHP version is not supported
 - Some tests require a full Nextcloud environment and may not pass in a minimal sandbox
 - Frontend builds require Node.js >= 24
+- Nextcloud's core reset styles `dialog { display: block }`, which beats the browser's `dialog:not([open]) { display: none }`. A native `<dialog>` in a component therefore shows its contents before `showModal()`, so give it an explicit `.selector:not([open]) { display: none }` rule (see `StartPage.vue`, guarded by `tests/e2e/startPage.spec.ts`)
 
 ## Local Verification Tips
 
