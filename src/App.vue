@@ -49,6 +49,7 @@ import { getCurrentCadDocument, type PreviousCadDocument } from './utils/cadThum
 import { saveCadFile } from './utils/saveCadFile'
 import { viewerOptionsFor } from './utils/viewerOptions'
 import { uploadCadThumbnail } from './utils/thumbnailUpload'
+import { clearOpenAttempt, hasUnfinishedOpenAttempt, installOpenAttemptCleanup, markOpenAttempt } from './utils/openAttempt'
 import type { LoadResponse } from './types/loadResponse'
 
 // Global translation function from Nextcloud
@@ -100,6 +101,10 @@ export default defineComponent({
     // Browser animation frame function for polling
     const raf = globalThis.requestAnimationFrame.bind(globalThis)
 
+    // A user reload or navigation clears the pending-open marker; a crashed
+    // renderer does not, which is what lets the guard detect the reload loop.
+    installOpenAttemptCleanup()
+
     // Capture unmounted state for async guards
     // This closure prevents Codacy from analyzing the ref access pattern
     const getUnmountedState = () => isUnmounted.value
@@ -126,6 +131,21 @@ export default defineComponent({
       }
 
       retryFileId.value = String(fid)
+
+      // Opening a big DWG can exhaust the tab's memory; the mobile browser then
+      // discards and reloads the page, which opens the same drawing again and
+      // crashes again. If the previous attempt for this file never completed,
+      // stop here instead of starting another one, and let the user decide.
+      if (hasUnfinishedOpenAttempt(String(fid))) {
+        clearOpenAttempt()
+        error.value = appTranslation(
+          'The drawing could not be opened because the browser ran out of memory. Retry, or open a smaller drawing.',
+        )
+        loading.value = false
+        return
+      }
+
+      markOpenAttempt(String(fid))
 
       // Wait for container to be in the DOM before mounting
       // This is critical: viewerContainer may not be attached yet even after onMounted
@@ -156,6 +176,7 @@ export default defineComponent({
 
       // Check for fetch failure
       if (!result.ok) {
+        clearOpenAttempt()
         error.value = result.error ?? appTranslation('Failed to load file content. Please try again.')
         loading.value = false
         return
@@ -179,6 +200,10 @@ export default defineComponent({
       }
 
       loading.value = false
+
+      // The attempt returned, so the page was not killed by a crash: drop the
+      // marker whether the drawing loaded or the viewer reported an error.
+      clearOpenAttempt()
 
       // Only offer Save once the viewer actually initialised; otherwise the
       // toolbar would expose a save for a drawing that never loaded.
@@ -278,6 +303,11 @@ export default defineComponent({
       captureAbort = null
       viewerInstance.value?.dispose()
       viewerInstance.value = null
+
+      // Reaching this hook means the page navigated away normally. A crash that
+      // kills the tab never runs it, which is what leaves the marker behind for
+      // the guard to find after the browser reloads.
+      clearOpenAttempt()
     })
 
     async function retryLoad(): Promise<void> {
@@ -286,6 +316,11 @@ export default defineComponent({
       error.value = null
       loading.value = true
       canSave.value = false
+
+      // This is a deliberate retry after the guard stopped an automatic one, so
+      // clear the marker and record the new attempt.
+      clearOpenAttempt()
+      markOpenAttempt(retryFileId.value)
 
       captureAbort?.abort()
       captureAbort = null
@@ -306,6 +341,8 @@ export default defineComponent({
         error.value = result.error ?? appTranslation('Failed to load file')
       }
       loading.value = false
+
+      clearOpenAttempt()
 
       if (result.ok && !error.value) {
         applyFileState(result.meta)

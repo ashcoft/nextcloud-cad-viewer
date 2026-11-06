@@ -13,6 +13,13 @@ export interface CADViewerOptions {
   theme?: 'light' | 'dark'
   baseUrl?: string
   background?: number
+  /**
+   * Render on the main thread instead of in a Web Worker.
+   *
+   * Defaults to `true`, matching the viewer component. The worker mode keeps a
+   * second copy of the drawing geometry, so it peaks much higher; on a phone
+   * that is enough to make the browser discard the tab and reload the page.
+   */
   useMainThreadDraw?: boolean
   /** Original filename (used with url prop for logging/debugging) */
   fileName?: string
@@ -67,7 +74,11 @@ export async function loadCADViewer(
     theme = 'dark',
     baseUrl,
     background = 0x1e1e1e,
-    useMainThreadDraw = false,
+    // Draw on the main thread by default. This is the viewer component's own
+    // default, and it uses markedly less peak memory than the worker render
+    // mode: the worker keeps a second copy of the geometry, which is what
+    // pushed phones into the browser's out-of-memory tab reload on DWG files.
+    useMainThreadDraw = true,
   } = options
 
   const viewerProps: Record<string, unknown> = {
