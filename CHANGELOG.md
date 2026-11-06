@@ -1,3 +1,10 @@
+## [1.12.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.12.1...v1.12.2) (2026-11-06)
+
+
+### Bug Fixes
+
+* keep the blank drawing dialog hidden until it is opened ([8c8bc47](https://github.com/ashcoft/nextcloud-cad-viewer/commit/8c8bc4714f9a430f1f70ecd92b68e57aad3e0403))
+
 ## [1.12.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.12.0...v1.12.1) (2026-11-06)
 
 
