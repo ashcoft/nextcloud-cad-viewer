@@ -346,6 +346,16 @@ export default defineComponent({
   box-shadow: 0 8px 32px rgb(0 0 0 / 25%);
 }
 
+/*
+ * Nextcloud's core reset styles `dialog { display: block }`, which overrides
+ * the browser's own `dialog:not([open]) { display: none }`. Without this rule
+ * the form is rendered inline on page load, so the blank drawing dialog appears
+ * before the user clicks "New blank drawing".
+ */
+.cad-start__dialog:not([open]) {
+  display: none;
+}
+
 .cad-start__dialog::backdrop {
   background: rgb(0 0 0 / 50%);
 }
