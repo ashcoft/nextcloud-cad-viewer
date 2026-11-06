@@ -28,6 +28,17 @@ class Application extends App implements IBootstrap
     public const CANONICAL_DXF_MIME = 'image/vnd.dxf';
 
     /**
+     * CDN the viewer library loads its fonts (and drawing templates) from.
+     *
+     * The library defaults its resource base URL to
+     * `https://cdn.jsdelivr.net/gh/mlightcad/cad-data`, which the app does not
+     * override. Both the viewer page and its MTEXT worker fetch from it, and
+     * Nextcloud's default Content-Security-Policy only allows connections to
+     * 'self', so both need this origin in `connect-src`.
+     */
+    public const VIEWER_RESOURCE_CDN = 'https://cdn.jsdelivr.net';
+
+    /**
      * Largest drawing the viewer loads, in bytes.
      *
      * Shared by the API that streams files and the start page, so a listed

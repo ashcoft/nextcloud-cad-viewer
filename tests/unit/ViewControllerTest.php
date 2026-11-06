@@ -109,4 +109,39 @@ class ViewControllerTest extends TestCase
             $routes,
         );
     }
+
+    /**
+     * The viewer library fetches its fonts from cdn.jsdelivr.net, and
+     * Nextcloud's default Content-Security-Policy only allows connections to
+     * 'self'. Without the explicit allowance the browser blocks the request
+     * and the viewer reports "Failed to get avaiable fonts".
+     */
+    public function testViewerPageAllowsTheFontCdn(): void
+    {
+        $policy = $this->controller()->view('42')->getContentSecurityPolicy()->buildPolicy();
+
+        $this->assertMatchesRegularExpression("/connect-src [^;]*https:\/\/cdn\.jsdelivr\.net/", $policy);
+    }
+
+    /**
+     * The start page only lists recent drawings and links to the viewer, so it
+     * must not gain a third-party connection it never uses.
+     */
+    public function testStartPageDoesNotAllowTheFontCdn(): void
+    {
+        $policy = $this->controller()->index()->getContentSecurityPolicy()->buildPolicy();
+
+        $this->assertDoesNotMatchRegularExpression("/connect-src [^;]*cdn\.jsdelivr\.net/", $policy);
+    }
+
+    /**
+     * The allowance is additive: the policy must keep the 'self' default, or
+     * the viewer could no longer reach its own API endpoints.
+     */
+    public function testViewerCspKeepsTheSelfDefault(): void
+    {
+        $policy = $this->controller()->view('42')->getContentSecurityPolicy()->buildPolicy();
+
+        $this->assertMatchesRegularExpression("/connect-src [^;]*'self'/", $policy);
+    }
 }
