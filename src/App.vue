@@ -49,7 +49,7 @@ import { getCurrentCadDocument, waitForCadDocument, type PreviousCadDocument } f
 import { saveCadFile } from './utils/saveCadFile'
 import { viewerOptionsFor } from './utils/viewerOptions'
 import { uploadCadThumbnail } from './utils/thumbnailUpload'
-import { clearOpenAttempt, hasUnfinishedOpenAttempt, installOpenAttemptCleanup, markOpenAttempt } from './utils/openAttempt'
+import { clearOpenAttempt, hasUnfinishedOpenAttempt, installOpenAttemptCleanup, markOpenAttempt, startOpenAttemptHeartbeat } from './utils/openAttempt'
 import type { LoadResponse } from './types/loadResponse'
 
 // Global translation function from Nextcloud
@@ -89,6 +89,10 @@ export default defineComponent({
     // Cancels the wait for a drawing to open when the viewer unmounts.
     let openAbort: AbortController | null = null
 
+    // Keeps the pending-open marker fresh while a load is running, so a slow
+    // parse does not let it age out mid-load.
+    let stopHeartbeat: (() => void) | null = null
+
     /**
      * How long to wait for the viewer to report a drawing open.
      *
@@ -101,6 +105,8 @@ export default defineComponent({
     function cancelOpenWait(): void {
       openAbort?.abort()
       openAbort = null
+      stopHeartbeat?.()
+      stopHeartbeat = null
     }
 
     /**
@@ -120,10 +126,17 @@ export default defineComponent({
       const controller = new AbortController()
       openAbort = controller
 
+      // Refresh the marker while the parse runs, so a load that outlives the
+      // marker window is still guarded.
+      stopHeartbeat = startOpenAttemptHeartbeat(fileName)
+
       void waitForCadDocument(fileName, OPEN_TIMEOUT_MS, {
         signal: controller.signal,
         previousDocument,
       }).then((opened) => {
+        stopHeartbeat?.()
+        stopHeartbeat = null
+
         if (opened) {
           clearOpenAttempt()
         }
@@ -381,6 +394,14 @@ export default defineComponent({
       viewerInstance.value?.dispose()
 
       const result = await fetchCadFile(retryFileId.value)
+
+      // The component may have been unmounted while the fetch was in flight;
+      // `onBeforeUnmount` has already cleared the marker, so writing one here
+      // would poison the next open with a crash that never happened.
+      if (getUnmountedState()) {
+        return
+      }
+
       if (result.ok) {
         // Restart the window now the download is done: the parse and render
         // that can exhaust memory happen after this point.

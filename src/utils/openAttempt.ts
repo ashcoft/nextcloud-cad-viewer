@@ -211,8 +211,10 @@ let cleanupInstalled = false
  * out of memory does not run unload handlers, which is exactly why the marker
  * survives the reload in the case the guard is meant to catch.
  *
- * When the page goes into the back-forward cache (`persisted`), it may be
- * restored and carry on loading, so the marker is kept for that case.
+ * A page entering the back-forward cache (`persisted`) may be restored and
+ * carry on loading, so the marker is removed for the cached copy and written
+ * again when that page is resumed. Keeping it in place would make a later open
+ * of the same file look like a crash the user never had.
  *
  * Safe to call more than once; the listener is registered only once.
  */
@@ -222,14 +224,49 @@ export function installOpenAttemptCleanup(): void {
   }
   cleanupInstalled = true
 
+  let cachedMarker: string | null = null
+
   try {
     globalThis.addEventListener?.('pagehide', (event) => {
-      if ((event as PageTransitionEvent).persisted) {
-        return
-      }
+      cachedMarker = readMarker()
       clearOpenAttempt()
+
+      if (!(event as PageTransitionEvent).persisted) {
+        cachedMarker = null
+      }
+    })
+
+    globalThis.addEventListener?.('pageshow', (event) => {
+      if ((event as PageTransitionEvent).persisted && cachedMarker !== null) {
+        writeMarker(cachedMarker)
+      }
+      cachedMarker = null
     })
   } catch {
     // No event target available; the guard simply keeps its default behaviour.
+  }
+}
+
+/**
+ * Keep an active attempt from expiring while it is still running.
+ *
+ * A parse and render can take longer than {@link ATTEMPT_WINDOW_MS} on a slow
+ * phone. Without this the marker would age out mid-load, and an out-of-memory
+ * kill after that point would reload straight into another automatic open —
+ * exactly the heavy drawings the guard exists for.
+ *
+ * Returns a function that stops the heartbeat.
+ */
+export function startOpenAttemptHeartbeat(
+  fileId: string | number,
+  intervalMs = 20_000,
+): () => void {
+  const id = String(fileId)
+  const timer = globalThis.setInterval?.(() => markOpenAttempt(id), intervalMs)
+
+  return () => {
+    if (timer !== undefined) {
+      globalThis.clearInterval?.(timer)
+    }
   }
 }

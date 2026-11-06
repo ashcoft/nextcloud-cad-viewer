@@ -12,12 +12,13 @@ import {
   hasUnfinishedOpenAttempt,
   installOpenAttemptCleanup,
   markOpenAttempt,
+  startOpenAttemptHeartbeat,
 } from './openAttempt'
 
 const KEY = 'cad_viewer:pending-open'
 
-function pagehide(persisted = false): void {
-  const event = new Event('pagehide') as Event & { persisted?: boolean }
+function transition(type: 'pagehide' | 'pageshow', persisted = false): void {
+  const event = new Event(type) as Event & { persisted?: boolean }
   Object.defineProperty(event, 'persisted', { value: persisted })
   window.dispatchEvent(event)
 }
@@ -123,21 +124,61 @@ describe('open attempt guard', () => {
     installOpenAttemptCleanup()
     markOpenAttempt(42)
 
-    pagehide(false)
+    transition('pagehide', false)
 
     expect(hasUnfinishedOpenAttempt(42)).toBe(false)
   })
 
   /**
-   * A page going into the back-forward cache may be restored and carry on
-   * loading, so its marker must survive that transition.
+   * A page entering the back-forward cache may be restored and carry on
+   * loading, so its marker is restored when it is resumed. It must not stay in
+   * place while the page is cached, or reopening the same file later would look
+   * like a crash the user never had.
    */
-  it('keeps the marker when the page enters the back-forward cache', () => {
+  it('clears the marker while cached and restores it on resume', () => {
     installOpenAttemptCleanup()
     markOpenAttempt(42)
 
-    pagehide(true)
+    transition('pagehide', true)
+    expect(hasUnfinishedOpenAttempt(42)).toBe(false)
 
+    transition('pageshow', true)
     expect(hasUnfinishedOpenAttempt(42)).toBe(true)
+  })
+
+  it('does not restore a marker after a genuine exit', () => {
+    installOpenAttemptCleanup()
+    markOpenAttempt(42)
+
+    transition('pagehide', false)
+    transition('pageshow', true)
+
+    expect(hasUnfinishedOpenAttempt(42)).toBe(false)
+  })
+
+  /**
+   * A parse and render can outlast the marker window on a slow phone, so an
+   * active load refreshes its marker. Without this an out-of-memory kill late
+   * in the load would reload straight into another automatic open.
+   */
+  it('keeps an active attempt fresh via the heartbeat', () => {
+    jest.useFakeTimers()
+    try {
+      markOpenAttempt(42)
+      const stop = startOpenAttemptHeartbeat(42, 20_000)
+
+      // Age the marker past the window, then let the heartbeat refresh it.
+      window.sessionStorage.setItem(
+        KEY,
+        JSON.stringify({ fileId: '42', at: Date.now() - 5 * 60 * 1000 }),
+      )
+      jest.advanceTimersByTime(20_000)
+
+      expect(hasUnfinishedOpenAttempt(42)).toBe(true)
+
+      stop()
+    } finally {
+      jest.useRealTimers()
+    }
   })
 })
