@@ -1,3 +1,13 @@
+## [1.12.3](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.12.2...v1.12.3) (2026-11-06)
+
+
+### Bug Fixes
+
+* clear the reload guard only after the drawing actually opens ([3b86b8c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/3b86b8cee748f453b6beaf792eda2c81f8cf6b14))
+* key the guard heartbeat by file id and recheck aborts ([dc58670](https://github.com/ashcoft/nextcloud-cad-viewer/commit/dc58670cc2f3a3f4aafeebd5e22bd0c93c068496))
+* stop the mobile refresh loop when opening a DWG ([6f7b38c](https://github.com/ashcoft/nextcloud-cad-viewer/commit/6f7b38cb9fd18fdbe85f5c920f63aac1f4567e36))
+* wait for the render to settle and keep the guard marker fresh ([b0fe85f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b0fe85fb461443de91814ecbcde454bd65e40185))
+
 ## [1.12.2](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.12.1...v1.12.2) (2026-11-06)
 
 
