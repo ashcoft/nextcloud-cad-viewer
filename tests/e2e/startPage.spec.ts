@@ -11,20 +11,35 @@ import { resolve } from 'node:path'
  * rendered inline on page load, before any click — the bug this test guards
  * against.
  *
- * The component's scoped rules are read from the SFC rather than restated, so a
- * copy cannot drift and the regression cannot pass unnoticed. `scoped` adds a
- * data-v attribute; injecting the rules verbatim is equivalent for these
- * selectors because the fixture uses the same class names and the specificity
- * comparison against the reset is what matters here.
+ * The component's scoped rules and the class its template uses are both read
+ * from the SFC rather than restated, so the fixture cannot drift: renaming the
+ * dialog's class moves the fixture with it, and a closed-state rule that no
+ * longer targets that class fails the assertion below instead of silently
+ * passing against a synthetic element. `scoped` adds a data-v attribute;
+ * injecting the rules verbatim is equivalent for these selectors because the
+ * specificity comparison against the reset is what matters here.
  */
+const startPageSource = readFileSync(resolve(__dirname, '../../src/StartPage.vue'), 'utf8')
+
 function startPageScopedStyles(): string {
-  const startPage = readFileSync(resolve(__dirname, '../../src/StartPage.vue'), 'utf8')
-  const match = startPage.match(/<style scoped>([\s\S]*?)<\/style>/)
+  const match = startPageSource.match(/<style scoped>([\s\S]*?)<\/style>/)
   if (!match) {
     throw new Error('StartPage.vue has no <style scoped> block')
   }
 
   return match[1]
+}
+
+/** The class the component puts on its dialog element. */
+function dialogClassName(): string {
+  const template = startPageSource.match(/<template>([\s\S]*?)<\/template>/)
+  const tag = template?.[1].match(/<dialog\b[^>]*>/)
+  const className = tag?.[0].match(/\bclass="([^"]+)"/)?.[1]
+  if (!className) {
+    throw new Error('StartPage.vue has no <dialog class="..."> in its template')
+  }
+
+  return className
 }
 
 /**
@@ -34,14 +49,14 @@ function startPageScopedStyles(): string {
  */
 const NEXTCLOUD_DIALOG_RESET = 'article, aside, dialog, figure, footer, header, hgroup, nav, section { display: block; }'
 
-function fixture(): string {
+function fixture(className: string): string {
   return `<!doctype html><html><head>
     <style>${NEXTCLOUD_DIALOG_RESET}</style>
     <style>${startPageScopedStyles()}</style>
   </head>
   <body style="margin:0">
     <div class="cad-start">
-      <dialog class="cad-start__dialog" id="dialog">
+      <dialog class="${className}" id="dialog">
         <form><input id="name" type="text"></form>
       </dialog>
     </div>
@@ -49,7 +64,14 @@ function fixture(): string {
 }
 
 test('the blank drawing dialog is hidden until it is opened', async ({ page }) => {
-  await page.setContent(fixture())
+  const className = dialogClassName()
+
+  // The closed-state rule must target the class the template actually uses, or
+  // the fixture would be asserting against an element the component never
+  // renders.
+  expect(startPageScopedStyles()).toContain(`.${className}:not([open])`)
+
+  await page.setContent(fixture(className))
 
   const dialog = page.locator('#dialog')
 
