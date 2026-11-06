@@ -23,6 +23,16 @@ Fixes #
 
 <!-- Include screenshots for UI changes -->
 
+## AI Assistance
+
+<!--
+Required by the AI Contribution Policy (AI_POLICY.md).
+If AI produced code, documentation or tests, describe how here; write "None"
+otherwise. Translation and spelling help need no disclosure. Each commit
+containing AI-assisted content must carry an
+`Assisted-by: AGENT_NAME:MODEL_VERSION` trailer.
+-->
+
 ## Types of changes
 
 <!-- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
@@ -44,3 +54,4 @@ Fixes #
 - [ ] I have added tests to cover my changes
 - [ ] All new and existing tests passed
 - [ ] My commit messages follow the [Conventional Commits](https://www.conventionalcommits.org/) specification
+- [ ] AI use is disclosed above and `Assisted-by:` trailers are present, if this contribution contains AI-assisted code, documentation or tests ([AI Contribution Policy](https://github.com/ashcoft/nextcloud-cad-viewer/blob/main/AI_POLICY.md))
