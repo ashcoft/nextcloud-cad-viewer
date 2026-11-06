@@ -228,6 +228,7 @@ updates (see `renovate.json`) and merges go through the repository's merge queue
 - Some tests require a full Nextcloud environment and may not pass in a minimal sandbox
 - Frontend builds require Node.js >= 24
 - Nextcloud's core reset styles `dialog { display: block }`, which beats the browser's `dialog:not([open]) { display: none }`. A native `<dialog>` in a component therefore shows its contents before `showModal()`, so give it an explicit `.selector:not([open]) { display: none }` rule (see `StartPage.vue`, guarded by `tests/e2e/startPage.spec.ts`)
+- DWG and DXF take different code paths: DWG is parsed by a 10 MB LibreDWG WebAssembly worker, DXF is parsed as text on the main thread. DWG is therefore far more likely to exceed a phone's tab memory (which makes the mobile browser discard and reload the page), though a sufficiently large DXF can do so too. The viewer is mounted with `useMainThreadDraw: true` (the library default, and the lower-memory mode), and `src/utils/openAttempt.ts` stops the reload from looping into a second automatic attempt (see `App.vue`)
 
 ## Local Verification Tips
 

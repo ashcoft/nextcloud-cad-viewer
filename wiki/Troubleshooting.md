@@ -498,6 +498,39 @@ This guide helps you diagnose and resolve common issues with Nextcloud CAD Viewe
 4. **Check network:**
    Use WiFi instead of cellular data
 
+### Page Keeps Refreshing When Opening a DWG
+
+**Symptoms:**
+- Opening a DWG file on a phone makes the page reload, over and over
+- DXF files open normally on the same device
+
+**Why it happens:**
+A DWG file is parsed by a WebAssembly module and then drawn on a WebGL canvas.
+A large or dense drawing can use more memory than the mobile browser allows for
+one tab. The browser then discards the page and reloads it. The reload reopens
+the same drawing and runs out of memory again, so the page appears to refresh in
+a loop. DXF files are parsed as text without the WebAssembly step and usually
+stay within the limit.
+
+The app now detects that a previous attempt to open the same drawing never
+finished and, when that attempt is recent, stops instead of retrying. You get a
+message with a **Retry** button when the guard detects the reload, rather than an
+endless refresh.
+
+**Solutions:**
+
+1. **Do not press Retry repeatedly:**
+   Retry restarts the same load, so a drawing that is too large will fail again.
+
+2. **Open the drawing on a desktop browser:**
+   A desktop browser gives the tab far more memory.
+
+3. **Free up memory first:**
+   Close other tabs and apps, then reload the page and try once more.
+
+4. **Reduce the drawing size:**
+   Ask for a smaller version, or export only the part you need.
+
 ---
 
 ## Error Messages

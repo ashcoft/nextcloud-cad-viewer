@@ -240,6 +240,62 @@ async function waitForDrawing(
 }
 
 /**
+ * Wait until the viewer reports that `fileName` has finished opening.
+ *
+ * The reload-loop guard needs to know when the memory-heavy work is over, and
+ * that is later than it looks: mounting the viewer returns immediately, and the
+ * `documentActivated` event fires once the parse is done but while geometry is
+ * still being built and drawn. This mirrors the thumbnail capture, which
+ * explicitly waits for the view to go idle after activation before it treats
+ * the frame as complete.
+ *
+ * Resolves `true` only once the drawing is activated *and* its view has gone
+ * idle, and `false` when the timeout elapses or the wait is aborted.
+ *
+ * Reuses the same matching rule as the thumbnail capture, so a document left
+ * over from an earlier session is not mistaken for the drawing being opened.
+ */
+export async function waitForCadDocument(
+  fileName: string | undefined,
+  timeoutMs: number,
+  options: { signal?: AbortSignal; previousDocument?: PreviousCadDocument } = {},
+): Promise<boolean> {
+  const manager = await getDocManager()
+  if (!manager) {
+    return false
+  }
+
+  const matched = await waitForDrawing(
+    manager,
+    fileName,
+    timeoutMs,
+    options.signal,
+    options.previousDocument,
+  )
+  if (matched === null || options.signal?.aborted) {
+    return false
+  }
+
+  // Activation means the parse is done; the render that can still exhaust
+  // memory happens after it, so wait for the view to settle too.
+  let idle: boolean | undefined
+  try {
+    idle = await manager.curView?.waitUntilIdle?.(timeoutMs)
+  } catch {
+    idle = false
+  }
+
+  // Re-check after the await: an unmount or a newer load may have aborted the
+  // wait, and reporting success then would let the caller clear a marker that
+  // belongs to the load now in progress.
+  if (options.signal?.aborted) {
+    return false
+  }
+
+  return idle !== false
+}
+
+/**
  * Capture a thumbnail of the CAD drawing currently shown by the viewer.
  *
  * The viewer's WebGL context is created without `preserveDrawingBuffer`, so the
