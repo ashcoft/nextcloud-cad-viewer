@@ -1,3 +1,11 @@
+## [1.12.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.12.0...v1.12.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* allow the viewer's font CDN in the Content-Security-Policy ([a97122f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/a97122fb0fa2627434b0c72baa92ee2bef21686b))
+* give the MTEXT worker response the font CDN allowance ([89c8a77](https://github.com/ashcoft/nextcloud-cad-viewer/commit/89c8a77369240b36d45d13ad67eee1a8380791f1))
+
 # [1.12.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.11.0...v1.12.0) (2026-11-04)
 
 
