@@ -2,6 +2,18 @@
 
 This document provides instructions and tips for AI agents working on this repository. Read this before making changes. FOLLOW GUIDANCE AS CLOSELY AS POSSIBLE.
 
+## AI Contribution Policy
+
+All AI-assisted contributions must comply with [AI_POLICY.md](AI_POLICY.md) (the Nextcloud AI Contribution Policy as it applies to this app). In short:
+
+- Disclose AI use in the PR description, and add an `Assisted-by: AGENT_NAME:MODEL_VERSION` trailer to every commit containing AI-assisted content.
+- The contributor is the author of every line: they must be able to explain, defend and modify it.
+- Issues, PR descriptions and review comments must be written by the contributor, not generated.
+- Never open issues, PRs or review comments autonomously, and never add `Signed-off-by`.
+- Clean AI output before submitting: no dead code, redundant logic, process comments or unrelated changes.
+- Verify dependencies, access control and security implications by hand.
+- Test user-facing changes on a live Nextcloud instance, in every context the app is reachable from.
+
 ## Project Overview
 
 This is a Nextcloud app called `cad_viewer` that integrates the `@mlightcad/cad-viewer` library to view DWG and DXF files entirely in Nextcloud 34-35.

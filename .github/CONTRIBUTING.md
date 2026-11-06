@@ -74,6 +74,7 @@ refactor: improve Vue component structure
 - Automated checks must pass
 - Code must follow project standards
 - Tests must pass on all supported platforms
+- Contributions that used AI assistance must follow the [AI Contribution Policy](../AI_POLICY.md), including the PR disclosure and the `Assisted-by:` commit trailer
 
 ## Questions?
 

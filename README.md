@@ -340,7 +340,10 @@ Contributions are welcome! Please follow these steps:
 7. **Push** to the branch (`git push origin feature/amazing-feature`)
 8. **Open** a Pull Request
 
-Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) for detailed guidelines.
+Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) for detailed guidelines, and
+[AI_POLICY.md](AI_POLICY.md) if you use AI assistance: AI-assisted contributions
+must disclose that in the pull request and carry an
+`Assisted-by: AGENT_NAME:MODEL_VERSION` trailer on each commit.
 
 ## 📞 Support
 
