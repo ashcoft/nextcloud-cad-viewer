@@ -80,26 +80,16 @@ module.exports = {
     // page, i.e. /apps/cad_viewer/assets/. Emit them there (the app root is
     // served statically by Nextcloud).
     new CopyWebpackPlugin({ patterns: runtimeAssets }),
-    // Redirect @mlightcad optional plugin /register subpath imports to empty stubs
-    // Using explicit pattern matching to avoid path traversal false positives
-    new webpack.NormalModuleReplacementPlugin(
-      /^@mlightcad\/cad-html-plugin\/register$/,
-      (result) => {
-        result.request = path.resolve(__dirname, 'src/polyfills/cad-html-plugin-register.cjs');
-      }
-    ),
-    new webpack.NormalModuleReplacementPlugin(
-      /^@mlightcad\/cad-pdf-plugin\/register$/,
-      (result) => {
-        result.request = path.resolve(__dirname, 'src/polyfills/cad-pdf-plugin-register.cjs');
-      }
-    ),
-    new webpack.NormalModuleReplacementPlugin(
-      /^@mlightcad\/cad-svg-plugin\/register$/,
-      (result) => {
-        result.request = path.resolve(__dirname, 'src/polyfills/cad-svg-plugin-register.cjs');
-      }
-    ),
+    // Redirect the cloud-storage plugin /register subpaths to empty stubs.
+    // Those packages are not installed (the app offers no OneDrive/Google Drive
+    // integration), but cad-viewer imports their /register subpath
+    // unconditionally, so webpack still needs the specifier to resolve.
+    //
+    // The PDF, SVG and HTML plugins are different: they are real dependencies,
+    // and stubbing their /register made the viewer report "PDF export plugin is
+    // not available" because the no-op never registered the lazy plugin. Their
+    // real /register modules are kept, which registers only a small loader and
+    // still loads the export library lazily.
     new webpack.NormalModuleReplacementPlugin(
       /^@mlightcad\/cad-onedrive-plugin\/register$/,
       (result) => {
