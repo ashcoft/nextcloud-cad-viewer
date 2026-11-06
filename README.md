@@ -341,9 +341,10 @@ Contributions are welcome! Please follow these steps:
 8. **Open** a Pull Request
 
 Please read [CONTRIBUTING.md](.github/CONTRIBUTING.md) for detailed guidelines, and
-[AI_POLICY.md](AI_POLICY.md) if you use AI assistance: AI-assisted contributions
-must disclose that in the pull request and carry an
-`Assisted-by: AGENT_NAME:MODEL_VERSION` trailer on each commit.
+[AI_POLICY.md](AI_POLICY.md) if you use AI assistance: a pull request containing
+AI-assisted code, documentation or tests must disclose that, and each commit
+containing AI-assisted content must carry an
+`Assisted-by: AGENT_NAME:MODEL_VERSION` trailer.
 
 ## 📞 Support
 

@@ -11,10 +11,11 @@ when contributing to the Nextcloud CAD Viewer app. It is the
 [Nextcloud AI Contribution Policy](https://github.com/nextcloud/.github/blob/master/AI_POLICY.md)
 as it applies to this repository.
 
-This policy complements the existing [Contribution Guidelines](.github/CONTRIBUTING.md).
-The requirements around testing, the Developer Certificate of Origin, license
-headers, and security reporting described there continue to apply in full - this
-document addresses how they extend to AI-assisted contributions.
+This policy complements the existing [Contribution Guidelines](.github/CONTRIBUTING.md),
+whose testing requirements continue to apply in full. The Nextcloud
+[Developer Certificate of Origin](https://github.com/nextcloud/server/blob/master/contribute/developer-certificate-of-origin),
+license-header guidance, and [security policy](https://nextcloud.com/security/)
+also apply; this document addresses how they extend to AI-assisted contributions.
 
 ---
 
@@ -81,11 +82,11 @@ security implications in AI-generated code before submitting - the risk of
 undetected errors is higher than with hand-written code and warrants extra care.
 
 For general security requirements applicable to all contributions, see the
-[Contribution Guidelines](.github/CONTRIBUTING.md). Security vulnerabilities must
-be reported via [HackerOne](https://hackerone.com/nextcloud) following Nextcloud's
-[security policy](https://nextcloud.com/security/), not via public issues.
-AI-generated security reports must be independently verified before submission;
-unverified reports might be closed without response.
+[Contribution Guidelines](.github/CONTRIBUTING.md) and Nextcloud's
+[security policy](https://nextcloud.com/security/). Security vulnerabilities must
+be reported via [HackerOne](https://hackerone.com/nextcloud), not via public
+issues. AI-generated security reports must be independently verified before
+submission; unverified reports might be closed without response.
 
 ### No Autonomous Agent Submissions
 
@@ -110,11 +111,13 @@ headers, see
 [HowToApplyALicense.md](https://github.com/nextcloud/server/blob/master/contribute/HowToApplyALicense.md).
 
 The applicable test has three parts: the AI tool's terms must permit open-source
-use of its output; no third-party copyrighted material may be reproduced; and any
-included material must use a compatible open-source license. If generated code
-appears identical or suspiciously similar to code from an incompatible source, it
-must be removed or replaced with an original implementation. Ignorance of
-AI-generated provenance is not a defense.
+use of its output; no third-party copyrighted material may be reproduced without
+permission; and any included material must use a license compatible with this
+app's MIT license. Third-party code is still copyrighted even when its license is
+compatible, so it may only be included under the terms of that license. If
+generated code appears identical or suspiciously similar to code from an
+incompatible source, it must be removed or replaced with an original
+implementation. Ignorance of AI-generated provenance is not a defense.
 
 ### Code Quality and Cleanup
 
@@ -140,17 +143,21 @@ reviewer happened to point out.
 Signs of a disallowed submission include: large unreviewed AI blobs; obvious
 mechanical mistakes a human would fix in minutes; code that has clearly never been
 executed; and pull requests that shift debugging and cleanup work onto maintainers
-rather than the contributor. As required by the
-[Contribution Guidelines](.github/CONTRIBUTING.md), all changed and added code
-must be unit tested - AI-generated code is not exempt from this requirement.
+rather than the contributor.
+
+The [Contribution Guidelines](.github/CONTRIBUTING.md) require tests for new
+features and regression tests for bug fixes. This policy adds a stricter
+requirement for AI-assisted contributions: every change they contain must be unit
+tested. AI-generated code is not exempt from either requirement.
 
 New features must be tested on a live Nextcloud instance by the contributor before
-submission, and in every context in which they are reachable - not only the
-default authenticated view, but also public share links, embedded contexts such as
-the Smart Picker and reference widgets, and other entry points the app supports.
-AI-generated changes frequently work in the primary view while silently failing in
-secondary ones. Providing test instructions for an AI agent to execute is not a
-substitute for human testing.
+submission, and in every context in which they are reachable. This app is reachable
+from the Files app (the file action and the preview thumbnails), from its own pages
+(the start page and the viewer), and from the admin settings. Public share pages
+are deliberately not supported: `LoadViewer` skips them because the viewer route
+and the file API require a logged-in user. AI-generated changes frequently work in
+the primary view while silently failing in secondary ones. Providing test
+instructions for an AI agent to execute is not a substitute for human testing.
 
 ---
 
