@@ -175,7 +175,28 @@ describe('open attempt guard', () => {
       jest.advanceTimersByTime(20_000)
 
       expect(hasUnfinishedOpenAttempt(42)).toBe(true)
+      stop()
+    } finally {
+      jest.useRealTimers()
+    }
+  })
 
+  /**
+   * The guard matches on the file id, so the heartbeat must keep writing the id.
+   * Writing anything else (a file name, say) makes every later check miss and
+   * silently disables the guard for exactly the slow loads the heartbeat is for.
+   */
+  it('keeps the marker keyed by file id across heartbeats', () => {
+    jest.useFakeTimers()
+    try {
+      markOpenAttempt(42)
+      const stop = startOpenAttemptHeartbeat(42, 20_000)
+
+      jest.advanceTimersByTime(60_000)
+
+      const stored = JSON.parse(window.sessionStorage.getItem(KEY) as string)
+      expect(stored.fileId).toBe('42')
+      expect(hasUnfinishedOpenAttempt(42)).toBe(true)
       stop()
     } finally {
       jest.useRealTimers()

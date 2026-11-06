@@ -117,18 +117,22 @@ export default defineComponent({
      * out of memory. The marker must therefore stay until the viewer signals
      * the drawing is open, so a crash during the parse still trips the guard.
      *
+     * `fileId` keys the marker and `fileName` identifies the drawing to the
+     * viewer; they are not interchangeable.
+     *
      * Deliberately not awaited: the caller's toolbar must not wait for it. A
      * timeout leaves the marker in place for `pagehide` to clear on a normal
      * exit, so a slow drawing is not mistaken for a crash.
      */
-    function clearMarkerWhenOpened(fileName: string): void {
+    function clearMarkerWhenOpened(fileId: string, fileName: string): void {
       cancelOpenWait()
       const controller = new AbortController()
       openAbort = controller
 
       // Refresh the marker while the parse runs, so a load that outlives the
-      // marker window is still guarded.
-      stopHeartbeat = startOpenAttemptHeartbeat(fileName)
+      // marker window is still guarded. Keyed by file id: the guard matches on
+      // that, not on the file name.
+      stopHeartbeat = startOpenAttemptHeartbeat(fileId)
 
       void waitForCadDocument(fileName, OPEN_TIMEOUT_MS, {
         signal: controller.signal,
@@ -137,7 +141,9 @@ export default defineComponent({
         stopHeartbeat?.()
         stopHeartbeat = null
 
-        if (opened) {
+        // The wait may have been superseded by another load or an unmount;
+        // clearing then would drop the marker for the open now in progress.
+        if (opened && !controller.signal.aborted) {
           clearOpenAttempt()
         }
       })
@@ -274,7 +280,7 @@ export default defineComponent({
 
         // The marker stays until the viewer reports the drawing open, because
         // the parse and render that can exhaust memory happen after mounting.
-        clearMarkerWhenOpened(result.meta.name)
+        clearMarkerWhenOpened(String(fid), result.meta.name)
       }
     }
 
@@ -428,7 +434,7 @@ export default defineComponent({
 
         // As in initViewer: the marker stays until the viewer reports the
         // drawing open, so a crash during the parse still trips the guard.
-        clearMarkerWhenOpened(result.meta.name)
+        clearMarkerWhenOpened(retryFileId.value, result.meta.name)
       }
     }
 

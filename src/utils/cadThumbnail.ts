@@ -285,6 +285,13 @@ export async function waitForCadDocument(
     idle = false
   }
 
+  // Re-check after the await: an unmount or a newer load may have aborted the
+  // wait, and reporting success then would let the caller clear a marker that
+  // belongs to the load now in progress.
+  if (options.signal?.aborted) {
+    return false
+  }
+
   return idle !== false
 }
 
