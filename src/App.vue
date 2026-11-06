@@ -45,7 +45,7 @@ import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { loadCADViewer, type ViewerInstance } from './utils/cadLoader'
 import { fetchCadFile } from './utils/fetchCadFile'
-import { getCurrentCadDocument, type PreviousCadDocument } from './utils/cadThumbnail'
+import { getCurrentCadDocument, waitForCadDocument, type PreviousCadDocument } from './utils/cadThumbnail'
 import { saveCadFile } from './utils/saveCadFile'
 import { viewerOptionsFor } from './utils/viewerOptions'
 import { uploadCadThumbnail } from './utils/thumbnailUpload'
@@ -85,6 +85,50 @@ export default defineComponent({
     // Cancels an in-flight thumbnail capture when the viewer loads another
     // drawing or unmounts, so a stale capture cannot be uploaded.
     let captureAbort: AbortController | null = null
+
+    // Cancels the wait for a drawing to open when the viewer unmounts.
+    let openAbort: AbortController | null = null
+
+    /**
+     * How long to wait for the viewer to report a drawing open.
+     *
+     * Only a bound on the wait; exceeding it is not treated as a failure,
+     * because the drawing may still be parsing.
+     */
+    const OPEN_TIMEOUT_MS = 60_000
+
+    /** Stop waiting for a drawing to open. */
+    function cancelOpenWait(): void {
+      openAbort?.abort()
+      openAbort = null
+    }
+
+    /**
+     * Keep the pending-open marker until the viewer reports the drawing open.
+     *
+     * Mounting the viewer only starts the load: it reads the file, parses it
+     * (WebAssembly for DWG) and draws it afterwards, and that work is what runs
+     * out of memory. The marker must therefore stay until the viewer signals
+     * the drawing is open, so a crash during the parse still trips the guard.
+     *
+     * Deliberately not awaited: the caller's toolbar must not wait for it. A
+     * timeout leaves the marker in place for `pagehide` to clear on a normal
+     * exit, so a slow drawing is not mistaken for a crash.
+     */
+    function clearMarkerWhenOpened(fileName: string): void {
+      cancelOpenWait()
+      const controller = new AbortController()
+      openAbort = controller
+
+      void waitForCadDocument(fileName, OPEN_TIMEOUT_MS, {
+        signal: controller.signal,
+        previousDocument,
+      }).then((opened) => {
+        if (opened) {
+          clearOpenAttempt()
+        }
+      })
+    }
 
     // Document that was active before the current drawing was opened, used to
     // reject a leftover drawing that happens to share the file name.
@@ -132,10 +176,10 @@ export default defineComponent({
 
       retryFileId.value = String(fid)
 
-      // Opening a big DWG can exhaust the tab's memory; the mobile browser then
-      // discards and reloads the page, which opens the same drawing again and
-      // crashes again. If the previous attempt for this file never completed,
-      // stop here instead of starting another one, and let the user decide.
+      // Opening a big drawing can exhaust the tab's memory; the mobile browser
+      // then discards and reloads the page, which opens the same drawing again
+      // and crashes again. If the previous attempt for this file never
+      // finished, stop here instead of starting another one.
       if (hasUnfinishedOpenAttempt(String(fid))) {
         clearOpenAttempt()
         error.value = appTranslation(
@@ -176,11 +220,17 @@ export default defineComponent({
 
       // Check for fetch failure
       if (!result.ok) {
+        // The load is over and the viewer will report it; drop the marker so a
+        // later attempt is not mistaken for a crash.
         clearOpenAttempt()
         error.value = result.error ?? appTranslation('Failed to load file content. Please try again.')
         loading.value = false
         return
       }
+
+      // The download is done, so restart the window: the parse and render that
+      // can exhaust memory happen after this point.
+      markOpenAttempt(String(fid))
 
       const container = viewerContainer.value
       if (container?.isConnected) {
@@ -192,24 +242,26 @@ export default defineComponent({
             ...viewerOptionsFor(result.meta, result.file),
           })
         } catch (err) {
+          clearOpenAttempt()
           const msg = err instanceof Error ? err.message : String(err)
           error.value = appTranslation('Failed to load CAD viewer: ') + msg
         }
       } else {
+        clearOpenAttempt()
         error.value = appTranslation('Failed to initialize viewer container.')
       }
 
       loading.value = false
-
-      // The attempt returned, so the page was not killed by a crash: drop the
-      // marker whether the drawing loaded or the viewer reported an error.
-      clearOpenAttempt()
 
       // Only offer Save once the viewer actually initialised; otherwise the
       // toolbar would expose a save for a drawing that never loaded.
       if (!error.value) {
         applyFileState(result.meta)
         startThumbnailCapture(fid, result.meta.name, result.meta.etag)
+
+        // The marker stays until the viewer reports the drawing open, because
+        // the parse and render that can exhaust memory happen after mounting.
+        clearMarkerWhenOpened(result.meta.name)
       }
     }
 
@@ -301,6 +353,7 @@ export default defineComponent({
       isUnmounted.value = true
       captureAbort?.abort()
       captureAbort = null
+      cancelOpenWait()
       viewerInstance.value?.dispose()
       viewerInstance.value = null
 
@@ -324,29 +377,37 @@ export default defineComponent({
 
       captureAbort?.abort()
       captureAbort = null
+      cancelOpenWait()
       viewerInstance.value?.dispose()
 
       const result = await fetchCadFile(retryFileId.value)
       if (result.ok) {
+        // Restart the window now the download is done: the parse and render
+        // that can exhaust memory happen after this point.
+        markOpenAttempt(retryFileId.value)
         try {
           previousDocument = await getCurrentCadDocument()
           viewerInstance.value = await loadCADViewer(viewerContainer.value, {
             ...viewerOptionsFor(result.meta, result.file),
           })
         } catch (err) {
+          clearOpenAttempt()
           const msg = err instanceof Error ? err.message : String(err)
           error.value = appTranslation('Failed to load CAD viewer: ') + msg
         }
       } else {
+        clearOpenAttempt()
         error.value = result.error ?? appTranslation('Failed to load file')
       }
       loading.value = false
 
-      clearOpenAttempt()
-
       if (result.ok && !error.value) {
         applyFileState(result.meta)
         startThumbnailCapture(retryFileId.value, result.meta.name, result.meta.etag)
+
+        // As in initViewer: the marker stays until the viewer reports the
+        // drawing open, so a crash during the parse still trips the guard.
+        clearMarkerWhenOpened(result.meta.name)
       }
     }
 

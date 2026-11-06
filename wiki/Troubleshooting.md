@@ -513,8 +513,9 @@ a loop. DXF files are parsed as text without the WebAssembly step and usually
 stay within the limit.
 
 The app now detects that a previous attempt to open the same drawing never
-finished and stops instead of retrying. You get a message with a **Retry**
-button rather than an endless refresh.
+finished and, when that attempt is recent, stops instead of retrying. You get a
+message with a **Retry** button when the guard detects the reload, rather than an
+endless refresh.
 
 **Solutions:**
 

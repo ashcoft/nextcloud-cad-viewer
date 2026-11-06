@@ -6,8 +6,8 @@
 /**
  * Guards against a reload loop when opening a drawing kills the page.
  *
- * Opening a large DWG needs a WebAssembly parse plus a WebGL canvas. On a phone
- * that can exhaust the tab's memory budget, and the mobile browser then
+ * Opening a large drawing needs a WebAssembly parse plus a WebGL canvas. On a
+ * phone that can exhaust the tab's memory budget, and the mobile browser then
  * discards the page and reloads it. The reload immediately opens the same
  * drawing again and crashes again, so the user is stuck on a refresh loop.
  *
@@ -16,28 +16,120 @@
  * refuse to start another one. The caller then shows a message and a Retry
  * button instead, which turns an endless loop into one recoverable step.
  *
- * A marker in `sessionStorage` survives the reload but not a new tab, which is
- * exactly the lifetime needed: it must outlive the crash, yet must not block a
- * fresh visit.
+ * The marker must outlive the crash and must not outlive a normal visit:
+ *
+ * - It is written before the load starts and refreshed once the file is in hand
+ *   but before the viewer parses it, because a slow download would otherwise
+ *   let it expire before the phase that actually crashes.
+ * - It is cleared once the viewer reports the drawing open, or once the load
+ *   fails in a way the viewer already reported.
+ * - It is deliberately **not** cleared while the drawing is still being parsed
+ *   and drawn: that is exactly the window in which the tab can be killed, and a
+ *   renderer killed for running out of memory never runs an unload handler.
+ * - `pagehide` clears it for an ordinary reload or navigation, except when the
+ *   page is going into the back-forward cache and may be resumed.
  */
 
 const STORAGE_KEY = 'cad_viewer:pending-open'
+
+/** `window.name` fallback, for contexts that deny sessionStorage. */
+const NAME_PREFIX = 'cadViewerOpenAttempt='
+
+/**
+ * The window name, or null when there is no window (a worker, a test runner).
+ *
+ * Declared through a narrow cast because `globalThis.name` is not part of the
+ * shared DOM/ES lib types.
+ */
+function windowName(): { get(): string; set(value: string): void } | null {
+  const target = globalThis as { name?: unknown }
+  if (typeof target.name !== 'string') {
+    return null
+  }
+
+  return {
+    get: () => target.name as string,
+    set: (value: string) => {
+      target.name = value
+    },
+  }
+}
 
 /**
  * How long a marker stays meaningful.
  *
  * A crashed reload happens within seconds, so an older marker belongs to an
  * attempt the user simply navigated away from and must not block a new open.
+ * The marker is refreshed before the memory-heavy phase, so this only has to
+ * cover the parse and render, not the download.
  */
 const ATTEMPT_WINDOW_MS = 60_000
 
-/** sessionStorage access can throw (private mode, blocked storage). */
-function storage(): Storage | null {
+/**
+ * Read the marker, preferring sessionStorage.
+ *
+ * Storage can be denied (private mode, blocked storage, an embedded context).
+ * `window.name` survives a reload in the same tab and needs no storage API, so
+ * it keeps the guard working where sessionStorage throws.
+ */
+function readMarker(): string | null {
   try {
-    return globalThis.sessionStorage ?? null
+    const value = globalThis.sessionStorage?.getItem(STORAGE_KEY)
+    if (value !== null && value !== undefined) {
+      return value
+    }
   } catch {
+    // Fall through to window.name.
+  }
+
+  return readNameToken()
+}
+
+/** Write the marker, or remove it when `value` is null. */
+function writeMarker(value: string | null): void {
+  try {
+    const storage = globalThis.sessionStorage
+    if (value === null) {
+      storage?.removeItem(STORAGE_KEY)
+    } else {
+      storage?.setItem(STORAGE_KEY, value)
+    }
+  } catch {
+    // Fall through to window.name.
+  }
+
+  writeNameToken(value)
+}
+
+function readNameToken(): string | null {
+  const target = windowName()
+  if (target === null) {
     return null
   }
+
+  for (const part of target.get().split('\n')) {
+    if (part.startsWith(NAME_PREFIX)) {
+      return part.slice(NAME_PREFIX.length)
+    }
+  }
+
+  return null
+}
+
+function writeNameToken(value: string | null): void {
+  const target = windowName()
+  if (target === null) {
+    return
+  }
+
+  const parts = target
+    .get()
+    .split('\n')
+    .filter((part: string) => part !== '' && !part.startsWith(NAME_PREFIX))
+  if (value !== null) {
+    parts.push(NAME_PREFIX + value)
+  }
+  target.set(parts.join('\n'))
 }
 
 function fileIdOf(value: unknown): string | null {
@@ -48,8 +140,10 @@ function fileIdOf(value: unknown): string | null {
 /**
  * Record that an attempt to open `fileId` is in progress.
  *
- * Call this immediately before loading the file. A page reload caused by the
- * load then leaves the marker behind for {@link hasUnfinishedOpenAttempt}.
+ * Call this immediately before loading the file, and again once the file is in
+ * hand but before the viewer parses and draws it. The second call restarts the
+ * window, so a slow download cannot let the marker expire before the phase that
+ * actually crashes.
  */
 export function markOpenAttempt(fileId: string | number): void {
   const id = String(fileId)
@@ -57,23 +151,15 @@ export function markOpenAttempt(fileId: string | number): void {
     return
   }
 
-  try {
-    storage()?.setItem(STORAGE_KEY, JSON.stringify({ fileId: id, at: Date.now() }))
-  } catch {
-    // Without storage the guard degrades to "no guard"; never break the open.
-  }
+  writeMarker(JSON.stringify({ fileId: id, at: Date.now() }))
 }
 
 /**
- * Drop the marker once the attempt has finished, successfully or with an error
- * the viewer already rendered. Only an attempt that never returns leaves it.
+ * Drop the marker once the attempt has finished: the drawing opened, or the
+ * viewer reported an error the user can see.
  */
 export function clearOpenAttempt(): void {
-  try {
-    storage()?.removeItem(STORAGE_KEY)
-  } catch {
-    // Ignore: nothing to clean up if storage is unavailable.
-  }
+  writeMarker(null)
 }
 
 /**
@@ -81,6 +167,8 @@ export function clearOpenAttempt(): void {
  *
  * True only for the same file and only within {@link ATTEMPT_WINDOW_MS}, so a
  * stale marker or one written for a different drawing does not block the open.
+ * A marker dated in the future (a clock change, or a tampered value) is treated
+ * as invalid rather than as an attempt that never expires.
  */
 export function hasUnfinishedOpenAttempt(fileId: string | number): boolean {
   const id = String(fileId)
@@ -88,13 +176,7 @@ export function hasUnfinishedOpenAttempt(fileId: string | number): boolean {
     return false
   }
 
-  let raw: string | null
-  try {
-    raw = storage()?.getItem(STORAGE_KEY) ?? null
-  } catch {
-    return false
-  }
-
+  const raw = readMarker()
   if (raw === null) {
     return false
   }
@@ -115,7 +197,8 @@ export function hasUnfinishedOpenAttempt(fileId: string | number): boolean {
     return false
   }
 
-  return Date.now() - at <= ATTEMPT_WINDOW_MS
+  const age = Date.now() - at
+  return Number.isFinite(age) && age >= 0 && age <= ATTEMPT_WINDOW_MS
 }
 
 let cleanupInstalled = false
@@ -123,10 +206,13 @@ let cleanupInstalled = false
 /**
  * Clear the marker whenever the page is left normally.
  *
- * `pagehide` fires for a user reload or navigation, so refreshing the page while
- * a drawing is still loading does not look like a crash. A renderer killed for
- * running out of memory does not run unload handlers, which is exactly why the
- * marker survives the reload in the case the guard is meant to catch.
+ * A user reload or navigation fires `pagehide`, so refreshing the page while a
+ * drawing is loading does not look like a crash. A renderer killed for running
+ * out of memory does not run unload handlers, which is exactly why the marker
+ * survives the reload in the case the guard is meant to catch.
+ *
+ * When the page goes into the back-forward cache (`persisted`), it may be
+ * restored and carry on loading, so the marker is kept for that case.
  *
  * Safe to call more than once; the listener is registered only once.
  */
@@ -137,7 +223,12 @@ export function installOpenAttemptCleanup(): void {
   cleanupInstalled = true
 
   try {
-    globalThis.addEventListener?.('pagehide', clearOpenAttempt)
+    globalThis.addEventListener?.('pagehide', (event) => {
+      if ((event as PageTransitionEvent).persisted) {
+        return
+      }
+      clearOpenAttempt()
+    })
   } catch {
     // No event target available; the guard simply keeps its default behaviour.
   }

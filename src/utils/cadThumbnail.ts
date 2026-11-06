@@ -240,6 +240,39 @@ async function waitForDrawing(
 }
 
 /**
+ * Wait until the viewer reports that `fileName` has finished opening.
+ *
+ * The reload-loop guard needs to know when the memory-heavy work — the
+ * WebAssembly parse and the first render — is over, because mounting the viewer
+ * returns long before that. Resolves `true` on the viewer's
+ * `documentActivated` event for the target drawing, and `false` when the
+ * timeout elapses or the wait is aborted.
+ *
+ * Reuses the same matching rule as the thumbnail capture, so a document left
+ * over from an earlier session is not mistaken for the drawing being opened.
+ */
+export async function waitForCadDocument(
+  fileName: string | undefined,
+  timeoutMs: number,
+  options: { signal?: AbortSignal; previousDocument?: PreviousCadDocument } = {},
+): Promise<boolean> {
+  const manager = await getDocManager()
+  if (!manager) {
+    return false
+  }
+
+  const matched = await waitForDrawing(
+    manager,
+    fileName,
+    timeoutMs,
+    options.signal,
+    options.previousDocument,
+  )
+
+  return matched !== null
+}
+
+/**
  * Capture a thumbnail of the CAD drawing currently shown by the viewer.
  *
  * The viewer's WebGL context is created without `preserveDrawingBuffer`, so the

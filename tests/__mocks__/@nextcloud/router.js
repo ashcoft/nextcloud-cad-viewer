@@ -10,6 +10,7 @@ module.exports = {
     return result
   },
   getRootUrl: () => '/',
+  generateFilePath: (app, type, file) => `/apps/${app}/${type ? type + '/' : ''}${file}`,
   linkTo: (app, file) => `/apps/${app}/${file}`,
   linkToRemote: (service) => `/remote.php/${service}`,
 }
