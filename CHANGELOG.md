@@ -1,3 +1,10 @@
+## [1.12.4](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.12.3...v1.12.4) (2026-11-06)
+
+
+### Bug Fixes
+
+* register the PDF, SVG and HTML export plugins ([1349d36](https://github.com/ashcoft/nextcloud-cad-viewer/commit/1349d362c0add0db44700bc919df41fb6f81dc91))
+
 ## [1.12.3](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.12.2...v1.12.3) (2026-11-06)
 
 
