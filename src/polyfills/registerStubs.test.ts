@@ -1,25 +1,34 @@
 /// <reference types="jest" />
 /**
  * The cad-viewer bundle imports *named* exports from the optional plugin
- * `/register` subpaths. The stubs must expose those exact names; a default
- * export alone resolves to `undefined` at runtime and breaks opening a file
- * with "registerLazyPdfPlugin is not a function".
+ * `/register` subpaths. For the two packages the app does not install, the stub
+ * must expose the exact name the viewer imports; a default export alone resolves
+ * to `undefined` at runtime and breaks opening a file.
  *
- * Each stub is imported statically so the assertion also fails the build if a
- * stub stops being resolvable.
+ * The PDF, SVG and HTML plugins are real dependencies and must NOT be stubbed:
+ * replacing their `/register` with a no-op leaves the lazy plugin unregistered,
+ * and the viewer then fails with "PDF export plugin is not available. Install
+ * @mlightcad/cad-pdf-plugin." even though the package is installed. The
+ * webpack-config assertions below guard that.
  */
-import * as pdf from './cad-pdf-plugin-register.cjs'
-import * as html from './cad-html-plugin-register.cjs'
-import * as svg from './cad-svg-plugin-register.cjs'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import * as onedrive from './cad-onedrive-plugin-register.cjs'
 import * as googleDrive from './cad-google-drive-plugin-register.cjs'
 
 describe('optional plugin register stubs', () => {
   it('expose the named exports cad-viewer imports', () => {
-    expect(typeof pdf.registerLazyPdfPlugin).toBe('function')
-    expect(typeof html.registerLazyHtmlPlugin).toBe('function')
-    expect(typeof svg.registerLazySvgPlugin).toBe('function')
     expect(typeof onedrive.registerOneDrivePlugin).toBe('function')
     expect(typeof googleDrive.registerGoogleDrivePlugin).toBe('function')
   })
+
+  it.each(['pdf', 'svg', 'html'])(
+    'does not stub the %s plugin, which is a real dependency',
+    (plugin) => {
+      const config = readFileSync(resolve(__dirname, '../../webpack.config.js'), 'utf8')
+
+      expect(config).not.toMatch(new RegExp(`cad-${plugin}-plugin/register`))
+      expect(config).not.toContain(`cad-${plugin}-plugin-register.cjs`)
+    },
+  )
 })
