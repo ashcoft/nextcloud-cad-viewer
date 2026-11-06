@@ -46,14 +46,29 @@ function replacements(): Replacement[] {
   return found
 }
 
+/**
+ * Assert every replacement rule in the config is one this test can read.
+ *
+ * The rules are parsed out of the config as text, so a rule written in a shape
+ * the parser does not recognise would simply be skipped and the guard would
+ * pass while the stub was back. Counting the call sites and the parsed rules
+ * makes an unreadable rule fail here instead of silently escaping the checks.
+ */
+function assertEveryRuleIsParsed(): void {
+  const calls = webpackConfig.match(/NormalModuleReplacementPlugin\(/g) ?? []
+
+  expect(calls.length).toBeGreaterThan(0)
+  expect(replacements()).toHaveLength(calls.length)
+}
+
 describe('optional plugin register stubs', () => {
   it('expose the named exports cad-viewer imports', () => {
     expect(typeof onedrive.registerOneDrivePlugin).toBe('function')
     expect(typeof googleDrive.registerGoogleDrivePlugin).toBe('function')
   })
 
-  it('reads the replacement rules out of the webpack config', () => {
-    expect(replacements().length).toBeGreaterThan(0)
+  it('reads every replacement rule out of the webpack config', () => {
+    assertEveryRuleIsParsed()
   })
 
   /**
@@ -62,6 +77,8 @@ describe('optional plugin register stubs', () => {
    * plugins at once cannot be paired with a single stub, so it fails here.
    */
   it('stubs only the plugins the app does not install', () => {
+    assertEveryRuleIsParsed()
+
     for (const { pattern, target } of replacements()) {
       const named = /cad-([a-z-]+)-plugin\/register/.exec(pattern)
 
@@ -73,13 +90,22 @@ describe('optional plugin register stubs', () => {
 
   /**
    * The three installed plugins must keep their real `/register` module, which
-   * is what registers the lazy plugin and its triggers.
+   * is what registers the lazy plugin and its triggers. Neither a replacement
+   * rule nor an ignore rule may name them.
    */
-  it.each(['pdf', 'svg', 'html'])('does not redirect the %s plugin', (plugin) => {
+  it.each(['pdf', 'svg', 'html'])('does not redirect or ignore the %s plugin', (plugin) => {
+    assertEveryRuleIsParsed()
+
     const specifier = `@mlightcad/cad-${plugin}-plugin/register`
 
     for (const { pattern } of replacements()) {
       expect(pattern).not.toContain(specifier)
     }
+
+    // IgnorePlugin rules carry the specifier in resourceRegExp rather than as a
+    // replacement, so check the config text with the regex escapes removed.
+    const unescaped = webpackConfig.replace(/\\/g, '')
+
+    expect(unescaped).not.toContain(`cad-${plugin}-plugin/register`)
   })
 })
