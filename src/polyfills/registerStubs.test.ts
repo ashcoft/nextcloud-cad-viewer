@@ -16,6 +16,8 @@ import { resolve } from 'node:path'
 import * as onedrive from './cad-onedrive-plugin-register.cjs'
 import * as googleDrive from './cad-google-drive-plugin-register.cjs'
 
+const webpackConfig = readFileSync(resolve(__dirname, '../../webpack.config.js'), 'utf8')
+
 describe('optional plugin register stubs', () => {
   it('expose the named exports cad-viewer imports', () => {
     expect(typeof onedrive.registerOneDrivePlugin).toBe('function')
@@ -25,10 +27,8 @@ describe('optional plugin register stubs', () => {
   it.each(['pdf', 'svg', 'html'])(
     'does not stub the %s plugin, which is a real dependency',
     (plugin) => {
-      const config = readFileSync(resolve(__dirname, '../../webpack.config.js'), 'utf8')
-
-      expect(config).not.toMatch(new RegExp(`cad-${plugin}-plugin/register`))
-      expect(config).not.toContain(`cad-${plugin}-plugin-register.cjs`)
+      expect(webpackConfig).not.toContain(`cad-${plugin}-plugin/register`)
+      expect(webpackConfig).not.toContain(`cad-${plugin}-plugin-register.cjs`)
     },
   )
 })
