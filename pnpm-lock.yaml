@@ -312,7 +312,7 @@ importers:
         version: 10.14.0(supports-color@8.1.1)
       eslint-plugin-vue:
         specifier: ^10.11.0
-        version: 10.12.0(@typescript-eslint/parser@8.72.1(@typescript/typescript6@6.0.2)(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1))(eslint@10.14.0(supports-color@8.1.1))(vue-eslint-parser@10.4.1(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1))
+        version: 10.12.0(@typescript-eslint/parser@8.72.1(@typescript/typescript6@6.0.2)(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1))(eslint@10.14.0(supports-color@8.1.1))(vue-eslint-parser@10.4.2(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1))
       jest:
         specifier: ^30.0.0
         version: 30.5.2(@types/node@26.6.6)(supports-color@8.1.1)
@@ -354,7 +354,7 @@ importers:
         version: 8.72.1(@typescript/typescript6@6.0.2)(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1)
       vue-eslint-parser:
         specifier: ^10.4.1
-        version: 10.4.1(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1)
+        version: 10.4.2(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1)
       vue-loader:
         specifier: ^17.4.2
         version: 17.4.2(@vue/compiler-sfc@3.5.45)(vue@3.5.44(@typescript/typescript6@6.0.2))(webpack@5.112.2)
@@ -5497,8 +5497,8 @@ packages:
       '@vue/composition-api':
         optional: true
 
-  vue-eslint-parser@10.4.1:
-    resolution: {integrity: sha512-Gk6gRDj0n/fkRa3C3l0bBheoBckUq/Rs0F/TvMWIS6nzzx67amAViMe9CkNgsP2tXyQONvGiHQESHwFtZ3aYDA==}
+  vue-eslint-parser@10.4.2:
+    resolution: {integrity: sha512-WMpzulb50kb6snghzoGzS++62wcOszAk/piYcnvzdStM8Wni/BmogYltpoOFv2eK9hDbXxvwFQgnwZGpAoUfpA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
@@ -9141,7 +9141,7 @@ snapshots:
 
   escape-string-regexp@5.0.0: {}
 
-  eslint-plugin-vue@10.12.0(@typescript-eslint/parser@8.72.1(@typescript/typescript6@6.0.2)(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1))(eslint@10.14.0(supports-color@8.1.1))(vue-eslint-parser@10.4.1(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1)):
+  eslint-plugin-vue@10.12.0(@typescript-eslint/parser@8.72.1(@typescript/typescript6@6.0.2)(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1))(eslint@10.14.0(supports-color@8.1.1))(vue-eslint-parser@10.4.2(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1)):
     dependencies:
       '@eslint-community/eslint-utils': 4.10.1(eslint@10.14.0(supports-color@8.1.1))
       eslint: 10.14.0(supports-color@8.1.1)
@@ -9149,7 +9149,7 @@ snapshots:
       nth-check: 2.1.1
       postcss-selector-parser: 7.1.6
       semver: 7.8.5
-      vue-eslint-parser: 10.4.1(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1)
+      vue-eslint-parser: 10.4.2(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1)
       xml-name-validator: 5.0.0
     optionalDependencies:
       '@typescript-eslint/parser': 8.72.1(@typescript/typescript6@6.0.2)(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1)
@@ -11377,7 +11377,7 @@ snapshots:
     dependencies:
       vue: 3.5.44(@typescript/typescript6@6.0.2)
 
-  vue-eslint-parser@10.4.1(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1):
+  vue-eslint-parser@10.4.2(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       eslint: 10.14.0(supports-color@8.1.1)
