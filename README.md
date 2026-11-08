@@ -37,8 +37,7 @@ A native Nextcloud app providing DWG and DXF file viewing capabilities based on 
 
 ## 📦 Installation
 
-> CAD Viewer is listed in the Nextcloud App Store. Install it
-> from the release archive or from source as described below.
+CAD Viewer is listed in the Nextcloud App Store. Install it from the release archive or from source as described below.
 
 ### From a release archive
 
