@@ -185,7 +185,7 @@ overrides:
   minimatch: ^11.0.1
   vue: 3.5.44
   vue-i18n: ^11.4.16
-  '@ai-sdk/provider-utils': 5.0.76
+  '@ai-sdk/provider-utils': 5.0.79
   nanoid: 6.0.2
 
 importers:
@@ -400,8 +400,8 @@ packages:
     peerDependencies:
       zod: ^4.6.6
 
-  '@ai-sdk/provider-utils@5.0.76':
-    resolution: {integrity: sha512-76QcCmVtSunSAbQBJtgQTTE8e+Yaz4rJJe1MRWnJ3GAQYUvNPHJejKx4jZTbhGGTdSSLaYcMBT62SISNgnGq9w==}
+  '@ai-sdk/provider-utils@5.0.79':
+    resolution: {integrity: sha512-IYu6MT0NDE3JFWBWEJWAXjhskHTSj6NfRp9FuEAOcyS2Jrj3qBePu7OEoXVmoCWT3pYPgrF4DBKzjjjOMRyw9Q==}
     engines: {node: '>=22'}
     peerDependencies:
       zod: ^4.6.6
@@ -2765,6 +2765,7 @@ packages:
 
   axios-retry@4.5.0:
     resolution: {integrity: sha512-aR99oXhpEDGo0UuAlYcn2iGRds30k366Zfa05XWScR9QaQD4JYiP3/1Qt1u7YlefUOK+cn0CcwoL1oefavQUlQ==}
+    deprecated: axios-retry is no longer maintained. See https://github.com/softonic/axios-retry for alternatives.
     peerDependencies:
       axios: ^1.20.0
 
@@ -5769,23 +5770,23 @@ snapshots:
   '@ai-sdk/anthropic@2.0.87(zod@4.6.7)':
     dependencies:
       '@ai-sdk/provider': 2.0.3
-      '@ai-sdk/provider-utils': 5.0.76(zod@4.6.7)
+      '@ai-sdk/provider-utils': 5.0.79(zod@4.6.7)
       zod: 4.6.7
 
   '@ai-sdk/gateway@2.0.115(zod@4.6.7)':
     dependencies:
       '@ai-sdk/provider': 2.0.3
-      '@ai-sdk/provider-utils': 5.0.76(zod@4.6.7)
+      '@ai-sdk/provider-utils': 5.0.79(zod@4.6.7)
       '@vercel/oidc': 3.1.0
       zod: 4.6.7
 
   '@ai-sdk/openai@2.0.114(zod@4.6.7)':
     dependencies:
       '@ai-sdk/provider': 2.0.3
-      '@ai-sdk/provider-utils': 5.0.76(zod@4.6.7)
+      '@ai-sdk/provider-utils': 5.0.79(zod@4.6.7)
       zod: 4.6.7
 
-  '@ai-sdk/provider-utils@5.0.76(zod@4.6.7)':
+  '@ai-sdk/provider-utils@5.0.79(zod@4.6.7)':
     dependencies:
       '@ai-sdk/provider': 4.0.37
       '@standard-schema/spec': 1.1.0
@@ -5804,7 +5805,7 @@ snapshots:
 
   '@ai-sdk/vue@2.0.216(vue@3.5.44(@typescript/typescript6@6.0.2))(zod@4.6.7)':
     dependencies:
-      '@ai-sdk/provider-utils': 5.0.76(zod@4.6.7)
+      '@ai-sdk/provider-utils': 5.0.79(zod@4.6.7)
       ai: 5.0.216(zod@4.6.7)
       swrv: 1.2.0(vue@3.5.44(@typescript/typescript6@6.0.2))
     optionalDependencies:
@@ -8479,7 +8480,7 @@ snapshots:
     dependencies:
       '@ai-sdk/gateway': 2.0.115(zod@4.6.7)
       '@ai-sdk/provider': 2.0.3
-      '@ai-sdk/provider-utils': 5.0.76(zod@4.6.7)
+      '@ai-sdk/provider-utils': 5.0.79(zod@4.6.7)
       '@opentelemetry/api': 1.9.0
       zod: 4.6.7
 
