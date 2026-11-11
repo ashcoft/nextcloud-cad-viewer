@@ -245,7 +245,7 @@ importers:
         version: 11.4.18(vue@3.5.44(@typescript/typescript6@6.0.2))
       vue-router:
         specifier: ^5.2.0
-        version: 5.4.0(@vue/compiler-sfc@3.5.45)(vue@3.5.44(@typescript/typescript6@6.0.2))(webpack@5.112.2)
+        version: 5.5.0(@vue/compiler-sfc@3.5.45)(vue@3.5.44(@typescript/typescript6@6.0.2))(webpack@5.112.2)
     devDependencies:
       '@babel/core':
         specifier: ^8.0.0
@@ -312,7 +312,7 @@ importers:
         version: 10.14.0(supports-color@8.1.1)
       eslint-plugin-vue:
         specifier: ^10.11.0
-        version: 10.12.0(@typescript-eslint/parser@8.72.2(@typescript/typescript6@6.0.2)(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1))(eslint@10.14.0(supports-color@8.1.1))(vue-eslint-parser@10.4.2(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1))
+        version: 10.12.1(@typescript-eslint/parser@8.72.2(@typescript/typescript6@6.0.2)(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1))(eslint@10.14.0(supports-color@8.1.1))(vue-eslint-parser@10.4.2(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1))
       jest:
         specifier: ^30.0.0
         version: 30.5.2(@types/node@26.6.6)(supports-color@8.1.1)
@@ -3302,8 +3302,8 @@ packages:
     resolution: {integrity: sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw==}
     engines: {node: '>=12'}
 
-  eslint-plugin-vue@10.12.0:
-    resolution: {integrity: sha512-YsrHHtMaxjWqmxr/Kv9yXUfakUlbTCWtIBvr9eounzj6ZsGJdz1I4UuTIHkhzKHes793Cwo3PGTcvsoBqNyzCA==}
+  eslint-plugin-vue@10.12.1:
+    resolution: {integrity: sha512-Z5hmchVWq4EEOCn131J2p/uS4hjkrC+goPV5c/YApTY68xTqV3K5IYqD0mYGupDvZ6iYoTSuhSZUoWN+gZIqZQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       '@stylistic/eslint-plugin': ^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0
@@ -5518,8 +5518,8 @@ packages:
       vue:
         optional: true
 
-  vue-router@5.4.0:
-    resolution: {integrity: sha512-pFvcYcxinDHjZUlf7AzFBrT8r8Xqvv4uMHoJnjc+EqPawXQvHTkF8S4tfSmQLpriVHUGfkaKlI7Et0KRjTMTdw==}
+  vue-router@5.5.0:
+    resolution: {integrity: sha512-nYhG+YzLcrO5Z7KbH1H/xvBeBzhCWhQG0z5DYNLuaJULhavZBmEgoQ5xVHGxwe65c5hnJQHZpBxWdQhnOBzHmw==}
     peerDependencies:
       '@pinia/colada': '>=0.21.2'
       '@vue/compiler-sfc': ^3.5.34 || ^4.0.0
@@ -8546,19 +8546,19 @@ snapshots:
 
   ast-kit@2.2.0:
     dependencies:
-      '@babel/parser': 7.29.8
+      '@babel/parser': 7.29.13
       pathe: 2.0.3
 
   ast-kit@3.0.0:
     dependencies:
-      '@babel/parser': 8.0.6
+      '@babel/parser': 8.1.0
       estree-walker: 3.0.3
       pathe: 2.0.3
 
   ast-walker-scope@0.10.0:
     dependencies:
-      '@babel/parser': 8.0.6
-      '@babel/types': 8.0.6
+      '@babel/parser': 8.1.0
+      '@babel/types': 8.1.0
       ast-kit: 3.0.0
 
   async-validator@4.2.5: {}
@@ -9138,13 +9138,13 @@ snapshots:
 
   escape-string-regexp@5.0.0: {}
 
-  eslint-plugin-vue@10.12.0(@typescript-eslint/parser@8.72.2(@typescript/typescript6@6.0.2)(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1))(eslint@10.14.0(supports-color@8.1.1))(vue-eslint-parser@10.4.2(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1)):
+  eslint-plugin-vue@10.12.1(@typescript-eslint/parser@8.72.2(@typescript/typescript6@6.0.2)(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1))(eslint@10.14.0(supports-color@8.1.1))(vue-eslint-parser@10.4.2(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1)):
     dependencies:
       '@eslint-community/eslint-utils': 4.10.1(eslint@10.14.0(supports-color@8.1.1))
       eslint: 10.14.0(supports-color@8.1.1)
       natural-compare: 1.4.0
       nth-check: 2.1.1
-      postcss-selector-parser: 7.1.6
+      postcss-selector-parser: 7.1.7
       semver: 7.8.5
       vue-eslint-parser: 10.4.2(eslint@10.14.0(supports-color@8.1.1))(supports-color@8.1.1)
       xml-name-validator: 5.0.0
@@ -11402,7 +11402,7 @@ snapshots:
       '@vue/compiler-sfc': 3.5.45
       vue: 3.5.44(@typescript/typescript6@6.0.2)
 
-  vue-router@5.4.0(@vue/compiler-sfc@3.5.45)(vue@3.5.44(@typescript/typescript6@6.0.2))(webpack@5.112.2):
+  vue-router@5.5.0(@vue/compiler-sfc@3.5.45)(vue@3.5.44(@typescript/typescript6@6.0.2))(webpack@5.112.2):
     dependencies:
       '@vue-macros/common': 3.1.4(vue@3.5.44(@typescript/typescript6@6.0.2))
       '@vue/devtools-api': 8.1.5
