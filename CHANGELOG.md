@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.14.0...v1.15.0) (2026-11-12)
+
+
+### Bug Fixes
+
+* **deps:** force fast-xml-parser >= 5.12.0 for the stop-node CPU advisory ([dbfa120](https://github.com/ashcoft/nextcloud-cad-viewer/commit/dbfa120285d13cf495b202138d423c24548276cc)), closes [#36](https://github.com/ashcoft/nextcloud-cad-viewer/issues/36)
+
 # [1.14.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.13.0...v1.14.0) (2026-11-12)
 
 
