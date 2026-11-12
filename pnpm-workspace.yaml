@@ -21,7 +21,7 @@ minimumReleaseAge: 0
 overrides:
   # Security: force dompurify >= 3.4.13 to fix XSS via IN_PLACE hook subtree (GHSA / advisory #29)
   'dompurify': '3.4.17'
-  'brace-expansion@<2.1.2': '5.0.12'
+  'brace-expansion@<2.1.2': '5.0.13'
   '@mlightcad/data-model': '1.15.21'
   '@mlightcad/libredwg-converter': '3.15.21'
   '@mlightcad/mtext-input-box': '0.3.6'
