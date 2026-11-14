@@ -88,3 +88,9 @@ test-results/
 
 # PHPUnit cache
 /tests/.phpunit.cache/
+
+
+
+.nx/cache
+.nx/workspace-data
+.nx/migrate-runs
