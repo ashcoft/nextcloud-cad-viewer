@@ -6,6 +6,7 @@ packages:
 # until explicitly approved per-package
 allowBuilds:
   unrs-resolver: true
+  nx: true
 
 # Fallback: allow all builds if per-package allowBuilds isn't recognized
 # The lockfile is hash-verified via --frozen-lockfile, so this is safe
