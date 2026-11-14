@@ -88,3 +88,5 @@ test-results/
 
 # PHPUnit cache
 /tests/.phpunit.cache/
+.agent/dist/
+.agent/node_modules/
