@@ -1,0 +1,45 @@
+# CircleCI mirror of the GitHub Actions checks, so a change is verified here
+# too. The image matches the Node major in package.json's `engines`.
+version: 2.1
+
+jobs:
+  node:
+    docker:
+      - image: cimg/node:24.22
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: pnpm install --frozen-lockfile
+      - run:
+          name: Lint and type-check
+          command: |
+            pnpm run lint
+            pnpm run stylelint
+            pnpm run check-types
+      - run:
+          name: Unit tests
+          command: pnpm run test
+      - run:
+          name: Build
+          command: pnpm run build
+
+  php-lint:
+    docker:
+      - image: cimg/php:8.4
+    steps:
+      - checkout
+      - run:
+          name: PHP syntax check
+          command: |
+            find . -name '*.php' \
+              -not -path './vendor/*' \
+              -not -path './vendor-bin/*' \
+              -not -path './build/*' \
+              -print0 | xargs -0 -n1 php -l
+
+workflows:
+  test:
+    jobs:
+      - node
+      - php-lint
