@@ -1,3 +1,17 @@
+# [1.17.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.16.1...v1.17.0) (2026-11-15)
+
+
+### Bug Fixes
+
+* **deps:** update vue-dependencies ([f51a584](https://github.com/ashcoft/nextcloud-cad-viewer/commit/f51a58450fa72b199b9292713d3a46d661526948))
+
+## [1.16.1](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.16.0...v1.16.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* pass --threads once to psalm ([137012f](https://github.com/ashcoft/nextcloud-cad-viewer/commit/137012f11fe79d37aec9ac29042f7a2f1de086ec))
+
 # [1.16.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.15.0...v1.16.0) (2026-11-13)
 
 

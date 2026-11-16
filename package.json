@@ -1,9 +1,9 @@
 {
   "name": "nextcloud-cad-viewer",
-  "version": "1.16.0",
+  "version": "1.17.0",
   "private": true,
   "description": "Nextcloud app for DWG/DXF viewer integration",
-  "packageManager": "pnpm@12.18.0",
+  "packageManager": "pnpm@12.21.0",
   "license": "MIT",
   "author": "CAD Viewer Contributors",
   "repository": "https://github.com/ashcoft/nextcloud-cad-viewer",
@@ -30,8 +30,8 @@
     "@mlightcad/cad-simple-viewer": "^1.5.8",
     "@mlightcad/cad-svg-plugin": "1.7.8",
     "@mlightcad/cad-viewer": "1.7.8",
-    "@mlightcad/data-model": "^1.15.24",
-    "@mlightcad/libredwg-converter": "3.15.24",
+    "@mlightcad/data-model": "^1.15.26",
+    "@mlightcad/libredwg-converter": "3.15.26",
     "@nextcloud/axios": "^2.0.0",
     "@nextcloud/files": "^4.0.0",
     "@nextcloud/l10n": "^3.0.0",
@@ -40,7 +40,7 @@
     "lodash-es": "4.18.1",
     "three": "0.187.0",
     "vue": "3.5.45",
-    "vue-i18n": "11.4.19",
+    "vue-i18n": "11.4.20",
     "vue-router": "^5.2.0"
   },
   "devDependencies": {
@@ -71,7 +71,7 @@
     "jest-transform-stub": "^2.0.0",
     "jest-watch-typeahead": "^3.0.1",
     "postcss-html": "^2.0.0",
-    "semantic-release": "^25.0.0",
+    "semantic-release": "^26.0.0",
     "style-loader": "^4.0.0",
     "stylelint": "^18.0.0",
     "stylelint-config-standard": "^41.0.0",
@@ -83,6 +83,8 @@
     "vue-loader": "^17.4.2",
     "vue-tsc": "^3.3.8",
     "webpack": "^5.110.2",
-    "webpack-cli": "^7.0.3"
-  }
+    "webpack-cli": "^7.0.3",
+    "nx": "24.0.6"
+  },
+  "nx": {}
 }
