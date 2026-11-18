@@ -1,3 +1,9 @@
+# [1.20.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.19.0...v1.20.0) (2026-11-18)
+
+### Bug Fixes
+
+* **deps:** update dependency vue-i18n to v11.4.22 ([2d77217](https://github.com/ashcoft/nextcloud-cad-viewer/commit/2d77217f0e049d393f80c37586666c0bcd1a395e))
+
 # [1.19.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.18.0...v1.19.0) (2026-11-17)
 
 ### Bug Fixes
