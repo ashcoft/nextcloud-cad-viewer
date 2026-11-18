@@ -219,7 +219,7 @@ importers:
         version: 1.7.8(@mlightcad/cad-simple-viewer@1.7.8(@mlightcad/data-model@1.15.21)(@mlightcad/mtext-parser@1.5.7)(@mlightcad/mtext-renderer@0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0))(@mlightcad/three-renderer@1.7.8(@mlightcad/data-model@1.15.21)(@mlightcad/mtext-parser@1.5.7)(@mlightcad/mtext-renderer@0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0))(@velipso/polybool@1.1.1)(three@0.187.0))(lodash-es@4.18.1)(three@0.187.0))(@mlightcad/data-model@1.15.21)(@mlightcad/mtext-parser@1.5.7)(@mlightcad/mtext-renderer@0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0))
       '@mlightcad/cad-viewer':
         specifier: 1.7.8
-        version: 1.7.8(ceb6a9bb694f64ddd794822b6e076dc4)
+        version: 1.7.8(b4b96ca5592a1a390fff0649fec9b2cf)
       '@mlightcad/data-model':
         specifier: 1.15.21
         version: 1.15.21
@@ -252,7 +252,7 @@ importers:
         version: 3.5.45(@typescript/typescript6@6.0.2)
       vue-i18n:
         specifier: ^11.4.16
-        version: 11.4.20(vue@3.5.45(@typescript/typescript6@6.0.2))
+        version: 11.4.22(vue@3.5.45(@typescript/typescript6@6.0.2))
       vue-router:
         specifier: ^5.2.0
         version: 5.5.1(@vue/compiler-sfc@3.5.45)(vue@3.5.45(@typescript/typescript6@6.0.2))(webpack@5.112.2)
@@ -295,7 +295,7 @@ importers:
         version: 3.5.45
       '@vue/test-utils':
         specifier: ^2.4.11
-        version: 2.5.1(@vue/compiler-dom@3.5.45)(@vue/server-renderer@3.5.45)(vue@3.5.45(@typescript/typescript6@6.0.2))
+        version: 2.6.0(@vue/compiler-dom@3.5.45)(@vue/server-renderer@3.5.45)(vue@3.5.45(@typescript/typescript6@6.0.2))
       '@vue/vue3-jest':
         specifier: ^29.2.6
         version: 29.2.6(@babel/core@8.1.2)(@typescript/typescript6@6.0.2)(babel-jest@30.5.2(@babel/core@8.1.2)(supports-color@8.1.1))(jest@30.5.2(@types/node@26.6.6)(supports-color@8.1.1))(supports-color@8.1.1)(vue@3.5.45(@typescript/typescript6@6.0.2))
@@ -1405,20 +1405,20 @@ packages:
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
 
-  '@intlify/core-base@11.4.20':
-    resolution: {integrity: sha512-i3/0mXXMAjK8SLX/t1l+sG3SIzghYSM2rLnHfMLHqUlKa/ysuwqSkGLU4UQem+SkeAge+5ol5mCMspKIhWfMrg==}
+  '@intlify/core-base@11.4.22':
+    resolution: {integrity: sha512-qEdP+gpuppvC2oKjVr8yZso1E7CuIvArQViule5b6n27ZAQb1QJ7LdiWI7mosMBxNCIobJXw6KBgQWvX7CmHVg==}
     engines: {node: '>= 22'}
 
-  '@intlify/devtools-types@11.4.20':
-    resolution: {integrity: sha512-8U2tY0MaWqI47pzSTUuFCFxIvBa6uWguW++4ftjdE7lWaRIKEhAFRDGKKNd5lw8wurerJ0URuZpxifHCduLQ6A==}
+  '@intlify/devtools-types@11.4.22':
+    resolution: {integrity: sha512-zRzElvuCD+j8Sv+LQBf1X8Ve7G61gQUw4WwHDbrxoY1+3FrnRZ1kMgWKGDNyG/qMntwa31h+bQZ3sRTkCqrgMQ==}
     engines: {node: '>= 22'}
 
-  '@intlify/message-compiler@11.4.20':
-    resolution: {integrity: sha512-0pwXAYOG+jGkAJ+H/TPsfeqnHiEqYU99fXN5vlSYdknuBPjo8NEqi0L5WFgmqOnwSPtmIOoi84BDYhrligDcoA==}
+  '@intlify/message-compiler@11.4.22':
+    resolution: {integrity: sha512-X3ButMf+8TvO8kks3xA17tglGeiFLwA2S3TkxHxurRLpz8NpDlN2t9pjHdImKtmjruB6B9I+WgkDWz00zDYkTw==}
     engines: {node: '>= 22'}
 
-  '@intlify/shared@11.4.20':
-    resolution: {integrity: sha512-qg2pOSUU5Xr2fHZCmluah8h/g/4MG5RfzIZBVR8Id0/c2EKsCPtWvamSiVtwc+4VvYnEGQxZast7uQMTb6jP9A==}
+  '@intlify/shared@11.4.22':
+    resolution: {integrity: sha512-RHAe7pwIYDt+AkQs9xQBdMLrux7+O4R8p3FKC47ewpEGhKqNzzJ2vkQ4gApAF/LMzj80nRUwIwQDn0uF/sgnqQ==}
     engines: {node: '>= 22'}
 
   '@isaacs/nonrecursive-glob-match@1.0.3':
@@ -2646,8 +2646,8 @@ packages:
   '@vue/shared@3.5.45':
     resolution: {integrity: sha512-ue9fgHmVNPlP7iW3+cxoBX/Cnlw53dHlVSw0JKGY6z1lObg8pHoj928M2nzG4/yVsMZ3NaRZ2s2z61uC16NDwQ==}
 
-  '@vue/test-utils@2.5.1':
-    resolution: {integrity: sha512-V/4a99odJ7hapr0bRt35XxljGk8hefq31gSOnlKTcEq2fUeoj2qb+FcpJYfQu4qfYhW9Ug+O2+CZ3QmZ7gXDzA==}
+  '@vue/test-utils@2.6.0':
+    resolution: {integrity: sha512-kTB6s2p34cA/xXSpt17G0enU9A3F3pdm+o5GZgE3WGXXXpXJ5SVBsRhgCJNCc+ekGAzY0T7Hjyo5yEfwencBlg==}
     peerDependencies:
       '@vue/compiler-dom': 3.x
       '@vue/server-renderer': 3.x
@@ -5726,8 +5726,8 @@ packages:
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
 
-  vue-i18n@11.4.20:
-    resolution: {integrity: sha512-gyUMq9f+5T3ZvmkjWy+0dzKesaTVN95JdRzjJPW0qKrzFKy/NOqA0wMw9MPraMjTAjHmBhhRA4AwQOnoKztPEw==}
+  vue-i18n@11.4.22:
+    resolution: {integrity: sha512-ATfJU6iSSKnUYXubiwH4oScLYIgM2N3KcoqaUD5v5EM2OANePbON7l7CqWsUQhPNHZvszrk9rItqebr8Vo5A5Q==}
     engines: {node: '>= 22'}
     peerDependencies:
       vue: 3.5.45
@@ -7261,23 +7261,23 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
-  '@intlify/core-base@11.4.20':
+  '@intlify/core-base@11.4.22':
     dependencies:
-      '@intlify/devtools-types': 11.4.20
-      '@intlify/message-compiler': 11.4.20
-      '@intlify/shared': 11.4.20
+      '@intlify/devtools-types': 11.4.22
+      '@intlify/message-compiler': 11.4.22
+      '@intlify/shared': 11.4.22
 
-  '@intlify/devtools-types@11.4.20':
+  '@intlify/devtools-types@11.4.22':
     dependencies:
-      '@intlify/core-base': 11.4.20
-      '@intlify/shared': 11.4.20
+      '@intlify/core-base': 11.4.22
+      '@intlify/shared': 11.4.22
 
-  '@intlify/message-compiler@11.4.20':
+  '@intlify/message-compiler@11.4.22':
     dependencies:
-      '@intlify/shared': 11.4.20
+      '@intlify/shared': 11.4.22
       source-map-js: 1.2.2
 
-  '@intlify/shared@11.4.20': {}
+  '@intlify/shared@11.4.22': {}
 
   '@isaacs/nonrecursive-glob-match@1.0.3': {}
 
@@ -7661,7 +7661,7 @@ snapshots:
       '@mlightcad/mtext-parser': 1.5.7
       '@mlightcad/mtext-renderer': 0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0)
 
-  '@mlightcad/cad-viewer@1.7.8(ceb6a9bb694f64ddd794822b6e076dc4)':
+  '@mlightcad/cad-viewer@1.7.8(b4b96ca5592a1a390fff0649fec9b2cf)':
     dependencies:
       '@mlightcad/cad-simple-viewer': 1.7.8(@mlightcad/data-model@1.15.21)(@mlightcad/mtext-parser@1.5.7)(@mlightcad/mtext-renderer@0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0))(@mlightcad/three-renderer@1.7.8(@mlightcad/data-model@1.15.21)(@mlightcad/mtext-parser@1.5.7)(@mlightcad/mtext-renderer@0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0))(@velipso/polybool@1.1.1)(three@0.187.0))(lodash-es@4.18.1)(three@0.187.0)
       '@mlightcad/data-model': 1.15.21
@@ -7671,7 +7671,7 @@ snapshots:
       lodash-es: 4.18.1
       three: 0.187.0
       vue: 3.5.45(@typescript/typescript6@6.0.2)
-      vue-i18n: 11.4.20(vue@3.5.45(@typescript/typescript6@6.0.2))
+      vue-i18n: 11.4.22(vue@3.5.45(@typescript/typescript6@6.0.2))
     optionalDependencies:
       '@mlightcad/cad-agent-core': 1.7.8(@mlightcad/cad-script-core@1.7.8(@mlightcad/data-model@1.15.21))(@mlightcad/cad-simple-viewer@1.7.8(@mlightcad/data-model@1.15.21)(@mlightcad/mtext-parser@1.5.7)(@mlightcad/mtext-renderer@0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0))(@mlightcad/three-renderer@1.7.8(@mlightcad/data-model@1.15.21)(@mlightcad/mtext-parser@1.5.7)(@mlightcad/mtext-renderer@0.13.7(@mlightcad/mtext-parser@1.5.7)(three@0.187.0))(@velipso/polybool@1.1.1)(three@0.187.0))(lodash-es@4.18.1)(three@0.187.0))(@mlightcad/data-model@1.15.21)
       '@mlightcad/cad-agent-plugin': 1.7.8(b4c9b0f449cd511e93dcd6df203ea3fd)
@@ -8649,7 +8649,7 @@ snapshots:
 
   '@vue/shared@3.5.45': {}
 
-  '@vue/test-utils@2.5.1(@vue/compiler-dom@3.5.45)(@vue/server-renderer@3.5.45)(vue@3.5.45(@typescript/typescript6@6.0.2))':
+  '@vue/test-utils@2.6.0(@vue/compiler-dom@3.5.45)(@vue/server-renderer@3.5.45)(vue@3.5.45(@typescript/typescript6@6.0.2))':
     dependencies:
       '@vue/compiler-dom': 3.5.45
       js-beautify: 2.0.3
@@ -11910,11 +11910,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  vue-i18n@11.4.20(vue@3.5.45(@typescript/typescript6@6.0.2)):
+  vue-i18n@11.4.22(vue@3.5.45(@typescript/typescript6@6.0.2)):
     dependencies:
-      '@intlify/core-base': 11.4.20
-      '@intlify/devtools-types': 11.4.20
-      '@intlify/shared': 11.4.20
+      '@intlify/core-base': 11.4.22
+      '@intlify/devtools-types': 11.4.22
+      '@intlify/shared': 11.4.22
       '@vue/devtools-api': 6.6.4
       vue: 3.5.45(@typescript/typescript6@6.0.2)
 
