@@ -1,3 +1,9 @@
+# [1.21.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.20.0...v1.21.0) (2026-11-18)
+
+### Bug Fixes
+
+* **deps:** drop the unused vue-router dependency to clear the picomatch advisory ([7d5df0e](https://github.com/ashcoft/nextcloud-cad-viewer/commit/7d5df0ea1a25cb69ea670c3e54f1a92d3c8d81ef)), closes [#37](https://github.com/ashcoft/nextcloud-cad-viewer/issues/37)
+
 # [1.20.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.19.0...v1.20.0) (2026-11-18)
 
 ### Bug Fixes
