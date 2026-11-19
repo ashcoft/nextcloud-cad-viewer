@@ -1,3 +1,9 @@
+# [1.22.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.21.0...v1.22.0) (2026-11-19)
+
+### Bug Fixes
+
+* **deps:** keep main's lockfile for the libredwg-converter 3.15.30 bump ([b36e5f6](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b36e5f60a0ffdb3c7e2d13753078b2040b55cfc6))
+
 # [1.21.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.20.0...v1.21.0) (2026-11-18)
 
 ### Bug Fixes
