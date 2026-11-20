@@ -346,13 +346,13 @@ importers:
         version: 4.0.0(webpack@5.113.0)
       stylelint:
         specifier: ^18.0.0
-        version: 18.0.0
+        version: 18.1.0
       stylelint-config-standard:
         specifier: ^41.0.0
-        version: 41.0.0(stylelint@18.0.0)
+        version: 41.0.0(stylelint@18.1.0)
       stylelint-config-standard-vue:
         specifier: ^2.0.0
-        version: 2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint-config-html@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.0.0))(stylelint-config-recommended-vue@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint-config-html@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.0.0))(stylelint-config-recommended@19.0.0(stylelint@18.0.0))(stylelint@18.0.0))(stylelint-config-standard@41.0.0(stylelint@18.0.0))(stylelint@18.0.0)
+        version: 2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint-config-html@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.1.0))(stylelint-config-recommended-vue@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint-config-html@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.1.0))(stylelint-config-recommended@19.0.0(stylelint@18.1.0))(stylelint@18.1.0))(stylelint-config-standard@41.0.0(stylelint@18.1.0))(stylelint@18.1.0)
       ts-loader:
         specifier: ^9.6.2
         version: 9.6.2(@typescript/typescript6@6.0.2)(webpack@5.113.0)
@@ -3097,8 +3097,8 @@ packages:
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
 
-  colord@2.10.0:
-    resolution: {integrity: sha512-AidJptpBJmjTclAp9BkLwJi0T93fo5epJnbaZslpg6QVzpHjAiveF55mE9AcUJiGMqRHgMDY8soMsQtuNYMHfw==}
+  colord@2.14.0:
+    resolution: {integrity: sha512-eSdMel9EBvdFxnchObp7gljRoqYQLr+zXhaxjkym7syVphw1FIhfQwgsA5Bv3jArflZPJEa1rmQtGpa7NRc7Rw==}
 
   combined-stream@1.0.8:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
@@ -4859,6 +4859,10 @@ packages:
     resolution: {integrity: sha512-wWBro/7hJ40ye6TPiXkUQoXKCw23xSsjriUvqd7Uls9Sso3oLiON1flc18cCdnjgCRXw4fBVqUJJeOdDTh3P3g==}
     engines: {node: '>=4'}
 
+  postcss-selector-parser@7.2.1:
+    resolution: {integrity: sha512-GwxlMgTTXwIom+ebC7an3k6RaJDwklRQQnfiXsLPGicu8FYV/k/+1/9YY2OU2+r938H2t4X0TDxoif+HP2rjzQ==}
+    engines: {node: '>=4'}
+
   postcss-value-parser@4.2.0:
     resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
 
@@ -5273,8 +5277,8 @@ packages:
     peerDependencies:
       stylelint: ^18.0.0
 
-  stylelint@18.0.0:
-    resolution: {integrity: sha512-kI10GsHXQvsH/AcklVZdQgwDuxtHi+A+h1Ujzd7h9LDf3e5jQiLQkWFlPtpynX3E6oVWHG1wo9v6dL0Mr+nnSA==}
+  stylelint@18.1.0:
+    resolution: {integrity: sha512-QbF/IY7KY6lZRhYU/vmPU1KYxc71wgkXdgeptqzTh3lbnZps6WHaskfPjpL6Fh4JaCzwkKKitVcMrpfQTSwwPA==}
     engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
     hasBin: true
 
@@ -7004,13 +7008,13 @@ snapshots:
       '@csstools/css-parser-algorithms': 4.0.2(@csstools/css-tokenizer@4.0.2)
       '@csstools/css-tokenizer': 4.0.2
 
-  '@csstools/selector-resolve-nested@4.0.2(postcss-selector-parser@7.1.7)':
+  '@csstools/selector-resolve-nested@4.0.2(postcss-selector-parser@7.2.1)':
     dependencies:
-      postcss-selector-parser: 7.1.7
+      postcss-selector-parser: 7.2.1
 
-  '@csstools/selector-specificity@6.0.1(postcss-selector-parser@7.1.7)':
+  '@csstools/selector-specificity@6.0.1(postcss-selector-parser@7.2.1)':
     dependencies:
-      postcss-selector-parser: 7.1.7
+      postcss-selector-parser: 7.2.1
 
   '@ctrl/tinycolor@4.2.1': {}
 
@@ -9055,7 +9059,7 @@ snapshots:
 
   color-name@1.1.4: {}
 
-  colord@2.10.0: {}
+  colord@2.14.0: {}
 
   combined-stream@1.0.8:
     dependencies:
@@ -10939,6 +10943,10 @@ snapshots:
       cssesc: 3.0.0
       util-deprecate: 1.0.2
 
+  postcss-selector-parser@7.2.1:
+    dependencies:
+      util-deprecate: 1.0.2
+
   postcss-value-parser@4.2.0: {}
 
   postcss@8.5.26:
@@ -11290,46 +11298,46 @@ snapshots:
   style-mod@4.1.4:
     optional: true
 
-  stylelint-config-html@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.0.0):
+  stylelint-config-html@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.1.0):
     dependencies:
       postcss-html: 2.0.1(postcss@8.5.26)
-      stylelint: 18.0.0
+      stylelint: 18.1.0
 
-  stylelint-config-recommended-vue@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint-config-html@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.0.0))(stylelint-config-recommended@19.0.0(stylelint@18.0.0))(stylelint@18.0.0):
+  stylelint-config-recommended-vue@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint-config-html@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.1.0))(stylelint-config-recommended@19.0.0(stylelint@18.1.0))(stylelint@18.1.0):
     dependencies:
       postcss-html: 2.0.1(postcss@8.5.26)
       semver: 7.8.5
-      stylelint: 18.0.0
-      stylelint-config-html: 2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.0.0)
-      stylelint-config-recommended: 19.0.0(stylelint@18.0.0)
+      stylelint: 18.1.0
+      stylelint-config-html: 2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.1.0)
+      stylelint-config-recommended: 19.0.0(stylelint@18.1.0)
 
-  stylelint-config-recommended@19.0.0(stylelint@18.0.0):
+  stylelint-config-recommended@19.0.0(stylelint@18.1.0):
     dependencies:
-      stylelint: 18.0.0
+      stylelint: 18.1.0
 
-  stylelint-config-standard-vue@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint-config-html@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.0.0))(stylelint-config-recommended-vue@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint-config-html@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.0.0))(stylelint-config-recommended@19.0.0(stylelint@18.0.0))(stylelint@18.0.0))(stylelint-config-standard@41.0.0(stylelint@18.0.0))(stylelint@18.0.0):
+  stylelint-config-standard-vue@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint-config-html@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.1.0))(stylelint-config-recommended-vue@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint-config-html@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.1.0))(stylelint-config-recommended@19.0.0(stylelint@18.1.0))(stylelint@18.1.0))(stylelint-config-standard@41.0.0(stylelint@18.1.0))(stylelint@18.1.0):
     dependencies:
       postcss-html: 2.0.1(postcss@8.5.26)
-      stylelint: 18.0.0
-      stylelint-config-html: 2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.0.0)
-      stylelint-config-recommended-vue: 2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint-config-html@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.0.0))(stylelint-config-recommended@19.0.0(stylelint@18.0.0))(stylelint@18.0.0)
-      stylelint-config-standard: 41.0.0(stylelint@18.0.0)
+      stylelint: 18.1.0
+      stylelint-config-html: 2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.1.0)
+      stylelint-config-recommended-vue: 2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint-config-html@2.0.0(postcss-html@2.0.1(postcss@8.5.26))(stylelint@18.1.0))(stylelint-config-recommended@19.0.0(stylelint@18.1.0))(stylelint@18.1.0)
+      stylelint-config-standard: 41.0.0(stylelint@18.1.0)
 
-  stylelint-config-standard@41.0.0(stylelint@18.0.0):
+  stylelint-config-standard@41.0.0(stylelint@18.1.0):
     dependencies:
-      stylelint: 18.0.0
-      stylelint-config-recommended: 19.0.0(stylelint@18.0.0)
+      stylelint: 18.1.0
+      stylelint-config-recommended: 19.0.0(stylelint@18.1.0)
 
-  stylelint@18.0.0:
+  stylelint@18.1.0:
     dependencies:
       '@csstools/css-calc': 3.4.3(@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2))(@csstools/css-tokenizer@4.0.2)
       '@csstools/css-parser-algorithms': 4.0.2(@csstools/css-tokenizer@4.0.2)
       '@csstools/css-syntax-patches-for-csstree': 1.1.16(css-tree@3.2.1)
       '@csstools/css-tokenizer': 4.0.2
       '@csstools/media-query-list-parser': 5.0.2(@csstools/css-parser-algorithms@4.0.2(@csstools/css-tokenizer@4.0.2))(@csstools/css-tokenizer@4.0.2)
-      '@csstools/selector-resolve-nested': 4.0.2(postcss-selector-parser@7.1.7)
-      '@csstools/selector-specificity': 6.0.1(postcss-selector-parser@7.1.7)
-      colord: 2.10.0
+      '@csstools/selector-resolve-nested': 4.0.2(postcss-selector-parser@7.2.1)
+      '@csstools/selector-specificity': 6.0.1(postcss-selector-parser@7.2.1)
+      colord: 2.14.0
       cosmiconfig: 10.0.1
       css-tree: 3.2.1
       ignore: 7.0.14
@@ -11337,7 +11345,7 @@ snapshots:
       picomatch: 4.0.7
       postcss: 8.5.26
       postcss-safe-parser: 7.1.0(postcss@8.5.26)
-      postcss-selector-parser: 7.1.7
+      postcss-selector-parser: 7.2.1
       postcss-value-parser: 4.2.0
       tinyglobby: 0.2.17
       write-file-atomic: 8.0.0
