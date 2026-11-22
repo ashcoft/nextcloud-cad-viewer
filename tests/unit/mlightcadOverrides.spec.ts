@@ -22,26 +22,50 @@ const lockfileSource = readFileSync(resolve(__dirname, '../../pnpm-lock.yaml'), 
 
 const PACKAGES = ['@mlightcad/data-model', '@mlightcad/libredwg-converter'] as const
 
+/**
+ * The value of `key` in a YAML/JSON-ish text block: the first line that starts
+ * with the quoted key, split on the colon. Avoids building regexes from
+ * interpolated values.
+ */
+function valueFor(source: string, key: string): string {
+  const prefix = `'${key}':`
+  const quoted = `"${key}":`
+  const line = source
+    .split('\n')
+    .map((candidate) => candidate.trim())
+    .find((candidate) => candidate.startsWith(prefix) || candidate.startsWith(quoted))
+
+  expect(line).toBeDefined()
+  const [, rawValue = ''] = line!.split(':')
+  return rawValue.trim().replace(/^["']|["',]+$/g, '').replace(/^[\^~>=]+/, '')
+}
+
 /** The exact version package.json pins for `name`. */
 function manifestVersion(name: string): string {
-  const match = manifestSource.match(new RegExp(`"${name}":\\s*"([^"]+)"`))
-  expect(match).not.toBeNull()
-  return match![1].replace(/^[\^~>=]+/, '')
+  return valueFor(manifestSource, name)
 }
 
 /** The version the pnpm-workspace.yaml override pins for `name`. */
 function overrideVersion(name: string): string {
-  const match = workspaceSource.match(new RegExp(`'${name}':\\s*'([^']+)'`))
-  expect(match).not.toBeNull()
-  return match![1].replace(/^[\^~>=]+/, '')
+  return valueFor(workspaceSource, name)
 }
 
-/** Every `<name>@<version>` key the lockfile resolves. */
+/**
+ * Every version the lockfile resolves for `name`, taken from the
+ * two-space-indented package keys. Keys look like
+ * `  '@mlightcad/data-model@1.15.30':` or, when the package has peers,
+ * `  '@mlightcad/libredwg-converter@3.15.30(@mlightcad/data-model@1.15.30)':`.
+ * Only the version right after the package name is wanted, so the rest of the
+ * key (including any peer suffix) is discarded.
+ */
 function resolvedVersions(name: string): string[] {
-  const escaped = name.replace(/[/@]/g, (c) => `\\${c}`)
-  return [...lockfileSource.matchAll(new RegExp(`^\\s+'?${escaped}@(\\d+\\.\\d+\\.\\d+)`, 'gm'))].map(
-    (match) => match[1],
-  )
+  const marker = `${name}@`
+  return lockfileSource
+    .split('\n')
+    .filter((line) => line.startsWith(`  ${name}@`) || line.startsWith(`  '${name}@`))
+    .map((line) => line.slice(line.indexOf(marker) + marker.length))
+    .map((rest) => rest.split(/[(,:'\s]/)[0])
+    .filter(Boolean)
 }
 
 describe.each(PACKAGES)('%s override', (name) => {
