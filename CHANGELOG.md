@@ -1,3 +1,9 @@
+# [1.24.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.23.0...v1.24.0) (2026-11-22)
+
+### Bug Fixes
+
+* **deps:** move the mlightcad overrides to 1.15.30 / 3.15.30 so the bumps take effect ([e50c22b](https://github.com/ashcoft/nextcloud-cad-viewer/commit/e50c22b24613db047bb1b62ddc70c96dd6f0a0ac)), closes [#1691](https://github.com/ashcoft/nextcloud-cad-viewer/issues/1691) [#1722](https://github.com/ashcoft/nextcloud-cad-viewer/issues/1722)
+
 # [1.23.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.22.0...v1.23.0) (2026-11-20)
 
 ### Bug Fixes
