@@ -1,3 +1,9 @@
+# [1.26.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.25.0...v1.26.0) (2026-11-26)
+
+### Bug Fixes
+
+* **deps:** move the mlightcad overrides to 1.16.0 so the libredwg bump takes effect ([ed6ef1e](https://github.com/ashcoft/nextcloud-cad-viewer/commit/ed6ef1e766d198964a0a25bec5ce81064a1a6f03))
+
 # [1.25.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.24.0...v1.25.0) (2026-11-22)
 
 ### Bug Fixes
