@@ -1,3 +1,9 @@
+# [1.28.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.27.0...v1.28.0) (2026-11-27)
+
+### Bug Fixes
+
+* **deps:** pin the @mlightcad/data-model override to 1.16.3 ([b04b4ef](https://github.com/ashcoft/nextcloud-cad-viewer/commit/b04b4efbe2cfab15c38cfcdc52c831087943b48f))
+
 # [1.27.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.26.0...v1.27.0) (2026-11-26)
 
 ### Bug Fixes
