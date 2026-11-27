@@ -1,3 +1,9 @@
+# [1.29.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.28.0...v1.29.0) (2026-11-27)
+
+### Bug Fixes
+
+* **deps:** pin the @mlightcad/libredwg-converter override to 3.16.3 ([ad88857](https://github.com/ashcoft/nextcloud-cad-viewer/commit/ad8885721628964ea2fef401a2f264a31208c1c2))
+
 # [1.28.0](https://github.com/ashcoft/nextcloud-cad-viewer/compare/v1.27.0...v1.28.0) (2026-11-27)
 
 ### Bug Fixes
