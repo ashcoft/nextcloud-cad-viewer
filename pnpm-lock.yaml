@@ -185,7 +185,7 @@ overrides:
   dompurify: 3.5.0
   brace-expansion@<2.1.2: 5.1.0
   '@mlightcad/data-model': 1.16.3
-  '@mlightcad/libredwg-converter': 3.16.0
+  '@mlightcad/libredwg-converter': 3.16.3
   '@mlightcad/mtext-input-box': 0.3.6
   '@mlightcad/mtext-renderer': 0.13.7
   '@mlightcad/ribbon': 0.1.13
@@ -234,8 +234,8 @@ importers:
         specifier: 1.16.3
         version: 1.16.3
       '@mlightcad/libredwg-converter':
-        specifier: 3.16.0
-        version: 3.16.0(@mlightcad/data-model@1.16.3)
+        specifier: 3.16.3
+        version: 3.16.3(@mlightcad/data-model@1.16.3)
       '@nextcloud/axios':
         specifier: ^2.0.0
         version: 2.6.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
@@ -1692,8 +1692,8 @@ packages:
       '@mlightcad/common': ^1.16.5
       '@mlightcad/geometry-engine': ^3.16.5
 
-  '@mlightcad/libredwg-converter@3.16.0':
-    resolution: {integrity: sha512-BauzVwe8BIZ9SpvCz6ExNaBjxfaZdOMwl96l9KRs79UAYaxH8UAB5YZFJ+eLV48gxVpoc5hJxyrd9wd3cyMdMg==}
+  '@mlightcad/libredwg-converter@3.16.3':
+    resolution: {integrity: sha512-k2j9ZvLPc7YnRDXyIN7tdnpqsT3Ct5twfplLDS9R03p3arcg+fC5lafKfxvbpkixpzxBkO2VsRSCqRF9J6Wr8w==}
     peerDependencies:
       '@mlightcad/data-model': 1.16.3
 
@@ -4339,7 +4339,7 @@ packages:
       html-minifier-terser: '*'
       imagemin: '*'
       lightningcss: '*'
-      postcss: '*'
+      postcss: ^8.5.23
       sharp: '*'
       svgo: '*'
       uglify-js: '*'
@@ -5569,7 +5569,7 @@ packages:
     resolution: {integrity: sha512-yTKOA4R/VN4jqjw4y5HrynFL8AK0Z3/Jt7eOJXEitsm0GMRHDBjCfCiuTiLP7OESvsZYo2pATCWhDqxC5ZrM6w==}
     peerDependencies:
       '@vue/compiler-sfc': '*'
-      vue: '*'
+      vue: 3.5.45
       webpack: ^4.1.0 || ^5.0.0-0
     peerDependenciesMeta:
       '@vue/compiler-sfc':
@@ -7400,7 +7400,7 @@ snapshots:
       '@mlightcad/common': 1.16.5
       '@mlightcad/geometry-engine': 3.16.5(@mlightcad/common@1.16.5)
 
-  '@mlightcad/libredwg-converter@3.16.0(@mlightcad/data-model@1.16.3)':
+  '@mlightcad/libredwg-converter@3.16.3(@mlightcad/data-model@1.16.3)':
     dependencies:
       '@mlightcad/data-model': 1.16.3
       '@mlightcad/libredwg-web': 0.9.3
