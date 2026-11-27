@@ -24,7 +24,7 @@ overrides:
   'dompurify': '3.5.0'
   'brace-expansion@<2.1.2': '5.1.0'
   '@mlightcad/data-model': '1.16.3'
-  '@mlightcad/libredwg-converter': '3.16.0'
+  '@mlightcad/libredwg-converter': '3.16.3'
   '@mlightcad/mtext-input-box': '0.3.6'
   '@mlightcad/mtext-renderer': '0.13.7'
   '@mlightcad/ribbon': '0.1.13'
